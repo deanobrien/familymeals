@@ -18,7 +18,7 @@ pnpm workspace + Turborepo. Scope `@fr/*`. Packages export TS source directly (`
 
 - `apps/web` - Next.js App Router, strict TS
 - `packages/domain` - zod types/contracts (lane L1)
-- `packages/engine` - pure TS calculations (units, scale, aggregate, cost, nutrition, planner, receipt-match)
+- `packages/engine` - `@fr/engine`, pure TS, subpath exports `./units ./parse ./normalise ./scale ./aggregate ./cost ./nutrition ./planner ./receipt-match ./shopping ./pantry` (root export = L3 core). One shared `src/contract.ts` (CONTRACT-SEED copy; TODO re-export `@fr/domain`). Production unit conversion goes through `src/units/converter.ts` (`createQuantityConverter`, `createGramsConverter`) over L3 `convertQuantity`; pint = 568.26125 ml. Ranges: cost = max, nutrition = midpoint (estimate). Tests in `packages/engine/test/<module>/`; coverage thresholds (`pnpm --filter @fr/engine coverage`) apply to the L3 core dirs
 - `packages/ai` - AI provider interface, Claude adapter, mock (SERVER-ONLY; `import 'server-only'` guard, ESLint blocks imports from apps/web outside `app/api/**` and `lib/server/**`)
 - `packages/ui` - `@fr/ui` design tokens + components (plain CSS, Radix dialog/tabs); `pnpm --filter @fr/ui demo` runs the Vite demo
 - `packages/db` - generated DB types (migrations live in `supabase/migrations`)
@@ -29,7 +29,7 @@ Directory ownership per lane: see the parallel plan.
 
 ## Current state
 
-**Wave 0a done**; **merge batch 1 done** (uncommitted on branch `prj018/w0a-skeleton`): L2a `@fr/ui`, L4 `@fr/ai`, L5 `@fr/refdata`, L6 fixtures/specs in `e2e/`, and the app shell wired in `apps/web`. install/build/typecheck/lint/test/test:e2e all green. Still to merge: L1 (domain/db/supabase), L3 (engine) and the engine sub-lanes (L7-L10, L17a). `@fr/ui` keeps local `ValueStatus`/`PriceKind` copies (TODO swap to `@fr/domain`). See `IMPLEMENTATION_PLAN.md`, `DECISIONS.md` (D8-D14) and `claude/status-and-next-steps.md`.
+**Wave 0a done**; **merge batch 1 done** (uncommitted on branch `prj018/w0a-skeleton`): L2a `@fr/ui`, L4 `@fr/ai`, L5 `@fr/refdata`, L6 fixtures/specs in `e2e/`, and the app shell wired in `apps/web`. install/build/typecheck/lint/test/test:e2e all green. **Merge batch 2 (engine) done**: L3 core + L7 cost, L8 nutrition, L9 planner, L10 receipt-match, L17a shopping, L22a pantry merged into `@fr/engine` (743 tests incl. refdata integration pipeline). Still to merge: L1 (domain/db/supabase), then swap engine/ui local contract copies for `@fr/domain`. `@fr/ui` keeps local `ValueStatus`/`PriceKind` copies (TODO swap to `@fr/domain`). See `IMPLEMENTATION_PLAN.md`, `DECISIONS.md` (D8-D15) and `claude/status-and-next-steps.md`.
 
 ## Links
 

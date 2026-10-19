@@ -6,6 +6,7 @@ export default tseslint.config(
   {
     ignores: [
       '**/node_modules/**',
+      '.claude/**',
       '**/.next/**',
       '**/.turbo/**',
       '**/dist/**',
@@ -45,5 +46,20 @@ export default tseslint.config(
     // The Anthropic SDK adapter and its test doubles deliberately use loose typing at the SDK boundary.
     files: ['packages/ai/**/*.ts'],
     rules: { '@typescript-eslint/no-explicit-any': 'off' },
+  },
+  {
+    // Engine purity: no Node built-ins or server-only deps in shipped engine code (tests may use them).
+    files: ['packages/engine/src/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            { group: ['node:*'], message: '@fr/engine is pure: no node: imports.' },
+            { group: ['sharp', '@fr/ai', '@fr/ai/*'], message: '@fr/engine must not depend on server-only packages.' },
+          ],
+        },
+      ],
+    },
   },
 );

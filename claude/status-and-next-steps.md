@@ -4,6 +4,8 @@
 
 Verified by running (batch 1): install, build, typecheck, lint, test (10 turbo tasks), `pnpm test:e2e` (7 passed, 86 fixme-skipped).
 
+**Merge batch 2 (engine)**: `@fr/engine` now holds L3, L7, L8, L9, L10, L17a, L22a (743 tests). Local UnitConverter variants replaced by `src/units/converter.ts`; L7 now treats a unitless count as `item` (priceable via unit weight, e.g. '2 carrots'). Open: swap `src/contract.ts` for `@fr/domain` after L1; receipt shape adaptation (INTEGRATION-NOTES section 1); PlanConstraints single schema.
+
 ## Next
 
 1. Review and commit W0a (owner decision), then fan out Wave 0b lanes L1-L6 in worktrees.

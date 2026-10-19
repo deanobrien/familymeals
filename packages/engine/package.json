@@ -1,20 +1,41 @@
 {
   "name": "@fr/engine",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
+  "description": "PRJ-018 pure, deterministic engine: units, parse, normalise, scale, aggregate, cost, nutrition, planner, receipt-match, shopping, pantry.",
   "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./units": "./src/units/index.ts",
+    "./parse": "./src/parse/index.ts",
+    "./normalise": "./src/normalise/index.ts",
+    "./scale": "./src/scale/index.ts",
+    "./aggregate": "./src/aggregate/index.ts",
+    "./cost": "./src/cost/index.ts",
+    "./nutrition": "./src/nutrition/index.ts",
+    "./planner": "./src/planner/index.ts",
+    "./receipt-match": "./src/receipt-match/index.ts",
+    "./shopping": "./src/shopping/index.ts",
+    "./pantry": "./src/pantry/index.ts"
   },
+  "sideEffects": false,
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "typecheck": "tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@fr/refdata": "workspace:*",
+    "@types/node": "^22.10.2",
+    "@vitest/coverage-v8": "2.1.9",
+    "fast-check": "^3.23.2",
     "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.9"
   }
 }

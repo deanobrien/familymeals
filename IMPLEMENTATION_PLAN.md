@@ -7,7 +7,7 @@ Merge order within a wave: contracts/packages before apps.
 - [x] **W0a** L0 Skeleton (monorepo, Next.js, Vitest, Playwright, ESLint/Prettier, `.env.example`, Supabase config, docs)
 - [ ] W0b L1 Schema & contracts (schema v1, RLS, private buckets, zod types, generated DB types)
 - [~] W0b L2 Shell & design system (L2a UI kit + app shell merged 2026-10-19; remaining L2 work pending)
-- [ ] W0b L3 Engine core (units, scale, aggregate)
+- [x] W0b L3 Engine core (units, parse, normalise, scale, aggregate; merged, merge batch 2, 350 tests)
 - [x] W0b L4 AI gateway (merged, merge batch 1)
 - [x] W0b L5 Reference data (merged, merge batch 1)
 - [~] W0b L6 QA harness: fixtures + e2e specs merged (merge batch 1); RLS tests + CI wiring pending
@@ -18,10 +18,10 @@ Merge order within a wave: contracts/packages before apps.
 - [ ] L11 Auth & household
 - [ ] L12 Recipe library
 - [ ] L13 Recipe extraction
-- [ ] L7 Cost engine
-- [ ] L8 Nutrition engine
-- [ ] L9 Planner solver
-- [ ] L10 Receipt matcher
+- [x] L7 Cost engine (engine code merged, merge batch 2; UI/wiring pending)
+- [x] L8 Nutrition engine (engine code merged, merge batch 2)
+- [x] L9 Planner solver (engine code merged, merge batch 2)
+- [x] L10 Receipt matcher (engine code merged, merge batch 2)
 - [ ] **Gate G1**: M1 + M2 + M3 acceptance
 
 ## Wave 2 - Composition (needs G1)
