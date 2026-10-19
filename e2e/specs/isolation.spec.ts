@@ -130,6 +130,30 @@ test.describe('Household isolation', () => {
     } finally { await a.context.close(); await b.context.close(); }
   });
 
-  // Cross-household checks that need real memberships (recipes library/search, Realtime, removed member, expired /
+  test('B cannot see A recipes in library or search', async ({ browser }) => {
+    const a = await household(browser, 'a');
+    const b = await household(browser, 'b');
+    try {
+      await a.page.goto('/recipes/' + SEED.pasta);
+      await a.page.getByRole('button', { name: 'Duplicate' }).click();
+      await expect(a.page.getByRole('heading', { level: 1, name: /\(copy\)$/ })).toBeVisible();
+      const copyPath = new URL(a.page.url()).pathname;
+      const copies = (p: Page) => p.getByRole('list', { name: 'Recipes', exact: true }).getByRole('link').filter({ hasText: '(copy)' });
+      await a.page.goto('/recipes?q=copy');
+      await expect(copies(a.page)).toHaveCount(1);
+
+      await b.page.goto('/recipes?q=copy');
+      await expect(b.page.getByRole('heading', { level: 1, name: 'Recipes' })).toBeVisible();
+      await expect(copies(b.page)).toHaveCount(0);
+      await b.page.goto(copyPath); // not-found renders inside a streamed (200) shell, so assert on content
+      await expect(b.page.getByRole('heading', { level: 1, name: /\(copy\)$/ })).toHaveCount(0);
+      await expect(b.page.getByRole('button', { name: 'Duplicate' })).toHaveCount(0);
+      // B still has its own copy of the seed library
+      await b.page.goto('/recipes/' + SEED.pasta);
+      await expect(b.page.getByRole('heading', { level: 1, name: 'Sunday Tomato Pasta' })).toBeVisible();
+    } finally { await a.context.close(); await b.context.close(); }
+  });
+
+  // Cross-household checks that need real memberships (Realtime, removed member, expired /
   // revoked invites) run against a local Supabase stack in e2e/live/ (`pnpm test:e2e:live`, D143).
 });

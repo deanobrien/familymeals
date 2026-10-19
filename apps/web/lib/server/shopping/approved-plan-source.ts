@@ -1,5 +1,5 @@
 import 'server-only';
-import { getRecipeRepository } from '../../recipes/factory';
+import { getRecipeRepositoryFor } from '../../recipes/factory';
 import type { RecipeRepository } from '../../recipes/repository';
 import type { PlanRequirements } from '../../shopping/types';
 import { getMealPlanStore, type MealPlanRepository } from '../plan/repository';
@@ -11,7 +11,8 @@ import type { RequirementSource } from './requirement-source';
 export class ApprovedPlanRequirementSource implements RequirementSource {
   constructor(
     private readonly plans: Pick<MealPlanRepository, 'get'>,
-    private readonly recipes: Pick<RecipeRepository, 'get'>,
+    /** Injected in tests; by default each household's own library. */
+    private readonly recipes?: Pick<RecipeRepository, 'get'>,
     private readonly catalogue = getIngredientCatalogue(),
   ) {}
 
@@ -19,10 +20,10 @@ export class ApprovedPlanRequirementSource implements RequirementSource {
     if (!/^[\w-]{1,64}$/.test(planId)) return null;
     const doc = await this.plans.get(householdId, planId);
     if (!doc || doc.status !== 'approved') return null;
-    return requirementsForPlan(doc, this.recipes, this.catalogue);
+    return requirementsForPlan(doc, this.recipes ?? getRecipeRepositoryFor(householdId), this.catalogue);
   }
 }
 
 export function getRequirementSource(): RequirementSource {
-  return new ApprovedPlanRequirementSource(getMealPlanStore(), getRecipeRepository());
+  return new ApprovedPlanRequirementSource(getMealPlanStore());
 }

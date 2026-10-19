@@ -1,7 +1,7 @@
 // Accessibility (axe-core) + responsive checks across key routes at 375 / 768 / 1280, in mock-auth mode (every
 // route is open as the demo user, in an isolated sandbox household so the shopping page has a generated list).
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { SEED, enterHousehold, newHouseholdId, seedApprovedPlan } from '../support/helpers.js';
 
 export const VIEWPORTS = [
@@ -16,7 +16,19 @@ export const ROUTES = ['/', '/sign-in', '/household', '/recipes', '/recipes/impo
 const KNOWN_AXE: Record<string, string[]> = {};
 /** Known app bugs, asserted with test.fail() so the suite turns red when they are fixed (then remove the entry). */
 const KNOWN_OVERFLOW: string[] = [];
-const KNOWN_SMALL_TARGETS: string[] = ['/sign-in', '/recipes'];
+
+/** Interactive controls under 44px in either dimension (custom checkboxes count by their label). */
+function smallTargets(page: Page): Promise<string[]> {
+  return page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>('button, a:not([href="#main"]), input:not([type=file]), select, [role=checkbox]')]
+      .map((e) => {
+        // custom checkboxes hide the native input; the tappable area is its label
+        const t = e instanceof HTMLInputElement && (e.type === 'checkbox' || e.type === 'radio') ? (e.closest('label') ?? e) : e;
+        return { e, r: t.getBoundingClientRect() };
+      })
+      .filter(({ r }) => r.width > 0 && r.height > 0 && (r.height < 44 || r.width < 44))
+      .map(({ e }) => `${e.tagName.toLowerCase()}:${(e.getAttribute('aria-label') ?? e.textContent ?? '').trim().slice(0, 30)}`));
+}
 
 for (const vp of VIEWPORTS) {
   test.describe(`a11y + layout @ ${vp.name} ${vp.width}px`, () => {
@@ -52,24 +64,22 @@ for (const vp of VIEWPORTS) {
 
       if (vp.width <= 375) {
         test(`${route}: tap targets >= 44px on mobile`, async ({ page }) => {
-          test.fail(KNOWN_SMALL_TARGETS.includes(route), 'BUG: interactive controls smaller than 44px (see lane report)');
           await page.goto(route);
           await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
-          const small = await page.evaluate(() =>
-            [...document.querySelectorAll<HTMLElement>('button, a:not([href="#main"]), input:not([type=file]), select, [role=checkbox]')]
-              .map((e) => {
-                // custom checkboxes hide the native input; the tappable area is its label
-                const t = e instanceof HTMLInputElement && (e.type === 'checkbox' || e.type === 'radio') ? (e.closest('label') ?? e) : e;
-                return { e, r: t.getBoundingClientRect() };
-              })
-              .filter(({ r }) => r.width > 0 && r.height > 0 && (r.height < 44 || r.width < 44))
-              .map(({ e }) => `${e.tagName.toLowerCase()}:${(e.getAttribute('aria-label') ?? e.textContent ?? '').trim().slice(0, 30)}`));
-          // BUG (reported): the Home "Plan dinners for ..." call-to-action link is under 44px; it only renders once the
-          // household has plan data, so it is ignored here instead of using test.fail (which would flake on shared state).
-          const real = small.filter((s) => !s.startsWith('a:Plan dinners'));
-          expect(real, real.join(' | ')).toEqual([]);
+          const small = await smallTargets(page);
+          expect(small, small.join(' | ')).toEqual([]);
         });
       }
+    }
+
+    if (vp.width <= 375) {
+      test('/ with To do tasks (demo household A): tap targets >= 44px on mobile', async ({ context, page }) => {
+        await context.clearCookies(); // back to the seeded demo household, whose dashboard has task links
+        await page.goto('/');
+        await expect(page.getByRole('link', { name: /^Plan dinners for/ })).toBeVisible();
+        const small = await smallTargets(page);
+        expect(small, small.join(' | ')).toEqual([]);
+      });
     }
 
     test('navigation: bottom bar below 900px, side nav from 900px', async ({ page }) => {

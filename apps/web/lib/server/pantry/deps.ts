@@ -1,5 +1,5 @@
 import 'server-only';
-import { getRecipeRepository } from '../../recipes/factory';
+import { getRecipeRepositoryFor } from '../../recipes/factory';
 import { getAppContext } from '../context';
 import { getIngredientCatalogue } from '../refdata/catalogue';
 import { createSupabasePantryRepository, createSupabasePurchaseEventSource, useSupabaseBackend } from '../supabase/backend';
@@ -30,7 +30,7 @@ export function buildDemoPantryService(now: () => string = nowIso, householdId: 
     repo: supabase
       ? createSupabasePantryRepository()
       : new InMemoryPantryRepository({ householdId, items: seedPantryItems(householdId, start, ingredients) }),
-    recipes: new RepositoryRecipeSummarySource(getRecipeRepository()),
+    recipes: new RepositoryRecipeSummarySource(getRecipeRepositoryFor(householdId)),
     purchases: supabase
       ? createSupabasePurchaseEventSource()
       : new InMemoryPurchaseEventSource(fixturePurchaseRecords(householdId, start, ingredients)),

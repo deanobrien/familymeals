@@ -1,5 +1,5 @@
 import type { FinalisedRecipe, RecipeSummary } from '@fr/recipe-import';
-import { getRecipeRepository } from '../../recipes/factory';
+import { getRecipeRepository, getRecipeRepositoryFor } from '../../recipes/factory';
 import type { RequestAuth } from '../auth/request-auth';
 import { summariserForHousehold } from '../calc/household';
 import { createSupabaseRecipeRepository, useSupabaseBackend } from '../supabase/backend';
@@ -122,15 +122,22 @@ export class RepositoryRecipeSink implements RecipeSink {
  * client and household (a bearer token from the Android app, or the web session), never a shared one; otherwise the
  * process-wide in-memory sink.
  */
-export function recipeSinkFor(auth: Pick<RequestAuth, 'dataContext'>): RecipeSink {
+export function recipeSinkFor(auth: Pick<RequestAuth, 'dataContext'> & Partial<Pick<RequestAuth, 'householdId'>>): RecipeSink {
   const ctx = auth.dataContext;
   if (ctx && useSupabaseBackend()) {
     return new RepositoryRecipeSink(createSupabaseRecipeRepository(async () => ctx, summariserForHousehold));
   }
+  // Memory mode: the household's own library (D160), one sink per household so provenance stays beside its recipes.
+  if (auth.householdId) {
+    const map = (g.__frRecipeSinks ??= new Map<string, RecipeSink>());
+    let sink = map.get(auth.householdId);
+    if (!sink) map.set(auth.householdId, (sink = new RepositoryRecipeSink(getRecipeRepositoryFor(auth.householdId))));
+    return sink;
+  }
   return getRecipeSink();
 }
 
-const g = globalThis as unknown as { __frRecipeSink?: RecipeSink };
+const g = globalThis as unknown as { __frRecipeSink?: RecipeSink; __frRecipeSinks?: Map<string, RecipeSink> };
 /** Process-wide sink over the shared recipe repository (survives Next dev module reloads). */
 export function getRecipeSink(): RecipeSink {
   return (g.__frRecipeSink ??= new RepositoryRecipeSink(getRecipeRepository()));

@@ -22,7 +22,7 @@
 .fr-auth__card p { margin: 0; overflow-wrap: anywhere; }
 /* A1: 44px touch targets on small screens for plain links and disclosure summaries in page content. */
 @media (max-width: 899px) {
-  .fr-root main a:not([class*='fr-']):not(.fr-skip-link) { padding-block: 0.65rem; }
+  .fr-root main a:not([class*='fr-']):not(.fr-skip-link), .fr-auth a:not([class*='fr-']) { padding-block: 0.65rem; display: inline-block; min-height: var(--fr-target); box-sizing: border-box; } /* D162: inline-block so the padding counts toward the link's own box */
   .fr-root main summary { padding-block: 0.65rem; cursor: pointer; }
 }
 @media (prefers-reduced-motion: reduce) {

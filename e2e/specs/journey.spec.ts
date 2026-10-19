@@ -59,9 +59,8 @@ test.describe.serial('Main journey (BRIEF s15)', () => {
     await expect(new RecipeLibraryPage(page).card(SOUP)).toHaveCount(0);
   });
 
-  test('4. correct and save the recipe (edit servings, fix a line, save) and see it in the library', async ({ context, page }) => {
-    // BUG (reported): /api/extract/save rejects sandbox household ids ("Invalid household."), so save runs as demo household A.
-    await context.clearCookies();
+  test('4. correct and save the recipe (edit servings, fix a line, save) and see it in the library', async ({ page }) => {
+    // Saves as the sandbox household (D161): the library the plan step below reads from is this household's own (D160).
     const imp = new RecipeImportPage(page);
     await imp.goto();
     await imp.fileInput().setInputFiles(recipeImg('01-tomato-pasta.png'));
@@ -133,7 +132,7 @@ test.describe.serial('Main journey (BRIEF s15)', () => {
     await expect(list.purchase('Pasta')).toHaveCount(1);
     await expect(page.getByRole('status').filter({ hasText: 'Bought Pasta.' })).toBeVisible();
     await expect(list.progress()).toContainText(/^1 of \d+ items done/);
-    await expect(list.syncIndicator()).toHaveAttribute('data-status', 'synced'); // the server has it before the next step
+    await expect(list.syncIndicator()).toHaveText('All changes saved'); // server-confirmed (data-status stays 'synced' while a tick is still queued) before the next step
   });
 
   test('9. a second session in the household sees the update without reloading (polling sync)', async ({ browser, page }) => {
