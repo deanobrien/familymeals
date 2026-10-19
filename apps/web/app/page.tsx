@@ -142,6 +142,15 @@ function Dashboard({ data }: { data: DashboardData }) {
       </Card>
 
       <Card>
+        <section className={s.card} aria-labelledby="h-scan">
+          <h2 id="h-scan">Update your pantry</h2>
+          <div className={s.row}>
+            <Link className={s.link} href="/pantry/scan">Scan groceries</Link>
+          </div>
+        </section>
+      </Card>
+
+      <Card>
         <section className={s.card} aria-labelledby="h-todo">
           <h2 id="h-todo">To do</h2>
           {tasks.length === 0 ? (

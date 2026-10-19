@@ -14,6 +14,7 @@ export const SRC_GRAIN = 'Typical household cup weight of dry grain/pulse; appro
 export const SRC_SPICE = 'Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx.';
 export const SRC_FAT = 'Typical specific gravity / household cup weight of fats and oils; approx.';
 export const SRC_SYRUP = 'Typical specific gravity of syrups/honey; approx.';
+export const SRC_PASTE = 'Typical household teaspoon/tablespoon weight of a thick paste or sauce; approx.';
 export const SRC_NUT = 'Typical household cup weight of nuts/seeds/dried fruit; approx.';
 
 export type DensityEntry = readonly [name: string, gPerMl: number, source: string];
@@ -129,4 +130,50 @@ export const DENSITIES: readonly DensityEntry[] = [
   ['pumpkin seeds', 0.5, SRC_NUT],
   ['raisins', 0.62, SRC_NUT],
   ['dark chocolate', 0.7, SRC_NUT],
+  // D90 additions
+  ['curry paste', 1.2, SRC_PASTE],
+  ['harissa paste', 1.1, SRC_PASTE],
+  ['garlic puree', 1.05, SRC_PASTE],
+  ['mango chutney', 1.25, SRC_SYRUP],
+  ['pesto', 0.95, SRC_PASTE],
+  ['hummus', 1.05, SRC_PASTE],
+  ['dijon mustard', 1.05, SRC_PASTE],
+  ['english mustard', 1.05, SRC_PASTE],
+  ['miso paste', 1.2, SRC_PASTE],
+  ['yeast extract', 1.35, SRC_PASTE],
+  ['chicken stock powder', 0.6, SRC_SPICE],
+  ['nigella seeds', 0.55, SRC_SPICE],
+  ['cumin seeds', 0.4, SRC_SPICE],
+  ['coriander seeds', 0.3, SRC_SPICE],
+  ['chilli flakes', 0.3, SRC_SPICE],
+  ['ground cloves', 0.45, SRC_SPICE],
+  ['allspice', 0.5, SRC_SPICE],
+  ['white pepper', 0.55, SRC_SPICE],
+  ['sweet chilli sauce', 1.2, SRC_SYRUP],
+  ['hot sauce', 1, SRC_LIQUID],
+  ['fish sauce', 1.15, SRC_LIQUID],
+  ['oyster sauce', 1.2, SRC_SYRUP],
+  ['hoisin sauce', 1.2, SRC_SYRUP],
+  ['brown sauce', 1.2, SRC_SYRUP],
+  ['gravy granules', 0.6, SRC_SPICE],
+  ['chia seeds', 0.65, SRC_NUT],
+  ['flaxseed', 0.6, SRC_NUT],
+  ['cashew nuts', 0.55, SRC_NUT],
+  ['peanuts', 0.6, SRC_NUT],
+  ['pistachios', 0.5, SRC_NUT],
+  ['mixed nuts', 0.55, SRC_NUT],
+  ['bbq sauce', 1.15, SRC_SYRUP],
+  ['horseradish sauce', 1, SRC_LIQUID],
+  ['mint sauce', 1.05, SRC_SYRUP],
+  ['salad cream', 1, SRC_LIQUID],
+  ['tartare sauce', 1, SRC_LIQUID],
+  ['cranberry sauce', 1.25, SRC_SYRUP],
+  ['apple sauce', 1.05, SRC_SYRUP],
+  ['condensed milk', 1.3, SRC_SYRUP],
+  ['evaporated milk', 1.07, SRC_LIQUID],
+  ['ras el hanout', 0.5, SRC_SPICE],
+  ['cajun seasoning', 0.55, SRC_SPICE],
+  ['fajita seasoning', 0.55, SRC_SPICE],
+  ['jerk seasoning', 0.55, SRC_SPICE],
+  ['chinese five spice', 0.5, SRC_SPICE],
 ];

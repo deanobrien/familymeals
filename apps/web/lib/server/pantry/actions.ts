@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import type { ActionResult, IngredientHit, LeftoverView, PantrySettings } from '../../pantry/types';
 import { getAppContext } from '../context';
+import type { ScanCommitRow, ScanPreviewLine } from '../../pantry/scan-types';
 import { getCurrentHouseholdId, getPantryService } from './deps';
 import type { AddItemInput, CorrectItemInput, LeftoverInput } from './service';
 
@@ -38,6 +39,22 @@ export async function acceptAdjustmentAction(eventId: string, expiry?: string): 
 }
 export async function dismissAdjustmentAction(eventId: string): Promise<ActionResult> {
   return mutate((hh) => getPantryService(hh).dismissAdjustment(hh, eventId));
+}
+
+/** Scan review: what confirming would do. Read-only. */
+export async function previewScanAction(
+  rows: ScanCommitRow[],
+): Promise<{ ok: true; lines: ScanPreviewLine[] } | { ok: false; error: string }> {
+  try {
+    const hh = await getCurrentHouseholdId();
+    return await getPantryService(hh).previewScan(hh, rows);
+  } catch {
+    return { ok: false, error: 'Something went wrong. Please try again.' };
+  }
+}
+/** Scan confirm: the ONLY point where a scan writes to the pantry. */
+export async function confirmScanAction(rows: ScanCommitRow[]): Promise<ActionResult> {
+  return mutate((hh) => getPantryService(hh).applyScan(hh, rows));
 }
 
 export async function searchIngredientsAction(query: string): Promise<IngredientHit[]> {

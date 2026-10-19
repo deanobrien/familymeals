@@ -15,6 +15,7 @@ import ingredientsJson from '@fr/refdata/ingredients.json';
 interface RefdataIngredient extends CanonicalIngredient {
   slug?: string;
   cofid?: unknown;
+  countUnitWeightsG?: CanonicalIngredient['countUnitWeightsG'];
 }
 
 export interface IngredientCatalogue {
@@ -30,6 +31,7 @@ function toCanonical(r: RefdataIngredient): CanonicalIngredient {
   const out: CanonicalIngredient = { id: r.id, name: r.name, category: r.category, aliases: [...r.aliases] };
   if (r.densityGPerMl) out.densityGPerMl = r.densityGPerMl;
   if (r.unitWeightG) out.unitWeightG = r.unitWeightG;
+  if (r.countUnitWeightsG) out.countUnitWeightsG = r.countUnitWeightsG;
   if (r.form) out.form = r.form;
   return out;
 }

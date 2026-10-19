@@ -27,6 +27,7 @@ class FakeAi implements AiProvider {
   suggestTags(): never { throw new Error('unused'); }
   suggestIngredientMatches(): never { throw new Error('unused'); }
   suggestSubstitutions(): never { throw new Error('unused'); }
+  scanPantry(): never { throw new Error('unused'); }
 }
 
 const recipes: Candidate[] = [

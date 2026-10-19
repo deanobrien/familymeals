@@ -5,6 +5,7 @@ export const UnitSchema = z.enum([
   'mg', 'g', 'kg', 'ml', 'l', 'tsp', 'tbsp', 'cup', 'floz', 'pint',
   'item', 'clove', 'slice', 'can', 'pack', 'bunch', 'sprig', 'stick',
 ]);
+export const CountUnitSchema = z.enum(['item', 'clove', 'slice', 'can', 'pack', 'bunch', 'sprig', 'stick']);
 export const FormSchema = z.enum(['fresh', 'dried', 'ground', 'frozen', 'canned', 'other']);
 export const PriceKindSchema = z.enum(['user_confirmed', 'receipt', 'retailer_verified', 'generic_estimate']);
 
@@ -37,6 +38,8 @@ export const CanonicalIngredientSchema = z.object({
   aliases: z.array(z.string().min(1)),
   densityGPerMl: z.object({ value: z.number().positive(), source: z.string().min(1) }).optional(),
   unitWeightG: z.object({ value: z.number().positive(), source: z.string().min(1), estimate: z.literal(true) }).optional(),
+  /** Weight of ONE can/clove/slice/bunch/sprig/stick/pack (D90); always an estimate. */
+  countUnitWeightsG: z.partialRecord(CountUnitSchema, z.object({ value: z.number().positive(), source: z.string().min(1), estimate: z.literal(true) })).optional(),
   form: FormSchema.optional(),
   cofid: CofidLinkSchema.optional(),
 });

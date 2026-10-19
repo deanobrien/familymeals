@@ -383,9 +383,9 @@
     "pricePence": 60,
     "packQuantity": {
       "kind": "exact",
-      "value": 1,
-      "unit": "pack",
-      "originalText": "1pack"
+      "value": 40,
+      "unit": "g",
+      "originalText": "40g"
     },
     "kind": "generic_estimate",
     "observedOn": "2026-10-19",
@@ -635,9 +635,9 @@
     "pricePence": 80,
     "packQuantity": {
       "kind": "exact",
-      "value": 1,
-      "unit": "pack",
-      "originalText": "1pack"
+      "value": 30,
+      "unit": "g",
+      "originalText": "30g"
     },
     "kind": "generic_estimate",
     "observedOn": "2026-10-19",
@@ -649,9 +649,9 @@
     "pricePence": 80,
     "packQuantity": {
       "kind": "exact",
-      "value": 1,
-      "unit": "pack",
-      "originalText": "1pack"
+      "value": 30,
+      "unit": "g",
+      "originalText": "30g"
     },
     "kind": "generic_estimate",
     "observedOn": "2026-10-19",
@@ -663,9 +663,9 @@
     "pricePence": 100,
     "packQuantity": {
       "kind": "exact",
-      "value": 1,
-      "unit": "pack",
-      "originalText": "1pack"
+      "value": 30,
+      "unit": "g",
+      "originalText": "30g"
     },
     "kind": "generic_estimate",
     "observedOn": "2026-10-19",
@@ -677,9 +677,9 @@
     "pricePence": 80,
     "packQuantity": {
       "kind": "exact",
-      "value": 1,
-      "unit": "pack",
-      "originalText": "1pack"
+      "value": 30,
+      "unit": "g",
+      "originalText": "30g"
     },
     "kind": "generic_estimate",
     "observedOn": "2026-10-19",
@@ -691,9 +691,9 @@
     "pricePence": 90,
     "packQuantity": {
       "kind": "exact",
-      "value": 1,
-      "unit": "pack",
-      "originalText": "1pack"
+      "value": 25,
+      "unit": "g",
+      "originalText": "25g"
     },
     "kind": "generic_estimate",
     "observedOn": "2026-10-19",
@@ -705,9 +705,9 @@
     "pricePence": 90,
     "packQuantity": {
       "kind": "exact",
-      "value": 1,
-      "unit": "pack",
-      "originalText": "1pack"
+      "value": 25,
+      "unit": "g",
+      "originalText": "25g"
     },
     "kind": "generic_estimate",
     "observedOn": "2026-10-19",
@@ -2192,6 +2192,3156 @@
       "value": 200,
       "unit": "g",
       "originalText": "200g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "686a1da3-6389-5716-ac1a-4177ab37dd50",
+    "ingredientName": "turnip",
+    "pricePence": 80,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "78b10509-4252-53fa-9a73-6697ebde5d2a",
+    "ingredientName": "celeriac",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "item",
+      "originalText": "1item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "d470b4d6-ddf9-581a-9d9f-ea23e9c2334b",
+    "ingredientName": "fennel",
+    "pricePence": 110,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "item",
+      "originalText": "1item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "750d9cd0-60bc-5262-a126-15488043da8f",
+    "ingredientName": "savoy cabbage",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "item",
+      "originalText": "1item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "79f12caf-4fae-594f-9ef7-2529ab54e882",
+    "ingredientName": "brussels sprouts",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "b6c7f4d8-c409-55bc-a649-86494d95ef3c",
+    "ingredientName": "spring greens",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 300,
+      "unit": "g",
+      "originalText": "300g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "4c7c78f3-a955-595e-9d1b-67fc607788a5",
+    "ingredientName": "pak choi",
+    "pricePence": 120,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 2,
+      "unit": "item",
+      "originalText": "2item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "5339566d-6e58-5601-9f12-5a6474c1a365",
+    "ingredientName": "rocket",
+    "pricePence": 110,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 60,
+      "unit": "g",
+      "originalText": "60g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "94f36ad0-493c-5a53-92aa-1523b4320741",
+    "ingredientName": "watercress",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 85,
+      "unit": "g",
+      "originalText": "85g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "627d7fe5-a777-5c93-93c8-27d380bd6495",
+    "ingredientName": "yellow pepper",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "item",
+      "originalText": "1item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "b34dd903-6e8c-5dd6-bf56-76fb59da5d69",
+    "ingredientName": "green chilli",
+    "pricePence": 60,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 40,
+      "unit": "g",
+      "originalText": "40g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "9b5ce5eb-a137-5179-850c-5041093bc51f",
+    "ingredientName": "pumpkin",
+    "pricePence": 140,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "kg",
+      "originalText": "1kg"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "4e68c5e9-6361-5f0d-b3ee-5cb5be5ea61c",
+    "ingredientName": "sweetcorn",
+    "pricePence": 140,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 2,
+      "unit": "item",
+      "originalText": "2item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "af3dd4ed-b87b-5ac3-bbb7-6334e41ada26",
+    "ingredientName": "peas",
+    "pricePence": 180,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "kg",
+      "originalText": "1kg"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "94faebea-d2ed-5aa6-8a73-da07cb92d6ad",
+    "ingredientName": "mangetout",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 200,
+      "unit": "g",
+      "originalText": "200g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "c249a775-b601-5c09-8ecd-88391d6c7229",
+    "ingredientName": "runner beans",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 250,
+      "unit": "g",
+      "originalText": "250g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "dfea6132-2f12-5994-b395-6e12d63972a9",
+    "ingredientName": "broad beans",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "a62995a7-b1cd-5b71-a6e8-8dc4fa345773",
+    "ingredientName": "radish",
+    "pricePence": 80,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 150,
+      "unit": "g",
+      "originalText": "150g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "d662b4d0-75dc-57df-bceb-0979e10ab4ae",
+    "ingredientName": "lemon juice",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 200,
+      "unit": "ml",
+      "originalText": "200ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "2b50146e-e530-52b1-a0d3-64d9c2c98ef0",
+    "ingredientName": "lime juice",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 250,
+      "unit": "ml",
+      "originalText": "250ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "5152466e-0d1f-5681-bdf5-f7a6ef998da0",
+    "ingredientName": "blackberries",
+    "pricePence": 275,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 150,
+      "unit": "g",
+      "originalText": "150g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "30a8d8d8-a9a5-5ec1-9e23-c92a760c856c",
+    "ingredientName": "rhubarb",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "f34bee79-4695-5614-9978-ebb655b7f159",
+    "ingredientName": "mango",
+    "pricePence": 120,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "item",
+      "originalText": "1item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "322f519b-bca3-5209-ae08-4951ce33e040",
+    "ingredientName": "pineapple",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "item",
+      "originalText": "1item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "5108c46f-e352-506b-b6db-b5d9898432e4",
+    "ingredientName": "peach",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 4,
+      "unit": "item",
+      "originalText": "4item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e499796f-61db-5265-b151-c7ec1094d2dc",
+    "ingredientName": "plum",
+    "pricePence": 190,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 6,
+      "unit": "item",
+      "originalText": "6item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "681a0b55-4a5c-52b0-b83b-2604e8244469",
+    "ingredientName": "melon",
+    "pricePence": 180,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "item",
+      "originalText": "1item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "40aefd21-b9d9-5a27-becc-f3a730af511a",
+    "ingredientName": "desiccated coconut",
+    "pricePence": 120,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 200,
+      "unit": "g",
+      "originalText": "200g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "bb3db943-5030-5bd5-89ae-cd3dd8c7f4bb",
+    "ingredientName": "raisins",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "93ae0c23-49c3-5fc3-bc25-2f0b28154ff0",
+    "ingredientName": "dried apricots",
+    "pricePence": 190,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 250,
+      "unit": "g",
+      "originalText": "250g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "ab47b35c-d3b5-58e7-ae9c-4e4bc5a72a21",
+    "ingredientName": "dates",
+    "pricePence": 220,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 250,
+      "unit": "g",
+      "originalText": "250g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e1097c56-c813-5946-8d00-6152813b61fc",
+    "ingredientName": "prunes",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 250,
+      "unit": "g",
+      "originalText": "250g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "cfd63f67-a946-5474-8951-2b2c83a09d23",
+    "ingredientName": "little gem lettuce",
+    "pricePence": 120,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 2,
+      "unit": "item",
+      "originalText": "2item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "77b80148-955c-5cbe-84de-28e2b24d48a7",
+    "ingredientName": "beansprouts",
+    "pricePence": 80,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 300,
+      "unit": "g",
+      "originalText": "300g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e78192ff-eaf2-53d8-8608-a9ef332a848f",
+    "ingredientName": "mixed salad leaves",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 120,
+      "unit": "g",
+      "originalText": "120g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "02aaf42b-9fb3-5906-9874-8ba26c939e22",
+    "ingredientName": "chicken drumstick",
+    "pricePence": 350,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1000,
+      "unit": "g",
+      "originalText": "1000g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "ede6db38-36ca-5eab-bb0f-842d465389f9",
+    "ingredientName": "chicken wings",
+    "pricePence": 300,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1000,
+      "unit": "g",
+      "originalText": "1000g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e18978e5-5a76-5494-b5c0-11a5a82ea6fe",
+    "ingredientName": "beef joint",
+    "pricePence": 1000,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1000,
+      "unit": "g",
+      "originalText": "1000g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e12ac7f3-4361-50eb-8eb9-a7a046a718ba",
+    "ingredientName": "diced lamb",
+    "pricePence": 750,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "2b98001e-bab5-57e5-9245-994cb99539e8",
+    "ingredientName": "pork shoulder",
+    "pricePence": 500,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1000,
+      "unit": "g",
+      "originalText": "1000g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "77ce31c6-a0cb-53a7-9781-783fcf058a9a",
+    "ingredientName": "pork belly",
+    "pricePence": 500,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1000,
+      "unit": "g",
+      "originalText": "1000g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "4216a452-e430-5fa4-a4da-21bd82f09549",
+    "ingredientName": "gammon",
+    "pricePence": 500,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1000,
+      "unit": "g",
+      "originalText": "1000g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "819b24ae-1026-56f2-9a91-f05410810f3e",
+    "ingredientName": "duck breast",
+    "pricePence": 550,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 340,
+      "unit": "g",
+      "originalText": "340g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "fcab28e8-d4de-5d1f-879a-cfbdb9e674d1",
+    "ingredientName": "smoked haddock",
+    "pricePence": 480,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 240,
+      "unit": "g",
+      "originalText": "240g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "8af874b2-e62d-524b-bd40-f257d5784501",
+    "ingredientName": "mackerel",
+    "pricePence": 300,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 300,
+      "unit": "g",
+      "originalText": "300g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "f0a45b0f-29df-5a24-9332-cf7f7c81a353",
+    "ingredientName": "smoked mackerel",
+    "pricePence": 250,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 240,
+      "unit": "g",
+      "originalText": "240g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "08bac574-5011-556d-87b1-0ebef4a500f1",
+    "ingredientName": "anchovies",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 50,
+      "unit": "g",
+      "originalText": "50g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "9bceda99-3201-52ad-960a-8d2630f493b1",
+    "ingredientName": "white fish",
+    "pricePence": 450,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "9bc0b682-5fb2-5b1d-a75f-8258e8b71930",
+    "ingredientName": "creme fraiche",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 300,
+      "unit": "ml",
+      "originalText": "300ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "27614699-7ac5-5489-bc42-1ab942eeff61",
+    "ingredientName": "cottage cheese",
+    "pricePence": 120,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 300,
+      "unit": "g",
+      "originalText": "300g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "60033451-9c68-513d-814c-8ebf6584d9d3",
+    "ingredientName": "ricotta",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 250,
+      "unit": "g",
+      "originalText": "250g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "4ed753d0-79b8-537b-ba89-069bdc76d44a",
+    "ingredientName": "brie",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 200,
+      "unit": "g",
+      "originalText": "200g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "6b71635f-8efe-52d5-a95e-19cd2625136b",
+    "ingredientName": "goats cheese",
+    "pricePence": 190,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 150,
+      "unit": "g",
+      "originalText": "150g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "92bf23d0-fd85-5520-8f75-02630077d4ed",
+    "ingredientName": "paneer",
+    "pricePence": 250,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 225,
+      "unit": "g",
+      "originalText": "225g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "7bd3f73a-7fb8-5a01-b671-3cec60eff962",
+    "ingredientName": "wholemeal flour",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1.5,
+      "unit": "kg",
+      "originalText": "1.5kg"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "a7e6a847-9243-5d45-9052-b1251c3f056e",
+    "ingredientName": "dark brown sugar",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "ddec5b4d-607d-5710-bf8d-60457cb9e258",
+    "ingredientName": "demerara sugar",
+    "pricePence": 160,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "92089f37-c48b-5e28-9ccf-ab711a27502b",
+    "ingredientName": "maple syrup",
+    "pricePence": 400,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 250,
+      "unit": "ml",
+      "originalText": "250ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "b9b7e641-3470-53de-9d3a-974cf3db1e69",
+    "ingredientName": "treacle",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 454,
+      "unit": "g",
+      "originalText": "454g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "2db23a74-a31a-5626-833f-9ad97dce1f6b",
+    "ingredientName": "milk chocolate",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 100,
+      "unit": "g",
+      "originalText": "100g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "edcd0761-730b-5c39-b5bd-dc290b428f52",
+    "ingredientName": "breadcrumbs",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 175,
+      "unit": "g",
+      "originalText": "175g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "051601b0-2b29-5660-a092-0367c9ac038b",
+    "ingredientName": "crumpet",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 6,
+      "unit": "item",
+      "originalText": "6item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "4b5c0cc7-1570-52e2-84ad-d8c98c7d8579",
+    "ingredientName": "tortilla chips",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 200,
+      "unit": "g",
+      "originalText": "200g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "c85514b8-c698-5355-85c5-2ec883ac4c45",
+    "ingredientName": "wholewheat pasta",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "28243758-5b4f-5eed-9119-ddf9e8031f24",
+    "ingredientName": "rice noodles",
+    "pricePence": 120,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 250,
+      "unit": "g",
+      "originalText": "250g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "7e4dbb91-1501-50fa-9e5e-15d9dc1b8d11",
+    "ingredientName": "lasagne sheets",
+    "pricePence": 120,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 250,
+      "unit": "g",
+      "originalText": "250g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "69a0ef91-3ac7-5d3a-b8ad-4dc0509e3dca",
+    "ingredientName": "arborio rice",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e1ce2f49-0e9a-5c47-8182-90327c269723",
+    "ingredientName": "pearl barley",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "9c8ac735-377c-5fc3-907f-9ad4795491be",
+    "ingredientName": "bulgur wheat",
+    "pricePence": 160,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "c246541d-6ced-58b6-a542-a40575ff3c7f",
+    "ingredientName": "polenta",
+    "pricePence": 140,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e427a7fb-3fd6-54c6-81a1-6f61b0ee2463",
+    "ingredientName": "semolina",
+    "pricePence": 110,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "c7005632-d6c7-5285-8523-5a0066d642a5",
+    "ingredientName": "green lentils",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "38fab4e0-3717-5134-b04f-17b99f9588f5",
+    "ingredientName": "dried chickpeas",
+    "pricePence": 120,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "775c075d-b481-5221-9871-8a891ac056d1",
+    "ingredientName": "black beans",
+    "pricePence": 70,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "can",
+      "originalText": "1can"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "4bc5cdb7-dcd7-5d80-9d46-9ced1873ee35",
+    "ingredientName": "tinned peas",
+    "pricePence": 55,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "can",
+      "originalText": "1can"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "fb00660c-a069-5680-8de2-28dab055fdad",
+    "ingredientName": "pizza base",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 2,
+      "unit": "item",
+      "originalText": "2item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "70b77e4b-2ecf-5d8c-bd1e-6aa1424aceda",
+    "ingredientName": "ciabatta",
+    "pricePence": 120,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 2,
+      "unit": "item",
+      "originalText": "2item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "751aa26b-8837-5bfc-9eab-02f35f4393aa",
+    "ingredientName": "baguette",
+    "pricePence": 90,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "item",
+      "originalText": "1item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e73f9933-1ce8-5a36-b847-9ea5c15865bf",
+    "ingredientName": "sesame oil",
+    "pricePence": 300,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 150,
+      "unit": "ml",
+      "originalText": "150ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "0b80e7a4-f10b-582b-bf44-2bdc51c6c640",
+    "ingredientName": "coconut oil",
+    "pricePence": 450,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "ml",
+      "originalText": "500ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "50bafc65-f223-5589-89fb-a729bec87bf6",
+    "ingredientName": "red wine vinegar",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "ml",
+      "originalText": "500ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "b246a407-0498-58e9-8ea8-883750b787b0",
+    "ingredientName": "balsamic vinegar",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "ml",
+      "originalText": "500ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "59970879-e4db-5534-a03a-06626309d710",
+    "ingredientName": "malt vinegar",
+    "pricePence": 80,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 568,
+      "unit": "ml",
+      "originalText": "568ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "5a83a74a-4cfa-5882-90d9-e8cf704433d9",
+    "ingredientName": "cider vinegar",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "ml",
+      "originalText": "500ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "5790f786-2668-5327-803b-2aceaf1c9b29",
+    "ingredientName": "english mustard",
+    "pricePence": 110,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 180,
+      "unit": "g",
+      "originalText": "180g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "abbe8903-ab1e-5b4c-b23b-d0e250ea5945",
+    "ingredientName": "dijon mustard",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 185,
+      "unit": "g",
+      "originalText": "185g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "9b965318-566e-5768-86df-773b3efb5ab0",
+    "ingredientName": "brown sauce",
+    "pricePence": 170,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 255,
+      "unit": "g",
+      "originalText": "255g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "f74a45e3-fff0-5176-af31-1a3e107093b3",
+    "ingredientName": "sweet chilli sauce",
+    "pricePence": 140,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 300,
+      "unit": "ml",
+      "originalText": "300ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "04fb76aa-dd6f-5539-b59c-b08adc23a786",
+    "ingredientName": "hot sauce",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 150,
+      "unit": "ml",
+      "originalText": "150ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "6262184b-f6a8-53ef-aca5-4e1da0d7beb4",
+    "ingredientName": "fish sauce",
+    "pricePence": 180,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 200,
+      "unit": "ml",
+      "originalText": "200ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "0c0df038-f335-53c1-ab08-5e71a43bbeb3",
+    "ingredientName": "oyster sauce",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 255,
+      "unit": "g",
+      "originalText": "255g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "c36082e0-1b23-59ed-a6f6-d44941697125",
+    "ingredientName": "hoisin sauce",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 260,
+      "unit": "g",
+      "originalText": "260g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "7f370dad-d7de-5f4a-b4ed-709ad6ada26e",
+    "ingredientName": "pesto",
+    "pricePence": 180,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 190,
+      "unit": "g",
+      "originalText": "190g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "3e1dd3d1-03f2-5109-9be5-83d2a6e28f50",
+    "ingredientName": "gravy granules",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 200,
+      "unit": "g",
+      "originalText": "200g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "d7c02739-8bc6-5c12-a3a1-7ab20b608da3",
+    "ingredientName": "chicken stock",
+    "pricePence": 20,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "l",
+      "originalText": "1l"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "f19f5e8b-81c1-5ab7-a87a-d2dac914096f",
+    "ingredientName": "vegetable stock",
+    "pricePence": 20,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "l",
+      "originalText": "1l"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e798cdbe-0b93-5386-aafe-c923cb2f654e",
+    "ingredientName": "beef stock",
+    "pricePence": 20,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "l",
+      "originalText": "1l"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e94fd48b-8ca3-55d5-98c9-030f676c5462",
+    "ingredientName": "chicken stock powder",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 80,
+      "unit": "g",
+      "originalText": "80g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "b3aaa2ce-c462-591e-b436-d339f4dcd1e3",
+    "ingredientName": "mango chutney",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 350,
+      "unit": "g",
+      "originalText": "350g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "32781bfa-a9fc-5185-a1c8-b628531fabf7",
+    "ingredientName": "harissa paste",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 90,
+      "unit": "g",
+      "originalText": "90g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e58f59f2-d6eb-5b4c-a3ad-dc60e31dc381",
+    "ingredientName": "garlic puree",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 90,
+      "unit": "g",
+      "originalText": "90g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "ef7445a5-a5c9-5580-a453-b71a6b31ffbb",
+    "ingredientName": "white pepper",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 35,
+      "unit": "g",
+      "originalText": "35g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "ade01016-63b6-5114-8fb2-242c7bfad47b",
+    "ingredientName": "smoked paprika",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 40,
+      "unit": "g",
+      "originalText": "40g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "8b8f54a4-72a9-531a-8704-d8855fe737bb",
+    "ingredientName": "cayenne pepper",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 40,
+      "unit": "g",
+      "originalText": "40g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "98dfce0a-6687-59d7-987e-d15203676337",
+    "ingredientName": "chilli powder",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 40,
+      "unit": "g",
+      "originalText": "40g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "8d95cdee-ad72-5555-84b7-01b1e0dce417",
+    "ingredientName": "chilli flakes",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 40,
+      "unit": "g",
+      "originalText": "40g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "c2954d2e-757b-5559-8880-6d0cde7278f0",
+    "ingredientName": "cumin seeds",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 40,
+      "unit": "g",
+      "originalText": "40g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "b4579963-1f20-5cd6-a97a-723a4994e191",
+    "ingredientName": "coriander seeds",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 30,
+      "unit": "g",
+      "originalText": "30g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "cba99afc-3564-5631-9579-8569d6cd8678",
+    "ingredientName": "garam masala",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 40,
+      "unit": "g",
+      "originalText": "40g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "9b0eaf64-b95c-583a-95db-b00c730663a6",
+    "ingredientName": "ground ginger",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 40,
+      "unit": "g",
+      "originalText": "40g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "a819daa9-88a3-5a6f-b365-0c450b7cf7ae",
+    "ingredientName": "cinnamon stick",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 20,
+      "unit": "g",
+      "originalText": "20g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "98e16a2f-efb6-5e81-a3e6-5a203851607a",
+    "ingredientName": "ground nutmeg",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 35,
+      "unit": "g",
+      "originalText": "35g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "7a381f0d-d9f6-536b-91bc-3de20238e351",
+    "ingredientName": "ground cloves",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 30,
+      "unit": "g",
+      "originalText": "30g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "c42ebec4-c90d-5052-917a-0f76d8579790",
+    "ingredientName": "allspice",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 35,
+      "unit": "g",
+      "originalText": "35g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "164d2681-e5ea-5d52-9907-328b67cfb9f7",
+    "ingredientName": "cardamom pods",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 25,
+      "unit": "g",
+      "originalText": "25g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "3c700538-8d4e-5699-92cb-d9e702d97a9a",
+    "ingredientName": "bay leaf",
+    "pricePence": 120,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 10,
+      "unit": "g",
+      "originalText": "10g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "08a17897-45ca-55fb-87f0-c296aa6a2c9a",
+    "ingredientName": "dried thyme",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 14,
+      "unit": "g",
+      "originalText": "14g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "ead66abb-9393-5ddd-a06e-77167c6b9781",
+    "ingredientName": "dried rosemary",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 14,
+      "unit": "g",
+      "originalText": "14g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "856c8bcc-d2d4-5ad8-8146-9085862e8058",
+    "ingredientName": "dried basil",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 14,
+      "unit": "g",
+      "originalText": "14g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "108108d7-5352-5131-b427-c8fb8bb4cde3",
+    "ingredientName": "dried sage",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 14,
+      "unit": "g",
+      "originalText": "14g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "4c8a558c-80c5-57d8-8a62-ee23e4be64b5",
+    "ingredientName": "dried parsley",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 14,
+      "unit": "g",
+      "originalText": "14g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e60e8b77-7d1f-56f7-b590-1678a0cf8f55",
+    "ingredientName": "garlic powder",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 40,
+      "unit": "g",
+      "originalText": "40g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e2211720-b119-5aa1-ad3b-55e3e3418dae",
+    "ingredientName": "onion powder",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 40,
+      "unit": "g",
+      "originalText": "40g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "7d1dec5f-f80c-542a-be10-b364bf63d28d",
+    "ingredientName": "fresh sage",
+    "pricePence": 90,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 25,
+      "unit": "g",
+      "originalText": "25g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "810bc99e-d851-5477-af37-25d5e60b702d",
+    "ingredientName": "fresh dill",
+    "pricePence": 90,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 25,
+      "unit": "g",
+      "originalText": "25g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "7bb8433a-7b37-5058-9e98-fb640b971969",
+    "ingredientName": "chives",
+    "pricePence": 90,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 20,
+      "unit": "g",
+      "originalText": "20g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "865f15be-2628-50fc-bca4-1676d52978cb",
+    "ingredientName": "lemongrass",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 3,
+      "unit": "item",
+      "originalText": "3item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "185fbe02-3c1f-5658-a183-5df64acdb589",
+    "ingredientName": "curry leaves",
+    "pricePence": 90,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 15,
+      "unit": "g",
+      "originalText": "15g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "a7b0faba-1b91-5e34-aaff-167109bb4c9d",
+    "ingredientName": "nigella seeds",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 40,
+      "unit": "g",
+      "originalText": "40g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e4682749-a090-57e0-8763-c9afe9f6dfb8",
+    "ingredientName": "ras el hanout",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 40,
+      "unit": "g",
+      "originalText": "40g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "0be13e0c-6b58-503e-a704-d3cbd1e94494",
+    "ingredientName": "cajun seasoning",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 40,
+      "unit": "g",
+      "originalText": "40g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "7001deca-fbfe-58a4-b12c-fdf078b4dcb6",
+    "ingredientName": "fajita seasoning",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 30,
+      "unit": "g",
+      "originalText": "30g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "1f71abf1-ebfd-5a12-b42e-1dabc07e3670",
+    "ingredientName": "jerk seasoning",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 40,
+      "unit": "g",
+      "originalText": "40g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "1ca58607-c1de-5d4f-b397-e368fd759989",
+    "ingredientName": "chinese five spice",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 40,
+      "unit": "g",
+      "originalText": "40g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "060cb9a4-1f20-55b4-9cee-6a5b675a7990",
+    "ingredientName": "sesame seeds",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 100,
+      "unit": "g",
+      "originalText": "100g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "4010e919-4d4d-5691-9133-db07ab3999ed",
+    "ingredientName": "sunflower seeds",
+    "pricePence": 120,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 200,
+      "unit": "g",
+      "originalText": "200g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "568f2db1-86ee-5e34-88de-c3ad7549daed",
+    "ingredientName": "pumpkin seeds",
+    "pricePence": 180,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 150,
+      "unit": "g",
+      "originalText": "150g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "c2008a14-1db1-5083-80db-e09e16588e59",
+    "ingredientName": "flaxseed",
+    "pricePence": 250,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 400,
+      "unit": "g",
+      "originalText": "400g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "4e62d532-f6ea-59e3-b339-516744da4945",
+    "ingredientName": "chia seeds",
+    "pricePence": 300,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 300,
+      "unit": "g",
+      "originalText": "300g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "ea82d6e1-4de2-5657-abfc-42d58c416197",
+    "ingredientName": "walnuts",
+    "pricePence": 300,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 200,
+      "unit": "g",
+      "originalText": "200g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "fe2da7d5-782d-55e3-aeb5-98806d2d3ebe",
+    "ingredientName": "cashew nuts",
+    "pricePence": 300,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 200,
+      "unit": "g",
+      "originalText": "200g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "b0210597-7dcb-5870-b59b-8ec6d77e24b5",
+    "ingredientName": "peanuts",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 250,
+      "unit": "g",
+      "originalText": "250g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "b11d6e90-5eee-5b18-ba75-d967dcde4032",
+    "ingredientName": "hazelnuts",
+    "pricePence": 300,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 200,
+      "unit": "g",
+      "originalText": "200g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "37516760-6f59-593a-8e4c-ba7e811a2506",
+    "ingredientName": "pecans",
+    "pricePence": 350,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 150,
+      "unit": "g",
+      "originalText": "150g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "219665bc-a607-5acf-afdc-6d40174e634a",
+    "ingredientName": "pine nuts",
+    "pricePence": 350,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 100,
+      "unit": "g",
+      "originalText": "100g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e95f747a-a3a0-59ea-b2c7-1e3e63dc2ed7",
+    "ingredientName": "pistachios",
+    "pricePence": 350,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 100,
+      "unit": "g",
+      "originalText": "100g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "3cd4f5f9-1909-5142-86cb-5f789cad9ea3",
+    "ingredientName": "tahini",
+    "pricePence": 300,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 270,
+      "unit": "g",
+      "originalText": "270g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "34f738b7-83d1-536b-9b35-0c039854b0cc",
+    "ingredientName": "marmalade",
+    "pricePence": 140,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 340,
+      "unit": "g",
+      "originalText": "340g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "16966414-5040-572f-bb0e-63968ca1a0ed",
+    "ingredientName": "chocolate spread",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 400,
+      "unit": "g",
+      "originalText": "400g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "7ab61636-b519-51af-9a15-288e141f8193",
+    "ingredientName": "mixed nuts",
+    "pricePence": 300,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 400,
+      "unit": "g",
+      "originalText": "400g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "1bf6113c-16e1-51bd-8bb4-e24e98fc7e8b",
+    "ingredientName": "quorn mince",
+    "pricePence": 250,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 300,
+      "unit": "g",
+      "originalText": "300g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "7dab00ab-1986-5ad2-b0c8-679d32e5a218",
+    "ingredientName": "vegetarian sausages",
+    "pricePence": 250,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 300,
+      "unit": "g",
+      "originalText": "300g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "fce16884-4353-5fe1-a255-b7d2a67bc2f7",
+    "ingredientName": "olives",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 150,
+      "unit": "g",
+      "originalText": "150g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "4bf10d32-94f8-5860-9117-9cf9f2c582db",
+    "ingredientName": "capers",
+    "pricePence": 120,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 100,
+      "unit": "g",
+      "originalText": "100g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "652c4d37-9c59-5f24-b9cc-1575a4de7a4b",
+    "ingredientName": "gherkins",
+    "pricePence": 120,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 360,
+      "unit": "g",
+      "originalText": "360g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "f9fddc86-a34e-5bf3-9e80-09dbf73e82eb",
+    "ingredientName": "sun-dried tomatoes",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 280,
+      "unit": "g",
+      "originalText": "280g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "6a421cd2-8729-588d-ab96-910112c99ad9",
+    "ingredientName": "coconut cream",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 200,
+      "unit": "ml",
+      "originalText": "200ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "ed09017e-dc6d-5c58-87e4-660805d05af3",
+    "ingredientName": "tinned pineapple",
+    "pricePence": 90,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "can",
+      "originalText": "1can"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "988893b9-016a-5803-a969-24fe26822c23",
+    "ingredientName": "tinned peaches",
+    "pricePence": 90,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "can",
+      "originalText": "1can"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "2491025d-be99-5c3a-9608-e19f4d3287df",
+    "ingredientName": "frozen sweetcorn",
+    "pricePence": 170,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "kg",
+      "originalText": "1kg"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "d4af1b0e-eed7-522b-a251-68fc6c8ab5f8",
+    "ingredientName": "frozen spinach",
+    "pricePence": 180,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 900,
+      "unit": "g",
+      "originalText": "900g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "fc4e0c73-4d27-5815-ba08-1a2d61ec85c6",
+    "ingredientName": "frozen mixed vegetables",
+    "pricePence": 170,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "kg",
+      "originalText": "1kg"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e84dae88-a36e-55e5-8f65-68b6520db722",
+    "ingredientName": "frozen berries",
+    "pricePence": 350,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "06895b0d-0ef0-5a12-8a2f-89dd662d1154",
+    "ingredientName": "oven chips",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "kg",
+      "originalText": "1kg"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "5c87fc14-1173-5d65-8367-31062a741d50",
+    "ingredientName": "frozen pizza",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "item",
+      "originalText": "1item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "aaa83b93-7442-5df7-90d2-033e0af23fa8",
+    "ingredientName": "ice cream",
+    "pricePence": 250,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 2,
+      "unit": "l",
+      "originalText": "2l"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "fb3b802b-5f3f-5c24-99b6-ae55ce6bd889",
+    "ingredientName": "puff pastry",
+    "pricePence": 160,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 320,
+      "unit": "g",
+      "originalText": "320g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e248afd7-7c7e-5221-852d-d6e6597ca3ca",
+    "ingredientName": "shortcrust pastry",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 320,
+      "unit": "g",
+      "originalText": "320g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "989b1601-7ba1-57c3-95ee-6720d60f9959",
+    "ingredientName": "filo pastry",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 270,
+      "unit": "g",
+      "originalText": "270g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "9addad0d-f501-5261-90f1-bfefbb132693",
+    "ingredientName": "gelatine",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 36,
+      "unit": "g",
+      "originalText": "36g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "c22c3ffb-7de1-5c49-b817-dd3e1cf9cdcd",
+    "ingredientName": "cornflakes",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "f2ca3eb4-d46f-5bad-80a6-8aa9e1be112d",
+    "ingredientName": "muesli",
+    "pricePence": 250,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 750,
+      "unit": "g",
+      "originalText": "750g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "7d5f3a22-e30a-5402-aaf5-1b1cd4b9d824",
+    "ingredientName": "weetabix",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 24,
+      "unit": "item",
+      "originalText": "24item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "4c0571bc-9fd4-504d-944b-f79c4eec03dc",
+    "ingredientName": "digestive biscuits",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 400,
+      "unit": "g",
+      "originalText": "400g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "75e422ab-e618-55aa-a72b-cbd6ff3b5b3d",
+    "ingredientName": "oatcakes",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 280,
+      "unit": "g",
+      "originalText": "280g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "a5f1a272-f587-52b9-90fc-a393b081b59f",
+    "ingredientName": "crackers",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 300,
+      "unit": "g",
+      "originalText": "300g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "27d1856b-d9c6-5ad9-9822-a29c7aa4a9d7",
+    "ingredientName": "crisps",
+    "pricePence": 180,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 150,
+      "unit": "g",
+      "originalText": "150g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "fad61704-ded6-5146-abc2-86dee26c57ee",
+    "ingredientName": "popcorn",
+    "pricePence": 120,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 100,
+      "unit": "g",
+      "originalText": "100g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "8059d9da-d138-5edc-89b3-0c3b15c08753",
+    "ingredientName": "tea",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 80,
+      "unit": "item",
+      "originalText": "80item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "f90266a1-1bea-5c12-9bf7-b0db2eec0b79",
+    "ingredientName": "coffee",
+    "pricePence": 300,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 200,
+      "unit": "g",
+      "originalText": "200g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "ee9cb003-7182-5b61-8a2b-f626e730c467",
+    "ingredientName": "apple juice",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "l",
+      "originalText": "1l"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "a05a78d4-e208-59f8-961c-2cfcbbeb2316",
+    "ingredientName": "oat milk",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "l",
+      "originalText": "1l"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "33544209-43ca-5f70-8bbe-9ef60f77290b",
+    "ingredientName": "soya milk",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "l",
+      "originalText": "1l"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "3eac0ea4-0064-5c01-87f8-1b05acb62536",
+    "ingredientName": "almond milk",
+    "pricePence": 160,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "l",
+      "originalText": "1l"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "54cfb2f9-2f7a-5d70-8e22-7c807c1b5e3d",
+    "ingredientName": "dairy-free spread",
+    "pricePence": 250,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "g",
+      "originalText": "500g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "ebf97f98-f95b-5c20-972b-bff7a78ea419",
+    "ingredientName": "red wine",
+    "pricePence": 500,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 750,
+      "unit": "ml",
+      "originalText": "750ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "504c51a3-696a-5d6c-b8f6-7b3fd4d013ed",
+    "ingredientName": "white wine",
+    "pricePence": 500,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 750,
+      "unit": "ml",
+      "originalText": "750ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "c8464be9-1bb5-5be6-8129-e4bfdd86d2ae",
+    "ingredientName": "beer",
+    "pricePence": 250,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 440,
+      "unit": "ml",
+      "originalText": "440ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "3ee683b7-192a-5fbb-ad6c-56149acd8a72",
+    "ingredientName": "cider",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 500,
+      "unit": "ml",
+      "originalText": "500ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "b3dbb108-142c-5eb5-ab3a-60400d431f82",
+    "ingredientName": "water",
+    "pricePence": 1,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "l",
+      "originalText": "1l"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "92f27b16-558d-5322-98d0-71c5e542e029",
+    "ingredientName": "double concentrated tomato puree",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 200,
+      "unit": "g",
+      "originalText": "200g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "28588f96-d8b0-5120-8694-3bef9e340029",
+    "ingredientName": "suet",
+    "pricePence": 220,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 240,
+      "unit": "g",
+      "originalText": "240g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "ac0f1068-3df8-584f-9d6d-cd3511ef1a83",
+    "ingredientName": "mincemeat",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 411,
+      "unit": "g",
+      "originalText": "411g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "3f0e7152-e5cd-5e32-a88d-cd3a7ad0329b",
+    "ingredientName": "custard powder",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 300,
+      "unit": "g",
+      "originalText": "300g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "50f18458-e85c-521d-949a-7cd9527631bc",
+    "ingredientName": "tinned custard",
+    "pricePence": 70,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 400,
+      "unit": "g",
+      "originalText": "400g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "dd8f3778-e548-5442-80ef-8e1e01640c0b",
+    "ingredientName": "condensed milk",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 397,
+      "unit": "g",
+      "originalText": "397g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "1cf3e4f0-6c3c-5193-8bad-e86453a5c77f",
+    "ingredientName": "evaporated milk",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 410,
+      "unit": "g",
+      "originalText": "410g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "b4cfcf19-d676-5ef5-b9d7-39b910098e04",
+    "ingredientName": "skimmed milk powder",
+    "pricePence": 350,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 340,
+      "unit": "g",
+      "originalText": "340g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "f57031c5-4864-5426-aad9-d3c4ec97fc48",
+    "ingredientName": "dried mushrooms",
+    "pricePence": 300,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 30,
+      "unit": "g",
+      "originalText": "30g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "bfce27d0-99f3-53dd-97f5-4ae04e5a9c31",
+    "ingredientName": "mixed peel",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 200,
+      "unit": "g",
+      "originalText": "200g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "8e6b9f36-adef-5b57-bff6-449238474784",
+    "ingredientName": "glace cherries",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 200,
+      "unit": "g",
+      "originalText": "200g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "2823bcdf-df0f-55ed-826d-c29f5a6b05e1",
+    "ingredientName": "tinned salmon",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "can",
+      "originalText": "1can"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "662057ca-6695-545a-8233-04793ca04214",
+    "ingredientName": "tinned mackerel",
+    "pricePence": 130,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "can",
+      "originalText": "1can"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "884d3d3d-bdb8-5d3b-a435-233ddb1bcf64",
+    "ingredientName": "tinned tomato soup",
+    "pricePence": 70,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "can",
+      "originalText": "1can"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "018a703a-569a-5554-8be7-bfff7f8f36b1",
+    "ingredientName": "tinned mushrooms",
+    "pricePence": 90,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 1,
+      "unit": "can",
+      "originalText": "1can"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "decb16f8-c2c2-5367-ba70-12702598f3f4",
+    "ingredientName": "jacket potato",
+    "pricePence": 120,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 4,
+      "unit": "item",
+      "originalText": "4item"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "c9cfa4bc-4664-50c3-ad78-a14cbf3b1994",
+    "ingredientName": "sauerkraut",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 350,
+      "unit": "g",
+      "originalText": "350g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "e7924593-fff4-531a-8e1d-8078ce052f39",
+    "ingredientName": "kimchi",
+    "pricePence": 300,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 300,
+      "unit": "g",
+      "originalText": "300g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "d66031ae-a76c-5816-926f-7d78d8b14686",
+    "ingredientName": "miso paste",
+    "pricePence": 300,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 200,
+      "unit": "g",
+      "originalText": "200g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "ed26f2de-419b-576e-89b8-521f3fac3990",
+    "ingredientName": "coconut sugar",
+    "pricePence": 400,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 300,
+      "unit": "g",
+      "originalText": "300g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "06a129d2-5297-562a-aa13-c818ee30d6d0",
+    "ingredientName": "rice vinegar",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 150,
+      "unit": "ml",
+      "originalText": "150ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "a6ac2ce5-41dc-5fc6-817b-fe2d51b543d8",
+    "ingredientName": "mirin",
+    "pricePence": 250,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 150,
+      "unit": "ml",
+      "originalText": "150ml"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "942a8d60-dc85-5fbc-92c1-5eac0f9691b7",
+    "ingredientName": "nori",
+    "pricePence": 300,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 28,
+      "unit": "g",
+      "originalText": "28g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "ce97a4bb-0343-5f9f-9f58-018f90a9bd63",
+    "ingredientName": "wasabi",
+    "pricePence": 250,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 43,
+      "unit": "g",
+      "originalText": "43g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "2cdec017-8273-561e-8b80-b5edf6956a1f",
+    "ingredientName": "horseradish sauce",
+    "pricePence": 140,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 190,
+      "unit": "g",
+      "originalText": "190g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "3a273b07-198b-506b-8a8b-11b239c14ccf",
+    "ingredientName": "mint sauce",
+    "pricePence": 100,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 165,
+      "unit": "g",
+      "originalText": "165g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "aa9da6a6-4797-5d2e-9bb6-ebb4221918ba",
+    "ingredientName": "cranberry sauce",
+    "pricePence": 140,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 260,
+      "unit": "g",
+      "originalText": "260g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "4e2a0aa8-4e39-582d-b873-a35543f918ff",
+    "ingredientName": "apple sauce",
+    "pricePence": 120,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 290,
+      "unit": "g",
+      "originalText": "290g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "fd882dc0-74e9-5bd1-a2f0-7205075ac293",
+    "ingredientName": "tartare sauce",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 190,
+      "unit": "g",
+      "originalText": "190g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "7fd42819-9c0e-576e-bbc8-b2e6d8a72409",
+    "ingredientName": "salad cream",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 425,
+      "unit": "g",
+      "originalText": "425g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "4ae4037c-6e9b-5148-90a7-5b8156b808a9",
+    "ingredientName": "bbq sauce",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 480,
+      "unit": "g",
+      "originalText": "480g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "f30a908d-1406-5a20-a9e0-9dd1b0ad1385",
+    "ingredientName": "pickled onions",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 360,
+      "unit": "g",
+      "originalText": "360g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "93984b07-be48-53bc-84d5-0284c90f1a84",
+    "ingredientName": "yeast extract",
+    "pricePence": 200,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 250,
+      "unit": "g",
+      "originalText": "250g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "8e6a2d92-01a1-5079-8708-4ed0d241b664",
+    "ingredientName": "lard",
+    "pricePence": 150,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 250,
+      "unit": "g",
+      "originalText": "250g"
+    },
+    "kind": "generic_estimate",
+    "observedOn": "2026-10-19",
+    "source": "Generic UK estimate: author-assessed typical own-brand supermarket shelf price, rounded; not live, not scraped"
+  },
+  {
+    "ingredientId": "41f3740a-327c-59c6-a447-6d0e2db8d246",
+    "ingredientName": "ghee",
+    "pricePence": 350,
+    "packQuantity": {
+      "kind": "exact",
+      "value": 300,
+      "unit": "g",
+      "originalText": "300g"
     },
     "kind": "generic_estimate",
     "observedOn": "2026-10-19",

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { AiError } from './errors.js';
 import { prepareImage, prepareImages, type ImageLimits, type PreparedImage } from './image.js';
+import { PantryScanSchema, SCAN_MAX_IMAGES, SCAN_SYSTEM, normaliseScan, scanPantryPrompt, type PantryScanContext } from './pantry-scan.js';
 import { matchPrompt, planPrompt, recipePrompt, subsPrompt, SYSTEM, tagsPrompt } from './prompts.js';
 import type { AiProvider, CallContext, ImageInput, MatchCandidate, SubstitutionRequest, TaggableRecipe } from './provider.js';
 import {
@@ -125,6 +126,19 @@ export abstract class BaseAiProvider implements AiProvider {
       parts: [{ type: 'text', text: subsPrompt(req) }],
       schema: SubstitutionSchema, toolName: 'submit_substitutions', toolDescription: 'Submit substitution suggestions.',
     });
+  }
+
+  async scanPantry(images: ImageInput[], context: PantryScanContext = {}, ctx?: CallContext) {
+    await enforceLimit(this.base.limits, ctx?.householdId, 'scanPantry');
+    const limits = { ...this.base.imageLimits, maxImages: Math.max(this.base.imageLimits.maxImages, SCAN_MAX_IMAGES) };
+    const prepared = await prepareImages(images, limits);
+    const scan = await this.run({
+      operation: 'scanPantry', modelKind: 'vision', system: SCAN_SYSTEM, ctx,
+      parts: [...prepared.map((image): PromptPart => ({ type: 'image', image })), { type: 'text', text: scanPantryPrompt(prepared.length, context) }],
+      schema: PantryScanSchema, toolName: 'submit_pantry_scan', toolDescription: 'Submit the items seen in the images.',
+    });
+    // Dates, frame references and names are sanitised in code, never trusted to the model.
+    return normaliseScan(scan, prepared.length);
   }
 
   /** Minimal live check of credentials, endpoint and (vision) model. Does not log or return the key. */

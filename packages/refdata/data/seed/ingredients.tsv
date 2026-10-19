@@ -6,7 +6,7 @@ shallot|fruit_veg|banana shallot|fresh|^Shallots
 leek|fruit_veg||fresh|^Leeks, raw
 garlic clove|fruit_veg|garlic;fresh garlic|fresh|^Garlic, raw
 ginger|fruit_veg|root ginger;fresh ginger|fresh|^Ginger, root, raw
-potato|fruit_veg|white potato;maincrop potato|fresh|^Potatoes, old, raw
+potato|fruit_veg|white potato;maincrop potato;floury potato;maris piper;maris piper potato;king edward potato|fresh|^Potatoes, old, raw
 new potato|fruit_veg|baby potato;salad potato|fresh|^Potatoes, new, raw
 sweet potato|fruit_veg|yam (US)|fresh|^Sweet potato, raw
 carrot|fruit_veg||fresh|^Carrots, old, raw
@@ -17,13 +17,13 @@ beetroot|fruit_veg|beet;red beet|fresh|^Beetroot, raw
 celery|fruit_veg|celery stick;celery stalk|fresh|^Celery, raw
 celeriac|fruit_veg||fresh|^Celeriac, raw
 fennel|fruit_veg|fennel bulb|fresh|^Fennel, (Florence, )?raw
-broccoli|fruit_veg||fresh|^Broccoli, green, raw
+broccoli|fruit_veg|tenderstem broccoli;broccoli florets|fresh|^Broccoli, green, raw
 cauliflower|fruit_veg||fresh|^Cauliflower, raw
 cabbage|fruit_veg|white cabbage;green cabbage|fresh|^Cabbage, (white, )?raw
 red cabbage|fruit_veg||fresh|^Cabbage, red, raw
 savoy cabbage|fruit_veg||fresh|^Cabbage, Savoy, raw
 brussels sprouts|fruit_veg|sprouts|fresh|^Brussels sprouts, raw
-kale|fruit_veg|curly kale|fresh|^Kale, (curly, )?raw
+kale|fruit_veg|curly kale;cavolo nero|fresh|^Kale, (curly, )?raw
 spinach|fruit_veg|baby spinach|fresh|^Spinach, (baby, )?raw
 spring greens|fruit_veg||fresh|^Spring greens, raw
 pak choi|fruit_veg|bok choy;pak choy|fresh|^Pak choi
@@ -31,8 +31,8 @@ lettuce|fruit_veg|round lettuce;cos lettuce;romaine|fresh|^Lettuce, (average|cos
 rocket|fruit_veg|arugula;rucola|fresh|^Rocket
 watercress|fruit_veg||fresh|^Watercress
 cucumber|fruit_veg||fresh|^Cucumber, (flesh and skin, )?raw
-tomato|fruit_veg|tomatoes;fresh tomato|fresh|^Tomatoes, (standard, )?raw
-cherry tomato|fruit_veg|cherry tomatoes|fresh|^Tomatoes, cherry
+tomato|fruit_veg|tomatoes;fresh tomato;plum tomato;vine tomato;salad tomato|fresh|^Tomatoes, (standard, )?raw
+cherry tomato|fruit_veg|cherry tomatoes;baby plum tomato;cherry vine tomato|fresh|^Tomatoes, cherry
 red pepper|fruit_veg|red bell pepper;red capsicum|fresh|^Peppers, red, raw
 green pepper|fruit_veg|green bell pepper;green capsicum|fresh|^Peppers, green, raw
 yellow pepper|fruit_veg|yellow bell pepper|fresh|^Peppers, yellow, raw|^Peppers, (capsicum, )?red, raw
@@ -71,20 +71,20 @@ pineapple|fruit_veg||fresh|^Pineapple, raw
 peach|fruit_veg||fresh|^Peaches, raw
 plum|fruit_veg||fresh|^Plums, (average|raw)
 melon|fruit_veg|cantaloupe;honeydew|fresh|^Melon, (Cantaloupe|Honeydew|Galia)
-coconut milk|tinned_jarred|tinned coconut milk|canned|^Coconut milk, canned
+coconut milk|tinned_jarred|tinned coconut milk;light coconut milk;full fat coconut milk|canned|^Coconut milk, canned
 desiccated coconut|baking|shredded coconut|dried|^Coconut, desiccated
 raisins|baking|sultanas;currants;golden raisins|dried|^Raisins|^Sultanas
 dried apricots|baking|apricots (dried)|dried|^Apricots, dried
 dates|baking|medjool dates|dried|^Dates, dried
 prunes|baking||dried|^Prunes, (dried|semi)
-chicken breast|meat_poultry|chicken breast fillet;skinless chicken breast|fresh|^Chicken, breast, (skinless, )?raw|^Chicken, breast, meat only, raw
-chicken thigh|meat_poultry|chicken thighs;boneless chicken thigh|fresh|^Chicken, dark meat, raw|^Chicken, thigh
+chicken breast|meat_poultry|chicken breast fillet;skinless chicken breast;chicken fillets;chicken breast fillets;diced chicken breast;mini chicken fillets|fresh|^Chicken, breast, (skinless, )?raw|^Chicken, breast, meat only, raw
+chicken thigh|meat_poultry|chicken thighs;boneless chicken thigh;chicken thigh fillets;diced chicken thigh|fresh|^Chicken, dark meat, raw|^Chicken, thigh
 whole chicken|meat_poultry|roasting chicken|fresh|^Chicken, whole, raw|^Chicken, roasting
 chicken drumstick|meat_poultry|chicken drumsticks|fresh|^Chicken, drumstick
 chicken wings|meat_poultry||fresh|^Chicken, wing
 minced beef|meat_poultry|beef mince;ground beef|fresh|^Beef, mince, raw
 beef steak|meat_poultry|sirloin steak;rump steak|fresh|^Beef, (sirloin|rump), raw
-stewing beef|meat_poultry|diced beef;braising steak|fresh|^Beef, stewing steak, raw
+stewing beef|meat_poultry|diced beef;braising steak;braising beef|fresh|^Beef, stewing steak, raw
 beef joint|meat_poultry|topside;roasting beef|fresh|^Beef, topside, raw
 minced lamb|meat_poultry|lamb mince|fresh|^Lamb, mince|^Lamb, average, raw
 lamb chops|meat_poultry|lamb chop|fresh|^Lamb, (loin chops|chops)
@@ -94,7 +94,7 @@ pork mince|meat_poultry|minced pork;ground pork|fresh|^Pork, mince|^Pork, averag
 pork shoulder|meat_poultry|pulled pork joint|fresh|^Pork, shoulder
 pork belly|meat_poultry|belly pork|fresh|^Pork, belly
 pork sausages|meat_poultry|sausages;bangers|fresh|^Sausages, pork, (raw|grilled)
-bacon|meat_poultry|streaky bacon;back bacon;bacon rashers|fresh|^Bacon, back, raw|^Bacon, (rashers|back)
+bacon|meat_poultry|streaky bacon;back bacon;bacon rashers;bacon lardons;smoked bacon lardons;lardons|fresh|^Bacon, back, raw|^Bacon, (rashers|back)
 gammon|meat_poultry|gammon steak|fresh|^Gammon
 ham|meat_poultry|cooked ham|fresh|^Ham, (premium|sliced|average)
 chorizo|meat_poultry||fresh|^Chorizo
@@ -118,16 +118,16 @@ skimmed milk|dairy_eggs|skim milk|fresh|^Milk, skimmed, pasteurised, average
 butter|dairy_eggs|salted butter;unsalted butter|fresh|^Butter, (average|salted)
 margarine|dairy_eggs|baking spread;vegetable spread|other|^Margarine|^Fat spread
 single cream|dairy_eggs|light cream|fresh|^Cream, single
-double cream|dairy_eggs|heavy cream|fresh|^Cream, double
+double cream|dairy_eggs|heavy cream;whipping cream|fresh|^Cream, double
 soured cream|dairy_eggs|sour cream|fresh|^Cream, soured
 creme fraiche|dairy_eggs|crème fraîche|fresh|^Creme fraiche|^Crème fraîche
-natural yoghurt|dairy_eggs|plain yogurt;natural yogurt|fresh|^Yogurt, (natural|whole milk)
+natural yoghurt|dairy_eggs|plain yogurt;natural yogurt;plain yoghurt|fresh|^Yogurt, (natural|whole milk)
 greek yoghurt|dairy_eggs|greek yogurt|fresh|^Yogurt, Greek
 cheddar|dairy_eggs|cheddar cheese;mature cheddar|fresh|^Cheese, Cheddar, (average|English)
 mozzarella|dairy_eggs|mozzarella ball|fresh|^Cheese, mozzarella
-parmesan|dairy_eggs|parmigiano reggiano;grana padano|fresh|^Cheese, Parmesan
+parmesan|dairy_eggs|parmigiano reggiano;grana padano;italian hard cheese;grated italian hard cheese;hard italian cheese;italian style hard cheese;vegetarian italian style hard cheese;pecorino;grated parmesan|fresh|^Cheese, Parmesan
 feta|dairy_eggs|feta cheese|fresh|^Cheese, Feta
-cream cheese|dairy_eggs|soft cheese;philadelphia|fresh|^Cheese, soft, (full fat|cream)|^Cheese, cream
+cream cheese|dairy_eggs|soft cheese;philadelphia;soft white cheese;light soft cheese;full fat soft cheese|fresh|^Cheese, soft, (full fat|cream)|^Cheese, cream
 cottage cheese|dairy_eggs||fresh|^Cheese, cottage, plain
 halloumi|dairy_eggs||fresh|^Cheese, halloumi|^Halloumi
 ricotta|dairy_eggs||fresh|^Cheese, ricotta|^Ricotta
@@ -161,7 +161,7 @@ rolled oats|pasta_rice_grains|porridge oats;oats|other|^Oat(s)?,? .*(rolled|porr
 breadcrumbs|bakery|panko;dried breadcrumbs|dried|^Breadcrumbs
 bread|bakery|white bread;sliced bread|other|^Bread, white, sliced
 wholemeal bread|bakery|brown bread;wholewheat bread|other|^Bread, wholemeal
-wrap|bakery|tortilla;flour tortilla;tortilla wrap|other|^Tortilla|^Chapatis|^Wraps
+wrap|bakery|tortilla;flour tortilla;tortilla wrap;soft flour tortillas|other|^Tortilla|^Chapatis|^Wraps
 pitta bread|bakery|pita|other|^Bread, pitta, white
 naan bread|bakery|naan|other|^Bread, naan
 bread roll|bakery|burger bun;roll;bap|other|^Rolls, (white|soft)|^Bread rolls
@@ -190,7 +190,7 @@ kidney beans|tinned_jarred|red kidney beans|canned|^Beans, red kidney, canned
 black beans|tinned_jarred||canned|^Beans, black|^Beans, red kidney, canned
 cannellini beans|tinned_jarred|white beans;butter beans;haricot beans|canned|^Beans, cannellini|^Beans, haricot|^Beans, butter, canned
 baked beans|tinned_jarred||canned|^Baked beans, canned in tomato sauce
-tinned tomatoes|tinned_jarred|chopped tomatoes;canned tomatoes|canned|^Tomatoes, canned
+tinned tomatoes|tinned_jarred|chopped tomatoes;canned tomatoes;tinned chopped tomatoes;chopped tinned tomatoes;tomatoes (tinned);tin of chopped tomatoes;tinned plum tomatoes|canned|^Tomatoes, canned
 tomato puree|tinned_jarred|tomato paste;tomato purée|other|^Tomato puree|^Tomato purée
 passata|tinned_jarred|sieved tomatoes|other|^Passata|^Tomatoes, canned
 sweetcorn tinned|tinned_jarred|tinned sweetcorn;canned corn|canned|^Sweetcorn, kernels, canned
@@ -217,12 +217,12 @@ fish sauce|sauces_condiments||other|^Fish sauce
 oyster sauce|sauces_condiments||other|^Oyster sauce
 hoisin sauce|sauces_condiments||other|^Hoisin
 pesto|sauces_condiments|green pesto|other|^Pesto
-curry paste|sauces_condiments|korma paste;tikka masala paste;madras paste|other|^Curry paste|^Sauce, curry
+curry paste|sauces_condiments|korma paste;tikka masala paste;madras paste;thai green curry paste;thai red curry paste;rogan josh paste;jalfrezi paste|other|^Curry paste|^Sauce, curry
 gravy granules|sauces_condiments|gravy powder|dried|^Gravy, instant, (granules|dry)
 stock cube|sauces_condiments|chicken stock cube;vegetable stock cube;beef stock cube;bouillon|dried|^Stock cubes
 chicken stock|sauces_condiments|chicken broth|other|^Stock, chicken|^Stock cubes
-vegetable stock|sauces_condiments|vegetable broth|other|^Stock, vegetable|^Stock cubes
-salt|herbs_spices|table salt;sea salt;cooking salt|other|^Salt, table
+vegetable stock|sauces_condiments|vegetable broth;vegetable stock pot;veg stock|other|^Stock, vegetable|^Stock cubes
+salt|herbs_spices|table salt;sea salt;cooking salt;flaked sea salt;sea salt flakes;maldon salt;rock salt|other|^Salt, table
 black pepper|herbs_spices|ground black pepper;peppercorns|ground|^Pepper, black
 white pepper|herbs_spices||ground|^Pepper, white
 paprika|herbs_spices|sweet paprika|ground|^Paprika
@@ -249,16 +249,16 @@ dried oregano|herbs_spices|oregano|dried|^Oregano
 dried thyme|herbs_spices|thyme (dried)|dried|^Thyme, dried
 dried rosemary|herbs_spices|rosemary (dried)|dried|^Rosemary
 dried basil|herbs_spices|basil (dried)|dried|^Basil, dried
-mixed herbs|herbs_spices|italian seasoning|dried|^Mixed herbs|^Herbs, mixed
+mixed herbs|herbs_spices|italian seasoning;dried mixed herbs|dried|^Mixed herbs|^Herbs, mixed
 dried sage|herbs_spices|sage (dried)|dried|^Sage, dried
 dried parsley|herbs_spices|parsley (dried)|dried|^Parsley, dried
 garlic powder|herbs_spices|granulated garlic|ground|^Garlic powder|^Garlic, dried
 onion powder|herbs_spices||ground|^Onion powder|^Onions, dried
 fresh coriander|fruit_veg|cilantro;coriander leaves;fresh cilantro|fresh|^Coriander, fresh|^Coriander leaves
-fresh parsley|fruit_veg|flat-leaf parsley;curly parsley|fresh|^Parsley, fresh
-fresh basil|fruit_veg||fresh|^Basil, fresh
+fresh parsley|fruit_veg|flat-leaf parsley;curly parsley;parsley|fresh|^Parsley, fresh
+fresh basil|fruit_veg|basil|fresh|^Basil, fresh
 fresh mint|fruit_veg|mint leaves|fresh|^Mint, fresh
-fresh thyme|fruit_veg|thyme|fresh|^Thyme, fresh
+fresh thyme|fruit_veg|thyme;thyme sprigs;fresh thyme sprigs|fresh|^Thyme, fresh
 fresh rosemary|fruit_veg|rosemary|fresh|^Rosemary, fresh
 fresh sage|fruit_veg|sage|fresh|^Sage, fresh
 fresh dill|fruit_veg|dill|fresh|^Dill, fresh
@@ -298,7 +298,7 @@ frozen peas|frozen||frozen|^Peas, frozen
 frozen sweetcorn|frozen||frozen|^Sweetcorn, kernels, frozen|^Sweetcorn, (kernels, )?canned
 frozen spinach|frozen||frozen|^Spinach, frozen
 frozen mixed vegetables|frozen|mixed veg|frozen|^Vegetables, mixed, frozen
-frozen berries|frozen|mixed berries;summer fruits|frozen|^Raspberries, raw|^Strawberries, raw
+frozen berries|frozen|mixed berries;summer fruits;frozen mixed berries;berry mix|frozen|^Raspberries, raw|^Strawberries, raw
 oven chips|frozen|chips;french fries|frozen|^Chips, oven|^Chips, retail
 frozen pizza|frozen|pizza|frozen|^Pizza
 ice cream|frozen|vanilla ice cream|frozen|^Ice cream, (dairy|vanilla)
@@ -364,3 +364,20 @@ beef stock|sauces_condiments|beef broth|other|^Stock, beef|^Stock cubes
 yeast extract|sauces_condiments|marmite;bovril|other|^Yeast extract
 lard|oils_vinegars||other|^Lard
 ghee|oils_vinegars|clarified butter|other|^Ghee
+nigella seeds|herbs_spices|kalonji;black onion seeds;black seed|dried|
+mango chutney|sauces_condiments|major grey chutney|other|^Chutney, mango
+little gem lettuce|fruit_veg|little gem;gem lettuce;baby gem|fresh|^Lettuce, average
+chicken stock powder|sauces_condiments|chicken stock mix;chicken stock granules;chicken stock mix sachet;chicken bouillon powder|dried|^Stock cubes, chicken
+harissa paste|sauces_condiments|harissa;rose harissa|other|
+garlic puree|sauces_condiments|garlic paste;garlic purée|other|^Garlic, raw
+white fish|fish_seafood|white fish fillets;white fish fillet;skinless white fish fillets;white fish pieces;frozen white fish fillets|fresh|^Cod, 
+ras el hanout|herbs_spices||ground|
+cajun seasoning|herbs_spices|cajun spice;blackened seasoning|ground|
+fajita seasoning|herbs_spices|fajita spice mix;fajita spice|ground|
+jerk seasoning|herbs_spices|jerk spice;jerk marinade|ground|
+chinese five spice|herbs_spices|five spice;chinese 5 spice|ground|
+pizza base|bakery|pizza bases;pizza dough base|other|^Pizza base
+ciabatta|bakery|ciabatta roll;ciabatta loaf|other|^Bread, white
+baguette|bakery|french stick;french bread|other|^Bread, white
+beansprouts|fruit_veg|bean sprouts;mung beansprouts|fresh|^Beansprouts, mung, raw
+mixed salad leaves|fruit_veg|salad leaves;baby leaf salad;mixed leaves;salad bag|fresh|^Lettuce, average

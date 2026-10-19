@@ -1,0 +1,11 @@
+{
+  "items": [
+    { "name": "banana", "form": "fresh", "packaging": "loose", "count": 6, "dates": { "legible": false, "needsCloseUp": false }, "confidence": 0.93, "frameRefs": [1, 2], "notes": "Seen in both frames, counted once" },
+    { "name": "chicken breast", "form": "chilled", "packaging": "pack", "count": 1, "packSizeText": "650g", "packSize": { "value": 650, "unit": "g" }, "dates": { "useBy": "+2d", "legible": true, "needsCloseUp": false }, "confidence": 0.88, "frameRefs": [1] },
+    { "name": "tinned chickpeas", "form": "canned", "packaging": "tin", "count": 2, "packSizeText": "400g", "packSize": { "value": 400, "unit": "g" }, "dates": { "bestBefore": "+400d", "legible": true, "needsCloseUp": false }, "confidence": 0.9, "frameRefs": [2] },
+    { "name": "natural yoghurt", "form": "chilled", "packaging": "pack", "count": 1, "dates": { "legible": false, "needsCloseUp": true }, "confidence": 0.72, "frameRefs": [1], "notes": "Date label visible but too small to read" },
+    { "name": "pepper", "form": "fresh", "packaging": "loose", "count": 2, "dates": { "legible": false, "needsCloseUp": false }, "confidence": 0.6, "frameRefs": [2], "notes": "Could be bell peppers" },
+    { "name": "kohlrabi", "form": "fresh", "packaging": "loose", "count": 1, "dates": { "legible": false, "needsCloseUp": false }, "confidence": 0.5, "frameRefs": [2] }
+  ],
+  "warnings": []
+}

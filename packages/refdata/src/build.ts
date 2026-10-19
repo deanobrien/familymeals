@@ -5,6 +5,7 @@ import {
 } from './schemas.js';
 import { DENSITIES } from './data/densities.js';
 import { UNIT_WEIGHTS } from './data/unit-weights.js';
+import { COUNT_UNIT_WEIGHTS } from './data/count-unit-weights.js';
 import { PRICES, PRICE_OBSERVED_ON, PRICE_SOURCE } from './data/prices.js';
 
 /** Fixed namespace so ingredient ids are deterministic across rebuilds (UUIDv5). */
@@ -29,6 +30,12 @@ export interface BuildInput {
 export function buildIngredients({ tsv, cofidMap }: BuildInput): CanonicalIngredientSeed[] {
   const dens = new Map(DENSITIES.map(([n, v, s]) => [n, { value: v, source: s }]));
   const units = new Map(UNIT_WEIGHTS.map(([n, v, s]) => [n, { value: v, source: s, estimate: true as const }]));
+  const counts = new Map<string, Record<string, { value: number; source: string; estimate: true }>>();
+  for (const [n, unit, g, src] of COUNT_UNIT_WEIGHTS) {
+    const m = counts.get(n) ?? {};
+    m[unit] = { value: g, source: src, estimate: true as const };
+    counts.set(n, m);
+  }
   const rows = tsv.trim().split(/\r?\n/).slice(1);
   const out: CanonicalIngredientSeed[] = [];
   for (const line of rows) {
@@ -45,6 +52,7 @@ export function buildIngredients({ tsv, cofidMap }: BuildInput): CanonicalIngred
       aliases: (aliases ?? '').split(';').map((a) => a.trim()).filter(Boolean),
       ...(dens.has(key) ? { densityGPerMl: dens.get(key) } : {}),
       ...(units.has(key) ? { unitWeightG: units.get(key) } : {}),
+      ...(counts.has(key) ? { countUnitWeightsG: counts.get(key) } : {}),
       ...(form?.trim() ? { form: form.trim() } : {}),
       ...(map ? { cofid: { code: map[0], match: map[1] } } : {}),
     }));
