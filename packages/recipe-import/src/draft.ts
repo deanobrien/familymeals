@@ -13,8 +13,8 @@ const close = (a?: number, b?: number) =>
 export function quantitiesAgree(a: Quantity, b: Quantity): boolean {
   if (a.kind !== b.kind) return false;
   switch (a.kind) {
-    case 'exact': return close(a.value, b.value) && a.unit === b.unit;
-    case 'range': return close(a.min, b.min) && close(a.max, b.max) && a.unit === b.unit;
+    case 'exact': return close(a.value, b.value) && (a.unit ?? 'item') === (b.unit ?? 'item');
+    case 'range': return close(a.min, b.min) && close(a.max, b.max) && (a.unit ?? 'item') === (b.unit ?? 'item');
     case 'approximate': return normText(a.approxLabel ?? '') === normText(b.approxLabel ?? '');
     default: return true; // to_taste / unparsed: kind match is enough
   }

@@ -76,6 +76,15 @@ export interface RecipeCost {
   source?: string;
 }
 
+/** Nutrition exactly as printed on an imported recipe card. Source-provided, NEVER calculated by us. */
+export interface PrintedNutritionView {
+  /** As printed: "per person", "per serving", "per 100g". */
+  basis: string;
+  values: Array<{ nutrient: string; amount: number; unit: string }>;
+  note?: string | undefined;
+  source: 'recipe card';
+}
+
 export interface RecipeView {
   id: Uuid;
   title: string;
@@ -100,6 +109,10 @@ export interface RecipeView {
   cost: RecipeCost;
   /** Per-serving nutrition; unknown rows are shown as Unknown, never 0. */
   nutritionPerServing: NutrientValue[];
+  /** Printed on the recipe card (imports only); shown separately from our own calculation. */
+  printedNutrition?: PrintedNutritionView | undefined;
+  /** Allergens exactly as printed on the card (imports only). */
+  printedAllergens?: string[] | undefined;
   createdAt: IsoDateTime;
   updatedAt: IsoDateTime;
 }
