@@ -232,35 +232,22 @@ export async function revokeMember(
 }
 
 /**
- * Promote the target to owner, then demote the caller to member. Two statements (no RPC exists): promoting
- * first guarantees the household never has zero owners, so a failure in step 2 leaves two owners, not none.
+ * Atomic ownership transfer via the transfer_ownership() RPC (migration 0015): verifies the caller is the active
+ * owner and the household is writable (not in the deletion grace period), then promotes the target and demotes
+ * the caller in one transaction.
  */
 export async function transferOwnership(
   client: SupabaseClient,
   householdId: string,
   targetMemberId: string,
-  myUserId: string,
+  _myUserId?: string,
 ): Promise<Result<true>> {
   if (!isUuid(householdId) || !isUuid(targetMemberId)) return fail('invalid_input');
-  const promote = await client
-    .from('household_members')
-    .update({ role: 'owner' })
-    .eq('id', targetMemberId)
-    .eq('household_id', householdId)
-    .eq('status', 'active')
-    .neq('user_id', myUserId)
-    .select('id');
-  if (promote.error) return fail(mapDbError(promote.error));
-  if ((promote.data ?? []).length === 0) return fail('not_found');
-  const demote = await client
-    .from('household_members')
-    .update({ role: 'member' })
-    .eq('household_id', householdId)
-    .eq('user_id', myUserId)
-    .eq('status', 'active')
-    .select('id');
-  if (demote.error) return fail(mapDbError(demote.error));
-  return ok(true);
+  const { error } = await client.rpc('transfer_ownership', {
+    p_household_id: householdId,
+    p_new_owner_member_id: targetMemberId,
+  });
+  return error ? fail(mapDbError(error)) : ok(true);
 }
 
 export async function leaveHousehold(client: SupabaseClient, householdId: string): Promise<Result<true>> {

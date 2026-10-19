@@ -21,6 +21,7 @@ adjustments, plus requests from L24 (privacy lifecycle) and L17a (shopping concu
 | `0012_privacy_lifecycle.sql` | consent_records, storage_cleanup_queue, deletion_ledger, households.status/purge_after; `request/cancel_household_deletion()`, `member_leave()`, `purge_household()` |
 | `0013_shopping_commands.sql` | shopping_command_log; `shopping_item_outstanding()`, `record_purchase()`, `void_purchase()` |
 | `0014_owner_decisions.sql` | purchase_events nullable actors + `created_by_display_name` snapshot; `is_household_writable()`, `household_is_active()`; grace-period read-only policies + guard triggers |
+| `0015_transfer_ownership.sql` | `transfer_ownership(p_household_id, p_new_owner_member_id)` - atomic owner swap RPC |
 | `packages/domain/src/` | `@fr/domain`: primitives, CONTRACT-SEED shapes, one row schema per table/view, RPC DTOs, row mapping |
 | `packages/db/tests/rls/*.sql` | plain-SQL assert scripts (BEGIN…ROLLBACK); `000_helpers.sql` defines `tests.act_as()` etc. |
 | `packages/db/tests/support/supabase-stub.sql` | stand-in for `auth`/`storage`/roles — **CI only, never on Supabase** |
@@ -128,6 +129,8 @@ The four concepts the brief insists stay separate are separate tables: **recipe 
   - Owner-gated writes (`households` update, `household_members` insert/owner-update, `invitations` insert/update) also require `household_is_active()`.
   - RPC-only write paths (`record_purchase`, `void_purchase`, `create_invitation`, `accept_invitation` via the inserts they perform) are guarded by `guard_household_writable()` triggers (end-user calls only: `auth.uid() is not null`), raising `insufficient_privilege`.
   - Still allowed: `cancel_household_deletion()` (owner), `member_leave()`, withdrawing consent, service-role `purge_household()`.
+
+- **`transfer_ownership(household, new_owner_member)`** (0015, SECURITY DEFINER, authenticated only): caller must be the active owner; target must be a different ACTIVE member of the same household; refused (`42501`, read-only) while the household is `pending_deletion`. Promotes the target then demotes the caller in one transaction, so the last-owner guard always holds and exactly one owner remains. Errors: `42501` not owner / read-only, `22023` bad target or self. Tests: `packages/db/tests/rls/005_transfer_ownership.sql`.
 
 ## Validation
 

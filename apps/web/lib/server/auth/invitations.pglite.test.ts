@@ -1,7 +1,7 @@
 /**
  * Exercises the SQL the household/invite UI relies on (create_invitation, accept_invitation, member_leave,
  * ownership transfer via role updates, grace-period read-only) on PGlite with the real migrations, reusing the
- * stub + helpers from packages/db. No Docker. The two-step ownership transfer here mirrors transferOwnership().
+ * stub + helpers from packages/db. No Docker. Ownership transfer goes through the transfer_ownership() RPC, as transferOwnership() does.
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -106,17 +106,25 @@ describe('membership management used by /household', () => {
     select tests.act_as('${A}');
   `;
 
-  it('ownership transfer = promote then demote; sole owner cannot leave or be demoted first', async () => {
+  it('ownership transfer via transfer_ownership(); sole owner cannot leave or be demoted directly', async () => {
     await script(`${withMember}
       select tests.throws($$ select public.member_leave('${HA}') $$, '22023', 'sole owner cannot leave');
       select tests.throws($$ update public.household_members set role = 'member' where user_id = '${A}' $$, '23514', 'cannot demote last owner');
-      update public.household_members set role = 'owner' where user_id = '${C}' and household_id = '${HA}';
-      update public.household_members set role = 'member' where user_id = '${A}' and household_id = '${HA}';
+      select tests.throws($$ select public.transfer_ownership('${HA}', (select id from public.household_members where user_id = '${A}' and household_id = '${HA}')) $$, '22023', 'not to self');
+      select public.transfer_ownership('${HA}', (select id from public.household_members where user_id = '${C}' and household_id = '${HA}'));
       select tests.is((select count(*) from public.household_members where role = 'owner' and status = 'active'), 1, 'one owner');
+      select tests.throws($$ select public.transfer_ownership('${HA}', (select id from public.household_members where user_id = '${C}' and household_id = '${HA}')) $$, '42501', 'ex-owner refused');
       select tests.act_as('${C}');
       select tests.ok(public.is_household_owner('${HA}'), 'C is now owner');
       select tests.act_as('${A}');
       select tests.throws($$ update public.household_members set role = 'owner' where user_id = '${A}' $$, '42501', 'ex-owner cannot re-promote');
+    `);
+  });
+
+  it('ownership transfer is refused during the deletion grace period', async () => {
+    await script(`${withMember}
+      select public.request_household_deletion('${HA}');
+      select tests.throws($$ select public.transfer_ownership('${HA}', (select id from public.household_members where user_id = '${C}' and household_id = '${HA}')) $$, '42501', 'read-only during grace');
     `);
   });
 

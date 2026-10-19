@@ -211,17 +211,24 @@ describe('household service (mocked Supabase client)', () => {
     expect(ops).toContain('neq'); // cannot remove yourself this way
   });
 
-  it('transferOwnership promotes first, then demotes the caller', async () => {
-    const { client, calls } = fakeClient([{ data: [{ id: M1 }] }, { data: [{ id: 'me' }] }]);
+  it('transferOwnership calls the transfer_ownership RPC', async () => {
+    const { client, calls } = fakeClient([{ data: null }]);
     expect((await transferOwnership(client, H1, M1, U1)).ok).toBe(true);
-    expect(calls[0]!.ops[0]).toEqual(['update', [{ role: 'owner' }]]);
-    expect(calls[1]!.ops[0]).toEqual(['update', [{ role: 'member' }]]);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]!.fn).toBe('transfer_ownership');
+    expect(calls[0]!.ops[0]).toEqual(['args', [{ p_household_id: H1, p_new_owner_member_id: M1 }]]);
   });
 
-  it('transferOwnership stops (no demotion) when the promotion fails', async () => {
-    const { client, calls } = fakeClient([{ data: [] }]);
-    expect(await transferOwnership(client, H1, M1, U1)).toEqual({ ok: false, error: 'not_found' });
-    expect(calls).toHaveLength(1);
+  it('transferOwnership maps RPC refusals (read-only grace, not owner, bad target)', async () => {
+    const ro = fakeClient([{ error: { code: '42501', message: 'household is pending deletion and read-only' } }]);
+    expect(await transferOwnership(ro.client, H1, M1, U1)).toEqual({ ok: false, error: 'read_only' });
+    const no = fakeClient([{ error: { code: '42501', message: 'not an active owner' } }]);
+    expect(await transferOwnership(no.client, H1, M1, U1)).toEqual({ ok: false, error: 'forbidden' });
+    const bad = fakeClient([{ error: { code: '22023', message: 'target is not an active member of this household' } }]);
+    expect(await transferOwnership(bad.client, H1, M1, U1)).toEqual({ ok: false, error: 'invalid_input' });
+    const none = fakeClient([]);
+    expect(await transferOwnership(none.client, 'x', M1, U1)).toEqual({ ok: false, error: 'invalid_input' });
+    expect(none.calls).toHaveLength(0);
   });
 
   it('leaveHousehold surfaces the sole-owner rule', async () => {
