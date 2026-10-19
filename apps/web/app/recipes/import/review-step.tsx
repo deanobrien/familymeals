@@ -7,7 +7,7 @@ import {
   applyCorrections, computeIssues, describeQuantity, findDuplicates,
   type DraftEdits, type DraftIngredient, type FieldStatus, type Quantity, type RecipeDraft, type RecipeSummary,
 } from '@fr/recipe-import';
-import type { ApiError } from './import-flow';
+import type { ApiError, ProviderInfo } from './import-flow';
 
 type Unit = NonNullable<Quantity['unit']>;
 const UNITS: Unit[] = ['g', 'kg', 'mg', 'ml', 'l', 'tsp', 'tbsp', 'cup', 'floz', 'pint', 'item', 'clove', 'slice', 'can', 'pack', 'bunch', 'sprig', 'stick'];
@@ -85,6 +85,7 @@ function IngredientRow({ index, ing, issues, onEdit }: RowProps) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
         <strong>Line {n}</strong>
         <span style={{ color: 'var(--fr-text-muted, inherit)' }}>from photo: &ldquo;{ing.originalText}&rdquo;</span>
+        {ing.pantryStaple && <Badge data-testid="pantry-staple-badge">Pantry staple (not supplied)</Badge>}
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
         <span>Name <StatusBadge status={ing.name.status} what={`Ingredient ${n} name`} /></span>
@@ -141,11 +142,14 @@ function IngredientRow({ index, ing, issues, onEdit }: RowProps) {
 interface Props {
   initial: RecipeDraft;
   existing: RecipeSummary[];
+  /** Upload folder id: page photos are previewed from /api/uploads/<id>/page-N.jpg. */
+  uploadId: string;
+  provider?: ProviderInfo | undefined;
   onSave: (draft: RecipeDraft) => Promise<{ error?: ApiError }>;
   onStartOver: () => void;
 }
 
-export function ReviewStep({ initial, existing, onSave, onStartOver }: Props) {
+export function ReviewStep({ initial, existing, uploadId, provider, onSave, onStartOver }: Props) {
   const [draft, setDraft] = useState<RecipeDraft>(initial);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -169,6 +173,9 @@ export function ReviewStep({ initial, existing, onSave, onStartOver }: Props) {
   }
 
   const blocking = draft.issues.filter((i) => i.blocking);
+  const pageCount = draft.sourceImageRefs.length;
+  // The AI's rotation applies only to the page it picked as the front; any other page is shown as uploaded.
+  const coverRotation = (draft.coverPage ?? 1) === initial.coverPage ? (initial.coverRotation ?? 0) : 0;
   const duplicates = useMemo(
     () => findDuplicates(
       {
@@ -220,6 +227,44 @@ export function ReviewStep({ initial, existing, onSave, onStartOver }: Props) {
       <Card>
         <CardBody>
           <div style={{ display: 'grid', gap: '0.75rem' }}>
+            {provider && (
+              <p data-testid="review-provider" className="fr-muted" style={{ margin: 0 }}>
+                Read by: <strong>{provider.label}</strong>
+                {provider.isMock && ' (sample data, not your photo)'}
+              </p>
+            )}
+            {draft.source && <p data-testid="review-source" style={{ margin: 0 }}>Source: <strong>{draft.source}</strong></p>}
+            {pageCount > 0 && (
+              <div data-testid="cover-picker" style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ width: 120, height: 120, overflow: 'hidden', borderRadius: 8, background: 'var(--fr-surface-2)', display: 'grid', placeItems: 'center' }}>
+                  <img
+                    src={`/api/uploads/${uploadId}/page-${draft.coverPage ?? 1}.jpg`}
+                    alt={`Cover photo preview (page ${draft.coverPage ?? 1})`}
+                    style={{ width: 120, height: 120, objectFit: 'contain', transform: coverRotation ? `rotate(${coverRotation}deg)` : undefined }}
+                  />
+                </div>
+                <div style={{ flex: 1, minWidth: '12rem' }}>
+                  {pageCount > 1 ? (
+                    <Select
+                      label="Cover photo"
+                      value={String(draft.coverPage ?? 1)}
+                      onChange={(e) => mutate((d) => { d.coverPage = Number(e.target.value); })}
+                      options={Array.from({ length: pageCount }, (_, i) => ({ value: String(i + 1), label: `Page ${i + 1}${i + 1 === initial.coverPage ? ' (front of the card, picked by the AI)' : ''}` }))}
+                      hint="Shown on the recipe card and at the top of the recipe. It is turned upright automatically."
+                    />
+                  ) : (
+                    <p style={{ margin: 0 }}>This photo will be the recipe&rsquo;s cover.</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardBody>
+          <div style={{ display: 'grid', gap: '0.75rem' }}>
             <div>
               <StatusBadge status={draft.title.status} what="Title" />{' '}
               {draft.titleProposed && <span>Suggested by AI. Please confirm or change it.</span>}
@@ -244,6 +289,38 @@ export function ReviewStep({ initial, existing, onSave, onStartOver }: Props) {
           </div>
         </CardBody>
       </Card>
+
+      {(draft.printedNutrition || (draft.printedAllergens && draft.printedAllergens.length > 0)) && (
+        <section aria-labelledby="printed-h" data-testid="printed-card-info">
+          <h3 id="printed-h">Printed on the recipe card</h3>
+          <p className="fr-muted">
+            Copied from the card exactly as printed. This is supplied by the card, not calculated by this app, and is saved
+            with the recipe labelled that way.
+          </p>
+          {draft.printedNutrition && (
+            <div data-testid="printed-nutrition">
+              <p style={{ margin: '0 0 0.25rem' }}>
+                <strong>Nutrition {draft.printedNutrition.basis}</strong> <Badge>from recipe card</Badge>
+                {draft.printedNutrition.note ? ` (${draft.printedNutrition.note})` : ''}
+              </p>
+              <table>
+                <caption className="fr-visually-hidden">Nutrition printed on the card, {draft.printedNutrition.basis}</caption>
+                <tbody>
+                  {draft.printedNutrition.values.map((v) => (
+                    <tr key={v.nutrient}>
+                      <th scope="row" style={{ textAlign: 'left', fontWeight: 'normal', paddingRight: '1.5rem' }}>{v.nutrient}</th>
+                      <td>{v.amount}{v.unit === 'kcal' || v.unit === 'kJ' ? ` ${v.unit}` : v.unit}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {draft.printedAllergens && draft.printedAllergens.length > 0 && (
+            <p data-testid="printed-allergens"><strong>Allergens printed on the card:</strong> {draft.printedAllergens.join(', ')}</p>
+          )}
+        </section>
+      )}
 
       <section aria-labelledby="ing-h">
         <h3 id="ing-h">Ingredients ({draft.ingredients.length})</h3>

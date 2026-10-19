@@ -6,6 +6,7 @@ import {
   UNITS,
   type DietCategory,
   type MealType,
+  type PrintedNutritionView,
   type Quantity,
 } from './types';
 
@@ -42,6 +43,17 @@ export const ingredientInputSchema = z.object({
   optional: z.boolean(),
 });
 
+export const printedNutritionSchema = z.object({
+  basis: z.string().trim().min(1).max(60),
+  values: z.array(z.object({
+    nutrient: z.string().trim().min(1).max(40),
+    amount: z.number().min(0).max(100000),
+    unit: z.string().trim().min(1).max(10),
+  })).min(1).max(30),
+  note: z.string().trim().max(200).optional(),
+  source: z.literal('recipe card'),
+});
+
 export const recipeInputSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(160),
   description: z.string().trim().max(2000),
@@ -62,6 +74,9 @@ export const recipeInputSchema = z.object({
   tags: z.array(z.string().trim().min(1).max(40)).max(30),
   ingredients: z.array(ingredientInputSchema).min(1, 'Add at least one ingredient').max(100),
   steps: z.array(z.string().trim().min(1, 'Steps cannot be empty').max(2000)).min(1, 'Add at least one step').max(100),
+  /** Imports only; preserved across edits when the form does not send them. */
+  printedNutrition: printedNutritionSchema.optional(),
+  printedAllergens: z.array(z.string().trim().min(1).max(80)).max(30).optional(),
 });
 
 export interface RecipeInput {
@@ -86,6 +101,8 @@ export interface RecipeInput {
     optional: boolean;
   }>;
   steps: string[];
+  printedNutrition?: PrintedNutritionView | undefined;
+  printedAllergens?: string[] | undefined;
 }
 
 // ---- list query (URL driven) ----
