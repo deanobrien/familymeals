@@ -92,9 +92,7 @@ export async function resolveRequestAuth(req: Request, requestedHouseholdId?: st
   }
   const ctx = await getHouseholdContext();
   if (!ctx) return fail(401, 'Please sign in.');
-  // The hint equal to the already-authorised active household needs no membership lookup (mock e2e sandboxes use
-  // non-UUID ids, which `pick` would reject); any other id is still narrowed to a real membership.
-  const chosen = requestedHouseholdId && requestedHouseholdId !== ctx.household.id ? pick(ctx.memberships, requestedHouseholdId) : ctx.household;
+  const chosen = requestedHouseholdId ? pick(ctx.memberships, requestedHouseholdId) : ctx.household;
   if ('ok' in chosen) return chosen;
   return {
     ok: true,
