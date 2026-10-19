@@ -1,6 +1,20 @@
+import { useEffect, useState } from 'react';
 import { Redirect } from 'expo-router';
+import { useApp } from '@/data/AppContext';
+import { Loading } from '@/screens/ui';
 
-// TODO: with a real DataSource, check ds.getSession() and redirect to /households when signed in.
+/** Signed in (persisted Supabase session) -> household picker, otherwise sign in. */
 export default function Index() {
-  return <Redirect href="/sign-in" />;
+  const { ds } = useApp();
+  const [target, setTarget] = useState<'/households' | '/sign-in' | null>(null);
+
+  useEffect(() => {
+    ds.getSession().then(
+      (s) => setTarget(s ? '/households' : '/sign-in'),
+      () => setTarget('/sign-in'),
+    );
+  }, [ds]);
+
+  if (!target) return <Loading label="Starting" />;
+  return <Redirect href={target} />;
 }

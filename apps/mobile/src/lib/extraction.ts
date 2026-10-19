@@ -1,7 +1,7 @@
 import * as ImageManipulator from 'expo-image-manipulator';
 
-/** Limits mirror the server AI gateway's image limits (L4). Adjust together. */
-export const MAX_IMAGES = 8;
+/** Mirrors the web app's `/api/extract` limit (apps/web/app/api/extract/route.ts MAX_FILES). Change together. */
+export const MAX_IMAGES = 6;
 export const MAX_EDGE_PX = 1600;
 export const JPEG_QUALITY = 0.8;
 
@@ -17,6 +17,7 @@ export interface UploadImage extends CapturedImage {
 }
 
 export type Resizer = (img: CapturedImage) => Promise<CapturedImage>;
+export type Rotator = (img: CapturedImage) => Promise<CapturedImage>;
 
 /** Downscale (longest edge <= MAX_EDGE_PX) and re-encode as JPEG so uploads stay small. */
 export const defaultResizer: Resizer = async (img) => {
@@ -27,6 +28,15 @@ export const defaultResizer: Resizer = async (img) => {
       : [];
   const out = await ImageManipulator.manipulateAsync(img.uri, actions, {
     compress: JPEG_QUALITY,
+    format: ImageManipulator.SaveFormat.JPEG,
+  });
+  return { uri: out.uri, width: out.width, height: out.height };
+};
+
+/** Turn a captured page 90 degrees clockwise (phones often save landscape pages sideways). */
+export const defaultRotator: Rotator = async (img) => {
+  const out = await ImageManipulator.manipulateAsync(img.uri, [{ rotate: 90 }], {
+    compress: 0.9,
     format: ImageManipulator.SaveFormat.JPEG,
   });
   return { uri: out.uri, width: out.width, height: out.height };
@@ -46,7 +56,7 @@ export async function prepareForUpload(
   return out;
 }
 
-/** Multipart body for the server extraction endpoint (React Native file-part shape). */
+/** Multipart body for the server extraction endpoint (React Native file-part shape). Field names match the web route. */
 export function buildExtractionForm(householdId: string, images: UploadImage[]): FormData {
   const form = new FormData();
   form.append('householdId', householdId);
@@ -55,22 +65,4 @@ export function buildExtractionForm(householdId: string, images: UploadImage[]):
     form.append('images', { uri: img.uri, name: img.name, type: img.mimeType } as unknown as Blob);
   }
   return form;
-}
-
-export interface ExtractionSubmitResult {
-  status: 'stubbed' | 'accepted';
-  imageCount: number;
-  /** Server-side extraction job / draft-recipe id (L13). Stubbed locally. */
-  jobId: string;
-}
-
-/**
- * STUB. TODO(L13): POST the form from buildExtractionForm to the server extraction endpoint
- * (`${EXPO_PUBLIC_API_BASE_URL}/api/recipes/extract`) with the Supabase access token as a Bearer
- * header. The AI provider key stays server-side; the app never calls an AI provider directly.
- */
-export async function submitExtraction(householdId: string, images: UploadImage[]): Promise<ExtractionSubmitResult> {
-  buildExtractionForm(householdId, images); // validates the payload shape
-  await Promise.resolve();
-  return { status: 'stubbed', imageCount: images.length, jobId: `stub-${Date.now()}` };
 }

@@ -1,5 +1,5 @@
 import type { NutrientValue, PurchaseEvent, Quantity, Uuid } from '@fr/domain';
-import type { Household, Recipe, ShoppingListItem, UserSession } from '@/viewModels';
+import type { Household, Recipe, ShoppingConflict, ShoppingListItem, UserSession } from '@/viewModels';
 import { newId } from '@/lib/format';
 import type { DataSource, ShoppingListState } from './DataSource';
 
@@ -126,6 +126,21 @@ export class MockDataSource implements DataSource {
     this.session = null;
   }
 
+  async getAccessToken() {
+    return this.session ? 'mock-access-token' : null;
+  }
+
+  takeConflicts(): ShoppingConflict[] {
+    return [];
+  }
+
+  async undoTick(householdId: Uuid, itemId: Uuid): Promise<void> {
+    const item = this.items.find((i) => i.id === itemId && i.householdId === householdId);
+    if (!item || !item.ticked) throw new Error('Nothing to undo for this item.');
+    item.ticked = false;
+    this.queue = this.queue.filter((e) => e.shoppingListItemId !== itemId);
+  }
+
   async listHouseholds() {
     await this.delay();
     return HOUSEHOLDS.map((h) => ({ ...h }));
@@ -143,7 +158,7 @@ export class MockDataSource implements DataSource {
 
   async getShoppingList(householdId: Uuid): Promise<ShoppingListState> {
     await this.delay();
-    const items = this.items.filter((i) => i.householdId === householdId).map((i) => ({ ...i }));
+    const items = this.items.filter((i) => i.householdId === householdId).map((i) => ({ ...i, canUndo: i.ticked }));
     return { items, pendingItemIds: this.queue.map((e) => e.shoppingListItemId) };
   }
 
