@@ -43,6 +43,16 @@ export function groupsForName(name: string): string[] {
   return [...new Set([...direct, ...(GROUP_ALIASES[k] ?? [])])];
 }
 
+/**
+ * True when free text (an ingredient line, a method) names a member of any of the given UK-14 groups by keyword.
+ * Over-inclusive by design; used by recipe discovery as a net beside the id match (D172).
+ */
+export function textHitsAllergenGroups(text: string, groups: Iterable<string>): boolean {
+  const t = text.toLowerCase();
+  for (const g of groups) if ((GROUP_KEYWORDS[g] ?? []).some((kw) => t.includes(kw))) return true;
+  return false;
+}
+
 const names = (i: CanonicalIngredient): string[] => [i.name, ...i.aliases];
 const hits = (i: CanonicalIngredient, keywords: string[]): boolean => names(i).some((n) => keywords.some((kw) => n.toLowerCase().includes(kw)));
 

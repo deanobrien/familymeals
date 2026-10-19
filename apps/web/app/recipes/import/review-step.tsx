@@ -145,11 +145,13 @@ interface Props {
   /** Upload folder id: page photos are previewed from /api/uploads/<id>/page-N.jpg. */
   uploadId: string;
   provider?: ProviderInfo | undefined;
+  /** Replaces the photo-specific intro (recipes that did not come from photos). */
+  intro?: string;
   onSave: (draft: RecipeDraft) => Promise<{ error?: ApiError }>;
   onStartOver: () => void;
 }
 
-export function ReviewStep({ initial, existing, uploadId, provider, onSave, onStartOver }: Props) {
+export function ReviewStep({ initial, existing, uploadId, provider, intro, onSave, onStartOver }: Props) {
   const [draft, setDraft] = useState<RecipeDraft>(initial);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -206,7 +208,7 @@ export function ReviewStep({ initial, existing, uploadId, provider, onSave, onSt
   return (
     <div style={{ display: 'grid', gap: '1.25rem', maxWidth: 840 }}>
       <h2>Review recipe</h2>
-      <p>Check what was read from your photos. Anything marked below needs a look before you save. Your original photos and this extraction are kept alongside your corrections.</p>
+      <p>{intro ?? 'Check what was read from your photos. Anything marked below needs a look before you save. Your original photos and this extraction are kept alongside your corrections.'}</p>
 
       {draft.warnings.length > 0 && (
         <div role="status" data-testid="extraction-warnings">

@@ -15,6 +15,7 @@
     "@fr/engine": "workspace:*",
     "@fr/plan-orchestrator": "workspace:*",
     "@fr/recipe-import": "workspace:*",
+    "@fr/recipe-sources": "workspace:*",
     "@fr/refdata": "workspace:*",
     "@fr/ui": "workspace:*",
     "@supabase/ssr": "^0.12.7",

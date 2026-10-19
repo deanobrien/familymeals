@@ -190,6 +190,7 @@ export class PlanOrchestrator {
     const proposal: PlanProposal = {
       id: this.newId(), status: 'proposed', householdId, weekStart, prompt, constraints, request, reimposedExclusions,
       slots: res.slots, explanations: res.explanations, unmet, report: res.report, gaps,
+      ...(res.ideas?.length ? { ideas: res.ideas } : {}),
       totalCostPence: res.totalCostPence, uncostedMeals: res.uncostedMeals, createdAt: this.now().toISOString(),
     };
     await this.d.proposals.save(proposal);

@@ -10,6 +10,7 @@ import { slotKey } from '../../lib/plan/ops';
 import { DIET_CATEGORIES, proportionsSentence, roundProportions, type Proportions } from '../../lib/plan/proportions';
 import { MEAL_LABEL, MEAL_TYPES, type MealType, type ParseResult, type PlanDoc, type PlanEntry, type ProposeResult, type RecipeLite } from '../../lib/plan/types';
 import { ConstraintChips } from './constraint-chips';
+import { IdeasPanel, type IdeaExtra } from './ideas-panel';
 import { parsePlanRequestAction, solvePlanRequestAction } from './actions';
 
 interface Props {
@@ -37,6 +38,11 @@ export function proposalToDoc(p: PlanProposal, doc: PlanDoc): PlanDoc {
     proposalId: p.id,
     status: 'draft',
   };
+}
+
+/** Only what the user's own request adds; the household's hard exclusions are re-applied on the server. */
+function ideaExtra(r: PlanRequest | null): IdeaExtra {
+  return { terms: r?.excludeTerms ?? [], allergens: r?.excludeAllergens ?? [], excludeDiets: r?.excludeDietCategories ?? [] };
 }
 
 export function PromptPanel({ weekStart, recipes, examplePrompt, exclusions, memberNames, onAccept }: Props) {
@@ -141,12 +147,22 @@ export function PromptPanel({ weekStart, recipes, examplePrompt, exclusions, mem
           {result.message}
           {result.unmet && result.unmet.length > 0 && <ul>{result.unmet.map((u) => <li key={u.detail}>{u.detail}</li>)}</ul>}
           {result.gaps && result.gaps.length > 0 && <p className="plan__muted">{result.gaps.length} slot{result.gaps.length === 1 ? '' : 's'} would need a new recipe.</p>}
+          {result.gaps && result.gaps.length > 0 && (
+            <IdeasPanel
+              needs={MEAL_TYPES.filter((m) => result.gaps!.some((g) => g.mealType === m)).map((m) => {
+                const n = result.gaps!.filter((g) => g.mealType === m).length;
+                return { reason: `${n} ${m} slot${n === 1 ? '' : 's'} could not be filled from your library.`, count: n, criteria: { mealType: m } };
+              })}
+              extra={ideaExtra(request)}
+            />
+          )}
         </div>
       )}
 
       {result?.ok && (
         <Proposal
           p={result.proposal}
+          extra={ideaExtra(request)}
           recipes={recipes}
           accepted={accepted}
           onAccept={() => { onAccept((d) => proposalToDoc(result.proposal, d)); setAccepted(true); }}
@@ -158,7 +174,7 @@ export function PromptPanel({ weekStart, recipes, examplePrompt, exclusions, mem
   );
 }
 
-function Proposal({ p, recipes, accepted, onAccept, onDiscard }: { p: PlanProposal; recipes: ReadonlyMap<string, RecipeLite>; accepted: boolean; onAccept: () => void; onDiscard: () => void }) {
+function Proposal({ p, extra, recipes, accepted, onAccept, onDiscard }: { p: PlanProposal; extra: IdeaExtra; recipes: ReadonlyMap<string, RecipeLite>; accepted: boolean; onAccept: () => void; onDiscard: () => void }) {
   const cost =
     p.totalCostPence == null
       ? 'Uncosted: no price data for these recipes.'
@@ -219,6 +235,8 @@ function Proposal({ p, recipes, accepted, onAccept, onDiscard }: { p: PlanPropos
           <ul>{p.gaps.map((g) => <li key={`${g.date}|${g.mealType}`}>{dayShort(g.date)} {MEAL_LABEL[g.mealType as MealType]}: {g.reason}</li>)}</ul>
         </div>
       )}
+
+      {p.ideas && p.ideas.length > 0 && <IdeasPanel needs={p.ideas} extra={extra} />}
 
       <div className="plan__inline">
         <Button onClick={onAccept} disabled={accepted}>{accepted ? 'Accepted into the grid' : 'Accept into grid'}</Button>

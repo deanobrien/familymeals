@@ -42,9 +42,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
     <>
       <div className={styles.header}>
         <h1>Recipes</h1>
-        <Link href="/recipes/new" className={`fr-btn fr-btn--primary ${styles.linkBtn}`}>
-          New recipe
-        </Link>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <Link href="/recipes/discover" className={`fr-btn fr-btn--secondary ${styles.linkBtn}`}>
+            Discover
+          </Link>
+          <Link href="/recipes/new" className={`fr-btn fr-btn--primary ${styles.linkBtn}`}>
+            New recipe
+          </Link>
+        </div>
       </div>
       {deleted && <p className={styles.banner} role="status">Recipe deleted.</p>}
       <RecipeFilters query={query} view={view} cuisines={data.cuisines} tags={data.tags} />

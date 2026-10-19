@@ -28,12 +28,29 @@ function collectErrors(issues: { path: PropertyKey[]; message: string }[]): Erro
   return out;
 }
 
-export function SettingsView({ consentSink = defaultConsentSink, ai }: { consentSink?: ConsentSink; ai?: AiSettingsView }) {
+/** Recipe discovery source status (D174). Never includes the key itself. */
+export interface RecipeSourceView { label: string; keyKind: 'test' | 'supporter' | 'none'; note: string }
+
+export function SettingsView({ consentSink = defaultConsentSink, ai, recipeSource }: { consentSink?: ConsentSink; ai?: AiSettingsView; recipeSource?: RecipeSourceView }) {
   return (
     <div className={s.page}>
       <h1>Settings</h1>
       <PreferencesSection />
       <AiProviderSection initial={ai} />
+      {recipeSource && (
+        <Card>
+          <section className={s.card} aria-labelledby="h-recipe-source" data-testid="recipe-source-status">
+            <h2 id="h-recipe-source">Recipe discovery</h2>
+            <p>
+              Source: <strong>{recipeSource.label}</strong>{' '}
+              <Badge tone={recipeSource.keyKind === 'supporter' ? 'success' : 'warning'} data-testid="recipe-source-key">
+                {recipeSource.keyKind === 'supporter' ? 'Supporter key' : recipeSource.keyKind === 'test' ? 'Test key' : 'Offline samples'}
+              </Badge>
+            </p>
+            <p className={s.muted}>{recipeSource.note} The key is kept on the server and is never shown here.</p>
+          </section>
+        </Card>
+      )}
       <AiUsageSection />
       <ExclusionsSection sink={consentSink} />
       <PantrySection />

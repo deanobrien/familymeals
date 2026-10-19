@@ -43,3 +43,7 @@ Done: OpenAI/Azure adapter, Settings > AI provider (encrypted key), richer extra
 ## D1 Azure App Service deploy prep (2026-10-19, branch `prj018/d1-appservice`)
 
 Standalone build + `scripts/package-appservice.ps1` (symlink-free hoisted build copy, linux-x64 sharp, forward-slash zip), `/api/health`, production config guard (`ALLOW_LOCAL_FILE_STORE` escape hatch until S2 moves AI settings/uploads to Supabase), security headers/CSP, `docs/DEPLOY-APP-SERVICE.md` (D150-D154). The CSP and the deployed app were not exercised against a live Supabase / Azure: the owner's smoke checklist is the first real test.
+
+## X1 Recipe discovery (2026-10-20, branch `prj018/x1-recipe-discovery`, D170-D176)
+
+`@fr/recipe-sources` (TheMealDB adapter + offline mock), `/recipes/discover` (search, cuisine/category/main-ingredient filters, cards with attribution, preview, save via the photo-import review screen), planner "Find ideas" on shortfalls, Settings source status. Terms findings and the supporter-key requirement before public release: D170. Live TheMealDB not exercised (D176).

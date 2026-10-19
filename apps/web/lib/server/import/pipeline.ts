@@ -162,6 +162,11 @@ export async function saveImport(input: { uploadId: string; draft: RecipeDraft; 
     sourceImageRefs: server.sourceImageRefs,
     extractedAt: server.extractedAt,
   };
+  // Source attribution is a provenance fact set by the server (photo cards: the printed publisher; discovery: the provider).
+  delete draft.sourcePublisher;
+  delete draft.sourceReference;
+  if (server.sourcePublisher !== undefined) draft.sourcePublisher = server.sourcePublisher;
+  if (server.sourceReference !== undefined) draft.sourceReference = server.sourceReference;
   // Printed nutrition / allergens are source-provided facts from the card, not user-editable here.
   delete draft.printedNutrition;
   delete draft.printedAllergens;
@@ -177,13 +182,19 @@ export async function saveImport(input: { uploadId: string; draft: RecipeDraft; 
   draft.coverPage = requested;
   delete draft.coverRotation;
   delete draft.coverImageRef;
-  try {
-    const page = uploads.read(rec.id, `page-${requested}.jpg`)
-      ?? (await prepareImages([rec.images[requested - 1]!]))[0]!.data;
-    uploads.writeCover(rec.id, await rotateJpeg(page, rotation));
-    draft.coverImageRef = coverUrl(rec.id);
-  } catch (err) {
-    console.error('[import] could not write cover image', err instanceof Error ? err.message : err);
+  if (pageCount === 0) {
+    // Discovered recipe (D173): no photos. The cover is the publisher's image URL set by the server at draft time.
+    delete draft.coverPage;
+    if (server.coverImageRef) draft.coverImageRef = server.coverImageRef;
+  } else {
+    try {
+      const page = uploads.read(rec.id, `page-${requested}.jpg`)
+        ?? (await prepareImages([rec.images[requested - 1]!]))[0]!.data;
+      uploads.writeCover(rec.id, await rotateJpeg(page, rotation));
+      draft.coverImageRef = coverUrl(rec.id);
+    } catch (err) {
+      console.error('[import] could not write cover image', err instanceof Error ? err.message : err);
+    }
   }
 
   try {

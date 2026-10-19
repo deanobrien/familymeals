@@ -24,6 +24,8 @@ export default defineConfig({
     command: `pnpm --filter @fr/web exec next dev -p ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
+    // Discovery uses offline fixtures in e2e (D170): no network, deterministic.
+    env: { RECIPE_SOURCE: 'mock' },
     timeout: 180_000,
   },
 });

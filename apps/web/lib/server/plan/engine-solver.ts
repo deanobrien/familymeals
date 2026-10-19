@@ -79,6 +79,20 @@ export function fromEngineProposal(p: EnginePlanProposal): SolveResult {
     explanations: [...p.explanations, ...p.notes],
     totalCostPence: p.cost.costedMeals > 0 ? p.cost.totalPence : null,
     uncostedMeals,
+    ...(p.suggestions.length
+      ? {
+          ideas: p.suggestions.map((s) => ({
+            reason: s.reason,
+            count: s.count,
+            criteria: {
+              ...(s.criteria.dietCategory ? { dietCategory: s.criteria.dietCategory } : {}),
+              ...(s.criteria.mealType ? { mealType: s.criteria.mealType } : {}),
+              ...(s.criteria.maxTotalMinutes ? { maxTotalMinutes: s.criteria.maxTotalMinutes } : {}),
+              ...(s.criteria.maxCostPerServingPence !== undefined ? { maxCostPerServingPence: s.criteria.maxCostPerServingPence } : {}),
+            },
+          })),
+        }
+      : {}),
   };
 }
 

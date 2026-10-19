@@ -62,7 +62,8 @@ export function toRecipeInput(f: FinalisedRecipe): RecipeInput {
     // Cover = front of the card, stored by the import pipeline in the local dev upload store (TODO Supabase Storage).
     imageUrl: r.imageRef ?? null,
     sourceAttribution: r.source ?? 'Imported from photo',
-    sourceUrl: '',
+    // A discovered recipe links back to its page at the publisher (D170); a photo's printed reference stays text.
+    sourceUrl: r.sourceReference && /^https?:\/\//i.test(r.sourceReference) ? r.sourceReference.slice(0, 500) : '',
     // Verbatim photo text (ingredient lines as written, then steps); write-once in the library.
     originalText: [...ingredients.map((i) => i.originalText), '', ...steps].join('\n'),
     prepMinutes: r.prepMinutes ?? null,

@@ -100,6 +100,8 @@ export interface SolveResult {
   explanations: string[];
   totalCostPence: Pence | null;
   uncostedMeals: string[];
+  /** Where the library cannot meet the request (engine gap suggestions): what kind of new recipe would help. */
+  ideas?: RecipeIdeaNeed[];
 }
 export interface ValidationResult { ok: boolean; violations: string[]; }
 export interface PlanSolver {
@@ -109,6 +111,12 @@ export interface PlanSolver {
 
 // ---------- proposals ----------
 export interface UnmetConstraint { kind: 'solver' | 'member_unknown' | 'member_ambiguous' | 'no_favourites'; detail: string; }
+/** A need for new recipes (D171): criteria only, never ingredient ids or allergen lists (those are re-derived server-side). */
+export interface RecipeIdeaNeed {
+  reason: string;
+  count: number;
+  criteria: { dietCategory?: 'meat' | 'fish' | 'vegetarian' | 'vegan'; mealType?: MealType; maxTotalMinutes?: number; maxCostPerServingPence?: number };
+}
 export interface RecipeGap { date: IsoDate; mealType: MealType; reason: string; suggestionBrief: { tags: string[]; excludeIngredients: string[] }; }
 
 export interface PlanProposal {
@@ -128,6 +136,8 @@ export interface PlanProposal {
   unmet: UnmetConstraint[];
   report: ConstraintReportItem[];
   gaps: RecipeGap[];
+  /** Optional (D171): shortfalls the library cannot meet, each a candidate for "Find ideas". */
+  ideas?: RecipeIdeaNeed[];
   totalCostPence: Pence | null;
   uncostedMeals: string[];
   createdAt: string;
