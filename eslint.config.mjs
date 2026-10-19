@@ -13,6 +13,7 @@ export default tseslint.config(
       '**/next-env.d.ts',
       'e2e/playwright-report/**',
       'packages/ui/demo/dist/**',
+      'apps/mobile/.expo/**',
       'e2e/test-results/**',
     ],
   },
@@ -37,6 +38,22 @@ export default tseslint.config(
               group: ['@fr/ai', '@fr/ai/*'],
               message: '@fr/ai is server-only: import it only from apps/web/app/api/** or apps/web/lib/server/**.',
             },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Expo/Metro/Jest config files are CommonJS; @fr/ai (server-only) and @fr/ui (web DOM) never go in mobile.
+    files: ['apps/mobile/**/*.{ts,tsx,js}'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            { group: ['@fr/ai', '@fr/ai/*'], message: '@fr/ai is server-only: not allowed in apps/mobile.' },
+            { group: ['@fr/ui', '@fr/ui/*'], message: '@fr/ui is web-only (DOM): not allowed in apps/mobile.' },
           ],
         },
       ],
