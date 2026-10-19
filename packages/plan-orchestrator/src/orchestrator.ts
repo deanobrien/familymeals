@@ -1,18 +1,38 @@
 import { randomUUID } from 'node:crypto';
 import type { AiProvider, HouseholdContext } from '@fr/ai';
+import { PlanConstraintsSchema, PlanRequestSchema } from '@fr/domain';
 import type {
-  Candidate, CostService, HouseholdRepo, MealPlan, MealRef, PlanConstraints, PlanEdits, PlannedMeal, PlanProposal,
-  PlanSlot, PlanSolver, ProposalStore, RecipeGap, RecipeRepo, Result, ShoppingRequirement, UnmetConstraint, Member,
+  Candidate, CostService, ExclusionResolver, Household, HouseholdRepo, MealPlan, MealRef, ParsedPlanRequest, PlanConstraints, PlanEdits,
+  PlannedMeal, PlanProposal, PlanRequest, PlanSlot, PlanSolver, ProposalStore, RecipeGap, RecipeRepo, Result, ShoppingRequirement,
+  UnmetConstraint, Member,
 } from './types.js';
 
 export interface OrchestratorDeps {
   ai: AiProvider; solver: PlanSolver; households: HouseholdRepo; recipes: RecipeRepo;
   costs: CostService; proposals: ProposalStore;
+  /** Names -> ingredient ids / UK-14 groups (refdata catalogue). Omitted = name-only exclusions. */
+  resolveExclusions?: ExclusionResolver;
   newId?: () => string; now?: () => Date;
 }
 
 const norm = (s: string) => s.trim().toLowerCase();
 const uniq = (xs: string[]) => [...new Set(xs.map(norm).filter(Boolean))];
+
+const householdExclusions = (hh: Household): string[] => uniq(hh.hardExclusions.map((x) => x.ingredientName));
+
+/** Canonical constraints from the AI -> the editable request (household defaults filled in; server-only fields dropped). */
+function toRequest(c: PlanConstraints, hh: Household): PlanRequest {
+  const own = new Set(householdExclusions(hh));
+  const fields = {
+    days: c.days, mealTypes: c.mealTypes, servings: c.servings ?? hh.defaultServings, budgetPence: c.budgetPence ?? hh.weeklyBudgetPence,
+    dietProportions: c.dietProportions, excludeDietCategories: c.excludeDietCategories, includeTags: c.includeTags,
+    excludeAllergens: c.excludeAllergens,
+    // household exclusions are shown separately (locked), not as editable request terms
+    excludeTerms: c.excludeTerms.filter((t) => !own.has(norm(t))),
+    favouritesOf: c.favouritesOf, quickMeals: c.quickMeals,
+  };
+  return PlanRequestSchema.parse(Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined)));
+}
 
 export function addDays(iso: string, n: number): string {
   const d = new Date(`${iso}T00:00:00Z`);
@@ -60,14 +80,15 @@ export class PlanOrchestrator {
   }
 
   /**
+   * Step 1 (the ONLY AI call, D133): prompt -> the editable PlanRequest, nothing solved yet.
    * Data minimisation choice: the AI sees ONLY the prompt plus
-   *  - non-sensitive defaults (servings, weekly budget),
+   *  - non-sensitive defaults (servings, weekly budget) and the plan start date,
    *  - display names of members whose first name literally appears in the prompt,
    *  - the tag vocabulary.
    * It never sees recipes, allergies/exclusions (health data) or unrelated member names.
    * Hard exclusions are re-imposed server-side from the DB, so the AI does not need them.
    */
-  async proposePlan(householdId: string, prompt: string, weekStart: string): Promise<Result<PlanProposal>> {
+  async parseRequest(householdId: string, prompt: string, weekStart: string): Promise<Result<ParsedPlanRequest>> {
     const hh = await this.d.households.getHousehold(householdId);
     if (!hh) return { ok: false, error: { code: 'HOUSEHOLD_NOT_FOUND', userMessage: 'We could not find that household.' } };
 
@@ -75,7 +96,7 @@ export class PlanOrchestrator {
     const mentioned = hh.members.filter((m) => lower.includes(norm(m.displayName).split(/\s+/)[0] ?? '\u0000'));
     const tags = await this.d.recipes.tagVocabulary(householdId);
     const context: HouseholdContext = {
-      defaultServings: hh.defaultServings, weeklyBudgetPence: hh.weeklyBudgetPence,
+      startDate: weekStart, defaultServings: hh.defaultServings, weeklyBudgetPence: hh.weeklyBudgetPence,
       memberNames: mentioned.map((m) => m.displayName), availableTags: tags,
     };
 
@@ -88,45 +109,67 @@ export class PlanOrchestrator {
       return { ok: false, error: { code: 'AI_UNAVAILABLE', userMessage, prompt } };
     }
 
-    // merge defaults + re-impose hard exclusions from DB regardless of AI output
-    const dbExclusions = uniq(hh.hardExclusions.map((x) => x.ingredientName));
-    const aiExclusions = uniq(parsed.excludeIngredients ?? []);
-    const constraints: PlanConstraints = {
-      ...parsed,
-      servings: parsed.servings ?? hh.defaultServings,
-      budgetPence: parsed.budgetPence ?? hh.weeklyBudgetPence,
-      excludeIngredients: uniq([...aiExclusions, ...dbExclusions]),
-    };
-    const reimposedExclusions = dbExclusions.filter((x) => !aiExclusions.includes(x));
-    const servings = constraints.servings ?? 2;
+    const request = toRequest(parsed, hh);
+    return { ok: true, value: { prompt, weekStart, request, householdExclusions: householdExclusions(hh), unmet: this.resolveFavourites(hh, request.favouritesOf).unmet } };
+  }
+
+  /**
+   * Step 2 (no AI): solve a PlanRequest the user has reviewed or edited. The request is untrusted input: it is
+   * re-validated, household hard exclusions are re-imposed whatever it says, and names are resolved to ids here.
+   */
+  async solveRequest(householdId: string, input: { prompt: string; weekStart: string; request: unknown }): Promise<Result<PlanProposal>> {
+    const hh = await this.d.households.getHousehold(householdId);
+    if (!hh) return { ok: false, error: { code: 'HOUSEHOLD_NOT_FOUND', userMessage: 'We could not find that household.' } };
+    const checked = PlanRequestSchema.safeParse(input.request);
+    if (!checked.success) {
+      return { ok: false, error: { code: 'INVALID_REQUEST', userMessage: 'Some of the plan settings are not valid. Please check them and try again.', issues: checked.error.issues.map((i) => `${i.path.join('.') || 'request'}: ${i.message}`) } };
+    }
+    const request = checked.data;
+    const { weekStart, prompt } = input;
+
+    // merge defaults + re-impose hard exclusions from DB regardless of what the request says
+    const dbExclusions = householdExclusions(hh);
+    const requested = uniq(request.excludeTerms);
+    const reimposedExclusions = dbExclusions.filter((x) => !requested.includes(x));
 
     // favourites
-    const unmet: UnmetConstraint[] = [];
+    const { unmet, memberIds, memberLabels } = this.resolveFavourites(hh, request.favouritesOf);
     const favRecipes = new Map<string, string[]>();
-    for (const name of parsed.favouritesOf ?? []) {
-      const r = resolveMember(name, hh.members);
-      if (r.status === 'unknown') {
-        unmet.push({ kind: 'member_unknown', detail: `We could not find a household member called "${name}", so their favourites were not used.` });
-      } else if (r.status === 'ambiguous') {
-        unmet.push({ kind: 'member_ambiguous', detail: `"${name}" matches more than one member (${r.matches.map((m) => m.displayName).join(', ')}). Please say which one.` });
-      } else {
-        const ids = await this.d.households.getFavouriteRecipeIds(householdId, r.member.id);
-        if (ids.length === 0) unmet.push({ kind: 'no_favourites', detail: `${r.member.displayName} has no saved favourites yet.` });
-        for (const id of ids) favRecipes.set(id, [...(favRecipes.get(id) ?? []), r.member.displayName]);
-      }
+    for (const id of memberIds) {
+      const recipeIds = await this.d.households.getFavouriteRecipeIds(householdId, id);
+      if (recipeIds.length === 0) unmet.push({ kind: 'no_favourites', detail: `${memberLabels[id] ?? id} has no saved favourites yet.` });
+      for (const rid of recipeIds) favRecipes.set(rid, [...(favRecipes.get(rid) ?? []), id]);
     }
+
+    const terms = uniq([...requested, ...dbExclusions]);
+    const resolved = this.d.resolveExclusions?.({ terms, allergens: uniq(request.excludeAllergens) });
+    const servings = request.servings;
+    const constraints: PlanConstraints = PlanConstraintsSchema.parse({
+      ...request,
+      startDate: weekStart,
+      days: request.days ?? 7,
+      budgetPence: request.budgetPence ?? hh.weeklyBudgetPence,
+      excludeTerms: terms,
+      excludeAllergens: resolved?.excludeAllergens ?? uniq(request.excludeAllergens),
+      excludeIngredientIds: resolved?.excludeIngredientIds ?? [],
+      allergenGroups: resolved?.allergenGroups ?? {},
+      // Unmatched ingredient lines are checked against the terms; with exclusions set they are otherwise unverifiable.
+      allowUnverifiedIngredients: false,
+      favouritesOf: memberIds,
+    });
+    const days = constraints.days ?? 7;
 
     // candidates: hard filter in repo AND re-filtered here, before anything else
     const raw = await this.d.recipes.searchCandidates(householdId, {
-      excludeIngredients: constraints.excludeIngredients, mealTypes: constraints.mealTypes, includeTags: constraints.includeTags,
+      excludeIngredients: terms, mealTypes: constraints.mealTypes, includeTags: constraints.includeTags,
     });
     const candidates: Candidate[] = raw
-      .filter((c) => violatesExclusions(c.ingredientNames, constraints.excludeIngredients).length === 0)
+      .filter((c) => violatesExclusions(c.ingredientNames, terms).length === 0)
       .map((c) => ({ ...c, favouriteOf: favRecipes.get(c.id) }));
 
-    const brief = { tags: constraints.includeTags, excludeIngredients: constraints.excludeIngredients };
+    const brief = { tags: constraints.includeTags, excludeIngredients: terms };
     if (candidates.length === 0) {
-      const gaps = this.allGaps(weekStart, constraints, brief, 'No saved recipe satisfies your constraints.');
+      const gaps = this.allGaps(weekStart, days, constraints, brief, 'No saved recipe satisfies your constraints.');
       return { ok: false, error: {
         code: 'NO_VIABLE_CANDIDATES',
         userMessage: 'No saved recipes match this request. Try relaxing a constraint or add some recipes; we can suggest new ones to fill the gaps.',
@@ -138,14 +181,14 @@ export class PlanOrchestrator {
     const costs = await this.d.costs.costRecipes(householdId, candidates.map((c) => c.id), servings);
     for (const c of candidates) c.costPence = costs[c.id] ?? null;
 
-    const res = await this.d.solver.solve(constraints, candidates, { weekStart, servings });
+    const res = await this.d.solver.solve(constraints, candidates, { weekStart, servings, memberLabels });
     for (const r of res.report) if (!r.met) unmet.push({ kind: 'solver', detail: `${r.constraint}: ${r.detail}` });
     const gaps: RecipeGap[] = res.slots.filter((s) => s.recipeId === null).map((s) => ({
       date: s.date, mealType: s.mealType, reason: s.note ?? 'No suitable saved recipe for this slot.', suggestionBrief: brief,
     }));
 
     const proposal: PlanProposal = {
-      id: this.newId(), status: 'proposed', householdId, weekStart, prompt, constraints, reimposedExclusions,
+      id: this.newId(), status: 'proposed', householdId, weekStart, prompt, constraints, request, reimposedExclusions,
       slots: res.slots, explanations: res.explanations, unmet, report: res.report, gaps,
       totalCostPence: res.totalCostPence, uncostedMeals: res.uncostedMeals, createdAt: this.now().toISOString(),
     };
@@ -153,9 +196,35 @@ export class PlanOrchestrator {
     return { ok: true, value: proposal };
   }
 
-  private allGaps(weekStart: string, c: PlanConstraints, brief: RecipeGap['suggestionBrief'], reason: string): RecipeGap[] {
+  /** Prompt -> proposal in one go (parse with the AI, then solve). */
+  async proposePlan(householdId: string, prompt: string, weekStart: string): Promise<Result<PlanProposal>> {
+    const parsed = await this.parseRequest(householdId, prompt, weekStart);
+    if (!parsed.ok) return parsed;
+    return this.solveRequest(householdId, { prompt, weekStart, request: parsed.value.request });
+  }
+
+  /** Member display names (as the AI / the chips give them) -> member ids; unknown and ambiguous names are reported, never guessed. */
+  private resolveFavourites(hh: Household, names: string[]): { unmet: UnmetConstraint[]; memberIds: string[]; memberLabels: Record<string, string> } {
+    const unmet: UnmetConstraint[] = [];
+    const memberIds: string[] = [];
+    const memberLabels: Record<string, string> = {};
+    for (const name of names) {
+      const r = resolveMember(name, hh.members);
+      if (r.status === 'unknown') {
+        unmet.push({ kind: 'member_unknown', detail: `We could not find a household member called "${name}", so their favourites were not used.` });
+      } else if (r.status === 'ambiguous') {
+        unmet.push({ kind: 'member_ambiguous', detail: `"${name}" matches more than one member (${r.matches.map((m) => m.displayName).join(', ')}). Please say which one.` });
+      } else if (!memberIds.includes(r.member.id)) {
+        memberIds.push(r.member.id);
+        memberLabels[r.member.id] = r.member.displayName;
+      }
+    }
+    return { unmet, memberIds, memberLabels };
+  }
+
+  private allGaps(weekStart: string, days: number, c: PlanConstraints, brief: RecipeGap['suggestionBrief'], reason: string): RecipeGap[] {
     const out: RecipeGap[] = [];
-    for (let i = 0; i < c.days; i++) for (const mealType of c.mealTypes) out.push({ date: addDays(weekStart, i), mealType, reason, suggestionBrief: brief });
+    for (let i = 0; i < days; i++) for (const mealType of c.mealTypes) out.push({ date: addDays(weekStart, i), mealType, reason, suggestionBrief: brief });
     return out;
   }
 
@@ -181,7 +250,7 @@ export class PlanOrchestrator {
     for (const id of ids) {
       const r = byId.get(id);
       if (!r) { violations.push(`Recipe ${id} was not found in this household.`); continue; }
-      const hits = violatesExclusions(r.ingredientNames, p.constraints.excludeIngredients);
+      const hits = violatesExclusions(r.ingredientNames, p.constraints.excludeTerms);
       if (hits.length) violations.push(`"${r.title}" contains excluded ingredient(s): ${hits.join(', ')}.`);
     }
     const v = await this.d.solver.validate({ slots }, p.constraints);
@@ -200,7 +269,7 @@ export class PlanOrchestrator {
         costPence: costs[s.recipeId] ?? null,
       }));
     const plan: MealPlan = {
-      id: planId, householdId, startDate: p.weekStart, endDate: addDays(p.weekStart, p.constraints.days - 1),
+      id: planId, householdId, startDate: p.weekStart, endDate: addDays(p.weekStart, (p.constraints.days ?? 7) - 1),
       budgetPence: p.constraints.budgetPence, prompt: p.prompt, status: 'approved',
     };
     await this.d.proposals.markApproved(proposalId);

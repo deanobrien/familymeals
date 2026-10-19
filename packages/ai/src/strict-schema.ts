@@ -36,8 +36,23 @@ function convert(node: Node): Conv {
       const branches = (node[key] as Node[]).map(convert);
       const out: Node = { anyOf: branches.map((b) => b.out) };
       if (node.description) out.description = node.description;
-      const nonNull = branches.filter((_, i) => (node[key] as Node[])[i]?.type !== 'null');
-      const dec = (v: unknown) => (v === null ? null : nonNull.length === 1 ? nonNull[0]!.dec(v) : v);
+      const idx = (node[key] as Node[]).map((_, i) => i).filter((i) => (node[key] as Node[])[i]?.type !== 'null');
+      const nonNull = idx.map((i) => branches[i]!);
+      const dec = (v: unknown) => {
+        if (v === null) return null;
+        if (nonNull.length === 1) return nonNull[0]!.dec(v);
+        // Several object branches (e.g. {fraction} | {count} | {min?, max?}): decode with the branch that declares
+        // every key the model filled in, so null "optional" keys of that branch are dropped.
+        if (v && typeof v === 'object' && !Array.isArray(v)) {
+          const filled = Object.entries(v as Record<string, unknown>).filter(([, x]) => x !== null).map(([k]) => k);
+          const match = idx.find((i) => {
+            const props = (node[key] as Node[])[i]!.properties as Record<string, unknown> | undefined;
+            return props !== undefined && filled.every((k) => k in props);
+          });
+          if (match !== undefined) return branches[match]!.dec(v);
+        }
+        return v;
+      };
       return { out, dec };
     }
   }

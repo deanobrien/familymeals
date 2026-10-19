@@ -105,6 +105,10 @@ test('prompt flow: propose, review, accept into the unsaved grid, approve, then 
   await page.goto(`/plan?week=${W}`);
 
   await expect(page.getByLabel('Describe the week you want')).toHaveValue(/Plan seven dinners/);
+  // step 1 (the AI call) shows what was understood as editable chips; nothing is solved yet
+  await page.getByRole('button', { name: 'Understand my request' }).click();
+  await expect(page.getByTestId('constraint-chips')).toBeVisible();
+  await expect(page.getByTestId('proposal')).toHaveCount(0);
   await page.getByRole('button', { name: 'Propose a plan' }).click();
 
   const proposal = page.getByTestId('proposal');
@@ -138,4 +142,48 @@ test('diet proportions explain rounding for seven days', async ({ page }) => {
   await expect(page.getByTestId('proportion-explanation')).toContainText('cannot be cooked');
   await page.getByRole('button', { name: 'Add to prompt' }).click();
   await expect(page.getByLabel('Describe the week you want')).toHaveValue(/50% meat, 50% vegetarian/);
+});
+
+test('constraint chips: review the AI reading, correct it, re-plan without another prompt', async ({ page }) => {
+  await page.goto('/plan?week=2026-12-07');
+  await page.getByRole('button', { name: 'Understand my request' }).click();
+
+  const chips = page.getByTestId('constraint-chips');
+  await expect(chips).toBeVisible();
+  await expect(chips.getByLabel('Servings')).toHaveValue('4');
+  await expect(chips.getByLabel('Budget in pounds')).toHaveValue('100'); // the mock reads the example prompt (£100)
+  await expect(chips).toContainText('Vegetarian: about 50%');
+  await expect(chips).toContainText('peanuts'); // household exclusion, locked
+  await expect(chips.getByTestId('constraint-chip').filter({ hasText: 'peanuts' })).toContainText('locked');
+  await expect(chips.getByTestId('constraint-chip').filter({ hasText: 'peanuts' }).getByRole('button')).toHaveCount(0);
+  for (const day of ['Mon', 'Tue', 'Wed', 'Thu']) await expect(chips.getByRole('button', { name: day, exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(chips.getByRole('button', { name: 'Fri', exact: true })).toHaveAttribute('aria-pressed', 'false');
+
+  // correct a misread: 6 servings, add an exclusion, drop the meat target, Friday is a quick day too, strict
+  await chips.getByLabel('Servings').fill('6');
+  await chips.getByLabel('Avoid ingredient').fill('mushrooms');
+  await chips.getByRole('button', { name: 'Add exclusion' }).click();
+  await expect(chips).toContainText('mushrooms');
+  await chips.getByRole('button', { name: 'Remove diet target meat' }).click();
+  await expect(chips).not.toContainText('Meat:');
+  await chips.getByRole('button', { name: 'Fri', exact: true }).click();
+  await chips.getByLabel('Only quick meals on those days (strict)').check();
+
+  await page.getByRole('button', { name: 'Propose a plan' }).click();
+  const proposal = page.getByTestId('proposal');
+  await expect(proposal).toBeVisible();
+  await expect(proposal.getByTestId('proposal-slot').first()).toContainText('6 servings');
+  await expect(proposal.getByTestId('reimposed')).toContainText('peanuts');
+  await expect(proposal).toContainText('Quick meals');
+  await expect(proposal).not.toContainText(/mushroom/i);
+
+  // edit again and re-plan: no new prompt reading (the button is "Re-plan", the chips stay)
+  await chips.getByLabel('Servings').fill('3');
+  await chips.getByLabel('Only quick meals on those days (strict)').uncheck();
+  await page.getByRole('button', { name: 'Re-plan with these settings' }).click();
+  await expect(proposal.getByTestId('proposal-slot').first()).toContainText('3 servings');
+  await expect(chips.getByLabel('Servings')).toHaveValue('3');
+
+  // a household exclusion cannot be removed from the chips and is still re-imposed
+  await expect(proposal.getByTestId('reimposed')).toContainText('peanuts');
 });

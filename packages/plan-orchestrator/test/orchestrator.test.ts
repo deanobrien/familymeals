@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { AiProvider, HouseholdContext, PlanConstraints } from '@fr/ai';
+import type { AiProvider, HouseholdContext } from '@fr/ai';
+import { PlanConstraintsSchema, type PlanConstraints } from '@fr/domain';
 import {
   InMemoryProposalStore, PlanOrchestrator, addDays, resolveMember,
   type Candidate, type CostService, type Household, type HouseholdRepo, type PlanSlot, type PlanSolver, type RecipeRepo,
@@ -8,11 +9,11 @@ import {
 // ---------- fakes ----------
 const BRIEF_PROMPT = "Plan seven dinners for four people. Make roughly half vegetarian, include two fish meals, keep the shopping spend below £100, use Lauren's favourites where possible, avoid mushrooms and include quick meals on busy evenings.";
 
-const aiConstraints: PlanConstraints = {
-  days: 7, mealTypes: ['dinner'], servings: 4, budgetPence: 10000,
-  dietProportions: { vegetarian: 0.5 }, includeTags: ['fish'], excludeIngredients: ['mushrooms'],
-  favouritesOf: ['Lauren'], quickMealDays: 2,
-};
+const aiConstraints: PlanConstraints = PlanConstraintsSchema.parse({
+  startDate: '2026-10-19', days: 7, mealTypes: ['dinner'], servings: 4, budgetPence: 10000,
+  dietProportions: { vegetarian: { fraction: 0.5 } }, includeTags: ['fish'], excludeTerms: ['mushrooms'],
+  favouritesOf: ['Lauren'], quickMeals: { weekdays: ['mon', 'tue'], maxTotalMinutes: 30 },
+});
 
 class FakeAi implements AiProvider {
   calls: { prompt: string; ctx: HouseholdContext }[] = [];
@@ -78,7 +79,7 @@ class TestSolver implements PlanSolver {
   solve(c: PlanConstraints, cands: Candidate[], o: { weekStart: string; servings: number }) {
     const slots: PlanSlot[] = [];
     let i = 0;
-    for (let d = 0; d < c.days; d++) for (const mealType of c.mealTypes) {
+    for (let d = 0; d < (c.days ?? 7); d++) for (const mealType of c.mealTypes) {
       const cand = cands[i++ % cands.length]!;
       slots.push({ date: addDays(o.weekStart, d), mealType, recipeId: cand.id, servings: o.servings });
     }
@@ -106,9 +107,11 @@ describe('proposePlan', () => {
     expect(p.slots).toHaveLength(7);
     expect(p.constraints.servings).toBe(4);
     expect(p.constraints.budgetPence).toBe(10000);
+    expect(p.constraints.startDate).toBe('2026-10-19');
+    expect(p.request).toMatchObject({ servings: 4, favouritesOf: ['Lauren'], excludeTerms: ['mushrooms'] });
     expect(p.unmet.some((u) => u.kind === 'solver' && u.detail.includes('two fish meals'))).toBe(true);
     expect(p.explanations.length).toBeGreaterThan(0);
-    // mushroom recipe filtered before the solver; favourites resolved by display name
+    // mushroom recipe filtered before the solver; favourites resolved to member ids
     expect(p.slots.map((s) => s.recipeId)).not.toContain('r3');
     expect(p.uncostedMeals).toEqual(['r4'].filter(() => false)); // r4 is excluded (peanut), so nothing uncosted
     // data minimisation: AI sees only the mentioned member, tags, no exclusions or recipes
@@ -122,7 +125,8 @@ describe('proposePlan', () => {
     const { orch, calls } = build();
     const r = await orch.proposePlan('h1', BRIEF_PROMPT, '2026-10-19');
     if (!r.ok) throw new Error('expected ok');
-    expect(r.value.constraints.excludeIngredients).toEqual(expect.arrayContaining(['mushrooms', 'peanuts']));
+    expect(r.value.constraints.excludeTerms).toEqual(expect.arrayContaining(['mushrooms', 'peanuts']));
+    expect(r.value.constraints.favouritesOf).toEqual(['m1']);
     expect(r.value.reimposedExclusions).toEqual(['peanuts']);
     expect((calls.searchFilter as { excludeIngredients: string[] }).excludeIngredients).toContain('peanuts');
     expect(r.value.slots.map((s) => s.recipeId)).not.toContain('r4'); // peanut butter
@@ -212,5 +216,75 @@ describe('resolveMember', () => {
     expect(resolveMember('sam smith', ms).status).toBe('ok');
     expect(resolveMember('Sam', ms).status).toBe('ambiguous');
     expect(resolveMember('Bob', ms).status).toBe('unknown');
+  });
+});
+
+describe('parseRequest / solveRequest (no second AI call on edit, D133)', () => {
+  it('parseRequest reads the prompt into an editable request and solves nothing', async () => {
+    const ai = new FakeAi(aiConstraints);
+    const { orch, calls } = build({ ai });
+    const r = await orch.parseRequest('h1', BRIEF_PROMPT, '2026-10-19');
+    if (!r.ok) throw new Error('expected ok');
+    expect(calls.searchFilter).toBeUndefined();
+    expect(r.value.request).toMatchObject({ servings: 4, days: 7, budgetPence: 10000, excludeTerms: ['mushrooms'], favouritesOf: ['Lauren'] });
+    expect(r.value.request).not.toHaveProperty('startDate');
+    expect(r.value.householdExclusions).toEqual(['peanuts']); // shown locked, not an editable term
+    expect(ai.calls[0]!.ctx.startDate).toBe('2026-10-19');
+  });
+
+  it('solveRequest re-solves an edited request without calling the AI, and re-imposes household exclusions', async () => {
+    const ai = new FakeAi(aiConstraints);
+    const { orch } = build({ ai });
+    const parsed = await orch.parseRequest('h1', BRIEF_PROMPT, '2026-10-19');
+    if (!parsed.ok) throw new Error('x');
+    expect(ai.calls).toHaveLength(1);
+    // the user removes the mushroom chip, bumps servings and sets a budget; "peanuts" cannot be edited away
+    const edited = { ...parsed.value.request, excludeTerms: [], servings: 6, budgetPence: 5000, favouritesOf: [] };
+    const r = await orch.solveRequest('h1', { prompt: BRIEF_PROMPT, weekStart: '2026-10-19', request: edited });
+    if (!r.ok) throw new Error(JSON.stringify(r.error));
+    expect(ai.calls).toHaveLength(1);
+    expect(r.value.constraints).toMatchObject({ servings: 6, budgetPence: 5000, excludeTerms: ['peanuts'] });
+    expect(r.value.request).toMatchObject({ servings: 6, excludeTerms: [] });
+    expect(r.value.slots.map((x) => x.recipeId)).toContain('r3'); // mushrooms are allowed again
+    expect(r.value.slots.map((x) => x.recipeId)).not.toContain('r4'); // peanut butter never
+    expect(r.value.reimposedExclusions).toEqual(['peanuts']);
+  });
+
+  it('solveRequest rejects an invalid (client-supplied) request instead of trusting it', async () => {
+    const { orch } = build();
+    const r = await orch.solveRequest('h1', { prompt: 'x', weekStart: '2026-10-19', request: { servings: 0, mealTypes: [] } });
+    expect(r).toMatchObject({ ok: false, error: { code: 'INVALID_REQUEST' } });
+    // server-only fields cannot be smuggled in
+    const r2 = await orch.solveRequest('h1', { prompt: 'x', weekStart: '2026-10-19', request: { servings: 2, mealTypes: ['dinner'], allowUnverifiedIngredients: true } });
+    expect(r2).toMatchObject({ ok: false, error: { code: 'INVALID_REQUEST' } });
+  });
+
+  it('passes resolver output (ingredient ids, allergen groups) into the canonical constraints', async () => {
+    let seen: { terms: string[]; allergens: string[] } | undefined;
+    const hh = household();
+    const { orch } = (() => {
+      const households: HouseholdRepo = { getHousehold: async () => hh, getFavouriteRecipeIds: async () => [] };
+      const recipeRepo: RecipeRepo = {
+        tagVocabulary: async () => [], searchCandidates: async () => structuredClone(recipes), getRecipes: async () => [],
+      };
+      const costs: CostService = { costRecipes: async () => ({}), buildRequirements: async () => [] };
+      let solved: PlanConstraints | undefined;
+      const solver: PlanSolver = {
+        solve: (c) => { solved = c; return { slots: [], report: [], explanations: [], totalCostPence: null, uncostedMeals: [] }; },
+        validate: () => ({ ok: true, violations: [] }),
+      };
+      const orch = new PlanOrchestrator({
+        ai: new FakeAi(aiConstraints), solver, households, recipes: recipeRepo, costs, proposals: new InMemoryProposalStore(),
+        resolveExclusions: (i) => { seen = i; return { excludeIngredientIds: ['ing-peanut', 'ing-mushroom'], allergenGroups: { peanuts: ['ing-peanut'] }, excludeAllergens: ['peanuts'] }; },
+      });
+      return { orch, get solved() { return solved; } };
+    })();
+    const r = await orch.proposePlan('h1', BRIEF_PROMPT, '2026-10-19');
+    if (!r.ok) throw new Error(JSON.stringify(r.error));
+    expect(seen).toEqual({ terms: ['mushrooms', 'peanuts'], allergens: [] });
+    expect(r.value.constraints).toMatchObject({
+      excludeIngredientIds: ['ing-peanut', 'ing-mushroom'], allergenGroups: { peanuts: ['ing-peanut'] }, excludeAllergens: ['peanuts'],
+      allowUnverifiedIngredients: false,
+    });
   });
 });

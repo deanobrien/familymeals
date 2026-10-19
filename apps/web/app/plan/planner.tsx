@@ -214,6 +214,7 @@ export function Planner({ data }: { data: PlanPageData }) {
         recipes={recipes}
         examplePrompt={data.examplePrompt}
         exclusions={data.householdExclusions}
+        memberNames={data.memberNames}
         onAccept={(next) => apply(next(doc))}
       />
 

@@ -1,6 +1,6 @@
 // Client-safe plan types (no server imports). Shared by the planner UI and the server actions.
 import type { NutrientMap } from '@fr/engine/nutrition';
-import type { PlanProposal } from '@fr/plan-orchestrator';
+import type { ParsedPlanRequest, PlanProposal } from '@fr/plan-orchestrator';
 
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 export const MEAL_TYPES: readonly MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
@@ -65,6 +65,8 @@ export interface PlanPageData {
   householdExclusions: string[];
   defaultServings: number;
   examplePrompt: string;
+  /** Household member display names (the choices for the "favourites of" chip). */
+  memberNames: string[];
 }
 
 export type ActionResult<T> = { ok: true; value: T } | { ok: false; message: string; violations?: string[] };
@@ -75,4 +77,6 @@ export interface ProposeFailure {
   gaps?: { date: string; mealType: MealType; reason: string }[];
   unmet?: { kind: string; detail: string }[];
 }
+/** Step 1 of the prompt flow (the AI call): the editable reading of the prompt, nothing solved yet. */
+export type ParseResult = { ok: true; parsed: ParsedPlanRequest } | ({ ok: false } & ProposeFailure);
 export type ProposeResult = { ok: true; proposal: PlanProposal } | ({ ok: false } & ProposeFailure);
