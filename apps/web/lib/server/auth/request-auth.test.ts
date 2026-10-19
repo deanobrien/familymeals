@@ -93,3 +93,29 @@ describe('upload ownership', () => {
     expect(sameOwner(undefined, undefined)).toBe(true);
   });
 });
+
+describe('resolveRequestAuth accepts the dev sandbox household in mock auth mode (D161)', () => {
+  it('accepts e2e-* ids in mock mode, but never a malformed id or a sandbox id in production', async () => {
+    const { vi } = await import('vitest');
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', '');
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', '');
+    vi.doMock('./household-context', () => ({
+      getHouseholdContext: async () => {
+        const { getMockIdentity } = await import('./mock');
+        const { household, user } = getMockIdentity('test', 'e2e-x');
+        return { user, memberships: [household], household, readOnly: false, mode: 'mock' };
+      },
+    }));
+    vi.resetModules();
+    const { resolveRequestAuth } = await import('./request-auth');
+    const req = new Request('http://t/api/extract/save', { method: 'POST' });
+    vi.stubEnv('NODE_ENV', 'test');
+    expect(await resolveRequestAuth(req, 'e2e-x')).toMatchObject({ ok: true, auth: { householdId: 'e2e-x' } });
+    expect(await resolveRequestAuth(req, 'not a uuid')).toMatchObject({ ok: false, status: 400 });
+    vi.stubEnv('NODE_ENV', 'production'); // mock mode is refused outright in production: the sandbox pattern is not accepted
+    expect(await resolveRequestAuth(req, 'e2e-x')).toMatchObject({ ok: false, status: 400 });
+    vi.unstubAllEnvs();
+    vi.doUnmock('./household-context');
+    vi.resetModules();
+  });
+});

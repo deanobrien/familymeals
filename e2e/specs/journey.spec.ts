@@ -59,9 +59,8 @@ test.describe.serial('Main journey (BRIEF s15)', () => {
     await expect(new RecipeLibraryPage(page).card(SOUP)).toHaveCount(0);
   });
 
-  test('4. correct and save the recipe (edit servings, fix a line, save) and see it in the library', async ({ context, page }) => {
-    // BUG (reported): /api/extract/save rejects sandbox household ids ("Invalid household."), so save runs as demo household A.
-    await context.clearCookies();
+  test('4. correct and save the recipe (edit servings, fix a line, save) and see it in the library', async ({ page }) => {
+    // Saves as the sandbox household (D161): the library the plan step below reads from is this household's own (D160).
     const imp = new RecipeImportPage(page);
     await imp.goto();
     await imp.fileInput().setInputFiles(recipeImg('01-tomato-pasta.png'));

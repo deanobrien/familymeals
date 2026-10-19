@@ -79,7 +79,7 @@ Automated: `a11y-responsive.spec.ts` (axe-core via `@axe-core/playwright`, tags 
 Manual (per viewport):
 - [ ] No horizontal page scroll; no clipped or overlapping text/controls
 - [ ] Mobile (375): bottom nav shown, primary actions reachable one-handed; tap targets >= 44 px
-- [ ] Tablet (768) and desktop (1280): nav switches layout; content width sensible; 7-day plan grid readable
+- [ ] Tablet (768) and desktop (1280): bottom nav below 900px, side nav from 900px (D163: kept at 900; 768-899 keeps the bottom bar and the 4-column plan grid, a 240px sidebar would cramp it); content width sensible; 7-day plan grid readable
 - [ ] Keyboard only: every flow (sign-in, add recipe, plan, tick items, confirm receipt) completes; logical tab order; visible focus ring; no keyboard traps; dialogs trap and restore focus; Esc closes
 - [ ] Screen reader spot check (NVDA or VoiceOver): landmarks, headings in order, form fields labelled, ticking an item announces state, sync/error toasts use live regions
 - [ ] Colour contrast >= 4.5:1 text, 3:1 UI; information never colour-only (estimate/unknown/low-confidence flags have text)

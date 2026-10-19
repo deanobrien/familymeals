@@ -27,3 +27,21 @@ describe('dev reset (e2e only)', () => {
     expect((await recipes.list({ q: '', tags: [], sort: 'name', page: 1, pageSize: 100 })).total).toBe(before);
   });
 });
+
+describe('recipe libraries are household-scoped in memory mode (D160)', () => {
+  it('a recipe created in household A is invisible to B; every household starts from the seed; reset restores all', async () => {
+    const { getRecipeRepositoryFor } = await import('../../recipes/factory');
+    const q = { q: '', tags: [], sort: 'name' as const, page: 1, pageSize: 100 };
+    const a = getRecipeRepositoryFor('e2e-scope-a');
+    const b = getRecipeRepositoryFor('e2e-scope-b');
+    const seedTotal = (await b.list(q)).total;
+    expect(seedTotal).toBeGreaterThan(0);
+    const copy = (await a.duplicate('00000000-0000-4000-8000-000000000001'))!;
+    expect((await a.list(q)).total).toBe(seedTotal + 1);
+    expect((await b.list(q)).total).toBe(seedTotal);
+    expect(await b.get(copy.id)).toBeNull();
+    expect(getRecipeRepositoryFor('e2e-scope-a')).toBe(a);
+    resetInMemoryStores();
+    expect(await a.get(copy.id)).toBeNull();
+  });
+});

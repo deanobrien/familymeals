@@ -13,7 +13,7 @@ vi.mock('../../../lib/server/auth/request-auth', () => ({
 
 const { POST: extract } = await import('./route');
 const { POST: save } = await import('./save/route');
-const { getRecipeRepository } = await import('../../../lib/recipes/factory');
+const { getRecipeRepositoryFor } = await import('../../../lib/recipes/factory');
 
 const PNG = new Uint8Array(
   Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64'),
@@ -60,13 +60,13 @@ describe('POST /api/extract and /api/extract/save accept a bearer-authenticated 
     const ex = await extract(extractReq(H));
     expect(ex.status).toBe(200);
     const body = (await ex.json()) as { uploadId: string; draft: { title: { value: string } } };
-    const before = (await getRecipeRepository().list({ q: '', tags: [], sort: 'name', page: 1, pageSize: 100 })).total;
+    const before = (await getRecipeRepositoryFor(H).list({ q: '', tags: [], sort: 'name', page: 1, pageSize: 100 })).total;
     const sv = await save(saveReq({ uploadId: body.uploadId, draft: body.draft }));
     expect(sv.status).toBe(200);
     const { id } = (await sv.json()) as { id: string };
     expect(id).toMatch(/^[0-9a-f-]{36}$/);
-    expect((await getRecipeRepository().get(id))?.title).toBe(body.draft.title.value);
-    expect((await getRecipeRepository().list({ q: '', tags: [], sort: 'name', page: 1, pageSize: 100 })).total).toBe(before + 1);
+    expect((await getRecipeRepositoryFor(H).get(id))?.title).toBe(body.draft.title.value);
+    expect((await getRecipeRepositoryFor(H).list({ q: '', tags: [], sort: 'name', page: 1, pageSize: 100 })).total).toBe(before + 1);
     // save takes the household from the upload, not from the request
     expect(seen.at(-1)?.requested).toBe(H);
   });

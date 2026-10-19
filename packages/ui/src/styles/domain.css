@@ -24,7 +24,8 @@
 .fr-recipecard__media { aspect-ratio: 4 / 3; background: var(--fr-surface-2); display: grid; place-items: center; color: var(--fr-text-muted); }
 .fr-recipecard__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .fr-recipecard__title { margin: 0; font-size: var(--fr-text-lg); }
-.fr-recipecard__link { color: inherit; text-decoration: none; }
+/* D162: the stretched link is the card's tap area, but its own box must be a 44px target too. */
+.fr-recipecard__link { color: inherit; text-decoration: none; display: flex; align-items: center; min-height: var(--fr-target); }
 .fr-recipecard__link::after { content: ''; position: absolute; inset: 0; }
 .fr-recipecard__meta { display: flex; flex-wrap: wrap; gap: var(--fr-space-1) var(--fr-space-3); margin: var(--fr-space-2) 0; color: var(--fr-text-muted); font-size: var(--fr-text-sm); }
 .fr-recipecard__tags { display: flex; flex-wrap: wrap; gap: var(--fr-space-1); }

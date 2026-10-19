@@ -397,3 +397,24 @@ Public, read-only, no secrets: `{status: 'ok'|'degraded', version, commit}` (200
 ## D154 Linux sharp from a Windows build
 
 Root `package.json` `pnpm.supportedArchitectures` (os current+linux, cpu current+x64, libc glibc) makes pnpm install the `@img/sharp-linux-x64` and `@img/sharp-libvips-linux-x64` optional packages next to the Windows ones. Sharp chooses its binary with a dynamic require the file tracer cannot see, so `outputFileTracingIncludes` names them, and the package script verifies they are in the zip and removes win32/musl/other-arch binaries. Target runtime is Node 22 LTS glibc x64 (Azure Linux App Service).
+
+
+## D160 Memory-mode recipe libraries are per household (B1)
+
+`getRecipeRepositoryFor(householdId)` (`lib/recipes/factory.ts`) returns that household's OWN `InMemoryRecipeRepository`; `getRecipeRepository()` is now a thin session-scoped facade over it (resolves the signed-in household per call, demo household A outside a request). EVERY household, the demo one and each `e2e-*` sandbox, starts from a private copy of the seed library on first use. The brief allowed "seed only in household A, sandboxes empty or seeded by the dev endpoint"; a private seed copy was chosen instead because the plan / shopping / pantry specs address seed recipe ids from sandboxes, and a copy gives the same isolation: nothing created, edited, favourited or deleted in one household is visible in another. Planner services, the pantry recipe summary source, the approved-plan requirement source and the import sink are built from the household they already know, so they read and write the scoped store. Costs/nutrition use `summariserForHousehold(id)` (the household's own price observations). `resetRecipeRepository` resets every household library in place (the dev reset keeps instances). Supabase mode is unchanged (RLS-scoped repository per caller). `sessionRecipeSummariser` stays exported but the factory no longer uses it.
+
+## D161 Dev sandbox household ids are accepted by `resolveRequestAuth` (B1)
+
+`pick()` in `request-auth.ts` required a UUID, so the import routes answered 400 "Invalid household." for `fr_household=e2e-*` cookies and the save fell back to household A. It now also accepts `MOCK_SANDBOX_PATTERN` ids, only when `resolveAuthMode() === 'mock'` (never in production or with Supabase env), exactly the rule `getMockIdentity` already applies; the id must still be one of the caller's memberships. The journey now saves as the sandbox household.
+
+## D162 Tap targets: shared styles (B1)
+
+`@fr/ui`: plain links inside `main` and the auth card were padded but inline, so their own box stayed under 44px; below 900px they are now `inline-block` with `min-height: var(--fr-target)`. `.fr-recipecard__link` (the stretched card link) is `display:flex; min-height: var(--fr-target)`, and the dashboard To do link is `inline-flex` with the same minimum. The a11y spec no longer has `KNOWN_SMALL_TARGETS` or the Home exception; a new mobile test covers the Home To do links in demo household A.
+
+## D163 Navigation breakpoint stays 900px (B1)
+
+Screenshots at 768 and 820 show the bottom bar with the 4-column plan grid fitting cleanly; a 240px sidebar at 768 would leave about 500px for the planner. Bottom nav below 900px, side nav from 900px; ACCEPTANCE.md updated to match (it said 768).
+
+## D164 "Offline shopper loses the race" flake was a test race, not an app bug (B1)
+
+Instrumenting the controller showed that in failing runs B's replay reached the server BEFORE A's tick (A's tick was still queued behind an in-flight poll sync; the spec's "A confirmed" check, `pending-badge` count 0, is vacuous because the badge only decorates list rows, not Purchased rows). B legitimately won and A got the "Another shopper already bought" toast; the spec only looked at B. Server idempotency and conflict reporting behaved correctly (the first command to reach the server wins and the loser is always told). Fix: both race specs now wait for the first shopper's `sync-status` to read "All changes saved" (server-confirmed) before the other reconnects / is checked. Was failing about 1 run in 10; 30/30 stable after.
