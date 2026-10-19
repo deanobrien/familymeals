@@ -308,6 +308,52 @@ export type Database = {
           },
         ];
       };
+      household_product_snapshots: {
+        Row: {
+          barcode: string;
+          household_id: string;
+          ingredient_id: string | null;
+          linked_at: string;
+          linked_by: string | null;
+          retrieved_at: string;
+          snapshot: NonNullable<Json>;
+        };
+        ComputedFields: never;
+        Insert: {
+          barcode: string;
+          household_id: string;
+          ingredient_id?: string | null;
+          linked_at?: string;
+          linked_by?: string | null;
+          retrieved_at: string;
+          snapshot: NonNullable<Json>;
+        };
+        Update: {
+          barcode?: string;
+          household_id?: string;
+          ingredient_id?: string | null;
+          linked_at?: string;
+          linked_by?: string | null;
+          retrieved_at?: string;
+          snapshot?: NonNullable<Json>;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'household_product_snapshots_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'household_product_snapshots_ingredient_id_fkey';
+            columns: ['ingredient_id'];
+            isOneToOne: false;
+            referencedRelation: 'ingredients';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       households: {
         Row: {
           created_at: string;
@@ -2371,6 +2417,7 @@ export type Database = {
         Returns: Json;
       };
       fr_norm_ingredient: { Args: { p: string }; Returns: string };
+      delete_product_snapshot: { Args: { p_barcode: string; p_household_id: string }; Returns: undefined };
       fr_norm_title: { Args: { p: string }; Returns: string };
       get_household_ai_settings: { Args: { p_household_id: string }; Returns: Json };
       get_receipt: { Args: { p_household_id: string; p_receipt_id: string }; Returns: Json };
@@ -2380,6 +2427,7 @@ export type Database = {
       };
       household_is_active: { Args: { hid: string }; Returns: boolean };
       household_price_observations: { Args: { p_household_id: string }; Returns: Json };
+      household_product_snapshots: { Args: { p_household_id: string }; Returns: Json };
       household_purchase_records: { Args: { p_household_id: string }; Returns: Json };
       is_household_member: { Args: { hid: string }; Returns: boolean };
       is_household_owner: { Args: { hid: string }; Returns: boolean };
@@ -2447,6 +2495,10 @@ export type Database = {
       };
       save_meal_plan: {
         Args: { p_doc: Json; p_household_id: string; p_user_id: string };
+        Returns: undefined;
+      };
+      save_product_snapshot: {
+        Args: { p_barcode: string; p_household_id: string; p_ingredient_id: string | null; p_retrieved_at: string; p_snapshot: Json };
         Returns: undefined;
       };
       save_receipt: {
