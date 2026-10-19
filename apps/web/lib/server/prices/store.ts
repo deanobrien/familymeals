@@ -1,6 +1,8 @@
 import 'server-only';
 import type { PriceObservation } from '@fr/domain';
 import pricesJson from '@fr/refdata/prices.json';
+import { getDataContext, useSupabaseBackend } from '../supabase/backend';
+import { SupabasePriceStore } from '../supabase/price-store';
 
 /**
  * Shared in-memory price store (DECISIONS D34).
@@ -8,12 +10,14 @@ import pricesJson from '@fr/refdata/prices.json';
  * Generic estimates come from `@fr/refdata` (built `data/out/prices.json`, no fs at runtime); receipts add
  * household-scoped `receipt` observations. Readers get both and let `@fr/engine/cost` rank them
  * (user_confirmed > receipt > retailer_verified > generic_estimate, then recency), so a receipt price
- * always beats the generic estimate. TODO(Supabase): price_observations table.
+ * always beats the generic estimate. With DATA_BACKEND=supabase the store is `SupabasePriceStore` (ingredient_prices, D124).
  */
 export interface PriceStore {
   /** Generic estimates plus this household's own observations. */
   observationsFor(householdId: string, ingredientIds?: Iterable<string>): PriceObservation[];
-  record(householdId: string, observations: readonly PriceObservation[]): void;
+  record(householdId: string, observations: readonly PriceObservation[]): void | Promise<void>;
+  /** Async backends: load this household's observations before the sync reads below (no-op in memory). */
+  refresh?(householdId: string): Promise<void>;
   reset(): void;
   /**
    * One household's recorded (non-generic) observations as a `lib/server/calc` PriceSource for that household's recipe cost
@@ -67,8 +71,8 @@ export class InMemoryPriceStore implements PriceStore {
 const KEY = Symbol.for('fr.prices.store');
 type G = typeof globalThis & { [KEY]?: PriceStore };
 
-/** Process-wide singleton shared by shopping (basket estimate) and receipts (observations). */
+/** Process-wide singleton shared by shopping (basket estimate) and receipts (observations). Backend fixed per process. */
 export function getPriceStore(): PriceStore {
   const g = globalThis as G;
-  return (g[KEY] ??= new InMemoryPriceStore(generic()));
+  return (g[KEY] ??= useSupabaseBackend() ? new SupabasePriceStore(generic(), () => getDataContext()) : new InMemoryPriceStore(generic()));
 }

@@ -43,13 +43,13 @@ function labelFor(c: AiProviderConfig): { label: string; model?: string } {
  * Decide the active provider. Precedence: Settings (owner-saved) > env (AI_PROVIDER + keys) > dev default (mock).
  * A real provider with a missing key is reported as NOT configured: it never silently falls back to the mock.
  */
-export function resolveAi(store: AiSettingsStore = getAiSettingsStore(), env: Env = process.env): ResolvedAi {
-  const stored = store.read();
+export async function resolveAi(store: AiSettingsStore = getAiSettingsStore(), env: Env = process.env): Promise<ResolvedAi> {
+  const { stored, keys } = await store.readWithKeys();
   if (stored) {
     const p = stored.provider;
     if (p === 'mock') return finish({ kind: 'mock' }, 'settings');
     if (p === 'openai') {
-      const apiKey = store.getKey('openai') ?? env.OPENAI_API_KEY;
+      const apiKey = keys.openai ?? env.OPENAI_API_KEY;
       if (!apiKey) return notConfigured('openai', 'settings', 'The saved OpenAI key is missing or unreadable. Enter it again in Settings.');
       return finish({
         kind: 'openai', apiKey,
@@ -59,7 +59,7 @@ export function resolveAi(store: AiSettingsStore = getAiSettingsStore(), env: En
       }, 'settings');
     }
     if (p === 'azure') {
-      const apiKey = store.getKey('azure') ?? env.AZURE_OPENAI_API_KEY;
+      const apiKey = keys.azure ?? env.AZURE_OPENAI_API_KEY;
       if (!apiKey || !stored.azure.endpoint || !stored.azure.deployment) {
         return notConfigured('azure', 'settings', 'Azure OpenAI needs an endpoint, deployment name and key. Complete them in Settings.');
       }
@@ -68,7 +68,7 @@ export function resolveAi(store: AiSettingsStore = getAiSettingsStore(), env: En
         apiVersion: stored.azure.apiVersion || DEFAULT_AZURE_API_VERSION,
       }, 'settings');
     }
-    const apiKey = store.getKey('anthropic') ?? env.ANTHROPIC_API_KEY;
+    const apiKey = keys.anthropic ?? env.ANTHROPIC_API_KEY;
     if (!apiKey) return notConfigured('anthropic', 'settings', 'The saved Anthropic key is missing or unreadable. Enter it again in Settings.');
     return finish({ kind: 'anthropic', apiKey, model: stored.anthropic.model || DEFAULT_ANTHROPIC_MODEL }, 'settings');
   }
@@ -101,14 +101,14 @@ function finish(config: AiProviderConfig, source: ActiveProviderInfo['source']):
 }
 
 /** Build the provider for THIS request from the current settings. Throws AiError PROVIDER_NOT_CONFIGURED if unusable. */
-export function getAiProvider(store?: AiSettingsStore, env?: Env): AiProvider {
-  const r = resolveAi(store, env);
+export async function getAiProvider(store?: AiSettingsStore, env?: Env): Promise<AiProvider> {
+  const r = await resolveAi(store, env);
   if (!r.config) throw new AiError('PROVIDER_NOT_CONFIGURED', r.info.problem);
   return createProviderFromConfig(r.config);
 }
 
-export function describeActiveProvider(store?: AiSettingsStore, env?: Env): ActiveProviderInfo {
-  return resolveAi(store, env).info;
+export async function describeActiveProvider(store?: AiSettingsStore, env?: Env): Promise<ActiveProviderInfo> {
+  return (await resolveAi(store, env)).info;
 }
 
 /** Long-lived provider handle for singletons (planner): re-resolves settings on every call. */
@@ -120,7 +120,7 @@ export type TestConnectionResult =
 
 /** Minimal live call with the saved settings: proves endpoint, key and model/deployment together. */
 export async function testConnection(store?: AiSettingsStore, env?: Env): Promise<TestConnectionResult> {
-  const r = resolveAi(store, env);
+  const r = await resolveAi(store, env);
   if (!r.config) return { ok: false, code: 'PROVIDER_NOT_CONFIGURED', message: r.info.problem ?? 'No AI provider is set up yet.' };
   const started = Date.now();
   try {

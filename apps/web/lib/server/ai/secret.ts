@@ -11,9 +11,16 @@ export class SettingsError extends Error {
   }
 }
 
-/** Local dev data directory (gitignored). TODO(Supabase): replaced by an encrypted column / vault. */
+/**
+ * Local data directory (gitignored). TODO(Supabase): replaced by an encrypted column / vault.
+ * Production (only reachable with ALLOW_LOCAL_FILE_STORE=true, D150): APP_DATA_DIR, default /home/data, which App Service
+ * persists across restarts and deployments (the wwwroot content is replaced on every deploy, so never write there).
+ */
 export function dataDir(env: Record<string, string | undefined> = process.env): string {
-  return env.APP_DATA_DIR?.trim() || join(process.cwd(), '.data');
+  const explicit = env.APP_DATA_DIR?.trim();
+  if (explicit) return explicit;
+  if (env.NODE_ENV === 'production') return '/home/data';
+  return join(process.cwd(), '.data');
 }
 
 const DEV_SECRET_NOTE =
@@ -87,4 +94,12 @@ export function maskKey(key: string): string {
   if (k.length < 12) return `…${k.slice(-2)}`;
   const prefix = /^sk-/.test(k) ? 'sk-' : '';
   return `${prefix}…${tail}`;
+}
+
+/** Thrown by a settings backend when this caller may not change the settings (e.g. not the household owner). */
+export class SettingsWriteRefused extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'SettingsWriteRefused';
+  }
 }

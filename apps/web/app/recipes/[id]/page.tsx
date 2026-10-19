@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getRecipeRepository } from '../../../lib/recipes/factory';
-import { getRecipeCalculator } from '../../../lib/server/calc';
+import { getFreshRecipeCalculator } from '../../../lib/server/calc';
 import { getAppContext } from '../../../lib/server/context';
 import { RecipeDetail } from '../_components/RecipeDetail';
 
@@ -22,5 +22,5 @@ export default async function Page({ params, searchParams }: Props) {
   const recipe = UUID.test(id) ? await getRecipeRepository().get(id) : null;
   if (!recipe) notFound();
   const { householdId } = await getAppContext();
-  return <RecipeDetail recipe={recipe} calc={getRecipeCalculator(householdId).forRecipe(recipe)} justDuplicated={sp.duplicated === '1'} />;
+  return <RecipeDetail recipe={recipe} calc={(await getFreshRecipeCalculator(householdId)).forRecipe(recipe)} justDuplicated={sp.duplicated === '1'} />;
 }

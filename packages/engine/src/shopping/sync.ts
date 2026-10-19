@@ -31,13 +31,27 @@ export const serverSnapshot = (server: ServerState): Snapshot => ({ cursor: serv
 
 export const serverEntriesSince = (server: ServerState, cursor: number): LogEntry[] => server.log.slice(cursor);
 
+/**
+ * Apply one server log entry. A REJECTED entry is authoritative: its logged result becomes the outcome and the state is
+ * left unchanged, even where this replica would decide differently (the database rejected a tick under its row lock, or
+ * for a reason the engine does not model). Applied entries are re-run through `applyCommand`. For the in-memory server
+ * (same deterministic engine) this is identical to re-deciding every entry.
+ */
+export function applyLogEntry(state: ShoppingState, entry: LogEntry, ctx: EngineContext): ShoppingState {
+  if (entry.result.status === 'rejected') {
+    if (state.outcomes[entry.command.commandId]) return state;
+    return { ...state, outcomes: { ...state.outcomes, [entry.command.commandId]: entry.result } };
+  }
+  return applyCommand(state, entry.command, ctx).state;
+}
+
 /** Rebuild state by replaying entries on top of a snapshot (used by tests and by clients). */
 export function replay(snapshot: Snapshot, entries: LogEntry[], ctx: EngineContext): Snapshot {
   let { state, cursor } = snapshot;
   for (const e of entries) {
     if (e.seq <= cursor) continue;
     if (e.seq !== cursor + 1) throw new Error(`log gap: expected seq ${cursor + 1}, got ${e.seq}`);
-    state = applyCommand(state, e.command, ctx).state;
+    state = applyLogEntry(state, e, ctx);
     cursor = e.seq;
   }
   return { cursor, state };
@@ -98,7 +112,7 @@ export function clientIngest(client: ClientState, entries: LogEntry[], ctx: Engi
     if (e.seq !== cursor + 1) {
       return prune({ ...client, confirmed: state, cursor, needsResync: true });
     }
-    state = applyCommand(state, e.command, ctx).state;
+    state = applyLogEntry(state, e, ctx);
     cursor = e.seq;
   }
   return prune({ ...client, confirmed: state, cursor });

@@ -6,6 +6,12 @@ import { getIngredientCatalogue, type IngredientCatalogue } from '../refdata/cat
 
 const nameKey = (s: string) => `name:${s.trim().toLowerCase().replace(/\s+/g, ' ')}`;
 
+/** buildPriceBook after loading the household's observations (Supabase price store, D124; no-op in memory). */
+export async function loadPriceBook(householdId: string, store: PriceStore = getPriceStore()): Promise<PriceBook> {
+  await store.refresh?.(householdId);
+  return buildPriceBook(householdId, store);
+}
+
 /** Every priced ingredient for this household, plus a by-name index for hand-added items (simple plurals). */
 export function buildPriceBook(
   householdId: string,

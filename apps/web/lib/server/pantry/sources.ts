@@ -108,16 +108,6 @@ export class InMemoryLeftoverSource implements LeftoverSource {
   }
 }
 
-/** Real (Supabase) households: no cooked-batch tracking is persisted yet, so there are no leftovers (D146). */
-export class NoLeftoverSource implements LeftoverSource {
-  async listBatches(): Promise<CookedBatch[]> {
-    return [];
-  }
-  async listOpenSlots(): Promise<OpenSlot[]> {
-    return [];
-  }
-}
-
 /* ---------- Seed pantry stock ---------- */
 
 /** Demo stock for household A, dated relative to `now` so expiry/stale states are always showing. */

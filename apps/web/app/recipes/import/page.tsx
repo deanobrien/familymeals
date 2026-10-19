@@ -5,8 +5,8 @@ export const metadata = { title: 'Import a recipe' };
 // Which AI provider is active depends on server-side settings, so render per request.
 export const dynamic = 'force-dynamic';
 
-export default function Page() {
-  const active = describeActiveProvider();
+export default async function Page() {
+  const active = await describeActiveProvider();
   return (
     <>
       <h1>Import a recipe from photos</h1>

@@ -8,22 +8,22 @@ import { getRecipeRepository } from '../../recipes/factory';
 import { getRecipeCalculator } from '../calc';
 import { summariserForHousehold } from '../calc/household';
 import { RepositoryPlanRecipeSource, toPlanRecipe, toRecipeRepo, type PlanRecipeSource } from './recipe-source';
-import { getPlanStore, InMemoryMealPlanRepository, resetPlanStore, type MealPlanRepository } from './repository';
+import { getMealPlanStore, getPlanStore, InMemoryMealPlanRepository, resetPlanStore, type MealPlanRepository } from './repository';
 import { createEngineSolver } from './engine-solver';
 import { createExclusionResolver } from './exclusions';
 import { formatQuantity } from '../../shopping/format';
 import { getIngredientCatalogue } from '../refdata/catalogue';
 import { getRequirementSource } from '../shopping/approved-plan-source';
 import { buildRequirementsForMeals } from '../shopping/plan-requirements';
-import { getShoppingRepository } from '../shopping/repository';
+import { getShoppingStore } from '../shopping/store';
 import { generateFromPlan } from '../shopping/service';
-import { createSupabaseMealPlanRepository, createSupabasePlanRecipeSource, useSupabaseBackend } from '../supabase/backend';
+import { createSupabaseHouseholdProfile, createSupabasePlanRecipeSource, useSupabaseBackend } from '../supabase/backend';
 
 export const DEMO_HOUSEHOLD_ID = 'demo-household';
 
 /**
- * Planner profile for a household. The id comes from the session (getAppContext); members, exclusions and
- * budget are still demo values. TODO(Supabase): load from household_members + dietary profiles.
+ * Demo planner profile (in-memory / mock-auth mode). With DATA_BACKEND=supabase, loadPlanServices replaces it per request
+ * with the household's real profile: active members, consented exclusions, budget, servings (D125).
  */
 export function demoHousehold(id: string = DEMO_HOUSEHOLD_ID): Household {
   return {
@@ -38,8 +38,17 @@ export function demoHousehold(id: string = DEMO_HOUSEHOLD_ID): Household {
   };
 }
 
+/** Where the planner reads the household profile and per-member favourites (Supabase, D125). */
+export interface HouseholdProfileSource {
+  load(householdId: string): Promise<(Household & { withheldExclusions?: number }) | null>;
+  favourites(householdId: string, memberId: string): Promise<string[]>;
+}
+
 export interface PlanServices {
+  /** The household profile for THIS request (refreshed by loadPlanServices in Supabase mode). */
   household: Household;
+  /** Allergy/intolerance exclusions withheld because the recorder's consent was withdrawn (Supabase only). */
+  withheldExclusions?: number;
   households: HouseholdRepo;
   recipes: PlanRecipeSource;
   plans: MealPlanRepository;
@@ -81,6 +90,8 @@ export function createCostService(recipes: PlanRecipeSource): CostService {
 
 export function createPlanServices(opts: {
   ai?: AiProvider; recipes?: PlanRecipeSource; plans?: MealPlanRepository; household?: Household;
+  /** Real profile + favourites (Supabase). Absent: the demo favourites rule below. */
+  profile?: HouseholdProfileSource;
   /** Overrides the name-only requirement preview (production: @fr/engine/aggregate over the recipe store). */
   buildRequirements?: CostService['buildRequirements'];
 } = {}): PlanServices {
@@ -91,11 +102,15 @@ export function createPlanServices(opts: {
   const recipes = opts.recipes ?? (supabase
     ? createSupabasePlanRecipeSource(undefined, { summariserFor: summariserForHousehold, nutritionOf })
     : new RepositoryPlanRecipeSource(getRecipeRepository(), nutritionOf));
+  // eslint-disable-next-line prefer-const
+  let services: PlanServices;
   const households: HouseholdRepo = {
-    getHousehold: async (id) => (id === household.id ? structuredClone(household) : null),
-    // TODO(Supabase): per-member favourites. Demo: Lauren's favourites are the household favourites.
+    getHousehold: async (id) => (id === services.household.id ? structuredClone(services.household) : null),
+    // Supabase: the member's own recipe_favourites rows. Demo: Lauren's favourites are the household favourites.
     getFavouriteRecipeIds: async (h, memberId) =>
-      memberId === 'm-lauren' ? (await recipes.list(h)).filter((r) => r.favourite).map((r) => r.id) : [],
+      opts.profile
+        ? opts.profile.favourites(h, memberId)
+        : memberId === 'm-lauren' ? (await recipes.list(h)).filter((r) => r.favourite).map((r) => r.id) : [],
   };
   // Resolved per call from Settings > AI provider, else env, else the dev mock (D41).
   const ai = opts.ai ?? settingsAiProvider;
@@ -109,7 +124,8 @@ export function createPlanServices(opts: {
     proposals: new InMemoryProposalStore(),
     resolveExclusions: createExclusionResolver(), // names -> ingredient ids / UK-14 groups (D132)
   });
-  return { household, households, recipes, plans: opts.plans ?? (supabase ? createSupabaseMealPlanRepository() : new InMemoryMealPlanRepository()), orchestrator, newId: () => crypto.randomUUID(), now: () => new Date() };
+  services = { household, households, recipes, plans: opts.plans ?? (supabase ? getMealPlanStore() : new InMemoryMealPlanRepository()), orchestrator, newId: () => crypto.randomUUID(), now: () => new Date() };
+  return services;
 }
 
 const g = globalThis as { __frPlanServicesByHousehold?: Map<string, PlanServices> };
@@ -124,7 +140,7 @@ export function getPlanServicesFor(householdId: string): PlanServices {
   if (!svc) {
     svc = createPlanServices({
       household: demoHousehold(householdId),
-      ...(useSupabaseBackend() ? {} : { plans: getPlanStore() }),
+      ...(useSupabaseBackend() ? { profile: createSupabaseHouseholdProfile() } : { plans: getPlanStore() }),
       buildRequirements: async (_h, meals) => {
         const built = await buildRequirementsForMeals(meals, getRecipeRepository(), getIngredientCatalogue());
         return built.requirements.map((r) => ({
@@ -136,9 +152,24 @@ export function getPlanServicesFor(householdId: string): PlanServices {
       },
     });
     svc.onShoppingRequirements = async (h, planId, _reqs, actor) => {
-      await generateFromPlan(getShoppingRepository(), getRequirementSource(), h, planId, actor, () => crypto.randomUUID());
+      await generateFromPlan(getShoppingStore(), getRequirementSource(), h, planId, actor, () => crypto.randomUUID());
     };
     map.set(householdId, svc);
+  }
+  return svc;
+}
+
+/**
+ * Planner services for THIS request. Supabase mode: the household profile is re-read (members, consented exclusions,
+ * budget) so a change in Household settings applies at once; it falls back to an empty profile, never the demo one.
+ */
+export async function loadPlanServices(householdId: string): Promise<PlanServices> {
+  const svc = getPlanServicesFor(householdId);
+  if (useSupabaseBackend()) {
+    const p = await createSupabaseHouseholdProfile().load(householdId);
+    const { withheldExclusions = 0, ...household } = p ?? { id: householdId, hardExclusions: [], members: [] };
+    svc.household = household;
+    svc.withheldExclusions = withheldExclusions;
   }
   return svc;
 }

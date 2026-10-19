@@ -63,7 +63,10 @@ export type RejectReason =
   | 'event_not_found'
   | 'invalid_quantity'
   | 'incompatible_unit'
-  | 'id_collision';
+  | 'id_collision'
+  // Database-only bookkeeping (Supabase, D121): the lock-time SQL re-check found the engine-computed outstanding stale and
+  // the server retried the tick under a derived id. Never shown to the shopper.
+  | 'superseded';
 
 export interface CommandResult {
   commandId: Uuid;

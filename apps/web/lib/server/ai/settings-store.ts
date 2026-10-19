@@ -5,12 +5,17 @@ import { z } from 'zod';
 import {
   DEFAULT_AZURE_API_VERSION, DEFAULT_OPENAI_BASE_URL, DEFAULT_OPENAI_MODEL,
 } from '@fr/ai';
-import { SettingsError, dataDir, decryptSecret, encryptSecret, getAppSecret, maskKey } from './secret';
+import { SettingsError, SettingsWriteRefused, dataDir, decryptSecret, encryptSecret, getAppSecret, maskKey } from './secret';
+export { SettingsWriteRefused } from './secret';
+import { getDataContext, useSupabaseBackend } from '../supabase/backend';
+import { SupabaseSettingsBackend } from '../supabase/ai-settings-backend';
 
 /**
- * Household-level AI provider settings (single household for now).
- * TODO(Supabase): move to a household settings row with the key in an encrypted column / vault secret,
- * writable by the household owner only. Until then: a gitignored local file, key encrypted at rest.
+ * Household-level AI provider settings. Storage is a backend (D126):
+ *  - local file (default; mock-auth / in-memory mode): gitignored `.data/ai-settings.json`, keys AES-256-GCM, AAD = provider
+ *  - Supabase (DATA_BACKEND=supabase): the household's `household_ai_settings` row through member-read / owner-write
+ *    RPCs. Keys are encrypted HERE with APP_SECRET (AAD = household + provider) before they leave the server, so the
+ *    database (and any browser that calls the read RPC) only ever holds ciphertext and a masked hint.
  */
 export const KEYED_PROVIDERS = ['openai', 'azure', 'anthropic'] as const;
 export type KeyedProvider = (typeof KEYED_PROVIDERS)[number];
@@ -39,6 +44,22 @@ export function defaultSettings(): StoredSettings {
     anthropic: { model: DEFAULT_ANTHROPIC_MODEL },
     keys: {},
     updatedAt: new Date(0).toISOString(),
+  };
+}
+
+/** Raw stored JSON -> settings with defaults; null when absent or unusable. */
+export function normaliseStored(raw: unknown): StoredSettings | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const r = raw as Partial<StoredSettings>;
+  const d = defaultSettings();
+  return {
+    version: 1,
+    provider: PROVIDER_CHOICES.includes(r.provider as ProviderChoice) ? (r.provider as ProviderChoice) : 'mock',
+    openai: { ...d.openai, ...r.openai },
+    azure: { ...d.azure, ...r.azure },
+    anthropic: { ...d.anthropic, ...r.anthropic },
+    keys: r.keys ?? {},
+    updatedAt: r.updatedAt ?? d.updatedAt,
   };
 }
 
@@ -95,12 +116,42 @@ export type SaveResult =
   | { ok: true; settings: PublicAiSettings }
   | { ok: false; message: string; field?: string };
 
+/** Where settings live. `aad` binds a key ciphertext to its slot (and household) so blobs cannot be swapped. */
+export interface AiSettingsBackend {
+  read(): Promise<unknown | null>;
+  write(s: StoredSettings): Promise<void>;
+  clear(): Promise<void>;
+  aad(kind: KeyedProvider): string;
+}
+
+/** The gitignored local file (single local household). */
+export class FileSettingsBackend implements AiSettingsBackend {
+  constructor(readonly dir: string) {}
+  get file(): string { return join(this.dir, 'ai-settings.json'); }
+  async read(): Promise<unknown | null> {
+    if (!existsSync(this.file)) return null;
+    try { return JSON.parse(readFileSync(this.file, 'utf8')) as unknown; } catch { return null; }
+  }
+  async write(s: StoredSettings): Promise<void> {
+    mkdirSync(dirname(this.file), { recursive: true });
+    const tmp = `${this.file}.${process.pid}.tmp`;
+    writeFileSync(tmp, JSON.stringify(s, null, 2), { mode: 0o600 });
+    renameSync(tmp, this.file);
+  }
+  async clear(): Promise<void> {
+    try { if (existsSync(this.file)) unlinkSync(this.file); } catch { /* ignore */ }
+  }
+  aad(kind: KeyedProvider): string { return `ai-key:${kind}`; }
+}
+
 export interface StoreOptions {
   dir?: string;
   env?: Record<string, string | undefined>;
   /** Injectable for tests. */
   getSecret?: () => string;
   now?: () => Date;
+  /** Storage (default: the local file under `dir`), or a resolver called once per operation (per request). */
+  backend?: AiSettingsBackend | (() => Promise<AiSettingsBackend>);
 }
 
 export class AiSettingsStore {
@@ -108,50 +159,63 @@ export class AiSettingsStore {
   private readonly env: Record<string, string | undefined>;
   private readonly secret: () => string;
   private readonly now: () => Date;
+  private readonly backendOf: () => Promise<AiSettingsBackend>;
 
   constructor(opts: StoreOptions = {}) {
     this.env = opts.env ?? process.env;
     this.dir = opts.dir ?? dataDir(this.env);
     this.secret = opts.getSecret ?? (() => getAppSecret(this.env, this.dir));
     this.now = opts.now ?? (() => new Date());
+    const b = opts.backend ?? new FileSettingsBackend(this.dir);
+    this.backendOf = typeof b === 'function' ? b : async () => b;
   }
 
   get file(): string { return join(this.dir, 'ai-settings.json'); }
 
-  /** Raw stored settings (encrypted keys inside). Server-internal. */
-  read(): StoredSettings | null {
-    if (!existsSync(this.file)) return null;
-    try {
-      const raw = JSON.parse(readFileSync(this.file, 'utf8')) as Partial<StoredSettings>;
-      const d = defaultSettings();
-      return {
-        version: 1,
-        provider: PROVIDER_CHOICES.includes(raw.provider as ProviderChoice) ? (raw.provider as ProviderChoice) : 'mock',
-        openai: { ...d.openai, ...raw.openai },
-        azure: { ...d.azure, ...raw.azure },
-        anthropic: { ...d.anthropic, ...raw.anthropic },
-        keys: raw.keys ?? {},
-        updatedAt: raw.updatedAt ?? d.updatedAt,
-      };
-    } catch {
-      return null;
-    }
+  private async load(): Promise<{ stored: StoredSettings | null; backend: AiSettingsBackend }> {
+    const backend = await this.backendOf();
+    return { stored: normaliseStored(await backend.read()), backend };
   }
 
-  /** The decrypted key for a provider, or undefined when none is stored / it cannot be decrypted. SERVER ONLY. */
-  getKey(kind: KeyedProvider): string | undefined {
-    const k = this.read()?.keys[kind];
+  /** Raw stored settings (encrypted keys inside). Server-internal. */
+  async read(): Promise<StoredSettings | null> {
+    return (await this.load()).stored;
+  }
+
+  private decrypt(stored: StoredSettings | null, backend: AiSettingsBackend, kind: KeyedProvider): string | undefined {
+    const k = stored?.keys[kind];
     if (!k) return undefined;
     try {
-      return decryptSecret(k.enc, this.secret(), `ai-key:${kind}`);
+      return decryptSecret(k.enc, this.secret(), backend.aad(kind));
     } catch {
       return undefined;
     }
   }
 
+  /** The decrypted key for a provider, or undefined when none is stored / it cannot be decrypted. SERVER ONLY. */
+  async getKey(kind: KeyedProvider): Promise<string | undefined> {
+    const { stored, backend } = await this.load();
+    return this.decrypt(stored, backend, kind);
+  }
+
+  /** Stored settings plus every decryptable key from ONE read (what the provider resolver needs). SERVER ONLY. */
+  async readWithKeys(): Promise<{ stored: StoredSettings | null; keys: Partial<Record<KeyedProvider, string>> }> {
+    const { stored, backend } = await this.load();
+    const keys: Partial<Record<KeyedProvider, string>> = {};
+    for (const kind of KEYED_PROVIDERS) {
+      const k = this.decrypt(stored, backend, kind);
+      if (k) keys[kind] = k;
+    }
+    return { stored, keys };
+  }
+
   /** Browser-safe view: masked hints only. */
-  getPublic(): PublicAiSettings {
-    const stored = this.read();
+  async getPublic(): Promise<PublicAiSettings> {
+    const { stored, backend } = await this.load();
+    return this.publicView(stored, backend);
+  }
+
+  private publicView(stored: StoredSettings | null, backend: AiSettingsBackend): PublicAiSettings {
     const s = stored ?? defaultSettings();
     let storageProblem: string | undefined;
     try { this.secret(); } catch (e) { storageProblem = e instanceof SettingsError ? e.message : 'Key storage is unavailable.'; }
@@ -163,7 +227,7 @@ export class AiSettingsStore {
       const k = s.keys[kind];
       let unreadable = false;
       if (k) {
-        try { decryptSecret(k.enc, this.secret(), `ai-key:${kind}`); } catch { unreadable = true; }
+        try { decryptSecret(k.enc, this.secret(), backend.aad(kind)); } catch { unreadable = true; }
       }
       keys[kind] = {
         hasKey: !!k && !unreadable,
@@ -185,14 +249,15 @@ export class AiSettingsStore {
     };
   }
 
-  save(input: unknown): SaveResult {
+  async save(input: unknown): Promise<SaveResult> {
     const parsed = saveInputSchema.safeParse(input);
     if (!parsed.success) {
       const issue = parsed.error.issues[0]!;
       return { ok: false, message: issue.message, field: issue.path.join('.') };
     }
     const v = parsed.data;
-    const cur = this.read() ?? defaultSettings();
+    const { stored, backend } = await this.load();
+    const cur = stored ?? defaultSettings();
     const next: StoredSettings = structuredClone(cur);
     next.provider = v.provider;
 
@@ -212,7 +277,7 @@ export class AiSettingsStore {
     }
     if (v.anthropic) next.anthropic = { model: v.anthropic.model || cur.anthropic.model || DEFAULT_ANTHROPIC_MODEL };
 
-    // New keys: encrypt before anything touches disk. Refuse (never store plaintext) if there is no secret.
+    // New keys: encrypt before anything is stored. Refuse (never store plaintext) if there is no secret.
     const incoming: Partial<Record<KeyedProvider, string>> = {};
     for (const kind of KEYED_PROVIDERS) {
       const k = v[kind]?.apiKey;
@@ -224,7 +289,7 @@ export class AiSettingsStore {
         return { ok: false, message: e instanceof SettingsError ? e.message : 'Key storage is unavailable.', field: 'apiKey' };
       }
       for (const [kind, key] of Object.entries(incoming) as Array<[KeyedProvider, string]>) {
-        next.keys[kind] = { enc: encryptSecret(key, secret, `ai-key:${kind}`), hint: maskKey(key) };
+        next.keys[kind] = { enc: encryptSecret(key, secret, backend.aad(kind)), hint: maskKey(key) };
       }
     }
 
@@ -233,24 +298,26 @@ export class AiSettingsStore {
     if (problem) return { ok: false, message: problem.message, field: problem.field };
 
     next.updatedAt = this.now().toISOString();
-    this.write(next);
-    return { ok: true, settings: this.getPublic() };
+    const refused = await this.write(backend, next);
+    if (refused) return refused;
+    return { ok: true, settings: this.publicView(next, backend) };
   }
 
-  removeKey(kind: KeyedProvider): SaveResult {
-    const cur = this.read();
-    if (!cur) return { ok: true, settings: this.getPublic() };
+  async removeKey(kind: KeyedProvider): Promise<SaveResult> {
+    const { stored: cur, backend } = await this.load();
+    if (!cur) return { ok: true, settings: this.publicView(null, backend) };
     delete cur.keys[kind];
     // Selecting a provider with no key would just fail every import: drop back to mock-by-default.
     if (cur.provider === kind && !this.envHasKey(kind)) cur.provider = 'mock';
     cur.updatedAt = this.now().toISOString();
-    this.write(cur);
-    return { ok: true, settings: this.getPublic() };
+    const refused = await this.write(backend, cur);
+    if (refused) return refused;
+    return { ok: true, settings: this.publicView(cur, backend) };
   }
 
   /** Forget all stored settings (keys included). */
-  clear(): void {
-    try { if (existsSync(this.file)) unlinkSync(this.file); } catch { /* ignore */ }
+  async clear(): Promise<void> {
+    await (await this.backendOf()).clear();
   }
 
   private envHasKey(kind: KeyedProvider): boolean {
@@ -267,15 +334,27 @@ export class AiSettingsStore {
     return undefined;
   }
 
-  private write(s: StoredSettings): void {
-    mkdirSync(dirname(this.file), { recursive: true });
-    const tmp = `${this.file}.${process.pid}.tmp`;
-    writeFileSync(tmp, JSON.stringify(s, null, 2), { mode: 0o600 });
-    renameSync(tmp, this.file);
+  private async write(backend: AiSettingsBackend, s: StoredSettings): Promise<SaveResult | undefined> {
+    try {
+      await backend.write(s);
+      return undefined;
+    } catch (e) {
+      if (e instanceof SettingsWriteRefused) return { ok: false, message: e.message };
+      throw e;
+    }
   }
 }
 
 const g = globalThis as unknown as { __frAiSettings?: AiSettingsStore };
+
+/** Process-wide store. With DATA_BACKEND=supabase every operation resolves the signed-in household's row (D126). */
 export function getAiSettingsStore(): AiSettingsStore {
-  return (g.__frAiSettings ??= new AiSettingsStore());
+  return (g.__frAiSettings ??= useSupabaseBackend()
+    ? new AiSettingsStore({
+        backend: async () => {
+          const c = await getDataContext();
+          return new SupabaseSettingsBackend(c.client, c.householdId);
+        },
+      })
+    : new AiSettingsStore());
 }

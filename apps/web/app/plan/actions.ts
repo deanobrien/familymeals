@@ -2,12 +2,12 @@
 
 import * as h from '../../lib/server/plan/handlers';
 import { getAppContext } from '../../lib/server/context';
-import { getPlanServicesFor } from '../../lib/server/plan/services';
+import { loadPlanServices } from '../../lib/server/plan/services';
 import type { ActionResult, ParseResult, PlanDoc, ProposeResult } from '../../lib/plan/types';
 
 /** Planner services for the signed-in household (never a client-supplied household id). */
 async function services() {
-  return getPlanServicesFor((await getAppContext()).householdId);
+  return await loadPlanServices((await getAppContext()).householdId);
 }
 
 export async function savePlanAction(doc: PlanDoc): Promise<ActionResult<PlanDoc>> {
@@ -30,7 +30,7 @@ export async function solvePlanRequestAction(prompt: string, weekStart: string, 
 export async function generateShoppingAction(planId: string): Promise<ActionResult<h.ShoppingHandoff>> {
   const ctx = await getAppContext();
   if (ctx.readOnly) return { ok: false, message: 'This household is read-only while it is pending deletion.' };
-  return h.generateShopping(getPlanServicesFor(ctx.householdId), planId, ctx.userId);
+  return h.generateShopping(await loadPlanServices(ctx.householdId), planId, ctx.userId);
 }
 export async function loadWeekAction(weekStart: string): Promise<PlanDoc | null> {
   return h.loadPlanForWeek(await services(), weekStart);

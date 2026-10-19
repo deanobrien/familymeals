@@ -91,8 +91,8 @@ export async function runPantryScan(input: ScanInput, deps: ScanDeps = {}): Prom
   const cat = deps.catalogue ?? getIngredientCatalogue();
   const today = (deps.today ?? todayUtc)();
   try {
-    const provider = deps.provider ?? getAiProvider();
-    const info = deps.provider ? undefined : describeActiveProvider();
+    const provider = deps.provider ?? (await getAiProvider());
+    const info = deps.provider ? undefined : await describeActiveProvider();
     const scan = await provider.scanPantry(images, {
       today,
       ...(focus ? { focusItem: focus } : { ingredientNames: cat.all.map((i) => i.name) }),

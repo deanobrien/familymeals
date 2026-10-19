@@ -5,6 +5,7 @@ import {
   ShoppingController, localStoragePendingStore, newUuid,
   type ControllerState, type Notice, type Transport,
 } from './controller';
+import type { LiveFeed } from './live';
 import type { SnapshotDto } from './types';
 
 export const PENDING_KEY = 'fr.shopping.pending.v1';
@@ -15,6 +16,8 @@ export function useShopping(
   transport: Transport,
   onNotice: (n: Notice) => void,
   actorId: string,
+  /** Supabase Realtime feed (D122); omit to poll (mock mode). Read once, on first render. */
+  live?: LiveFeed,
 ): { controller: ShoppingController; state: ControllerState; actor: () => string } {
   const noticeRef = useRef(onNotice);
   noticeRef.current = onNotice;
@@ -27,6 +30,7 @@ export function useShopping(
       actor: () => actorId,
       newId: newUuid,
       onNotice: (n) => noticeRef.current(n),
+      ...(live ? { live } : {}),
     });
   }
   const controller = ref.current;
