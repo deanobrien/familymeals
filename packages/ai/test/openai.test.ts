@@ -229,9 +229,9 @@ describe('OpenAiProvider (fake fetch)', () => {
   });
 
   it('forces hard plan exclusions in code and drops hallucinated match ids (shared base behaviour)', async () => {
-    const a = mk([ok({ days: 5, mealTypes: ['dinner'], excludeIngredients: ['Mushrooms'] })]);
+    const a = mk([ok({ days: 5, mealTypes: ['dinner'], servings: 4, excludeTerms: ['Mushrooms'] })]);
     const r = await a.p.parsePlanPrompt('5 dinners', { exclusions: ['peanuts', 'mushrooms'] });
-    expect(r.excludeIngredients).toEqual(['Mushrooms', 'peanuts']);
+    expect(r.excludeTerms).toEqual(['Mushrooms', 'peanuts']);
     const b = mk([ok({ matches: [{ line: 'onion', candidateId: 'zzz', confidence: 0.9 }] })]);
     expect((await b.p.suggestIngredientMatches(['onion'], [{ id: 'g1', name: 'garlic' }])).matches[0]!.candidateId).toBeNull();
   });

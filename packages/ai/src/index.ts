@@ -37,3 +37,4 @@ export function createAiProvider(
   if (env.AI_PROVIDER === 'azure') return createAzureOpenAiProvider(env, extra);
   return createAnthropicProvider(env, extra);
 }
+export { planRequestToConstraints } from './plan.js';

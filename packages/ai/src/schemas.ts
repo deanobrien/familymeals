@@ -110,23 +110,14 @@ export const TagSuggestionSchema = z.object({
 export type TagSuggestion = z.infer<typeof TagSuggestionSchema>;
 
 // ---- Plan constraints ----
-export const PlanConstraintsSchema = z.object({
-  days: z.number().int().min(1).max(31),
-  mealTypes: z.array(MealTypeSchema).min(1),
-  servings: z.number().positive().optional(),
-  budgetPence: z.number().int().nonnegative().optional(),
-  dietProportions: z.partialRecord(DietCategorySchema, z.number().min(0).max(1)).optional(),
-  includeTags: z.array(z.string()).default([]),
-  /** HARD exclusions: enforced in code by the solver, never merely advisory. */
-  excludeIngredients: z.array(z.string()).default([]),
-  favouritesOf: z.array(z.string()).default([]),
-  quickMealDays: z.number().int().min(0).max(31).optional(),
-  notes: z.string().optional(),
-});
-export type PlanConstraints = z.infer<typeof PlanConstraintsSchema>;
+// The ONE schema lives in @fr/domain (DECISIONS D130). The model emits its PlanRequest subset; `planRequestToConstraints`
+// (./plan.ts) completes it into the canonical PlanConstraints.
+export { PlanConstraintsSchema, PlanRequestSchema, type PlanConstraints, type PlanRequest } from '@fr/domain';
 
 /** Minimal household context for plan parsing. Callers pass ONLY what the prompt needs. */
 export const HouseholdContextSchema = z.object({
+  /** First day of the plan (YYYY-MM-DD). Becomes PlanConstraints.startDate; default today. */
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   defaultServings: z.number().positive().optional(),
   weeklyBudgetPence: z.number().int().nonnegative().optional(),
   /** Anonymised hard exclusions (ingredient names), no member identities. */

@@ -23,7 +23,7 @@ describe('MockAiProvider', () => {
   it('parses simple plan prompts deterministically and applies exclusions', async () => {
     const m = createMockProvider({ env: {} });
     const p = await m.parsePlanPrompt('plan 5 dinners under £45.50', { exclusions: ['peanuts'], defaultServings: 3 });
-    expect(p).toMatchObject({ days: 5, budgetPence: 4550, servings: 3, excludeIngredients: ['peanuts'] });
+    expect(p).toMatchObject({ days: 5, budgetPence: 4550, servings: 3, excludeTerms: ['peanuts'] });
   });
 
   it('matches ingredient lines by name', async () => {

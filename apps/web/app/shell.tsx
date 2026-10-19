@@ -53,8 +53,10 @@ export function Shell({ children, mockLabel }: { children: ReactNode; mockLabel?
   if (isAuthRoute(pathname)) {
     return (
       <ToastProvider>
-        {banner}
-        {children}
+        <div className="fr-root fr-auth">
+          {banner}
+          {children}
+        </div>
       </ToastProvider>
     );
   }

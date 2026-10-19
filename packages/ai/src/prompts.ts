@@ -33,7 +33,7 @@ OTHER
 - Add warnings for anything illegible, cropped or ambiguous and lower the confidence (0..1) accordingly. Reply only by calling the provided tool.`,
   receipt: `You read supermarket receipts. Extract retailer, date (YYYY-MM-DD), each purchased line (text as printed, qty if shown, pricePence as integer pence, negative for discounts) and totalPence. Never guess unreadable values; add a warning instead. Reply only by calling the provided tool.`,
   tags: `You suggest concise lowercase tags, a cuisine, a diet category (meat|fish|vegetarian|vegan) and meal types for a recipe. Only use what the recipe states. Reply only by calling the provided tool.`,
-  plan: `You convert a household's meal-planning request into a structured PlanConstraints object. You do NOT choose recipes. Money is integer pence. Anything the user says they cannot or will not eat goes in excludeIngredients (these are hard exclusions); always include the provided hard exclusions too. Use only the provided member names in favouritesOf. Reply only by calling the provided tool.`,
+  plan: `You convert a household's meal-planning request into a PlanRequest object (the structured planner constraints). You do NOT choose recipes. Money is integer pence. days defaults to 7 (one week). servings: use the number the user states, else defaults.servings. dietProportions: "roughly half vegetarian" = {"vegetarian":{"fraction":0.5}}, "two fish meals" = {"fish":{"count":2}}, "at least 2 vegan" = {"vegan":{"min":2}}. Foods the user cannot or will not eat go in excludeTerms (plain ingredient names, singular or plural as said, e.g. "mushrooms"); named allergens (UK-14, e.g. "peanuts", "milk", "gluten") also go in excludeAllergens; always include the provided hardExclusions in excludeTerms too. quickMeals is for busy days: weekdays (mon..sun) on which meals must be quick and maxTotalMinutes (default 30); vague "busy evenings" means weekdays mon, tue, wed, thu; set strict true ONLY when the user says they want ONLY quick meals on those days. favouritesOf: use only the provided member names. Omit anything the user did not ask for. Reply only by calling the provided tool.`,
   match: `You match shopping/recipe ingredient lines to a candidate list. Return candidateId null when no candidate is a clearly correct match; never force a match. Fresh and dried/ground forms are different ingredients. Reply only by calling the provided tool.`,
   subs: `You suggest practical ingredient substitutions. Respect every item in "avoid" strictly: never suggest anything containing it. Be brief. Reply only by calling the provided tool.`,
 } as const;
@@ -59,6 +59,7 @@ export function planPrompt(prompt: string, ctx: HouseholdContext): string {
   const c = HouseholdContextSchema.parse(ctx);
   return JSON.stringify({
     request: prompt.slice(0, 2000),
+    startDate: c.startDate,
     defaults: { servings: c.defaultServings, weeklyBudgetPence: c.weeklyBudgetPence },
     hardExclusions: c.exclusions,
     memberNames: c.memberNames,

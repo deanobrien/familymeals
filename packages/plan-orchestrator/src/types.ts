@@ -1,6 +1,7 @@
-import type { PlanConstraints } from '@fr/ai';
+import type { PlanConstraints, PlanRequest } from '@fr/domain';
 
-export type { PlanConstraints };
+/** The ONE canonical constraints schema (D130) and its editable, LLM-facing subset (D131). */
+export type { PlanConstraints, PlanRequest };
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
 export type IsoDate = string;
@@ -31,8 +32,16 @@ export interface Candidate {
   mealTypes: MealType[];
   dietCategory?: 'meat' | 'fish' | 'vegetarian' | 'vegan';
   totalMinutes?: number;
-  /** Display names of members who favourite this recipe (set by orchestrator). */
+  /** Member ids who favourite this recipe (set by orchestrator; matched against PlanConstraints.favouritesOf). */
   favouriteOf?: string[];
+  /** Canonical ingredient ids of the matched lines (unmatched lines are absent). */
+  ingredientIds?: string[];
+  /** Names + aliases of the matched canonical ingredients (secondary term safety net). */
+  canonicalNames?: string[];
+  /** Original text of ingredient lines with no canonical match (still checked against excluded terms). */
+  unmatchedLines?: string[];
+  /** UK-14 allergen groups derived from the matched ingredient ids. */
+  allergens?: string[];
   /** Cost at the plan servings; null/undefined = unknown (never 0). */
   costPence?: Pence | null;
 }
@@ -67,7 +76,24 @@ export interface PlanSlot {
   note?: string;
 }
 export interface ConstraintReportItem { constraint: string; met: boolean; detail: string; }
-export interface SolveOptions { weekStart: IsoDate; servings: number; }
+export interface SolveOptions {
+  weekStart: IsoDate;
+  servings: number;
+  /** Member id -> display name, for explanations. */
+  memberLabels?: Record<string, string>;
+}
+
+/**
+ * Resolves exclusion NAMES to canonical data (refdata catalogue): free-text terms and allergen names become
+ * ingredient ids and UK-14 allergen groups. Injected so the orchestrator stays pure; omitted = name-only matching.
+ */
+export interface ExclusionResolution {
+  excludeIngredientIds: string[];
+  allergenGroups: Record<string, string[]>;
+  /** Allergen names to enforce (the requested ones plus any terms recognised as UK-14 groups). */
+  excludeAllergens: string[];
+}
+export type ExclusionResolver = (input: { terms: string[]; allergens: string[] }) => ExclusionResolution;
 export interface SolveResult {
   slots: PlanSlot[];
   report: ConstraintReportItem[];
@@ -91,7 +117,10 @@ export interface PlanProposal {
   householdId: string;
   weekStart: IsoDate;
   prompt: string;
+  /** The canonical constraints the solver ran with (server-resolved ids, dates, member ids). */
   constraints: PlanConstraints;
+  /** The editable request behind them (what the chips show); re-solving takes this, not a new AI call. */
+  request: PlanRequest;
   /** Hard exclusions the AI omitted that the server re-imposed (transparency). */
   reimposedExclusions: string[];
   slots: PlanSlot[];
@@ -123,9 +152,21 @@ export type OrchestratorError =
   | { code: 'HOUSEHOLD_NOT_FOUND'; userMessage: string }
   | { code: 'NO_VIABLE_CANDIDATES'; userMessage: string; constraints: PlanConstraints; unmet: UnmetConstraint[]; gaps: RecipeGap[] }
   | { code: 'PROPOSAL_NOT_FOUND'; userMessage: string }
+  | { code: 'INVALID_REQUEST'; userMessage: string; issues: string[] }
   | { code: 'VALIDATION_FAILED'; userMessage: string; violations: string[] };
 
 export type Result<T> = { ok: true; value: T } | { ok: false; error: OrchestratorError };
 
 export interface SlotEdit { date: IsoDate; mealType: MealType; recipeId: string | null; servings?: number; }
 export interface PlanEdits { slotEdits?: SlotEdit[]; }
+
+/** The AI's reading of a prompt, before anything is solved (D133): the user reviews and edits it as chips. */
+export interface ParsedPlanRequest {
+  prompt: string;
+  weekStart: IsoDate;
+  request: PlanRequest;
+  /** Household hard exclusions: always applied, shown locked (cannot be edited away). */
+  householdExclusions: string[];
+  /** Problems with the request that are already known (unknown / ambiguous member names). */
+  unmet: UnmetConstraint[];
+}

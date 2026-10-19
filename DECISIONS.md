@@ -318,3 +318,23 @@ The setting is `pantry_settings.purchase_mode` (off/suggest/auto). `households.p
 ## D105 Integration notes
 
 M2's `D27m` was a verbatim duplicate of D32 and was dropped (D71's reference now says D32). The S1 RLS script is `tests/rls/006_*` because `005_transfer_ownership.sql` already existed. Still in-memory even with `DATA_BACKEND=supabase`: shopping, receipts, price observations, pantry purchase-event/leftover sources, planner household profile (members/exclusions are demo values) and the AI settings file.
+
+## D130 One PlanConstraints schema in @fr/domain (supersedes D29)
+
+`PlanConstraintsSchema` (and `DietTarget`, `QuickMeals`, skip/locked slots) moved from `@fr/engine/planner` to `packages/domain/src/plan-constraints.ts`; the engine shape is canonical and `@fr/engine/planner` re-exports it under the old names. `@fr/plan-orchestrator` uses it directly (`PlanConstraints`, `PlanRequest`) and the D29 mapping layer is gone: `engine-solver.ts` only converts `Candidate` -> `RecipeCandidate` and the engine proposal -> orchestrator result; constraints pass straight through. `@fr/ai` no longer has its own `PlanConstraintsSchema` (re-exports the domain one).
+
+## D131 What the model emits: PlanRequest
+
+The LLM-facing schema is `PlanRequestSchema` = `PlanConstraintsBaseSchema.pick(...)`: days, mealTypes, servings, budgetPence, dietProportions (`{fraction}|{count}|{min,max}`), excludeDietCategories, includeTags, excludeAllergens, excludeTerms, favouritesOf (member display names), quickMeals (weekdays/dates, maxTotalMinutes, strict). No dates, ids, allergen groups or safety switches: those are server-owned. `parsePlanPrompt` completes it into full `PlanConstraints` (`planRequestToConstraints`: startDate from the context, days default 7, household exclusions forced into `excludeTerms` in code). Prompt, JSON schema (OpenAI/Azure strict, Anthropic tool input), mock fixture and all adapters updated; `toStrictSchema` now decodes multi-branch unions (the diet target) so null optionals are dropped. Round-trip tests cover Anthropic, OpenAI, Azure, json_object fallback and the mock.
+
+## D132 Ingredient ids to the solver; allowUnverifiedIngredients = false
+
+Plan recipe summaries carry `ingredientIds` (recipe lines' `ingredientId`), `canonicalNames` (names + aliases), `unmatchedLines` (text of lines with no match) and `allergens` (UK-14 groups). `lib/server/plan/exclusions.ts` resolves exclusion names via the refdata catalogue: a free-text term -> every ingredient whose name/alias matches; a term or allergen naming a UK-14 group ("peanuts", "dairy", "nuts", "gluten", "shellfish") -> `excludeAllergens` + `allergenGroups`. The catalogue has no allergen column, so group membership is derived from keyword lists over names/aliases (deliberately over-inclusive, e.g. coconut milk counts as milk; engine term matching and the unmatched-line check stay on as the secondary net). `allowUnverifiedIngredients` is false: with any exclusion set, a recipe with an unmatched line is dropped as unverifiable and one whose unmatched line names an excluded term is always dropped. Effect on the demo library: Smoky Chickpea Stew (one unmatched line) is no longer plannable while the household excludes peanuts. Approval re-validates by id through the same constraints.
+
+## D133 Two-step prompt flow: review chips, then solve (no second AI call)
+
+`PlanOrchestrator.parseRequest` is the only AI call and returns the editable `PlanRequest`; `solveRequest` solves a request without AI (untrusted input: re-validated with `PlanRequestSchema`, household hard exclusions always re-imposed, names -> ids resolved, member names -> ids). `proposePlan` = both. UI (`/plan`): "Understand my request" shows chips (servings, days, budget, diet mix targets, exclusions with household ones locked, quick-meal weekday toggles + strict + minutes, favourites-of members, tags), editable with pure helpers in `lib/plan/request-chips.ts`; "Propose a plan" / "Re-plan with these settings" calls `solvePlanRequestAction`. Unknown or ambiguous member names are shown as notes, never guessed.
+
+## D134 Quick meals: strong soft weight, hard when strict
+
+`quickMiss` weight 60 -> 120 (above a diet-mix miss at 100, below a repeat at 150, so quick recipes win busy days without doubling one up). `quickMeals.strict` ("only quick meals on Monday") is HARD: those slots only admit recipes with a known time <= maxTotalMinutes (unknown time is not quick), a slow pin is ignored with a note, validation reports `quick_required`, and the report item is marked hard. The AI maps vague "busy evenings" to Mon-Thu and sets strict only for explicit "only". Replaces D29's "N quick days, weekdays first" count.

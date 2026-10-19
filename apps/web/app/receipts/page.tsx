@@ -41,7 +41,7 @@ export default async function ReceiptsPage() {
                         <Badge tone={r.status === 'reconciled' ? 'success' : 'warning'}>
                           {r.status === 'reconciled' ? 'Reconciled' : 'Needs review'}
                         </Badge>
-                        <Link href={`/receipts/${r.id}/review`}>{r.status === 'reconciled' ? 'View' : 'Review'}</Link>
+                        <Link className="fr-btn fr-btn--ghost fr-btn--sm" href={`/receipts/${r.id}/review`}>{r.status === 'reconciled' ? 'View' : 'Review'}</Link>
                       </div>
                     </div>
                   </CardBody>

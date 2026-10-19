@@ -2,10 +2,11 @@ import { z } from 'zod';
 import { AiError } from './errors.js';
 import { prepareImage, prepareImages, type ImageLimits, type PreparedImage } from './image.js';
 import { PantryScanSchema, SCAN_MAX_IMAGES, SCAN_SYSTEM, normaliseScan, scanPantryPrompt, type PantryScanContext } from './pantry-scan.js';
+import { planRequestToConstraints } from './plan.js';
 import { matchPrompt, planPrompt, recipePrompt, subsPrompt, SYSTEM, tagsPrompt } from './prompts.js';
 import type { AiProvider, CallContext, ImageInput, MatchCandidate, SubstitutionRequest, TaggableRecipe } from './provider.js';
 import {
-  IngredientMatchSchema, PlanConstraintsSchema, ReceiptParseSchema, RecipeExtractionSchema,
+  IngredientMatchSchema, PlanRequestSchema, ReceiptParseSchema, RecipeExtractionSchema,
   SubstitutionSchema, TagSuggestionSchema, type HouseholdContext,
 } from './schemas.js';
 import {
@@ -94,16 +95,13 @@ export abstract class BaseAiProvider implements AiProvider {
 
   async parsePlanPrompt(prompt: string, householdContext: HouseholdContext, ctx?: CallContext) {
     await enforceLimit(this.base.limits, ctx?.householdId, 'parsePlanPrompt');
-    const result = await this.run({
+    const request = await this.run({
       operation: 'parsePlanPrompt', modelKind: 'text', system: SYSTEM.plan, ctx,
       parts: [{ type: 'text', text: planPrompt(prompt, householdContext) }],
-      schema: PlanConstraintsSchema, toolName: 'submit_plan_constraints', toolDescription: 'Submit the plan constraints.',
+      schema: PlanRequestSchema, toolName: 'submit_plan_constraints', toolDescription: 'Submit the plan constraints.',
     });
-    // Hard exclusions are enforced in code, not trusted to the model.
-    const forced = householdContext.exclusions ?? [];
-    const have = new Set(result.excludeIngredients.map((s) => s.toLowerCase()));
-    for (const x of forced) if (!have.has(x.toLowerCase())) result.excludeIngredients.push(x);
-    return result;
+    // Completed into the canonical PlanConstraints; hard exclusions are forced in code, not trusted to the model.
+    return planRequestToConstraints(request, householdContext);
   }
 
   async suggestIngredientMatches(lines: string[], candidates: MatchCandidate[], ctx?: CallContext) {

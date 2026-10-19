@@ -29,7 +29,7 @@ Known caveats (before pass 3; the recipe-store/receipt-price/pantry-extras items
 
 1. Supabase adapters behind the in-memory interfaces (recipes, plans, pantry, shopping command log + `record_purchase`, receipts, price observations); generate `database.types.ts`.
 2. Live-Supabase e2e flows (auth.spec fixmes) once a local or cloud stack exists (Docker 20.10 may be too old; cloud London is the fallback).
-3. D29 TODO: `@fr/ai` PlanConstraints should emit the engine planner schema; pass canonical ingredient ids so `allowUnverifiedIngredients` can go back to false.
+3. D29 TODO closed by PL2 (D130-D134): single `PlanConstraints` in `@fr/domain`, ingredient ids to the solver, `allowUnverifiedIngredients` false, quick meals enforced, editable constraint chips. Live-model plan parsing is still unverified (mock + fake clients only).
 4. Library/planner cost + nutrition are real since C1 (D60-D64) and read the shared price store; remaining L18 work is UI polish (partial flag on cards, D62).
 5. Receipt pantry adds -> pantry service; household-scoped recipes; real member profiles for the planner.
 6. Owner decisions still open: Git host/remote (then run the CI workflow), Supabase cloud project, Anthropic/OpenAI keys, product name.

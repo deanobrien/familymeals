@@ -1,11 +1,32 @@
 {
   "days": 7,
-  "mealTypes": ["dinner"],
+  "mealTypes": [
+    "dinner"
+  ],
   "servings": 4,
   "budgetPence": 6000,
-  "dietProportions": { "vegetarian": 0.5, "meat": 0.5 },
+  "dietProportions": {
+    "vegetarian": {
+      "fraction": 0.5
+    },
+    "meat": {
+      "fraction": 0.5
+    }
+  },
   "includeTags": [],
-  "excludeIngredients": [],
+  "excludeTerms": [],
+  "excludeAllergens": [],
+  "excludeDietCategories": [],
   "favouritesOf": [],
-  "quickMealDays": 2
+  "quickMeals": {
+    "weekdays": [
+      "mon",
+      "tue",
+      "wed",
+      "thu"
+    ],
+    "dates": [],
+    "maxTotalMinutes": 30,
+    "strict": false
+  }
 }

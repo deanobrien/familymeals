@@ -5,12 +5,13 @@ import tagFx from '../fixtures/tag-suggestion.json' with { type: 'json' };
 import planFx from '../fixtures/plan-constraints.json' with { type: 'json' };
 import subsFx from '../fixtures/substitutions.json' with { type: 'json' };
 import scanFx from '../fixtures/pantry-scan.json' with { type: 'json' };
+import { planRequestToConstraints } from './plan.js';
 import { AiError } from './errors.js';
 import { DEFAULT_IMAGE_LIMITS, prepareImage, prepareImages } from './image.js';
 import { PantryScanSchema, SCAN_MAX_IMAGES, normaliseScan, type PantryScanContext } from './pantry-scan.js';
 import type { AiProvider, CallContext, ImageInput, MatchCandidate, SubstitutionRequest, TaggableRecipe } from './provider.js';
 import {
-  IngredientMatchSchema, PlanConstraintsSchema, ReceiptParseSchema, RecipeExtractionSchema,
+  IngredientMatchSchema, PlanRequestSchema, ReceiptParseSchema, RecipeExtractionSchema,
   SubstitutionSchema, TagSuggestionSchema, type HouseholdContext,
 } from './schemas.js';
 import { allowAllLimits, enforceLimit, type AiOperation, type LimitChecker } from './usage.js';
@@ -76,14 +77,13 @@ export class MockAiProvider implements AiProvider {
 
   async parsePlanPrompt(prompt: string, householdContext: HouseholdContext, ctx?: CallContext) {
     await this.pre('parsePlanPrompt', ctx);
-    const p = PlanConstraintsSchema.parse(clone(planFx));
+    const p = PlanRequestSchema.parse(clone(planFx));
     const days = /(\d{1,2})\s*(?:days?|nights?|dinners?|meals?)/i.exec(prompt);
     if (days) p.days = Math.min(31, Math.max(1, Number(days[1])));
     const budget = /£\s*(\d+(?:\.\d{1,2})?)/.exec(prompt);
     if (budget) p.budgetPence = Math.round(Number(budget[1]) * 100);
     if (householdContext.defaultServings) p.servings = householdContext.defaultServings;
-    p.excludeIngredients = [...(householdContext.exclusions ?? [])];
-    return p;
+    return planRequestToConstraints(p, householdContext);
   }
 
   async suggestIngredientMatches(lines: string[], candidates: MatchCandidate[], ctx?: CallContext) {
