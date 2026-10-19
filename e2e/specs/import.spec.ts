@@ -56,6 +56,9 @@ test.describe('recipe photo import', () => {
 
     await page.getByRole('button', { name: 'Save recipe' }).click();
     await expect(page).toHaveURL(/\/recipes\/[0-9a-f-]{36}$/);
+    // shared recipe store: the imported recipe is a real library recipe
+    await expect(page.getByRole('heading', { level: 1, name: 'Nana soup (corrected)' })).toBeVisible();
+    await expect(page.getByText('split red lentils')).toBeVisible();
   });
 
   test('an unreadable image shows a clear error and nothing is extracted', async ({ page }) => {

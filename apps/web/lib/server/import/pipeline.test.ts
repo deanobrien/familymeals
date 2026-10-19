@@ -3,7 +3,8 @@ import { AiError, createMockProvider, type AiProvider } from '@fr/ai';
 import { applyCorrections } from '@fr/recipe-import';
 import { ingredientMatcher, ingredientParser } from './engine-adapter';
 import { runExtraction, saveImport } from './pipeline';
-import { InMemoryRecipeSink } from './sink';
+import { InMemoryRecipeRepository } from '../../recipes/memory-repository';
+import { InMemoryRecipeSink, RepositoryRecipeSink, dietFromTags } from './sink';
 import { getUpload } from './upload-store';
 
 const PNG = new Uint8Array(
@@ -132,5 +133,29 @@ describe('import pipeline with mock AI', () => {
     bad.ingredients[0]!.quantity.value = { kind: 'exact', originalText: 'x' }; // exact without value
     const saved = await saveImport({ uploadId: out.uploadId, draft: bad }, { sink });
     expect(!saved.ok && saved.status).toBe(400);
+  });
+});
+
+describe('RepositoryRecipeSink (shared library store)', () => {
+  it('saves an imported recipe into the library repository under the finalised id', async () => {
+    const repo = new InMemoryRecipeRepository();
+    const sink = new RepositoryRecipeSink(repo);
+    const out = await runExtraction({ images: [PNG] }, { provider: mock(), sink });
+    if (!out.ok) throw new Error('extract failed');
+    const saved = await saveImport({ uploadId: out.uploadId, draft: applyCorrections(out.draft, { servings: 6 }) }, { sink });
+    if (!saved.ok) throw new Error('save failed');
+    const view = await repo.get(saved.id);
+    expect(view?.title).toBe(out.draft.title.value);
+    expect(view?.servings).toBe(6);
+    expect(view?.diet).toBe('vegan'); // fixture tags include "vegan"
+    expect(view?.originalText).toContain('200g red lentils');
+    expect(view?.ingredients.find((i) => i.name === 'onion')?.ingredientId).toMatch(/^[0-9a-f-]{36}$/);
+    expect((await sink.get(saved.id))?.version.original).toEqual(out.draft.original);
+    expect((await sink.list()).map((r) => r.id)).toContain(saved.id);
+  });
+
+  it('labels an untagged dish conservatively as meat', () => {
+    expect(dietFromTags(['soup'])).toBe('meat');
+    expect(dietFromTags(['Vegetarian'])).toBe('vegetarian');
   });
 });

@@ -52,8 +52,10 @@ export type PriceKind = 'user_confirmed' | 'receipt' | 'retailer_verified' | 'ge
 
 export interface IngredientLine {
   id: Uuid;
-  /** Display name. TODO(@fr/domain): becomes ingredientId + name once ingredients are canonical. */
+  /** Display name as written. */
   name: string;
+  /** Canonical @fr/refdata ingredient id when the line matched (engine matcher); undefined = unmatched, line kept. */
+  ingredientId?: Uuid | undefined;
   quantity: Quantity;
   preparation?: string | undefined;
   optional: boolean;

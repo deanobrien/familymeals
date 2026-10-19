@@ -3,7 +3,8 @@ import {
   InMemoryProposalStore, PlanOrchestrator,
   type CostService, type Household, type HouseholdRepo, type MealRef, type ShoppingRequirement,
 } from '@fr/plan-orchestrator';
-import { InMemoryPlanRecipeSource, toRecipeRepo, type PlanRecipeSource } from './recipe-source';
+import { getRecipeRepository } from '../../recipes/factory';
+import { RepositoryPlanRecipeSource, toRecipeRepo, type PlanRecipeSource } from './recipe-source';
 import { InMemoryMealPlanRepository, type MealPlanRepository } from './repository';
 import { createEngineSolver } from './engine-solver';
 
@@ -66,11 +67,12 @@ export function createCostService(recipes: PlanRecipeSource): CostService {
 
 export function createPlanServices(opts: { ai?: AiProvider; recipes?: PlanRecipeSource; plans?: MealPlanRepository; household?: Household } = {}): PlanServices {
   const household = opts.household ?? demoHousehold();
-  const recipes = opts.recipes ?? new InMemoryPlanRecipeSource();
+  const recipes = opts.recipes ?? new RepositoryPlanRecipeSource(getRecipeRepository());
   const households: HouseholdRepo = {
     getHousehold: async (id) => (id === household.id ? structuredClone(household) : null),
-    // TODO(Supabase): member favourites. Demo: Lauren likes the fish pie and the chickpea stew.
-    getFavouriteRecipeIds: async (_h, memberId) => (memberId === 'm-lauren' ? ['06-fish-pie', '08-chickpea-stew'] : []),
+    // TODO(Supabase): per-member favourites. Demo: Lauren's favourites are the household favourites.
+    getFavouriteRecipeIds: async (h, memberId) =>
+      memberId === 'm-lauren' ? (await recipes.list(h)).filter((r) => r.favourite).map((r) => r.id) : [],
   };
   const ai = opts.ai ?? createAiProvider({ ...process.env, AI_PROVIDER: process.env.AI_PROVIDER ?? 'mock' });
   const recipeRepo = toRecipeRepo(recipes);

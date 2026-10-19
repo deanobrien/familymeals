@@ -36,6 +36,7 @@ export const quantitySchema = z
 
 export const ingredientInputSchema = z.object({
   name: z.string().trim().min(1, 'Ingredient name is required').max(120),
+  ingredientId: z.string().trim().max(64).optional(),
   quantity: quantitySchema,
   preparation: z.string().trim().max(200).optional(),
   optional: z.boolean(),
@@ -79,6 +80,7 @@ export interface RecipeInput {
   tags: string[];
   ingredients: Array<{
     name: string;
+    ingredientId?: string | undefined;
     quantity: Quantity;
     preparation?: string | undefined;
     optional: boolean;

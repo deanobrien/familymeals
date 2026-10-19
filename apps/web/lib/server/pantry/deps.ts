@@ -1,8 +1,9 @@
+import { getRecipeRepository } from '../../recipes/factory';
 import { getIngredientCatalogue } from '../refdata/catalogue';
 import { defaultIngredientLookup } from './ingredients';
 import { InMemoryPantryRepository } from './repository';
 import {
-  InMemoryLeftoverSource, InMemoryPurchaseEventSource, InMemoryRecipeSummarySource, fixturePurchaseRecords, seedPantryItems,
+  InMemoryLeftoverSource, InMemoryPurchaseEventSource, RepositoryRecipeSummarySource, fixturePurchaseRecords, seedPantryItems,
 } from './sources';
 import { createPantryService, type PantryService } from './service';
 
@@ -17,7 +18,7 @@ export function buildDemoPantryService(now: () => string = nowIso): PantryServic
   const start = now();
   return createPantryService({
     repo: new InMemoryPantryRepository({ householdId: DEMO_HOUSEHOLD_ID, items: seedPantryItems(DEMO_HOUSEHOLD_ID, start, ingredients) }),
-    recipes: new InMemoryRecipeSummarySource(),
+    recipes: new RepositoryRecipeSummarySource(getRecipeRepository()),
     purchases: new InMemoryPurchaseEventSource(fixturePurchaseRecords(DEMO_HOUSEHOLD_ID, start, ingredients)),
     leftovers: new InMemoryLeftoverSource(now),
     ingredients,

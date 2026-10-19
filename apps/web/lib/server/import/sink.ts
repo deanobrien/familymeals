@@ -1,4 +1,8 @@
 import type { FinalisedRecipe, RecipeSummary } from '@fr/recipe-import';
+import { getRecipeRepository } from '../../recipes/factory';
+import type { RecipeRepository } from '../../recipes/repository';
+import { recipeInputSchema, type RecipeInput } from '../../recipes/schema';
+import type { DietCategory, Quantity } from '../../recipes/types';
 
 /** Persistence boundary for imported recipes. TODO(Supabase): implement against recipes/recipe_versions tables. */
 export interface RecipeSink {
@@ -7,6 +11,7 @@ export interface RecipeSink {
   get(id: string): Promise<FinalisedRecipe | undefined>;
 }
 
+/** Standalone sink for unit tests (no shared store). */
 export class InMemoryRecipeSink implements RecipeSink {
   private readonly items = new Map<string, FinalisedRecipe>();
 
@@ -28,8 +33,85 @@ export class InMemoryRecipeSink implements RecipeSink {
   }
 }
 
+/** Default servings when the photo did not say (the review step lets the user change it later in the library). */
+export const IMPORT_DEFAULT_SERVINGS = 4;
+
+/**
+ * Diet from the reviewed tags. Unknown defaults to 'meat': the conservative label, so an unlabelled dish is
+ * never offered as vegetarian / vegan by the library filters or the planner.
+ */
+export function dietFromTags(tags: readonly string[]): DietCategory {
+  const t = new Set(tags.map((x) => x.toLowerCase()));
+  if (t.has('vegan')) return 'vegan';
+  if (t.has('vegetarian') || t.has('veggie')) return 'vegetarian';
+  if (t.has('fish') || t.has('seafood') || t.has('pescatarian')) return 'fish';
+  return 'meat';
+}
+
+/** FinalisedRecipe (import payload) -> library RecipeInput. Throws if it does not satisfy the library schema. */
+export function toRecipeInput(f: FinalisedRecipe): RecipeInput {
+  const r = f.recipe;
+  const ingredients = [...f.ingredients].sort((a, b) => a.order - b.order);
+  const steps = [...f.steps].sort((a, b) => a.order - b.order).map((s) => s.text);
+  const input: RecipeInput = {
+    title: r.title,
+    description: r.description ?? '',
+    imageUrl: null,
+    sourceAttribution: r.source ?? 'Imported from photo',
+    sourceUrl: '',
+    // Verbatim photo text (ingredient lines as written, then steps); write-once in the library.
+    originalText: [...ingredients.map((i) => i.originalText), '', ...steps].join('\n'),
+    prepMinutes: r.prepMinutes ?? null,
+    cookMinutes: r.cookMinutes ?? null,
+    servings: Math.max(1, Math.round(r.servings ?? IMPORT_DEFAULT_SERVINGS)),
+    cuisine: r.cuisine ?? '',
+    mealType: 'dinner',
+    diet: dietFromTags(r.tags),
+    tags: r.tags,
+    ingredients: ingredients.map((i) => ({
+      name: i.name,
+      ...(i.ingredientId ? { ingredientId: i.ingredientId } : {}),
+      quantity: i.quantity as Quantity,
+      ...(i.preparation ? { preparation: i.preparation } : {}),
+      optional: i.optional,
+    })),
+    steps,
+  };
+  return recipeInputSchema.parse(input) as RecipeInput;
+}
+
+/**
+ * Sink over the shared recipe repository (the library store), so an imported recipe appears at /recipes/[id]
+ * with the id minted by finaliseDraft. The import provenance (original extraction, image refs) is kept beside it
+ * in memory until the Supabase recipe_versions table takes over.
+ */
+export class RepositoryRecipeSink implements RecipeSink {
+  private readonly finalised = new Map<string, FinalisedRecipe>();
+  constructor(private readonly repo: RecipeRepository) {}
+
+  async save(recipe: FinalisedRecipe) {
+    const view = await this.repo.create(toRecipeInput(recipe), { id: recipe.recipe.id });
+    this.finalised.set(view.id, structuredClone(recipe));
+    return { id: view.id };
+  }
+  async list(): Promise<RecipeSummary[]> {
+    const all = await this.repo.list({ q: '', tags: [], sort: 'name', page: 1, pageSize: 10_000 });
+    return all.items.map((r) => ({
+      id: r.id,
+      title: r.title,
+      ingredientNames: r.ingredients.map((i) => i.name),
+      ingredientIds: r.ingredients.flatMap((i) => (i.ingredientId ? [i.ingredientId] : [])),
+    }));
+  }
+  async get(id: string) {
+    if (!(await this.repo.get(id))) return undefined;
+    const r = this.finalised.get(id);
+    return r ? structuredClone(r) : undefined;
+  }
+}
+
 const g = globalThis as unknown as { __frRecipeSink?: RecipeSink };
-/** Process-wide sink (survives Next dev module reloads). */
+/** Process-wide sink over the shared recipe repository (survives Next dev module reloads). */
 export function getRecipeSink(): RecipeSink {
-  return (g.__frRecipeSink ??= new InMemoryRecipeSink());
+  return (g.__frRecipeSink ??= new RepositoryRecipeSink(getRecipeRepository()));
 }

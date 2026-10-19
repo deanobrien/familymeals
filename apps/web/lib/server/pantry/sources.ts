@@ -3,6 +3,7 @@ import type {
   CookedBatch, OpenSlot, PantryItem, PurchaseEvent, PurchaseTarget, RecipeSummary, Uuid,
 } from '../../pantry/engine';
 import { addDays, exactQ, today } from '../../pantry/engine';
+import type { RecipeRepository } from '../../recipes/repository';
 import type { IngredientLookup } from './ingredients';
 
 /* ---------- Recipes ("Use what I have") ---------- */
@@ -16,6 +17,24 @@ export class InMemoryRecipeSummarySource implements RecipeSummarySource {
   constructor(private readonly recipes: readonly RecipeSummary[] = recipeData as RecipeSummary[]) {}
   async list(): Promise<RecipeSummary[]> {
     return structuredClone([...this.recipes]);
+  }
+}
+
+/** "Use what I have" over the shared recipe store (library repository, DECISIONS D30), so links open /recipes/[id]. */
+export class RepositoryRecipeSummarySource implements RecipeSummarySource {
+  constructor(private readonly repo: RecipeRepository) {}
+  async list(): Promise<RecipeSummary[]> {
+    const all = await this.repo.list({ q: '', tags: [], sort: 'name', page: 1, pageSize: 10_000 });
+    return all.items.map((r) => ({
+      id: r.id,
+      title: r.title,
+      lines: r.ingredients.map((i) => ({
+        ...(i.ingredientId ? { ingredientId: i.ingredientId } : {}),
+        displayName: i.name,
+        quantity: i.quantity,
+        optional: i.optional,
+      })),
+    }));
   }
 }
 

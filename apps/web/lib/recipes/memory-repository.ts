@@ -123,6 +123,8 @@ function build(id: string, input: RecipeInput, prev: RecipeView | null, now: str
     ingredients: input.ingredients.map((i, idx) => ({
       id: randomUUID(),
       name: i.name,
+      // Keep the canonical match across edits when the form does not send it back (same name = same line).
+      ingredientId: i.ingredientId ?? prev?.ingredients.find((p) => p.name === i.name)?.ingredientId,
       quantity: clone(i.quantity),
       preparation: i.preparation || undefined,
       optional: i.optional,
@@ -173,8 +175,9 @@ export class InMemoryRecipeRepository implements RecipeRepository {
     return r ? clone(r) : null;
   }
 
-  async create(input: RecipeInput): Promise<RecipeView> {
-    const r = build(randomUUID(), input, null, new Date().toISOString());
+  async create(input: RecipeInput, opts: { id?: string } = {}): Promise<RecipeView> {
+    if (opts.id && this.store.has(opts.id)) throw new Error(`Recipe ${opts.id} already exists`);
+    const r = build(opts.id ?? randomUUID(), input, null, new Date().toISOString());
     this.store.set(r.id, r);
     return clone(r);
   }

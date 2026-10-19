@@ -2,12 +2,18 @@ import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import type { Candidate, CandidateFilter, MealType, RecipeRepo } from '@fr/plan-orchestrator';
 import { violatesExclusions } from '@fr/plan-orchestrator';
+import type { RecipeRepository } from '../../recipes/repository';
+import { costPerServing, totalMinutes, type RecipeView } from '../../recipes/types';
 
 export interface PlanRecipe extends Candidate {
   baseServings: number;
   /** Per-serving cost estimate in pence; null = unknown (never 0). */
   costPerServingPence: number | null;
   ingredientLines: { name: string; quantityText: string }[];
+  /** Canonical ingredient ids of matched lines (unmatched lines are absent). */
+  ingredientIds?: string[];
+  /** Household favourite (demo: stands in for per-member favourites). */
+  favourite?: boolean;
 }
 
 /** Where plannable recipes come from. TODO(Supabase): back with the recipes table (household-scoped, RLS). */
@@ -25,6 +31,7 @@ const DEMO_COST_PER_SERVING_PENCE: Record<string, number> = {
   '06-fish-pie': 285,
 };
 const QUICK = new Set(['01-tomato-pasta', '05-blurry-curry', '07-porridge']);
+const DEMO_FAVOURITES = new Set(['06-fish-pie', '08-chickpea-stew']);
 const MEAL_TYPES: Record<string, MealType[]> = {
   '02-lemon-loaf': ['snack'],
   '07-porridge': ['breakfast'],
@@ -68,6 +75,7 @@ export function loadFixtureRecipes(dir = fixturesDir()): PlanRecipe[] {
         totalMinutes: QUICK.has(id) ? 25 : undefined,
         baseServings: fx.expected.servings,
         costPerServingPence: DEMO_COST_PER_SERVING_PENCE[id] ?? null,
+        favourite: DEMO_FAVOURITES.has(id),
       } satisfies PlanRecipe;
     });
 }
@@ -79,6 +87,43 @@ export class InMemoryPlanRecipeSource implements PlanRecipeSource {
   }
   async get(_h: string, ids: string[]) {
     return structuredClone(this.recipes.filter((r) => ids.includes(r.id)));
+  }
+}
+
+/** Lunch and dinner recipes are interchangeable main meals; breakfast / snack recipes stay in their slot. */
+const mealTypesFor = (m: MealType): MealType[] => (m === 'lunch' || m === 'dinner' ? ['lunch', 'dinner'] : [m]);
+export const QUICK_MINUTES = 30;
+
+/** Library RecipeView -> PlanRecipe (cost per serving stays null when unknown, never 0). */
+export function toPlanRecipe(r: RecipeView): PlanRecipe {
+  const minutes = totalMinutes(r);
+  const tags = [...new Set([...r.tags, r.diet, ...(minutes != null && minutes <= QUICK_MINUTES ? ['quick'] : [])])];
+  return {
+    id: r.id,
+    title: r.title,
+    ingredientNames: r.ingredients.map((i) => i.name),
+    ingredientLines: r.ingredients.map((i) => ({ name: i.name, quantityText: i.quantity.originalText })),
+    ingredientIds: r.ingredients.flatMap((i) => (i.ingredientId ? [i.ingredientId] : [])),
+    tags,
+    mealTypes: mealTypesFor(r.mealType),
+    dietCategory: r.diet,
+    ...(minutes != null ? { totalMinutes: minutes } : {}),
+    baseServings: r.servings,
+    costPerServingPence: costPerServing(r),
+    favourite: r.favourite,
+  };
+}
+
+/** Plannable recipes straight from the shared recipe store (the library repository, DECISIONS D30). */
+export class RepositoryPlanRecipeSource implements PlanRecipeSource {
+  constructor(private readonly repo: RecipeRepository) {}
+  async list() {
+    const all = await this.repo.list({ q: '', tags: [], sort: 'name', page: 1, pageSize: 10_000 });
+    return all.items.map(toPlanRecipe);
+  }
+  async get(_h: string, ids: string[]) {
+    const found = await Promise.all(ids.map((id) => this.repo.get(id)));
+    return found.filter((r): r is RecipeView => r !== null).map(toPlanRecipe);
   }
 }
 

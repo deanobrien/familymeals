@@ -19,7 +19,8 @@ export interface TagCount {
 export interface RecipeRepository {
   list(query: RecipeQuery): Promise<RecipeListResult>;
   get(id: string): Promise<RecipeView | null>;
-  create(input: RecipeInput): Promise<RecipeView>;
+  /** `opts.id` keeps an id minted upstream (e.g. the photo import's finalised recipe id). */
+  create(input: RecipeInput, opts?: { id?: string }): Promise<RecipeView>;
   /** Returns null when the recipe does not exist. originalText is preserved if the input's is empty. */
   update(id: string, input: RecipeInput): Promise<RecipeView | null>;
   /** Returns true when a recipe was removed. */

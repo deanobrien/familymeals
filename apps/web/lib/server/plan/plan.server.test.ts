@@ -4,13 +4,17 @@ import { addDays } from '../../plan/dates';
 import { emptyDoc, setRecipe } from '../../plan/ops';
 import type { PlanDoc } from '../../plan/types';
 import * as h from './handlers';
-import { InMemoryPlanRecipeSource, loadFixtureRecipes, type PlanRecipe } from './recipe-source';
+import { InMemoryRecipeRepository } from '../../recipes/memory-repository';
+import { loadSeedRecipes } from '../../recipes/seed';
+import { InMemoryPlanRecipeSource, RepositoryPlanRecipeSource, loadFixtureRecipes, type PlanRecipe } from './recipe-source';
 import { createPlanServices } from './services';
 import { createEngineSolver, quickMealDates, toEngineCandidate, toEngineConstraints } from './engine-solver';
 
 const WEEK = '2026-10-19';
 const mockAi = (): AiProvider => createAiProvider({ AI_PROVIDER: 'mock', NODE_ENV: 'test' });
-const svc = (extra: Partial<Parameters<typeof createPlanServices>[0]> = {}) => createPlanServices({ ai: mockAi(), ...extra });
+// Unit tests use the fixture-backed source (stable ids like '06-fish-pie'); the app default is the shared library store.
+const svc = (extra: Partial<Parameters<typeof createPlanServices>[0]> = {}) =>
+  createPlanServices({ ai: mockAi(), recipes: new InMemoryPlanRecipeSource(), ...extra });
 
 describe('fixture recipe source', () => {
   it('loads the e2e recipe fixtures with honest costs', () => {
@@ -218,5 +222,20 @@ describe('engine solver adapter (@fr/engine/planner)', () => {
     expect((await solver.validate({ slots: [{ date: WEEK, mealType: 'dinner', recipeId: cands[0]!.id, servings: 0 }] }, c)).ok).toBe(false);
     expect((await solver.validate({ slots: [{ date: WEEK, mealType: 'dinner', recipeId: 'nope', servings: 2 }] }, c)).ok).toBe(false);
     expect((await solver.validate({ slots: [{ date: WEEK, mealType: 'dinner', recipeId: cands[0]!.id, servings: 2 }] }, c)).ok).toBe(true);
+  });
+});
+
+describe('planner over the shared library store', () => {
+  it('maps library recipes (costs, quick tag, main-meal types) and proposes from them', async () => {
+    const source = new RepositoryPlanRecipeSource(new InMemoryRecipeRepository(loadSeedRecipes()));
+    const rs = await source.list();
+    expect(rs.length).toBeGreaterThanOrEqual(8);
+    const pie = rs.find((r) => r.title === 'Family Fish Pie')!;
+    expect(pie).toMatchObject({ dietCategory: 'fish', baseServings: expect.any(Number), favourite: true });
+    expect(pie.mealTypes).toEqual(['lunch', 'dinner']);
+    expect(rs.some((r) => r.costPerServingPence === null)).toBe(true);
+    const res = await h.proposePlan(createPlanServices({ ai: mockAi(), recipes: source }), h.EXAMPLE_PROMPT, WEEK);
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(res.proposal.slots.filter((s) => s.recipeId).length).toBeGreaterThan(0);
   });
 });

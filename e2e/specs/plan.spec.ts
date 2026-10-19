@@ -27,7 +27,7 @@ test('manual planning: add, servings, move, eating out, cost honesty, save, reop
 
   // an uncosted recipe keeps the week honest
   await plan.addToSlot(TUE, 'dinner').click();
-  await pick(page, 'Smoky Chickpea Stew');
+  await pick(page, 'Gran’s Fiddly Flapjacks & Soup'); // the library seed's uncosted recipe
   await expect(plan.slot(TUE, 'dinner')).toContainText('Uncosted');
   await expect(page.getByTestId('week-cost')).toContainText('uncosted');
   await expect(page.getByTestId('week-cost')).toContainText('estimate');

@@ -57,7 +57,7 @@ test('rejects an invalid quantity', async ({ page }) => {
 
 test('use what I have ranks recipes with explanations and links to the recipe', async ({ page }) => {
   const list = page.getByRole('list', { name: 'Recipe suggestions' });
-  await expect(list.getByRole('link').first()).toHaveAttribute('href', /^\/recipes\/fx-/);
+  await expect(list.getByRole('link').first()).toHaveAttribute('href', /^\/recipes\/[0-9a-f-]{36}$/); // library ids (shared recipe store)
   await expect(list).toContainText('covered by pantry');
 });
 
