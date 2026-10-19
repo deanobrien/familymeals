@@ -32,8 +32,10 @@ pnpm dev                      # http://localhost:3100
 
 Config lives in `supabase/` (see DECISIONS.md). Use the CLI via `pnpm exec supabase ...`.
 
-- **Local** (needs Docker): `pnpm exec supabase start`, copy the printed URL/keys to `.env.local`, `pnpm exec supabase db reset` to apply migrations.
-- **Cloud** (London, eu-west-2): create a project in region London, `pnpm exec supabase link --project-ref <ref>`, `pnpm exec supabase db push`. Put URL/keys in the host's server env.
+- **Local** (Docker; works on 20.10.7, D140): `pnpm exec supabase start` (the first start applies every migration plus `supabase/seed.sql`; ports 554xx: API http://127.0.0.1:55421, Studio :55423, Mailpit :55424 for confirmation emails). `pnpm exec supabase db reset` re-applies from scratch; `pnpm exec supabase migration up --local` applies new ones. After a migration regenerate the types: `pnpm exec supabase gen types typescript --local > packages/db/src/database.types.ts`, then prettier (D141). `pnpm exec supabase stop` keeps the data volume.
+- **App against local Supabase**: `pnpm dev:live` (http://localhost:3131, DATA_BACKEND=supabase, mock AI, temp data dir; D142). Sign up, then open the confirmation link in Mailpit.
+- **Live e2e**: `pnpm test:e2e:live` (needs the stack running; starts its own dev server on 3133; D143). `pnpm test:e2e` stays mock-only.
+- **Cloud** (London, eu-west-2): create a project in region London, `pnpm exec supabase link --project-ref <ref>`, `pnpm exec supabase db push --include-seed` (the seed is the reference ingredient list, D145). Put URL/keys in the host's server env, and set Auth in the dashboard: email confirmations on, minimum password 10, leaked-password protection, site URL and redirect URLs.
 
 ## Layout
 

@@ -144,6 +144,25 @@ test('email-locked invite works only for that address; revoked and wrong-account
   }
 });
 
+test('an expired invite shows the same invalid state', async ({ browser }) => {
+  const owner = await userWithHousehold(browser, 'expirer', 'Expiry Home');
+  const late = await createConfirmedUser('late');
+  const ctx = await browser.newContext();
+  const p = await ctx.newPage();
+  try {
+    const c = await userClient(owner.user);
+    const { data, error } = await c.rpc('create_invitation', { p_household_id: await householdIdOf(owner.user), p_ttl: '1 second' });
+    expect(error).toBeNull();
+    const token = (Array.isArray(data) ? data[0] : data).token as string;
+    await new Promise((r) => setTimeout(r, 1500));
+    await signIn(p, late);
+    await expectInviteRejected(p, `/invite/${token}`);
+  } finally {
+    await ctx.close();
+    await owner.context.close();
+  }
+});
+
 test('owner removes a member; removed member loses access immediately', async ({ browser }) => {
   const owner = await userWithHousehold(browser, 'remover', 'Remove Home', 'Owner');
   const member = await createConfirmedUser('removed');
