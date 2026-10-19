@@ -1,4 +1,4 @@
-import type { Quantity, RecipeExtraction } from './extraction.js';
+import type { PrintedNutrition, Quantity, RecipeExtraction } from './extraction.js';
 
 export type FieldStatus = 'ok' | 'low_confidence' | 'needs_clarification' | 'unparsed';
 
@@ -44,12 +44,17 @@ export interface DraftIngredient {
   quantity: Field<Quantity>;
   preparation?: string;
   optional: boolean;
+  /** Card expects the cook to already have this ("You need: olive oil, salt"). */
+  pantryStaple?: boolean;
   ingredientId: Field<string | undefined>;
   matchAlternatives: IngredientMatchAlternative[];
   confidence: number;
   /** Non-optional line whose cost can't be computed without a usable quantity. */
   affectsCost: boolean;
 }
+
+/** Printed on the recipe card: source-provided, NEVER our calculation. */
+export type DraftPrintedNutrition = PrintedNutrition & { source: 'recipe card'; calculated: false };
 
 export interface DraftStep { key: string; text: string; edited?: boolean; }
 
@@ -72,6 +77,17 @@ export interface RecipeDraft {
   warnings: string[];
   issues: DraftIssue[];
   source?: string;
+  sourcePublisher?: string;
+  sourceReference?: string;
+  /** Per-serving values exactly as printed on the card (source-provided, not calculated). */
+  printedNutrition?: DraftPrintedNutrition;
+  printedAllergens?: string[];
+  /** 1-based page chosen as the cover (front of the card); set from the extraction, the user may change it. */
+  coverPage?: number;
+  /** Server-set stored cover image reference (e.g. /api/uploads/<id>/cover.jpg), written at save time. */
+  coverImageRef?: string;
+  /** Degrees clockwise (0/90/180/270) to turn the cover page upright. */
+  coverRotation?: number;
   sourceImageRefs: string[];
   /** Raw extraction(s) as received, for RecipeVersion.original. */
   original: RecipeExtraction | { pages: RecipeExtraction[] };

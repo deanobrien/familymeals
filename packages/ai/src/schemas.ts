@@ -36,7 +36,7 @@ export const ExtractedIngredientSchema = z.object({
   preparation: z.string().optional(),
   optional: z.boolean().default(false),
   /** "You need: olive oil, salt" style lines the card expects the cook to already have. */
-  pantryStaple: z.boolean().default(false),
+  pantryStaple: z.boolean().optional(),
   confidence: Conf,
 });
 

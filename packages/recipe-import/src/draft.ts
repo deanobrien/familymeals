@@ -70,8 +70,13 @@ function buildIngredient(
   const matchT = deps.matchThreshold ?? 0.6;
   const key = `ing-${index + 1}`;
 
+  // Meal-kit cards print "200ml [400ml]": the bracket is the doubled amount for the larger serving size.
+  // Parse the base amount only, and tell the reviewer about the alternative.
+  const bracketAlts = [...raw.originalText.matchAll(/\[([^\]]*\d[^\]]*)\]/g)].map((m) => m[1]!.trim());
+  const parseText = bracketAlts.length ? raw.originalText.replace(/\s*\[[^\]]*\]/g, '').trim() || raw.originalText : raw.originalText;
   let parsed: ParsedIngredientLine | undefined;
-  try { parsed = deps.parser.parse(raw.originalText); } catch { parsed = undefined; }
+  try { parsed = deps.parser.parse(parseText); } catch { parsed = undefined; }
+  const stapleOk = raw.pantryStaple === true && raw.quantity.kind === 'to_taste' && parsed?.quantity.kind === 'unparsed';
 
   // ---- quantity ----
   const qty: Field<Quantity> = ok(raw.quantity);
@@ -79,6 +84,8 @@ function buildIngredient(
     qty.warnings.push('Deterministic parser failed on this line; AI value kept unverified.');
     if (raw.quantity.kind === 'unparsed') qty.status = 'unparsed';
     else if (raw.confidence < lowT) qty.status = 'low_confidence';
+  } else if (stapleOk) {
+    // "You need: olive oil, salt": a to-taste pantry staple the deterministic parser cannot quantify. Fine as is.
   } else if (raw.quantity.kind === 'unparsed' && parsed.quantity.kind !== 'unparsed') {
     // AI had nothing: surface the parser reading, but ask the user to confirm it.
     qty.value = parsed.quantity;
@@ -94,6 +101,10 @@ function buildIngredient(
     qty.status = 'unparsed';
   } else if (raw.confidence < lowT) {
     qty.status = 'low_confidence';
+  }
+
+  if (bracketAlts.length) {
+    qty.warnings.push(`Card also prints "[${bracketAlts.join('] [')}]" for the larger serving size; the base amount was used.`);
   }
 
   // ---- name ----
@@ -128,6 +139,7 @@ function buildIngredient(
     affectsCost: false,
   };
   if (preparation !== undefined) ing.preparation = preparation;
+  if (raw.pantryStaple) ing.pantryStaple = true;
   ing.affectsCost = ingredientAffectsCost(ing.optional, qty.value);
   return ing;
 }
@@ -157,7 +169,7 @@ export function buildDraft(
 
   const draft: RecipeDraft = {
     title, titleProposed: !userTitle, servings, ingredients, steps,
-    tags: merged.tags, warnings: merged.warnings, issues: [],
+    tags: [...merged.tags], warnings: [...merged.warnings], issues: [],
     sourceImageRefs: opts.sourceImageRefs ?? [], original,
     extractedAt: (deps.now?.() ?? new Date()).toISOString(),
   };
@@ -165,7 +177,24 @@ export function buildDraft(
   if (merged.prepMinutes !== undefined) draft.prepMinutes = merged.prepMinutes;
   if (merged.cookMinutes !== undefined) draft.cookMinutes = merged.cookMinutes;
   if (merged.cuisine !== undefined) draft.cuisine = merged.cuisine;
+  if (merged.sourcePublisher !== undefined) draft.sourcePublisher = merged.sourcePublisher;
+  if (merged.sourceReference !== undefined) draft.sourceReference = merged.sourceReference;
+  const printedSource = [merged.sourcePublisher, merged.sourceReference ? `(${merged.sourceReference})` : undefined].filter(Boolean).join(' ');
   if (opts.source !== undefined) draft.source = opts.source;
+  else if (printedSource) draft.source = printedSource;
+  if (merged.printedNutrition) draft.printedNutrition = { ...merged.printedNutrition, source: 'recipe card', calculated: false };
+  if (merged.printedAllergens?.length) draft.printedAllergens = [...merged.printedAllergens];
+  if (merged.frontImageIndex !== undefined) {
+    const max = opts.sourceImageRefs?.length;
+    if (max === undefined || merged.frontImageIndex <= max) {
+      draft.coverPage = merged.frontImageIndex;
+      const deg = ((((Math.round((merged.frontImageRotation ?? 0) / 90) * 90) % 360) + 360) % 360);
+      if (deg) draft.coverRotation = deg;
+    }
+  }
+  if (ingredients.some((i) => i.quantity.warnings.some((w) => w.startsWith('Card also prints'))) && !draft.warnings.some((w) => /bracket|\[|double/i.test(w))) {
+    draft.warnings.push(`Card prints extra amounts in [brackets] for a larger serving; the base amounts${merged.servings ? ` (for ${merged.servings})` : ''} were used.`);
+  }
   draft.issues = computeIssues(draft);
   return draft;
 }

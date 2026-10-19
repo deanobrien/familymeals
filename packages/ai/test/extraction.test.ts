@@ -28,7 +28,7 @@ describe('recipe extraction prompt', () => {
 });
 
 describe('extraction schema', () => {
-  it('printed nutrition / allergens / source / front image are optional, pantryStaple defaults false', () => {
+  it('printed nutrition / allergens / source / front image are optional, pantryStaple is optional', () => {
     const base = {
       title: 't',
       ingredients: [{ originalText: 'salt', name: 'salt', quantity: { kind: 'to_taste', originalText: 'salt' }, confidence: 0.9 }],
@@ -36,7 +36,7 @@ describe('extraction schema', () => {
     };
     const r = RecipeExtractionSchema.parse(base);
     expect(r.printedNutrition).toBeUndefined();
-    expect(r.ingredients[0]!.pantryStaple).toBe(false);
+    expect(r.ingredients[0]!.pantryStaple).toBeUndefined();
     const withN = RecipeExtractionSchema.parse({ ...base, printedNutrition: { basis: 'per person', values: [{ nutrient: 'Fat', amount: 11, unit: 'g' }] }, printedAllergens: ['A1: gluten'] });
     expect(withN.printedNutrition?.basis).toBe('per person');
     expect(RecipeExtractionSchema.safeParse({ ...base, printedNutrition: { basis: 'per person', values: [] } }).success).toBe(false);
