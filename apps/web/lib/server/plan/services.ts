@@ -10,6 +10,7 @@ import { summariserForHousehold } from '../calc/household';
 import { RepositoryPlanRecipeSource, toPlanRecipe, toRecipeRepo, type PlanRecipeSource } from './recipe-source';
 import { getPlanStore, InMemoryMealPlanRepository, resetPlanStore, type MealPlanRepository } from './repository';
 import { createEngineSolver } from './engine-solver';
+import { createExclusionResolver } from './exclusions';
 import { formatQuantity } from '../../shopping/format';
 import { getIngredientCatalogue } from '../refdata/catalogue';
 import { getRequirementSource } from '../shopping/approved-plan-source';
@@ -106,6 +107,7 @@ export function createPlanServices(opts: {
     recipes: recipeRepo,
     costs: opts.buildRequirements ? { ...createCostService(recipes), buildRequirements: opts.buildRequirements } : createCostService(recipes),
     proposals: new InMemoryProposalStore(),
+    resolveExclusions: createExclusionResolver(), // names -> ingredient ids / UK-14 groups (D132)
   });
   return { household, households, recipes, plans: opts.plans ?? (supabase ? createSupabaseMealPlanRepository() : new InMemoryMealPlanRepository()), orchestrator, newId: () => crypto.randomUUID(), now: () => new Date() };
 }

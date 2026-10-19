@@ -1,20 +1,24 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import type { PlanProposal } from '@fr/plan-orchestrator';
+import type { PlanRequest } from '@fr/domain';
+import type { ParsedPlanRequest, PlanProposal } from '@fr/plan-orchestrator';
 import { Badge, Button, Input, Textarea } from '@fr/ui';
 import { dateShort, dayShort } from '../../lib/plan/dates';
 import { formatPence } from '../../lib/plan/cost';
 import { slotKey } from '../../lib/plan/ops';
 import { DIET_CATEGORIES, proportionsSentence, roundProportions, type Proportions } from '../../lib/plan/proportions';
-import { MEAL_LABEL, MEAL_TYPES, type MealType, type PlanDoc, type PlanEntry, type ProposeResult, type RecipeLite } from '../../lib/plan/types';
-import { proposePlanAction } from './actions';
+import { MEAL_LABEL, MEAL_TYPES, type MealType, type ParseResult, type PlanDoc, type PlanEntry, type ProposeResult, type RecipeLite } from '../../lib/plan/types';
+import { ConstraintChips } from './constraint-chips';
+import { parsePlanRequestAction, solvePlanRequestAction } from './actions';
 
 interface Props {
   weekStart: string;
   recipes: ReadonlyMap<string, RecipeLite>;
   examplePrompt: string;
   exclusions: string[];
+  /** Household member display names (choices for the favourites chip). */
+  memberNames: string[];
   /** Receives an updater so the parent applies the proposal to its latest doc (and marks it unsaved). */
   onAccept: (next: (doc: PlanDoc) => PlanDoc) => void;
 }
@@ -35,17 +39,32 @@ export function proposalToDoc(p: PlanProposal, doc: PlanDoc): PlanDoc {
   };
 }
 
-export function PromptPanel({ weekStart, recipes, examplePrompt, exclusions, onAccept }: Props) {
+export function PromptPanel({ weekStart, recipes, examplePrompt, exclusions, memberNames, onAccept }: Props) {
   const [prompt, setPrompt] = useState(examplePrompt);
   const [result, setResult] = useState<ProposeResult | null>(null);
+  const [parseError, setParseError] = useState<(ParseResult & { ok: false }) | null>(null);
+  const [parsed, setParsed] = useState<ParsedPlanRequest | null>(null);
+  const [request, setRequest] = useState<PlanRequest | null>(null);
   const [accepted, setAccepted] = useState(false);
   const [props, setProps] = useState<Proportions>({});
   const [pending, start] = useTransition();
 
-  const propose = () =>
+  // Step 1: the only AI call. Reads the prompt into editable chips; nothing is solved yet.
+  const understand = () =>
     start(async () => {
       setAccepted(false);
-      setResult(await proposePlanAction(prompt, weekStart));
+      setResult(null);
+      setParseError(null);
+      const r = await parsePlanRequestAction(prompt, weekStart);
+      if (r.ok) { setParsed(r.parsed); setRequest(r.parsed.request); } else { setParsed(null); setRequest(null); setParseError(r); }
+    });
+
+  // Step 2: solve the (possibly edited) chips. No AI call, so editing and re-planning is free and instant.
+  const propose = () =>
+    start(async () => {
+      if (!request) return;
+      setAccepted(false);
+      setResult(await solvePlanRequestAction(prompt, weekStart, request));
     });
 
   const rounded = roundProportions(props, 7);
@@ -95,8 +114,27 @@ export function PromptPanel({ weekStart, recipes, examplePrompt, exclusions, onA
       </details>
 
       <div>
-        <Button onClick={propose} loading={pending} disabled={!prompt.trim()}>Propose a plan</Button>
+        <Button onClick={understand} loading={pending} disabled={!prompt.trim()} variant={request ? 'secondary' : 'primary'}>{request ? 'Read my request again' : 'Understand my request'}</Button>
       </div>
+
+      {parseError && (
+        <div className="plan__msg plan__msg--error" role="alert" data-testid="parse-error">{parseError.message}</div>
+      )}
+
+      {request && parsed && (
+        <>
+          <ConstraintChips
+            request={request}
+            onChange={setRequest}
+            locked={parsed.householdExclusions}
+            memberNames={memberNames}
+            notes={parsed.unmet.map((u) => u.detail)}
+          />
+          <div>
+            <Button onClick={propose} loading={pending}>{result?.ok ? 'Re-plan with these settings' : 'Propose a plan'}</Button>
+          </div>
+        </>
+      )}
 
       {result && !result.ok && (
         <div className="plan__msg plan__msg--error" role="alert" data-testid="proposal-error">

@@ -3,6 +3,8 @@ import path from 'node:path';
 import type { NutrientMap } from '@fr/engine/nutrition';
 import type { Candidate, CandidateFilter, MealType, RecipeRepo } from '@fr/plan-orchestrator';
 import { violatesExclusions } from '@fr/plan-orchestrator';
+import { getIngredientCatalogue } from '../refdata/catalogue';
+import { allergensForIngredients } from './exclusions';
 import type { RecipeRepository } from '../../recipes/repository';
 import { costPerServing, totalMinutes, type RecipeView } from '../../recipes/types';
 
@@ -102,13 +104,21 @@ export const QUICK_MINUTES = 30;
 /** Library RecipeView -> PlanRecipe (cost per serving stays null when unknown, never 0). */
 export function toPlanRecipe(r: RecipeView, nutritionOf?: (r: RecipeView) => NutrientMap | null): PlanRecipe {
   const minutes = totalMinutes(r);
+  const ids = r.ingredients.flatMap((i) => (i.ingredientId ? [i.ingredientId] : []));
+  const cat = getIngredientCatalogue();
+  // Names + aliases of matched canonical ingredients; lines without a match are kept as text (never silently trusted).
+  const canonicalNames = [...new Set(ids.flatMap((id) => { const c = cat.get(id); return c ? [c.name, ...c.aliases] : []; }))];
+  const unmatchedLines = r.ingredients.filter((i) => !i.ingredientId).map((i) => (i.quantity.originalText.toLowerCase().includes(i.name.toLowerCase()) ? i.quantity.originalText : [i.quantity.originalText, i.name].filter(Boolean).join(' ')).trim());
   const tags = [...new Set([...r.tags, r.diet, ...(minutes != null && minutes <= QUICK_MINUTES ? ['quick'] : [])])];
   return {
     id: r.id,
     title: r.title,
     ingredientNames: r.ingredients.map((i) => i.name),
     ingredientLines: r.ingredients.map((i) => ({ name: i.name, quantityText: i.quantity.originalText })),
-    ingredientIds: r.ingredients.flatMap((i) => (i.ingredientId ? [i.ingredientId] : [])),
+    ingredientIds: ids,
+    canonicalNames,
+    unmatchedLines,
+    allergens: allergensForIngredients(ids, cat),
     tags,
     mealTypes: mealTypesFor(r.mealType),
     dietCategory: r.diet,
@@ -141,8 +151,8 @@ export class RepositoryPlanRecipeSource implements PlanRecipeSource {
 /** Adapts a PlanRecipeSource to the orchestrator's RecipeRepo (applies the hard exclusion filter). */
 export function toRecipeRepo(source: PlanRecipeSource): RecipeRepo {
   const strip = (r: PlanRecipe): Candidate => {
-    const { id, title, ingredientNames, tags, mealTypes, dietCategory, totalMinutes } = r;
-    return { id, title, ingredientNames, tags, mealTypes, dietCategory, totalMinutes };
+    const { id, title, ingredientNames, tags, mealTypes, dietCategory, totalMinutes, ingredientIds, canonicalNames, unmatchedLines, allergens } = r;
+    return { id, title, ingredientNames, tags, mealTypes, dietCategory, totalMinutes, ingredientIds, canonicalNames, unmatchedLines, allergens };
   };
   return {
     tagVocabulary: async (h) => [...new Set((await source.list(h)).flatMap((r) => r.tags))].sort(),

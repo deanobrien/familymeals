@@ -29,7 +29,7 @@ Merge order within a wave: contracts/packages before apps.
 ## Wave 2 - Composition (needs G1)
 
 - [x] L15 Meal planner UI (merged batch 4; recipes from the shared store)
-- [x] L16 Prompt planning (merged batch 4; `@fr/plan-orchestrator`, solver = `@fr/engine/planner` via engine-solver.ts, D29)
+- [x] L16 Prompt planning (merged batch 4; `@fr/plan-orchestrator`, solver = `@fr/engine/planner` via engine-solver.ts, D29; hardened in PL2, D130-D134)
 - [x] L17 Shopping list (merged batch 5; `@fr/engine/shopping`, generated from the approved plan via `@fr/engine/aggregate`, basket estimate via `@fr/engine/cost` + refdata prices, D33/D34)
 - [ ] L18 Cost & nutrition UI (shopping basket uses `@fr/engine/cost`; library/planner costs are still seed placeholders)
 - [ ] L19 Price management

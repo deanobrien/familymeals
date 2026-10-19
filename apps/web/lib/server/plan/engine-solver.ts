@@ -1,66 +1,27 @@
 /**
  * PlanSolver backed by the deterministic @fr/engine/planner (L9) `solvePlan` / `validatePlan`.
  *
- * The orchestrator speaks the @fr/ai `PlanConstraints` (the LLM-facing shape) and its own `Candidate` /
- * `SolveResult`; the engine owns the canonical solver schema (`PlanConstraintsInput`, `RecipeCandidateInput`).
- * This file is the ONE mapping between them (DECISIONS D29); `engine-solver.test.ts` pins it down.
- *
- * Hard exclusions: the orchestrator already removes candidates whose ingredient names hit
- * `excludeIngredients` (before solving and again at approval). The same names are passed to the engine as
- * `excludeTerms`, its secondary term safety net. Candidates do not carry canonical ingredient ids yet, so
- * `allowUnverifiedIngredients` is true: otherwise every recipe with an unmatched line would be dropped
- * whenever an exclusion exists. TODO: pass ingredient ids + unmatched lines once the recipe store has them.
+ * Since D130 the orchestrator speaks the SAME canonical PlanConstraints as the engine (`@fr/domain`), so the old
+ * D29 mapping layer is gone: constraints pass straight through (only servings are rounded to the plan servings).
+ * What remains is the Candidate -> engine RecipeCandidate shape change and the engine proposal -> orchestrator
+ * result mapping. Candidates carry canonical ingredient ids, unmatched line texts and derived allergens (D132),
+ * so `allowUnverifiedIngredients` stays false: a recipe with an unverifiable line is only dropped when an
+ * exclusion is set, and a line that mentions an excluded term is always dropped (engine behaviour).
  */
 import type { PlanConstraintsInput, PlanProposal as EnginePlanProposal, RecipeCandidateInput } from '@fr/engine/planner';
 import { solvePlan, validatePlan } from '@fr/engine/planner';
 import type {
   Candidate, ConstraintReportItem, PlanConstraints, PlanSlot, PlanSolver, SolveOptions, SolveResult, ValidationResult,
 } from '@fr/plan-orchestrator';
-import { addDays } from '@fr/plan-orchestrator';
 
-/** "Quick" for the AI's `quickMealDays` count (the engine needs concrete dates and a minutes cap). */
-export const QUICK_MEAL_MAX_MINUTES = 30;
-
-const isWeekday = (date: string): boolean => {
-  const d = new Date(`${date}T00:00:00Z`).getUTCDay();
-  return d >= 1 && d <= 5;
-};
-
-/** Pick `n` plan dates for quick meals: weekdays first (busy evenings), then the rest, in date order. */
-export function quickMealDates(weekStart: string, days: number, n: number): string[] {
-  const dates = Array.from({ length: days }, (_, i) => addDays(weekStart, i));
-  return [...dates.filter(isWeekday), ...dates.filter((d) => !isWeekday(d))].slice(0, Math.max(0, n)).sort();
-}
-
-export function toEngineConstraints(c: PlanConstraints, opts: SolveOptions): PlanConstraintsInput {
-  const out: PlanConstraintsInput = {
-    startDate: opts.weekStart,
-    days: c.days,
-    mealTypes: c.mealTypes,
-    servings: Math.max(1, Math.round(opts.servings)),
-    includeTags: c.includeTags,
-    excludeTerms: c.excludeIngredients,
-    allowUnverifiedIngredients: true,
-    favouritesOf: c.favouritesOf,
-    repeats: 'avoid',
-  };
-  if (c.budgetPence !== undefined) out.budgetPence = c.budgetPence;
-  const props = Object.entries(c.dietProportions ?? {}).filter(([, v]) => (v ?? 0) > 0);
-  if (props.length) out.dietProportions = Object.fromEntries(props.map(([k, v]) => [k, { fraction: v! }]));
-  if (c.quickMealDays) {
-    out.quickMeals = {
-      dates: quickMealDates(opts.weekStart, c.days, c.quickMealDays),
-      weekdays: [],
-      maxTotalMinutes: QUICK_MEAL_MAX_MINUTES,
-    };
-  }
-  return out;
+/** Pass-through: the canonical constraints are the engine input; only servings follow the plan servings. */
+export function toEngineConstraints(c: PlanConstraints, opts: Pick<SolveOptions, 'servings'>): PlanConstraintsInput {
+  return { ...c, servings: Math.max(1, Math.round(opts.servings)) };
 }
 
 /**
  * Candidate -> engine RecipeCandidate. `costPence` on a Candidate is at the plan servings; the engine wants
- * per-serving pence. Favourites are matched by the member display names the orchestrator resolved.
- * Returns null for a candidate without a diet category (the engine needs one to honour proportions).
+ * per-serving pence. Returns null for a candidate without a diet category (the engine needs one for proportions).
  */
 export function toEngineCandidate(c: Candidate, servings: number): RecipeCandidateInput | null {
   if (!c.dietCategory) return null;
@@ -69,7 +30,10 @@ export function toEngineCandidate(c: Candidate, servings: number): RecipeCandida
     title: c.title,
     dietCategory: c.dietCategory,
     tags: c.tags,
-    ingredientNames: c.ingredientNames,
+    ingredientIds: c.ingredientIds ?? [],
+    ingredientNames: c.canonicalNames ?? c.ingredientNames,
+    unmatchedLines: c.unmatchedLines ?? [],
+    allergens: c.allergens ?? [],
     totalMinutes: c.totalMinutes ?? null,
     estCostPerServingPence: c.costPence == null ? null : Math.round(c.costPence / Math.max(1, servings)),
     favouritedBy: c.favouriteOf ?? [],
@@ -138,6 +102,7 @@ export function createEngineSolver(opts: EngineSolverOptions = {}): PlanSolver {
       for (const c of candidates) seen.set(c.id, c);
       const proposal = solvePlan(toEngineConstraints(constraints, solveOpts), library(candidates, solveOpts.servings), {
         seed: opts.seed ?? 1,
+        ...(solveOpts.memberLabels ? { labels: { members: solveOpts.memberLabels } } : {}),
       });
       return fromEngineProposal(proposal);
     },
@@ -149,14 +114,15 @@ export function createEngineSolver(opts: EngineSolverOptions = {}): PlanSolver {
       }
       const dates = plan.slots.map((s) => s.date).sort();
       if (dates.length === 0) return { ok: violations.length === 0, violations };
-      const weekStart = dates[0]!;
       const servings = Math.max(1, Math.round(constraints.servings ?? plan.slots[0]?.servings ?? 1));
       const ids = [...new Set(plan.slots.map((s) => s.recipeId).filter((x): x is string => !!x))];
       const cands = opts.loadCandidates ? await opts.loadCandidates(ids) : ids.flatMap((id) => seen.get(id) ?? []);
-      const days = Math.max(constraints.days, Math.round((Date.parse(dates.at(-1)!) - Date.parse(weekStart)) / 86_400_000) + 1);
+      const start = constraints.startDate ?? dates[0]!;
+      const span = Math.round((Date.parse(dates.at(-1)!) - Date.parse(start)) / 86_400_000) + 1;
       const v = validatePlan(
         { slots: plan.slots.map((s) => ({ date: s.date, mealType: s.mealType, recipeId: s.recipeId, servings: s.servings })) },
-        toEngineConstraints({ ...constraints, days }, { weekStart, servings }),
+        // Grid edits may add meals beyond a short plan ("5 dinners"): widen the window, never reject them for it.
+        toEngineConstraints({ ...constraints, days: Math.max(constraints.days ?? 7, span) }, { servings }),
         library(cands, servings),
       );
       violations.push(...v.hardViolations.map((h) => h.message));

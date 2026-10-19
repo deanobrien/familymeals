@@ -104,7 +104,7 @@ describe('AnthropicProvider', () => {
 
   describe('prompt minimisation and hard constraints', () => {
     it('plan prompt contains only allow-listed context, never extra household data', async () => {
-      const { p, client } = mk([toolUse('submit_plan_constraints', { days: 5, mealTypes: ['dinner'] })]);
+      const { p, client } = mk([toolUse('submit_plan_constraints', { days: 5, mealTypes: ['dinner'], servings: 4 })]);
       const ctx: any = { defaultServings: 4, exclusions: ['peanuts'], memberNames: ['Sam'], secretAddress: '1 Privet Drive', members: [{ name: 'Zed', allergy: 'shellfish' }] };
       await p.parsePlanPrompt('5 dinners', ctx);
       const text = JSON.stringify(client.calls[0].messages);
@@ -121,9 +121,9 @@ describe('AnthropicProvider', () => {
     });
 
     it('forces hard exclusions into the result even if the model omitted them', async () => {
-      const { p } = mk([toolUse('submit_plan_constraints', { days: 5, mealTypes: ['dinner'], excludeIngredients: ['Mushrooms'] })]);
+      const { p } = mk([toolUse('submit_plan_constraints', { days: 5, mealTypes: ['dinner'], excludeTerms: ['Mushrooms'], servings: 4 })]);
       const r = await p.parsePlanPrompt('5 dinners', { exclusions: ['peanuts', 'mushrooms'] });
-      expect(r.excludeIngredients).toEqual(['Mushrooms', 'peanuts']);
+      expect(r.excludeTerms).toEqual(['Mushrooms', 'peanuts']);
     });
 
     it('drops hallucinated candidate ids in ingredient matches', async () => {

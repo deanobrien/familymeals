@@ -1,5 +1,5 @@
 import type { IsoDate, MealType } from '../contract';
-import { prepareProblem, slotKey, type HardReasonCode } from './problem';
+import { isQuickEnough, prepareProblem, slotKey, type HardReasonCode } from './problem';
 import { buildEvaluation, type PlanEvaluation } from './report';
 import type { PlanConstraintsInput, PlannerOptions, RecipeCandidateInput } from './schemas';
 import type { Assignment } from './score';
@@ -20,6 +20,7 @@ export type HardViolationCode =
   | 'unknown_recipe'
   | 'slot_out_of_range'
   | 'duplicate_slot'
+  | 'quick_required'
   | 'skipped_slot_filled'
   | 'repeat_forbidden';
 
@@ -85,7 +86,9 @@ export function validatePlan(
     for (const r of p.hardReasons[ci]!) {
       hardViolations.push({ code: r.code, slotKey: key, recipeId: rid, message: `"${title}" on ${key}: ${r.message}.` });
     }
-    if (!slot.eligibleSet.has(ci) && p.hardReasons[ci]!.length === 0) {
+    if (slot.quickStrict && !isQuickEnough(p.candidates[ci]!, slot.quickMaxMinutes!)) {
+      hardViolations.push({ code: 'quick_required', slotKey: key, recipeId: rid, message: `"${title}" on ${key}: only quick meals (${slot.quickMaxMinutes} min or less) are allowed on this day.` });
+    } else if (!slot.eligibleSet.has(ci) && p.hardReasons[ci]!.length === 0) {
       warnings.push(`"${title}" is not marked as suitable for ${slot.mealType}.`);
     }
     if (ps.servings !== undefined && ps.servings !== p.constraints.servings) {
