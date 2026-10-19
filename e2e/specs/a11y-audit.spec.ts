@@ -164,8 +164,6 @@ for (const vp of VIEWPORTS) {
 
       for (const state of STATES) {
         test(`${state.name}: axe WCAG 2.1 AA, no overflow${vp.width <= 375 ? ', 44px targets' : ''}`, async ({ page }) => {
-          // BUG (reported by Q2): the two-step plan chips UI has controls (selects/inputs 25px high) under 44px at 375px.
-          test.fail(state.name === 'plan proposal' && vp.width <= 375, 'plan constraint chips: touch targets under 44px');
           await open(page, state);
 
           const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
