@@ -1,0 +1,666 @@
+[
+ {
+  "id": "fx-01-tomato-pasta",
+  "title": "Sunday Tomato Pasta",
+  "lines": [
+   {
+    "ingredientId": "ac6d8d00-cbed-5198-b8a8-9a558f3c0728",
+    "displayName": "spaghetti",
+    "quantity": {
+     "kind": "exact",
+     "value": 400,
+     "unit": "g",
+     "originalText": "400 g"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "81f5e042-4ecc-5f52-8bf4-22eab3d663a3",
+    "displayName": "tinned chopped tomatoes",
+    "quantity": {
+     "kind": "exact",
+     "value": 2,
+     "unit": "can",
+     "originalText": "2 x 400 g tins"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "d721ffbc-4082-53cd-979a-05b2e535f396",
+    "displayName": "garlic",
+    "quantity": {
+     "kind": "exact",
+     "value": 3,
+     "unit": "clove",
+     "originalText": "3 cloves"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "dbe1443e-4626-5cf1-af71-0e358b2c73a5",
+    "displayName": "olive oil",
+    "quantity": {
+     "kind": "exact",
+     "value": 2,
+     "unit": "tbsp",
+     "originalText": "2 tbsp"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "dda1bd00-8c49-5828-a75b-7b4899da8c77",
+    "displayName": "onion",
+    "quantity": {
+     "kind": "exact",
+     "value": 1,
+     "unit": "item",
+     "originalText": "1 large"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "241930a6-e3b9-5ce7-b0d4-db745ada7a3e",
+    "displayName": "dried oregano",
+    "quantity": {
+     "kind": "exact",
+     "value": 1,
+     "unit": "tsp",
+     "originalText": "1 tsp"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "0b1ca3d8-a6c6-5233-a006-61c8e59bdc33",
+    "displayName": "fresh basil",
+    "quantity": {
+     "kind": "exact",
+     "value": 1,
+     "unit": "bunch",
+     "originalText": "1 small bunch"
+    },
+    "optional": true
+   }
+  ]
+ },
+ {
+  "id": "fx-02-lemon-loaf",
+  "title": "Lemon Drizzle Loaf",
+  "lines": [
+   {
+    "ingredientId": "d9c5065f-ed9f-5775-bb07-5d64f92efd2c",
+    "displayName": "self-raising flour",
+    "quantity": {
+     "kind": "exact",
+     "value": 227,
+     "unit": "g",
+     "originalText": "8 oz"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "716ed706-a38b-5681-a4dd-148e769175b7",
+    "displayName": "caster sugar",
+    "quantity": {
+     "kind": "exact",
+     "value": 170,
+     "unit": "g",
+     "originalText": "6 oz"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "d2b4186e-31d2-545b-9548-f9e27292b4e3",
+    "displayName": "butter",
+    "quantity": {
+     "kind": "exact",
+     "value": 113,
+     "unit": "g",
+     "originalText": "4 oz"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "5d450ea2-76ab-530d-8255-e9934c0106f5",
+    "displayName": "eggs",
+    "quantity": {
+     "kind": "exact",
+     "value": 2,
+     "unit": "item",
+     "originalText": "2"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "5d94a635-8ad5-5c4f-80b1-3c660dc5bf67",
+    "displayName": "lemons",
+    "quantity": {
+     "kind": "exact",
+     "value": 2,
+     "unit": "item",
+     "originalText": "2"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "fb9bac30-285e-57ed-b0d5-d4fafbc59da7",
+    "displayName": "milk",
+    "quantity": {
+     "kind": "exact",
+     "value": 60,
+     "unit": "ml",
+     "originalText": "2 floz"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "016960d7-c08f-5d39-a768-5036a8464f58",
+    "displayName": "icing sugar",
+    "quantity": {
+     "kind": "exact",
+     "value": 100,
+     "unit": "g",
+     "originalText": "3.5 oz"
+    },
+    "optional": false
+   }
+  ]
+ },
+ {
+  "id": "fx-03-beef-stew-two-page",
+  "title": "Slow Winter Beef Stew",
+  "lines": [
+   {
+    "displayName": "braising beef",
+    "quantity": {
+     "kind": "exact",
+     "value": 900,
+     "unit": "g",
+     "originalText": "900 g"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "ebc7e9ba-a0db-59eb-a1d6-57521ea00e1c",
+    "displayName": "carrots",
+    "quantity": {
+     "kind": "exact",
+     "value": 4,
+     "unit": "item",
+     "originalText": "4"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "dda1bd00-8c49-5828-a75b-7b4899da8c77",
+    "displayName": "onions",
+    "quantity": {
+     "kind": "exact",
+     "value": 2,
+     "unit": "item",
+     "originalText": "2"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "e798cdbe-0b93-5386-aafe-c923cb2f654e",
+    "displayName": "beef stock",
+    "quantity": {
+     "kind": "exact",
+     "value": 750,
+     "unit": "ml",
+     "originalText": "750 ml"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "9dd02860-a2d8-51bc-a7ae-7dff25afcf4a",
+    "displayName": "plain flour",
+    "quantity": {
+     "kind": "exact",
+     "value": 2,
+     "unit": "tbsp",
+     "originalText": "2 tbsp"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "eb289134-7e61-5d18-b5a7-6fbb661c47b0",
+    "displayName": "potatoes",
+    "quantity": {
+     "kind": "exact",
+     "value": 500,
+     "unit": "g",
+     "originalText": "500 g"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "3c700538-8d4e-5699-92cb-d9e702d97a9a",
+    "displayName": "bay leaves",
+    "quantity": {
+     "kind": "exact",
+     "value": 2,
+     "unit": "item",
+     "originalText": "2"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "0f943c59-8fc4-58b9-a470-8fb3cabfe5bd",
+    "displayName": "thyme",
+    "quantity": {
+     "kind": "exact",
+     "value": 4,
+     "unit": "sprig",
+     "originalText": "4 sprigs"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "8ed96805-577a-5835-b632-8ee6294d77cd",
+    "displayName": "tomato puree",
+    "quantity": {
+     "kind": "exact",
+     "value": 1,
+     "unit": "tbsp",
+     "originalText": "1 tbsp"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "fc0b4fd3-d42e-5f23-b6ac-5db9185ce5ad",
+    "displayName": "vegetable oil",
+    "quantity": {
+     "kind": "exact",
+     "value": 1,
+     "unit": "tbsp",
+     "originalText": "1 tbsp"
+    },
+    "optional": false
+   }
+  ]
+ },
+ {
+  "id": "fx-04-fractions-ranges",
+  "title": "Gran’s Fiddly Flapjacks & Soup",
+  "lines": [
+   {
+    "ingredientId": "f366dc96-c461-58bb-8d2a-7ac92bf9664d",
+    "displayName": "rolled oats",
+    "quantity": {
+     "kind": "exact",
+     "value": 1.5,
+     "unit": "cup",
+     "originalText": "1½ cups"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "d2b4186e-31d2-545b-9548-f9e27292b4e3",
+    "displayName": "butter",
+    "quantity": {
+     "kind": "exact",
+     "value": 0.75,
+     "unit": "cup",
+     "originalText": "¾ cup"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "d721ffbc-4082-53cd-979a-05b2e535f396",
+    "displayName": "garlic",
+    "quantity": {
+     "kind": "range",
+     "min": 2,
+     "max": 3,
+     "unit": "clove",
+     "originalText": "2-3 cloves"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "63b4b77a-a35a-5c4a-9bb9-ed2ee8b4aa0d",
+    "displayName": "golden syrup",
+    "quantity": {
+     "kind": "exact",
+     "value": 0.5,
+     "unit": "tsp",
+     "originalText": "½ tsp"
+    },
+    "optional": false
+   },
+   {
+    "displayName": "flaked sea salt",
+    "quantity": {
+     "kind": "approximate",
+     "approxLabel": "pinch",
+     "originalText": "a pinch"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "8d95cdee-ad72-5555-84b7-01b1e0dce417",
+    "displayName": "chilli flakes",
+    "quantity": {
+     "kind": "approximate",
+     "approxLabel": "dash",
+     "originalText": "a dash"
+    },
+    "optional": true
+   },
+   {
+    "ingredientId": "bbdcb460-989a-5d8b-a512-2684980027df",
+    "displayName": "black pepper",
+    "quantity": {
+     "kind": "to_taste",
+     "originalText": "to taste"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "dda1bd00-8c49-5828-a75b-7b4899da8c77",
+    "displayName": "onions",
+    "quantity": {
+     "kind": "range",
+     "min": 1,
+     "max": 2,
+     "unit": "item",
+     "originalText": "1 to 2"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "f19f5e8b-81c1-5ab7-a87a-d2dac914096f",
+    "displayName": "vegetable stock",
+    "quantity": {
+     "kind": "range",
+     "min": 500,
+     "max": 750,
+     "unit": "ml",
+     "originalText": "500-750 ml"
+    },
+    "optional": false
+   },
+   {
+    "displayName": "parsley",
+    "quantity": {
+     "kind": "approximate",
+     "approxLabel": "handful",
+     "originalText": "a handful"
+    },
+    "optional": false
+   }
+  ]
+ },
+ {
+  "id": "fx-05-blurry-curry",
+  "title": "Quick Veg Curry",
+  "lines": [
+   {
+    "ingredientId": "acf02912-059c-57cf-85c9-b568c692b8b9",
+    "displayName": "chickpeas",
+    "quantity": {
+     "kind": "exact",
+     "value": 1,
+     "unit": "can",
+     "originalText": "1 tin"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "ade1c18b-87f3-5f48-b0a4-0b4fd6a3389c",
+    "displayName": "coconut milk",
+    "quantity": {
+     "kind": "exact",
+     "value": 400,
+     "unit": "ml",
+     "originalText": "400 ml"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "01ee17a8-3efa-5360-96da-1a1dace515a2",
+    "displayName": "curry paste",
+    "quantity": {
+     "kind": "exact",
+     "value": 2,
+     "unit": "tbsp",
+     "originalText": "2 tbsp"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "8f55d100-de7d-514c-8fea-442e8619ffdc",
+    "displayName": "spinach",
+    "quantity": {
+     "kind": "exact",
+     "value": 200,
+     "unit": "g",
+     "originalText": "200 g"
+    },
+    "optional": false
+   }
+  ]
+ },
+ {
+  "id": "fx-06-fish-pie",
+  "title": "Family Fish Pie",
+  "lines": [
+   {
+    "displayName": "white fish fillets",
+    "quantity": {
+     "kind": "exact",
+     "value": 500,
+     "unit": "g",
+     "originalText": "500 g"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "fcab28e8-d4de-5d1f-879a-cfbdb9e674d1",
+    "displayName": "smoked haddock",
+    "quantity": {
+     "kind": "exact",
+     "value": 250,
+     "unit": "g",
+     "originalText": "250 g"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "fb9bac30-285e-57ed-b0d5-d4fafbc59da7",
+    "displayName": "milk",
+    "quantity": {
+     "kind": "exact",
+     "value": 500,
+     "unit": "ml",
+     "originalText": "500 ml"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "eb289134-7e61-5d18-b5a7-6fbb661c47b0",
+    "displayName": "floury potatoes",
+    "quantity": {
+     "kind": "exact",
+     "value": 1,
+     "unit": "kg",
+     "originalText": "1 kg"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "d2b4186e-31d2-545b-9548-f9e27292b4e3",
+    "displayName": "butter",
+    "quantity": {
+     "kind": "exact",
+     "value": 50,
+     "unit": "g",
+     "originalText": "50 g"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "9dd02860-a2d8-51bc-a7ae-7dff25afcf4a",
+    "displayName": "plain flour",
+    "quantity": {
+     "kind": "exact",
+     "value": 2,
+     "unit": "tbsp",
+     "originalText": "2 tbsp"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "a5b8dc9e-9f2c-546b-b55f-048daef21f0a",
+    "displayName": "frozen peas",
+    "quantity": {
+     "kind": "exact",
+     "value": 100,
+     "unit": "g",
+     "originalText": "100 g"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "7bb8433a-7b37-5058-9e98-fb640b971969",
+    "displayName": "chives",
+    "quantity": {
+     "kind": "exact",
+     "value": 1,
+     "unit": "bunch",
+     "originalText": "1 bunch"
+    },
+    "optional": true
+   }
+  ]
+ },
+ {
+  "id": "fx-07-porridge",
+  "title": "Overnight Berry Porridge",
+  "lines": [
+   {
+    "ingredientId": "f366dc96-c461-58bb-8d2a-7ac92bf9664d",
+    "displayName": "porridge oats",
+    "quantity": {
+     "kind": "exact",
+     "value": 1,
+     "unit": "cup",
+     "originalText": "1 cup"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "fb9bac30-285e-57ed-b0d5-d4fafbc59da7",
+    "displayName": "milk",
+    "quantity": {
+     "kind": "exact",
+     "value": 300,
+     "unit": "ml",
+     "originalText": "300 ml"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "e84dae88-a36e-55e5-8f65-68b6520db722",
+    "displayName": "mixed berries",
+    "quantity": {
+     "kind": "exact",
+     "value": 150,
+     "unit": "g",
+     "originalText": "150 g"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "7f96f1e9-9ba9-5957-9de0-dcf28b24179f",
+    "displayName": "honey",
+    "quantity": {
+     "kind": "to_taste",
+     "originalText": "to taste"
+    },
+    "optional": false
+   }
+  ]
+ },
+ {
+  "id": "fx-08-chickpea-stew",
+  "title": "Smoky Chickpea Stew",
+  "lines": [
+   {
+    "ingredientId": "acf02912-059c-57cf-85c9-b568c692b8b9",
+    "displayName": "chickpeas",
+    "quantity": {
+     "kind": "exact",
+     "value": 2,
+     "unit": "can",
+     "originalText": "2 tins"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "503398b1-b098-5756-8097-3121a9074c68",
+    "displayName": "ground coriander",
+    "quantity": {
+     "kind": "exact",
+     "value": 1,
+     "unit": "tsp",
+     "originalText": "1 tsp"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "55df03ad-5da1-5bfe-a733-0460a0f21d78",
+    "displayName": "fresh coriander",
+    "quantity": {
+     "kind": "exact",
+     "value": 1,
+     "unit": "bunch",
+     "originalText": "1 bunch"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "ade01016-63b6-5114-8fb2-242c7bfad47b",
+    "displayName": "smoked paprika",
+    "quantity": {
+     "kind": "exact",
+     "value": 2,
+     "unit": "tsp",
+     "originalText": "2 tsp"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "81f5e042-4ecc-5f52-8bf4-22eab3d663a3",
+    "displayName": "tinned tomatoes",
+    "quantity": {
+     "kind": "exact",
+     "value": 1,
+     "unit": "can",
+     "originalText": "1 tin"
+    },
+    "optional": false
+   },
+   {
+    "ingredientId": "119173a8-1080-5a6e-82b1-4cb10349c28f",
+    "displayName": "red peppers",
+    "quantity": {
+     "kind": "exact",
+     "value": 2,
+     "unit": "item",
+     "originalText": "2"
+    },
+    "optional": false
+   },
+   {
+    "displayName": "whatever greens need using up",
+    "quantity": {
+     "kind": "unparsed",
+     "originalText": "whatever greens need using up"
+    },
+    "optional": false
+   }
+  ]
+ }
+]
