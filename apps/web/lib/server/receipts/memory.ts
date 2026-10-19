@@ -147,13 +147,20 @@ export function createMemoryServices(items: OutstandingItem[] = fixtureOutstandi
   return { receipts: new InMemoryReceiptRepository(), purchases, outstanding: new InMemoryOutstandingSource(items, purchases) };
 }
 
-/** Past reconciled receipt so /receipts has history on first load. */
-export async function seedDemoReceipts(repo: ReceiptRepository): Promise<void> {
+/** Past reconciled receipt so /receipts has history on first load (seeded once per household). */
+export async function ensureDemoReceipts(repo: ReceiptRepository, householdId: string): Promise<void> {
+  if (await repo.get(householdId, seedReceiptId(householdId))) return;
+  await seedDemoReceipts(repo, householdId);
+}
+
+const seedReceiptId = (householdId: string) => `seed-0001-${householdId}`;
+
+export async function seedDemoReceipts(repo: ReceiptRepository, householdId: string = DEMO_HOUSEHOLD_ID): Promise<void> {
   const parsed = receiptMatcher.parseLines(['TOMATO PUREE 140G 0.80', 'BASMATI RICE 1KG 2.10', 'GARLIC 0.45'], 'seed');
   const lines = parsed.items.map((l) => ({ ...l, match: { classification: 'none' as const, candidates: [] } }));
   await repo.save({
-    id: 'seed-0001-example-supermarket',
-    householdId: DEMO_HOUSEHOLD_ID,
+    id: seedReceiptId(householdId),
+    householdId,
     retailer: 'Example Supermarket',
     date: '2026-10-12',
     totalPence: 335,
@@ -176,10 +183,9 @@ const G = globalThis as unknown as { __frReceiptMemory?: MemoryServices };
 
 /** Process-wide singleton (survives Next dev HMR and is shared by pages and server actions). */
 export function getMemoryServices(): MemoryServices {
-  if (!G.__frReceiptMemory) {
-    const s = createMemoryServices();
-    void seedDemoReceipts(s.receipts);
-    G.__frReceiptMemory = s;
-  }
-  return G.__frReceiptMemory;
+  return (G.__frReceiptMemory ??= createMemoryServices());
+}
+
+export function resetMemoryServices(): void {
+  G.__frReceiptMemory = undefined;
 }

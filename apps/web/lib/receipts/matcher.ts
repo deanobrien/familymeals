@@ -1,10 +1,9 @@
 /**
- * Thin interface over the receipt matcher (lane L10). Everything in apps/web talks to `receiptMatcher`
- * and the re-exported types only, so swapping the vendored copy for `@fr/engine/receipt-match` is a
- * one-line change in the import below.
+ * Thin interface over the receipt matcher (`@fr/engine/receipt-match`, lane L10). Everything in apps/web
+ * talks to `receiptMatcher` and the re-exported types only.
  */
-// TODO: replace with @fr/engine/receipt-match after merge batch 2
-import * as impl from './_vendor';
+import type { Pence, PriceObservation, PurchaseEvent, Quantity } from '@fr/domain';
+import * as impl from '@fr/engine/receipt-match';
 import type {
   Candidate,
   CandidateFlag,
@@ -14,15 +13,11 @@ import type {
   MatchOptions,
   OutstandingItem,
   ParsedReceipt,
-  Pence,
-  PriceObservation,
-  PurchaseEvent,
-  Quantity,
   ReceiptItemLine,
   ReconcileInput,
   ReconcileResult,
   TotalCheck,
-} from './_vendor';
+} from '@fr/engine/receipt-match';
 
 export type {
   Candidate,
