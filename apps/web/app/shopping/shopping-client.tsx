@@ -6,7 +6,7 @@ import { Badge, Button, Card, CardBody, Checkbox, EmptyState, ShoppingCategoryHe
 import type { ItemView, Quantity } from '../../lib/shopping/engine';
 import { activeView, deriveAll, defaultEngineContext, groupByAisle } from '../../lib/shopping/engine';
 import { formatAmount, formatQuantity } from '../../lib/shopping/format';
-import { PRICE_KIND_LABEL, estimateBasket } from '../../lib/shopping/prices';
+import { PRICE_KIND_LABEL, estimateBasket, type PriceBook } from '../../lib/shopping/prices';
 import type { Notice, Transport } from '../../lib/shopping/controller';
 import { useShopping } from '../../lib/shopping/use-shopping';
 import { AISLES, type SnapshotDto } from '../../lib/shopping/types';
@@ -22,7 +22,16 @@ const transport: Transport = {
 
 const AISLE_ORDER: string[] = [...AISLES];
 
-export function ShoppingClient({ initial, planId }: { initial: SnapshotDto; planId?: string }) {
+export function ShoppingClient({ initial, planId, approvedPlanId, actorId, prices }: {
+  initial: SnapshotDto;
+  /** /shopping?plan=<id>: build the list from that approved plan once. */
+  planId?: string;
+  /** The household's latest approved plan (for the empty-state button). */
+  approvedPlanId?: string;
+  /** Signed-in member id (server household context). */
+  actorId: string;
+  prices: PriceBook;
+}) {
   const { toast } = useToast();
   const router = useRouter();
   const [showCompleted, setShowCompleted] = useState(false);
@@ -52,7 +61,7 @@ export function ShoppingClient({ initial, planId }: { initial: SnapshotDto; plan
     [toast],
   );
 
-  const { controller, state, actor } = useShopping(initial, transport, onNotice);
+  const { controller, state, actor } = useShopping(initial, transport, onNotice, actorId);
   const ctx = defaultEngineContext;
 
   // "Generate from plan": /shopping?plan=<id>
@@ -62,19 +71,19 @@ export function ShoppingClient({ initial, planId }: { initial: SnapshotDto; plan
     generated.current = planId;
     void (async () => {
       try {
-        const r = await generateShoppingFromPlan(planId, actor());
+        const r = await generateShoppingFromPlan(planId);
         if (r.ok) {
           toast({ message: `Added ${r.lineCount} items from "${r.planName}".` });
           await controller.sync();
         } else {
-          toast({ message: 'That plan could not be found, so nothing was added.', tone: 'error' });
+          toast({ message: 'That plan could not be found or is not approved yet, so nothing was added.', tone: 'error' });
         }
       } catch {
         toast({ message: 'Could not reach the server to build the list from your plan.', tone: 'error' });
       }
       router.replace('/shopping');
     })();
-  }, [planId, actor, controller, router, toast]);
+  }, [planId, controller, router, toast]);
 
   const all = useMemo(() => deriveAll(state.view, ctx), [state.view, ctx]);
   const visible = useMemo(
@@ -82,7 +91,7 @@ export function ShoppingClient({ initial, planId }: { initial: SnapshotDto; plan
     [state.view, ctx, showCompleted],
   );
   const groups = useMemo(() => groupByAisle(visible, AISLE_ORDER), [visible]);
-  const basket = useMemo(() => estimateBasket(all), [all]);
+  const basket = useMemo(() => estimateBasket(all, prices), [all, prices]);
 
   const live = all.filter((v) => !v.item.removed && !v.noLongerNeeded);
   const doneCount = live.filter((v) => v.status === 'complete' || v.status === 'over_purchased').length;
@@ -203,7 +212,9 @@ export function ShoppingClient({ initial, planId }: { initial: SnapshotDto; plan
           icon="cart"
           title="Your list is empty"
           description="Add an item, or build the list from your meal plan."
-          action={<Button variant="secondary" onClick={() => router.push('/shopping?plan=demo-plan')}>Generate from plan</Button>}
+          action={approvedPlanId
+            ? <Button variant="secondary" onClick={() => router.push(`/shopping?plan=${encodeURIComponent(approvedPlanId)}`)}>Generate from plan</Button>
+            : <Button variant="secondary" onClick={() => router.push('/plan')}>Plan your week first</Button>}
         />
       )}
 

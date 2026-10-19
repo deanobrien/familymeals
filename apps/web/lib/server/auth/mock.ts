@@ -5,8 +5,17 @@ import type { HouseholdSummary } from './memberships';
  * Local mock auth: only for dev/CI without a Supabase stack. Refuses outright in production, in addition to
  * resolveAuthMode() never returning 'mock' there (defence in depth, mirrors the @fr/ai mock guard).
  */
-export const MOCK_USER_ID = '00000000-0000-4000-8000-00000000f001';
-export const MOCK_HOUSEHOLD_ID = '00000000-0000-4000-8000-00000000f002';
+/** Seeded demo identity = household A of the QA fixtures (e2e/fixtures/households/household-a.json). */
+export const MOCK_USER_ID = 'a1a1a102-0000-4000-8000-000000000001';
+export const MOCK_USER_NAME = 'Alice Smith';
+export const MOCK_HOUSEHOLD_ID = 'a1a1a101-0000-4000-8000-000000000001';
+export const MOCK_HOUSEHOLD_NAME = 'The Smiths (A)';
+
+/**
+ * Mock mode only: an `fr_household` cookie of the form `e2e-<id>` selects an isolated, empty sandbox household
+ * so parallel Playwright tests do not share state. Anything else falls back to household A.
+ */
+export const MOCK_SANDBOX_PATTERN = /^e2e-[w-]{1,60}$/;
 
 export class MockAuthForbiddenError extends Error {
   constructor() {
@@ -19,16 +28,17 @@ export function assertMockAllowed(nodeEnv: string | undefined = process.env.NODE
   if (nodeEnv === 'production') throw new MockAuthForbiddenError();
 }
 
-export function getMockIdentity(nodeEnv: string | undefined = process.env.NODE_ENV): {
+export function getMockIdentity(nodeEnv: string | undefined = process.env.NODE_ENV, sandboxId?: string): {
   user: { id: string; email: string | null };
   household: HouseholdSummary;
 } {
   assertMockAllowed(nodeEnv);
+  const sandbox = sandboxId !== undefined && MOCK_SANDBOX_PATTERN.test(sandboxId) ? sandboxId : undefined;
   return {
     user: { id: MOCK_USER_ID, email: null },
     household: {
-      id: MOCK_HOUSEHOLD_ID,
-      name: 'Mock household',
+      id: sandbox ?? MOCK_HOUSEHOLD_ID,
+      name: sandbox ? `Sandbox ${sandbox}` : MOCK_HOUSEHOLD_NAME,
       status: 'active',
       role: 'owner',
       defaultServings: 4,

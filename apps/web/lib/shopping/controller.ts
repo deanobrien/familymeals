@@ -41,7 +41,7 @@ export interface ControllerState {
 export interface ControllerDeps {
   transport: Transport;
   store: PendingStore;
-  /** Lazy so SSR never touches storage. */
+  /** Signed-in member id (from the server's household context); the server overrides it anyway. */
   actor: () => Uuid;
   newId: () => Uuid;
   now?: () => string;
@@ -269,21 +269,6 @@ export function localStoragePendingStore(key: string): PendingStore {
       }
     },
   };
-}
-
-const ACTOR_KEY = 'fr.shopping.actor';
-
-/** Stable per-browser shopper id (placeholder for the signed-in member id). */
-export function getActorId(newId: () => string): string {
-  try {
-    const existing = window.localStorage.getItem(ACTOR_KEY);
-    if (existing) return existing;
-    const id = newId();
-    window.localStorage.setItem(ACTOR_KEY, id);
-    return id;
-  } catch {
-    return newId();
-  }
 }
 
 export function newUuid(): string {

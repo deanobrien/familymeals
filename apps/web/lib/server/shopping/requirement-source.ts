@@ -2,12 +2,12 @@ import type { Contribution, Quantity, Requirement } from '../../shopping/engine'
 import type { PlanRequirements } from '../../shopping/types';
 
 /**
- * Where "generate from plan" gets its aggregated requirements.
- * TODO: real implementation = load the meal plan (planned meals -> recipes, servings) and run
- * @fr/engine/aggregate to combine ingredient lines into Requirements with provenance.
+ * Where "generate from plan" gets its aggregated requirements. Production = ApprovedPlanRequirementSource
+ * (the household's approved meal plan -> recipe store -> @fr/engine/aggregate). The fixture stub below is
+ * for unit tests only.
  */
 export interface RequirementSource {
-  forPlan(planId: string): Promise<PlanRequirements | null>;
+  forPlan(householdId: string, planId: string): Promise<PlanRequirements | null>;
 }
 
 const RECIPES = {
@@ -95,12 +95,12 @@ const CATEGORY: Record<string, string> = {
   'ing-garam-masala': 'Herbs & spices', 'ing-salt': 'Herbs & spices',
 };
 
-/** Category for a requirement. TODO: use CanonicalIngredient.category once @fr/refdata is wired. */
+/** Fallback category for a requirement (fixture ids); real plans carry `categories` from refdata. */
 export const categoryFor = (r: Requirement): string => (r.ingredientId && CATEGORY[r.ingredientId]) || 'Other';
 
-/** In-memory stub: any plan id returns the fixture requirements (id 'empty' returns none). */
+/** Test stub: any plan id returns the fixture requirements (id 'empty' returns none). */
 export class StubRequirementSource implements RequirementSource {
-  async forPlan(planId: string): Promise<PlanRequirements | null> {
+  async forPlan(_householdId: string, planId: string): Promise<PlanRequirements | null> {
     if (!/^[\w-]{1,64}$/.test(planId)) return null;
     if (planId === 'missing') return null;
     if (planId === 'empty') return { planId, planName: 'Empty plan', requirements: [], recipeTitles: {} };
@@ -108,6 +108,3 @@ export class StubRequirementSource implements RequirementSource {
   }
 }
 
-export function getRequirementSource(): RequirementSource {
-  return new StubRequirementSource();
-}

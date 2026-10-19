@@ -25,7 +25,7 @@ function validQuantity(q: unknown): q is Quantity {
 
 /**
  * Structural validation of a command received from a client (server actions are public endpoints).
- * Returns the command or null. TODO(auth): `actor` must come from the session, not the payload.
+ * Returns the command or null. syncList() replaces `actor` with the session member when one is given.
  */
 export function parseCommand(raw: unknown): Command | null {
   if (!isObj(raw) || !str(raw.commandId, 64) || !str(raw.actor, 64) || !str(raw.at, 40)) return null;
@@ -65,7 +65,7 @@ export function parseCommand(raw: unknown): Command | null {
  * catch up: log entries after its cursor. Invalid commands are dropped, not applied.
  */
 export async function syncList(
-  repo: ShoppingRepository, householdId: string, rawCommands: unknown[], cursor: number,
+  repo: ShoppingRepository, householdId: string, rawCommands: unknown[], cursor: number, sessionActor?: string,
 ): Promise<SyncResponse> {
   const results: SyncResponse['results'] = [];
   const dropped: string[] = [];
@@ -75,7 +75,7 @@ export async function syncList(
       if (isObj(raw) && str(raw.commandId, 64)) dropped.push(raw.commandId);
       continue;
     }
-    results.push((await repo.submit(householdId, cmd)).result);
+    results.push((await repo.submit(householdId, sessionActor ? { ...cmd, actor: sessionActor } : cmd)).result);
   }
   const head = await repo.head(householdId);
   const meta = await repo.getMeta(householdId);
@@ -91,11 +91,12 @@ export async function generateFromPlan(
   repo: ShoppingRepository, source: RequirementSource, householdId: string,
   planId: string, actor: string, newId: () => string, now: () => string = () => new Date().toISOString(),
 ): Promise<{ planName: string; lineCount: number } | null> {
-  const plan = await source.forPlan(planId);
+  const plan = await source.forPlan(householdId, planId);
   if (!plan) return null;
   await repo.mergeMeta(householdId, { recipeTitles: plan.recipeTitles });
   const lines: RegenerateLine[] = plan.requirements.map((requirement) => ({
-    itemId: newId(), requirement, category: categoryFor(requirement),
+    itemId: newId(), requirement,
+    category: (requirement.ingredientId && plan.categories?.[requirement.ingredientId]) || categoryFor(requirement),
   }));
   const cmd: Command = { type: 'regenerate', commandId: newId(), actor, at: now(), lines };
   await repo.submit(householdId, cmd);

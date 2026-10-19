@@ -2,18 +2,19 @@
 
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import {
-  ShoppingController, getActorId, localStoragePendingStore, newUuid,
+  ShoppingController, localStoragePendingStore, newUuid,
   type ControllerState, type Notice, type Transport,
 } from './controller';
 import type { SnapshotDto } from './types';
 
 export const PENDING_KEY = 'fr.shopping.pending.v1';
 
-/** Create a controller once per mount, start polling/replay after hydration, expose its state. */
+/** `actorId` = the signed-in member (server household context). Create a controller once per mount, start polling/replay after hydration, expose its state. */
 export function useShopping(
   initial: SnapshotDto,
   transport: Transport,
   onNotice: (n: Notice) => void,
+  actorId: string,
 ): { controller: ShoppingController; state: ControllerState; actor: () => string } {
   const noticeRef = useRef(onNotice);
   noticeRef.current = onNotice;
@@ -23,7 +24,7 @@ export function useShopping(
     ref.current = new ShoppingController(initial, {
       transport,
       store: localStoragePendingStore(PENDING_KEY),
-      actor: () => getActorId(newUuid),
+      actor: () => actorId,
       newId: newUuid,
       onNotice: (n) => noticeRef.current(n),
     });
@@ -33,5 +34,5 @@ export function useShopping(
   useEffect(() => controller.start(), [controller]);
 
   const state = useSyncExternalStore(controller.subscribe, controller.getState, controller.getState);
-  return { controller, state, actor: () => getActorId(newUuid) };
+  return { controller, state, actor: () => actorId };
 }

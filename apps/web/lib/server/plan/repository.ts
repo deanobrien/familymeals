@@ -32,3 +32,14 @@ export class InMemoryMealPlanRepository implements MealPlanRepository {
       .map((d) => structuredClone(d));
   }
 }
+
+const g = globalThis as { __frPlanStore?: MealPlanRepository };
+
+/** The one plan store (globalThis so Next dev's separate RSC/action module graphs share state). */
+export function getPlanStore(): MealPlanRepository {
+  return (g.__frPlanStore ??= new InMemoryMealPlanRepository());
+}
+
+export function resetPlanStore(): void {
+  g.__frPlanStore = undefined;
+}

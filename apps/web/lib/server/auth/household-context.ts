@@ -66,7 +66,7 @@ export const getAuthState = cache(async (): Promise<AuthState | null> => {
   const store = await cookies();
   const cookieId = store.get(ACTIVE_HOUSEHOLD_COOKIE)?.value;
   if (mode === 'mock') {
-    const { household } = getMockIdentity();
+    const { household } = getMockIdentity(process.env.NODE_ENV, cookieId);
     return { user, memberships: [household], supabase: createUnavailableClient(), mode: 'mock', activeId: household.id };
   }
   const supabase = await createSupabaseServerClient();

@@ -3,6 +3,7 @@ import {
   createServer, defaultEngineContext, serverEntriesSince, serverSnapshot, serverSubmit,
 } from '../../shopping/engine';
 import type { ListMeta, SnapshotDto } from '../../shopping/types';
+import { getIngredientCatalogue } from '../refdata/catalogue';
 
 export interface SubmitOutcome {
   result: CommandResult;
@@ -16,7 +17,7 @@ export interface SubmitOutcome {
  * one ordered, per-household command log (rejections included) with a seq cursor, idempotent on the
  * client-generated commandId, and every decision made atomically per household.
  *
- * TODO(L1): Supabase implementation = `record_purchase` / `void_purchase` functions + `shopping_command_log`.
+ * TODO(Supabase): implementation = `record_purchase` / `void_purchase` functions + `shopping_command_log`.
  */
 export interface ShoppingRepository {
   snapshot(householdId: string): Promise<SnapshotDto>;
@@ -95,8 +96,11 @@ export class InMemoryShoppingRepository implements ShoppingRepository {
 
 const KEY = Symbol.for('fr.shopping.repository');
 
-/** Process-wide singleton (survives Next dev HMR and is shared by server components + server actions). */
-export function getShoppingRepository(): ShoppingRepository {
-  const g = globalThis as unknown as Record<symbol, ShoppingRepository | undefined>;
-  return (g[KEY] ??= new InMemoryShoppingRepository());
+/**
+ * Process-wide singleton (survives Next dev HMR and is shared by server components + server actions).
+ * Server decisions convert units with the refdata catalogue (density / unit weights).
+ */
+export function getShoppingRepository(): InMemoryShoppingRepository {
+  const g = globalThis as unknown as Record<symbol, InMemoryShoppingRepository | undefined>;
+  return (g[KEY] ??= new InMemoryShoppingRepository({ converter: getIngredientCatalogue().converter }));
 }

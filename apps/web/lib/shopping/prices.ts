@@ -1,16 +1,9 @@
-import type { ItemView, Unit } from './engine';
-import { defaultEngineContext, valueIn } from './engine';
+import type { CanonicalIngredient, PriceKind, PriceObservation, Quantity } from '@fr/domain';
+import { proportionalCost, rankObservations, matchingObservations } from '@fr/engine/cost';
+import { createQuantityConverter } from '@fr/engine/units';
+import type { ItemView } from './engine';
 
-/** Mirrors the contract's PriceKind (priority order). TODO: import from @fr/domain once merged. */
-export type PriceKind = 'user_confirmed' | 'receipt' | 'retailer_verified' | 'generic_estimate';
-
-export interface UnitPrice {
-  /** Pence for `per` of `unit`, e.g. 550p per 1 kg. */
-  pence: number;
-  per: number;
-  unit: Unit;
-  kind: PriceKind;
-}
+export type { PriceKind };
 
 export const PRICE_KIND_LABEL: Record<PriceKind, string> = {
   user_confirmed: 'your price',
@@ -19,46 +12,48 @@ export const PRICE_KIND_LABEL: Record<PriceKind, string> = {
   generic_estimate: 'generic estimate',
 };
 
-/** Looks up a price for a shopping item. Placeholder for @fr/engine cost + price observations. */
-export type PriceLookup = (itemKey: string, ingredientId?: string) => UnitPrice | undefined;
-
 /**
- * Generic-estimate fixture prices keyed by ingredient id or normalised name.
- * TODO: replace with @fr/engine/cost fed by @fr/refdata price seeds + household observations.
+ * Prices the client needs to estimate the basket live while items are ticked (built server-side from the
+ * shared price store: refdata generic estimates + this household's receipt observations, see D34).
  */
-const FIXTURE: Record<string, UnitPrice> = {
-  'ing:ing-onion': { pence: 15, per: 1, unit: 'item', kind: 'generic_estimate' },
-  'ing:ing-chicken-breast': { pence: 650, per: 1, unit: 'kg', kind: 'generic_estimate' },
-  'ing:ing-beef-mince': { pence: 590, per: 1, unit: 'kg', kind: 'generic_estimate' },
-  'ing:ing-chopped-tomatoes': { pence: 70, per: 1, unit: 'can', kind: 'generic_estimate' },
-  'ing:ing-spaghetti': { pence: 180, per: 1, unit: 'kg', kind: 'generic_estimate' },
-  'ing:ing-double-cream': { pence: 120, per: 300, unit: 'ml', kind: 'generic_estimate' },
-  'ing:ing-garlic': { pence: 8, per: 1, unit: 'clove', kind: 'generic_estimate' },
-  'ing:ing-garam-masala': { pence: 5, per: 1, unit: 'tsp', kind: 'generic_estimate' },
-  'ing:ing-basmati': { pence: 240, per: 1, unit: 'kg', kind: 'generic_estimate' },
-  'ing:ing-cheddar': { pence: 900, per: 1, unit: 'kg', kind: 'generic_estimate' },
-  'name:milk': { pence: 145, per: 2, unit: 'pint', kind: 'generic_estimate' },
-  'name:bread': { pence: 120, per: 1, unit: 'item', kind: 'generic_estimate' },
-  'name:eggs': { pence: 30, per: 1, unit: 'item', kind: 'generic_estimate' },
-  'name:bananas': { pence: 12, per: 1, unit: 'item', kind: 'generic_estimate' },
-};
+export interface PriceBook {
+  observations: PriceObservation[];
+  /** Ingredient data the converter needs (density / unit weight) for the priced ingredients. */
+  ingredients: CanonicalIngredient[];
+  /** `name:<normalised>` item key -> ingredient id, for items added by hand without an ingredient id. */
+  nameIndex: Record<string, string>;
+}
 
-export const fixturePriceLookup: PriceLookup = (itemKey) => FIXTURE[itemKey];
+export const EMPTY_PRICE_BOOK: PriceBook = { observations: [], ingredients: [], nameIndex: {} };
 
 export interface ItemCost {
   pence: number;
   kind: PriceKind;
 }
 
+function ingredientIdFor(view: ItemView, book: PriceBook): string | undefined {
+  return view.item.ingredientId ?? book.nameIndex[view.item.key];
+}
+
 /** Estimated cost of what is still outstanding for one item (null when unpriced / not convertible). */
-export function estimateItemCost(view: ItemView, price: UnitPrice | undefined): ItemCost | null {
-  if (!price || view.outstanding <= 0) return null;
-  const unit = view.unit ?? 'item';
-  const qty = view.quantified
-    ? valueIn({ kind: 'exact', value: view.outstanding, unit, originalText: '' }, price.unit, defaultEngineContext)
-    : 1; // unquantified ("salt, to taste"): one purchase
-  if (qty === null) return null;
-  return { pence: Math.round((qty / price.per) * price.pence), kind: price.kind };
+export function estimateItemCost(view: ItemView, book: PriceBook, converter = converterFor(book)): ItemCost | null {
+  if (view.outstanding <= 0) return null;
+  const id = ingredientIdFor(view, book);
+  if (!id) return null;
+  if (!view.quantified) {
+    // Unquantified ("salt, to taste"): one pack at the best available price.
+    const best = rankObservations(matchingObservations(book.observations, { ingredientId: id }))[0];
+    return best ? { pence: best.pricePence, kind: best.kind } : null;
+  }
+  const need: Quantity = { kind: 'exact', value: view.outstanding, originalText: '', ...(view.unit ? { unit: view.unit } : {}) };
+  const ingredients = new Map(book.ingredients.map((i) => [i.id, i]));
+  const r = proportionalCost(need, id, { prices: book.observations, converter, ingredients: (x) => ingredients.get(x) });
+  return 'costPence' in r ? { pence: r.costPence, kind: r.price.kind } : null;
+}
+
+export function converterFor(book: PriceBook) {
+  const byId = new Map(book.ingredients.map((i) => [i.id, i]));
+  return createQuantityConverter((id) => byId.get(id));
 }
 
 export interface BasketEstimate {
@@ -72,11 +67,13 @@ export interface BasketEstimate {
 
 const ORDER: PriceKind[] = ['generic_estimate', 'retailer_verified', 'receipt', 'user_confirmed'];
 
-export function estimateBasket(views: ItemView[], lookup: PriceLookup = fixturePriceLookup): BasketEstimate {
+/** Basket estimate via `@fr/engine/cost` (price hierarchy: your price > receipt > retailer > generic). */
+export function estimateBasket(views: ItemView[], book: PriceBook): BasketEstimate {
   const out: BasketEstimate = { totalPence: 0, pricedCount: 0, unpricedCount: 0, weakestKind: null, byItem: {} };
+  const converter = converterFor(book);
   for (const v of views) {
     if (v.outstanding <= 0 || v.noLongerNeeded || v.item.removed) continue;
-    const cost = estimateItemCost(v, lookup(v.item.key, v.item.ingredientId));
+    const cost = estimateItemCost(v, book, converter);
     if (!cost) {
       out.unpricedCount++;
       continue;

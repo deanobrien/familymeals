@@ -5,15 +5,24 @@ import {
 } from '@fr/plan-orchestrator';
 import { getRecipeRepository } from '../../recipes/factory';
 import { RepositoryPlanRecipeSource, toRecipeRepo, type PlanRecipeSource } from './recipe-source';
-import { InMemoryMealPlanRepository, type MealPlanRepository } from './repository';
+import { getPlanStore, InMemoryMealPlanRepository, resetPlanStore, type MealPlanRepository } from './repository';
 import { createEngineSolver } from './engine-solver';
+import { formatQuantity } from '../../shopping/format';
+import { getIngredientCatalogue } from '../refdata/catalogue';
+import { getRequirementSource } from '../shopping/approved-plan-source';
+import { buildRequirementsForMeals } from '../shopping/plan-requirements';
+import { getShoppingRepository } from '../shopping/repository';
+import { generateFromPlan } from '../shopping/service';
 
 export const DEMO_HOUSEHOLD_ID = 'demo-household';
 
-/** TODO(Supabase): resolve the signed-in user's household; exclusions from member dietary profiles. */
-export function demoHousehold(): Household {
+/**
+ * Planner profile for a household. The id comes from the session (getAppContext); members, exclusions and
+ * budget are still demo values. TODO(Supabase): load from household_members + dietary profiles.
+ */
+export function demoHousehold(id: string = DEMO_HOUSEHOLD_ID): Household {
   return {
-    id: DEMO_HOUSEHOLD_ID,
+    id,
     defaultServings: 4,
     weeklyBudgetPence: 10000,
     hardExclusions: [{ ingredientName: 'peanuts', kind: 'allergy' }],
@@ -32,8 +41,8 @@ export interface PlanServices {
   orchestrator: PlanOrchestrator;
   newId: () => string;
   now: () => Date;
-  /** TODO(L-shopping): create/update the real shopping list from confirmed requirements. */
-  onShoppingRequirements?: (householdId: string, planId: string, reqs: ShoppingRequirement[]) => Promise<void>;
+  /** Creates/updates the household's shopping list from the approved plan (wired in getPlanServicesFor). */
+  onShoppingRequirements?: (householdId: string, planId: string, reqs: ShoppingRequirement[], actor: string) => Promise<void>;
 }
 
 export function createCostService(recipes: PlanRecipeSource): CostService {
@@ -65,7 +74,11 @@ export function createCostService(recipes: PlanRecipeSource): CostService {
   };
 }
 
-export function createPlanServices(opts: { ai?: AiProvider; recipes?: PlanRecipeSource; plans?: MealPlanRepository; household?: Household } = {}): PlanServices {
+export function createPlanServices(opts: {
+  ai?: AiProvider; recipes?: PlanRecipeSource; plans?: MealPlanRepository; household?: Household;
+  /** Overrides the name-only requirement preview (production: @fr/engine/aggregate over the recipe store). */
+  buildRequirements?: CostService['buildRequirements'];
+} = {}): PlanServices {
   const household = opts.household ?? demoHousehold();
   const recipes = opts.recipes ?? new RepositoryPlanRecipeSource(getRecipeRepository());
   const households: HouseholdRepo = {
@@ -81,14 +94,45 @@ export function createPlanServices(opts: { ai?: AiProvider; recipes?: PlanRecipe
     solver: createEngineSolver({ loadCandidates: (ids) => recipeRepo.getRecipes(household.id, ids) }),
     households,
     recipes: recipeRepo,
-    costs: createCostService(recipes),
+    costs: opts.buildRequirements ? { ...createCostService(recipes), buildRequirements: opts.buildRequirements } : createCostService(recipes),
     proposals: new InMemoryProposalStore(),
   });
   return { household, households, recipes, plans: opts.plans ?? new InMemoryMealPlanRepository(), orchestrator, newId: () => crypto.randomUUID(), now: () => new Date() };
 }
 
-const g = globalThis as { __frPlanServices?: PlanServices };
-/** Process-wide singleton (globalThis so Next dev's separate RSC/action module graphs share state). */
-export function getPlanServices(): PlanServices {
-  return (g.__frPlanServices ??= createPlanServices());
+const g = globalThis as { __frPlanServicesByHousehold?: Map<string, PlanServices> };
+
+/**
+ * Planner services scoped to one household (cached per household so AI proposals survive between requests).
+ * Wiring: shared plan store, aggregate-based requirements, and the shopping-list hook (D33).
+ */
+export function getPlanServicesFor(householdId: string): PlanServices {
+  const map = (g.__frPlanServicesByHousehold ??= new Map<string, PlanServices>());
+  let svc: PlanServices | undefined = map.get(householdId);
+  if (!svc) {
+    svc = createPlanServices({
+      household: demoHousehold(householdId),
+      plans: getPlanStore(),
+      buildRequirements: async (_h, meals) => {
+        const built = await buildRequirementsForMeals(meals, getRecipeRepository(), getIngredientCatalogue());
+        return built.requirements.map((r) => ({
+          displayName: r.displayName,
+          ...(r.ingredientId ? { ingredientId: r.ingredientId } : {}),
+          quantityText: formatQuantity(r.quantity),
+          contributions: r.contributions.map((c) => ({ recipeId: c.recipeId, plannedMealId: c.plannedMealId ?? '' })),
+        }));
+      },
+    });
+    svc.onShoppingRequirements = async (h, planId, _reqs, actor) => {
+      await generateFromPlan(getShoppingRepository(), getRequirementSource(), h, planId, actor, () => crypto.randomUUID());
+    };
+    map.set(householdId, svc);
+  }
+  return svc;
+}
+
+/** Test/e2e reset of every in-memory planner store. */
+export function resetPlanServices(): void {
+  resetPlanStore();
+  g.__frPlanServicesByHousehold = undefined;
 }

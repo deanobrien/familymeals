@@ -1,22 +1,20 @@
 /**
- * Thin interface onto the shopping state engine (lane L17a).
- *
- * TODO(merge batch 2): replace `./_vendor` with `@fr/engine/shopping` - this is the ONLY file that
- * should import from `_vendor`, so the swap is the one-line change below (plus deleting `_vendor/`
- * and re-pointing `defaultEngineContext` at the real @fr/engine UnitConverter).
+ * Thin interface onto the shopping state engine (`@fr/engine/shopping`, lane L17a).
+ * Client-safe: the default converter is the L3 unit table without ingredient data (mass/volume within
+ * their dimension, imperial included). The server repository injects the refdata catalogue converter
+ * (density / unit weights), and the server is authoritative for every decision.
  */
-export * from './_vendor';
-export type { Contribution, PurchaseEvent, Quantity, Requirement, Unit, Uuid } from './_vendor/contract';
+export * from '@fr/engine/shopping';
+export type { Contribution, PurchaseEvent, Quantity, Requirement, Unit, Uuid } from '@fr/domain';
 
-import type { CanonicalIngredient, Quantity, Unit } from './_vendor/contract';
-import type { EngineContext, UnitConverter } from './_vendor';
+import type { Unit } from '@fr/domain';
+import { createQuantityConverter } from '@fr/engine/units';
+import type { EngineContext } from '@fr/engine/shopping';
 
 type Dim = 'mass' | 'volume';
-const FACTORS: Partial<Record<Unit, { dim: Dim; f: number }>> = {
-  mg: { dim: 'mass', f: 0.001 }, g: { dim: 'mass', f: 1 }, kg: { dim: 'mass', f: 1000 },
-  ml: { dim: 'volume', f: 1 }, l: { dim: 'volume', f: 1000 }, tsp: { dim: 'volume', f: 5 },
-  tbsp: { dim: 'volume', f: 15 }, cup: { dim: 'volume', f: 240 }, floz: { dim: 'volume', f: 28.4131 },
-  pint: { dim: 'volume', f: 568.261 },
+const DIM: Partial<Record<Unit, Dim>> = {
+  mg: 'mass', g: 'mass', kg: 'mass',
+  ml: 'volume', l: 'volume', tsp: 'volume', tbsp: 'volume', cup: 'volume', floz: 'volume', pint: 'volume',
 };
 
 export const UNIT_LABELS: Record<Unit, string> = {
@@ -32,26 +30,12 @@ export const ALL_UNITS: Unit[] = [
 
 /** Units that can be converted to/from `unit` without density data. */
 export function compatibleUnits(unit: Unit): Unit[] {
-  const d = FACTORS[unit]?.dim;
+  const d = DIM[unit];
   if (!d) return [unit];
-  return ALL_UNITS.filter((u) => FACTORS[u]?.dim === d);
+  return ALL_UNITS.filter((u) => DIM[u] === d);
 }
 
-/**
- * Placeholder converter: mass and volume within their own dimension only, never across.
- * TODO(merge batch 2): use the @fr/engine units converter (density / unit weights).
- */
-export const basicConverter: UnitConverter = {
-  convert(q: Quantity, to: Unit, _ingredient?: CanonicalIngredient): Quantity | null {
-    if (typeof q.value !== 'number') return null;
-    const from = q.unit ?? 'item';
-    if (from === to) return { ...q, unit: to };
-    const a = FACTORS[from];
-    const b = FACTORS[to];
-    if (!a || !b || a.dim !== b.dim) return null;
-    const value = (q.value * a.f) / b.f;
-    return { kind: 'exact', value, unit: to, originalText: `${value} ${to}` };
-  },
-};
+/** Client-side converter: `@fr/engine/units` with no ingredient lookup (never crosses mass/volume/count). */
+export const basicConverter = createQuantityConverter();
 
 export const defaultEngineContext: EngineContext = { converter: basicConverter };

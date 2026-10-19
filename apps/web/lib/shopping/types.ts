@@ -31,6 +31,8 @@ export interface PlanRequirements {
   planName: string;
   requirements: Requirement[];
   recipeTitles: Record<string, string>;
+  /** ingredientId -> aisle (from the refdata category); missing ids fall back to categoryFor(). */
+  categories?: Record<string, string>;
 }
 
 /** Aisle order for grouping (walk-around-the-shop order). Categories double as aisles. */
@@ -49,5 +51,3 @@ export const AISLES = [
 ] as const;
 export type Aisle = (typeof AISLES)[number];
 
-export const HOUSEHOLD_COOKIE = 'fr_household';
-export const DEFAULT_HOUSEHOLD = 'demo-household';

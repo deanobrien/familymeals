@@ -123,7 +123,7 @@ export interface ShoppingHandoff {
 }
 
 /** Step 10 of the brief: only invoked from the explicit "Generate shopping list" button on an approved plan. */
-export async function generateShopping(svc: PlanServices, planId: string): Promise<ActionResult<ShoppingHandoff>> {
+export async function generateShopping(svc: PlanServices, planId: string, actor = 'system'): Promise<ActionResult<ShoppingHandoff>> {
   const doc = await svc.plans.get(svc.household.id, planId);
   if (!doc) return fail('That plan could not be found. Save it first.');
   if (doc.status !== 'approved') return fail('Approve the plan before generating a shopping list.');
@@ -133,7 +133,7 @@ export async function generateShopping(svc: PlanServices, planId: string): Promi
     return [{ id: `${doc.id}-${i}`, mealPlanId: doc.id, date: s.date, mealType: s.mealType, recipeId: e.recipeId, servings: e.servings, costPence: null }];
   });
   const reqs = await svc.orchestrator.confirmShopping(doc.householdId, meals);
-  await svc.onShoppingRequirements?.(doc.householdId, doc.id, reqs); // TODO(shopping lane): create/update the real list
+  await svc.onShoppingRequirements?.(doc.householdId, doc.id, reqs, actor); // creates/updates the shopping list (D33)
   return { ok: true, value: { count: reqs.length, href: `/shopping?plan=${encodeURIComponent(doc.id)}`, preview: reqs.slice(0, 8).map((r) => ({ name: r.displayName, quantity: r.quantityText })) } };
 }
 
