@@ -166,6 +166,42 @@ When a `RecipeView` has `printedNutrition` (`PrintedNutritionView`, added by the
 
 Refdata coverage limits what can be priced or weighed: no unit weights for `can`/`clove`, aliases missing for e.g. "white fish fillets", "braising beef", "floury potatoes", "mixed berries", "curry paste"/"coconut milk" packs not convertible. These show as uncosted / no-data lines, which is honest but makes most seed recipes partial. The receipts lane should provide a `PriceSource` (set on `getRecipeCalculator()` via `createRecipeCalculator({ priceSource })`); `getRecipeCalculator` currently uses generic prices only.
 
+## D50 Supabase repositories for recipes, plans and pantry (lane S1)
+
+`apps/web/lib/server/supabase/**` holds `SupabaseRecipeRepository`, `SupabaseMealPlanRepository`, `SupabasePlanRecipeSource` and `SupabasePantryRepository` behind the existing interfaces (nothing in the UI changed). Constructors take the `@supabase/supabase-js` client plus household (and member) ids; `backend.ts` adds lazy wrappers that resolve `{client, householdId, userId}` per call. Selection: `DATA_BACKEND=supabase` AND a Supabase URL + key (or a registered provider) -> Supabase; anything else -> in-memory as before (one `console.warn` when the switch is set but the env is incomplete). Wired at the three existing points only: `recipes/factory.ts`, `plan/services.ts` (`createPlanServices`), `pantry/deps.ts`.
+
+## D51 All multi-table work goes through RPCs (migration `20261019001520`)
+
+No live PostgREST was available, so reads and writes use SQL functions whose behaviour is tested for real in PGlite instead of PostgREST embed syntax that could only be guessed: `list_recipes` (FTS + trigram search, every filter, sort, paging, in SQL), `get_recipes`, `recipe_facets`, `find_recipe_duplicates`, `save_recipe` (recipes + recipe_ingredients + recipe_steps + tags + a new `recipe_versions` row, one transaction), `save_meal_plan`, `select_meal_plans`, `replace_pantry_items`. All are SECURITY INVOKER (RLS still applies, including the grace-period read-only policies) and every statement also filters by the household id passed in, so a service-role client stays household-scoped. The timestamp `...001520` deliberately sits well after 0014 to avoid colliding with other lanes' migration numbers.
+
+## D52 Recipe mapping decisions
+
+`recipe_ingredients` gained `display_name` (the ingredient name as written; `original_text` stays the quantity text, falling back to the name when blank because the column is NOT NULL). `originalText` is stored in each version's `corrected` jsonb and is write-once (earliest non-blank wins). An external image URL cannot satisfy `cover_image_path` (must be `<household>/...`), so it lives in the latest version's `corrected.imageUrl`; storage paths use the column. Unknown canonical ingredient ids are stored NULL (line kept, unmatched); same-name lines keep their id across edits. Editing ingredient lines drops that recipe's calculated nutrition profile (the engine recomputes). Favourites are per member (`userId`), `rating` is the household mean to 1 dp. `delete()` ARCHIVES (`status = 'archived'`) because planned meals reference recipes with NO ACTION; archived recipes vanish from list/get/search/duplicates. Non-UUID ids (old fixture ids) return null/false rather than throwing.
+
+## D53 Cost is not persisted yet
+
+Schema v1 has no recipe cost cache, so every recipe reports `cost.totalPence = null` and sort-by-cost falls back to name. Price bands low/mid/high and the `budget` collection therefore match nothing; `unknown` matches everything. Revisit when a cost cache (engine output) is persisted.
+
+## D54 Meal plan mapping
+
+`PlanDoc` <-> `meal_plans` + `planned_meals`: the week is `start_date .. +6`; `mealTypes` and `proposalId` live in `meal_plans.constraints`. One managed `planned_meal` per (date, meal type) at position 0; saves update slots in place (ids survive, so shopping provenance links are kept), insert new slots and delete removed ones. Saving a plan archives any other live plan for the same household + week instead of deleting it. `eating_out` entries store servings = 1; `other` reads back as `eating_out`. Plan ids and recipe ids must be UUIDs (`save` throws a clear error otherwise).
+
+## D55 Pantry mapping
+
+`pantry_items` gained `stock_updated_at` (the engine's own last-confirmed instant: `updated_at` is bumped by a trigger on every write and would make all stock look fresh after any replace) and `source_event_ids uuid[]`. New tables `pantry_settings` (purchase_mode off/suggest/auto, stale_after_days) and `pantry_handled_events`, household-scoped with RLS. `households.pantry_deduct_on_purchase` (boolean) is NOT synchronised with `purchase_mode`; the settings lane should reconcile the two. `replace_pantry_items` is an id-keyed upsert plus delete of absent rows in one transaction and preserves columns the engine does not model (notes, receipt_line_id, ...).
+
+## D56 Interim data context
+
+Until the auth lane registers `setDataContextProvider()`, the server uses the service-role key (RLS bypassed) with `SUPABASE_DEFAULT_HOUSEHOLD_ID` (and optional `SUPABASE_DEFAULT_USER_ID` for favourites). Pantry and plan "current household" helpers use that env id in Supabase mode; the plan's `demoHousehold()` still carries demo exclusions/members (ids `m-lauren`/`m-sam`) until household/profile data is wired. Never ship the service-role key to the client.
+
+## D57 Test strategy for a backend we cannot reach
+
+(1) `queries.test.ts`: a recording supabase-js double asserts the exact RPC names/arguments and table calls plus row mapping (including rows another writer left outside the strict domain rules). (2) `contract.pglite.test.ts`: the real repositories run against the real migrations in PGlite as an `authenticated` member via a small PostgREST-lookalike (`test-support/pglite-client.ts`), covering the TS<->SQL contract and RLS isolation. (3) `packages/db/tests/rls/005_*.sql`: SQL-level asserts for every new function. Not covered: PostgREST itself (URL/headers, schema cache, JWT verification, `Prefer` semantics, the 1000-row cap beyond the paging helper), real Supabase auth, and performance at scale.
+
+## D58 Known limits to revisit
+
+`list_recipes` caps a page at 10 000 rows (planner/pantry sources ask for all recipes in one call; fine for family-sized libraries). Duplicate detection loops recipes in plpgsql (O(n)). `SupabasePlanRecipeSource.list` pulls full recipe documents. Quantities that violate the strict domain rules (e.g. an approximate quantity with a unit written by another lane) degrade to `unparsed` on read instead of failing the page.
+
 ## D40 OpenAI / Azure OpenAI adapter and shared provider base
 
 `@fr/ai` `BaseAiProvider` owns the six operations plus the validate/retry/usage loop; `AnthropicProvider` and the new `OpenAiProvider` only implement the wire protocol. OpenAI adapter = Chat Completions over `fetch` (no SDK): configurable base URL (default `https://api.openai.com/v1`), model (free text, default `gpt-4.1`, vision capable), optional organisation; Azure mode = `{endpoint}/openai/deployments/{deployment}/chat/completions?api-version=` (default `2024-10-21`) with the `api-key` header. Images go as base64 data URLs after `prepareImage` (EXIF auto-rotate). Structured output = strict `json_schema` built from the zod schemas (`toStrictSchema`: all props required, optional -> nullable, records -> entry arrays, validation keywords dropped, decoded back before zod validates); an endpoint that rejects it falls back to `json_object` with the schema in the prompt, and a rejected `max_completion_tokens`/`max_tokens` flips to the other. New error codes `PROVIDER_NOT_CONFIGURED`, `MODEL_NOT_FOUND`, `PROVIDER_UNREACHABLE`; 401/403 = key rejected, 404 = model not found, 429 = rate limited (insufficient quota not retried), network = unreachable. Keys are redacted from error text. `ping()` powers Test connection. Live behaviour against real OpenAI is untested (tests use a fake fetch and a local stub server).

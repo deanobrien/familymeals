@@ -15,6 +15,7 @@ import { getRequirementSource } from '../shopping/approved-plan-source';
 import { buildRequirementsForMeals } from '../shopping/plan-requirements';
 import { getShoppingRepository } from '../shopping/repository';
 import { generateFromPlan } from '../shopping/service';
+import { createSupabaseMealPlanRepository, createSupabasePlanRecipeSource, useSupabaseBackend } from '../supabase/backend';
 
 export const DEMO_HOUSEHOLD_ID = 'demo-household';
 
@@ -82,7 +83,10 @@ export function createPlanServices(opts: {
   buildRequirements?: CostService['buildRequirements'];
 } = {}): PlanServices {
   const household = opts.household ?? demoHousehold();
-  const recipes = opts.recipes ?? new RepositoryPlanRecipeSource(getRecipeRepository(), (r) => getRecipeCalculator().nutritionPerServing(r));
+  const supabase = useSupabaseBackend();
+  const recipes = opts.recipes ?? (supabase
+    ? createSupabasePlanRecipeSource()
+    : new RepositoryPlanRecipeSource(getRecipeRepository(), (r) => getRecipeCalculator().nutritionPerServing(r)));
   const households: HouseholdRepo = {
     getHousehold: async (id) => (id === household.id ? structuredClone(household) : null),
     // TODO(Supabase): per-member favourites. Demo: Lauren's favourites are the household favourites.
@@ -100,7 +104,7 @@ export function createPlanServices(opts: {
     costs: opts.buildRequirements ? { ...createCostService(recipes), buildRequirements: opts.buildRequirements } : createCostService(recipes),
     proposals: new InMemoryProposalStore(),
   });
-  return { household, households, recipes, plans: opts.plans ?? new InMemoryMealPlanRepository(), orchestrator, newId: () => crypto.randomUUID(), now: () => new Date() };
+  return { household, households, recipes, plans: opts.plans ?? (supabase ? createSupabaseMealPlanRepository() : new InMemoryMealPlanRepository()), orchestrator, newId: () => crypto.randomUUID(), now: () => new Date() };
 }
 
 const g = globalThis as { __frPlanServicesByHousehold?: Map<string, PlanServices> };
@@ -115,7 +119,7 @@ export function getPlanServicesFor(householdId: string): PlanServices {
   if (!svc) {
     svc = createPlanServices({
       household: demoHousehold(householdId),
-      plans: getPlanStore(),
+      ...(useSupabaseBackend() ? {} : { plans: getPlanStore() }),
       buildRequirements: async (_h, meals) => {
         const built = await buildRequirementsForMeals(meals, getRecipeRepository(), getIngredientCatalogue());
         return built.requirements.map((r) => ({
