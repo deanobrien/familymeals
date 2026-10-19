@@ -44,7 +44,7 @@ function defaultProvider(): AiProvider {
   return getAiProvider();
 }
 
-function toError(e: unknown): { status: number; error: PipelineError } {
+export function toError(e: unknown): { status: number; error: PipelineError } {
   if (e instanceof AiError) {
     // A mock in production means "no provider set up": send the owner to Settings rather than a dead end.
     const code = e.code === 'MOCK_FORBIDDEN' ? 'PROVIDER_NOT_CONFIGURED' : e.code;

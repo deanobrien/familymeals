@@ -4,8 +4,10 @@ import receiptFx from '../fixtures/receipt-parse.json' with { type: 'json' };
 import tagFx from '../fixtures/tag-suggestion.json' with { type: 'json' };
 import planFx from '../fixtures/plan-constraints.json' with { type: 'json' };
 import subsFx from '../fixtures/substitutions.json' with { type: 'json' };
+import scanFx from '../fixtures/pantry-scan.json' with { type: 'json' };
 import { AiError } from './errors.js';
-import { prepareImage, prepareImages } from './image.js';
+import { DEFAULT_IMAGE_LIMITS, prepareImage, prepareImages } from './image.js';
+import { PantryScanSchema, SCAN_MAX_IMAGES, normaliseScan, type PantryScanContext } from './pantry-scan.js';
 import type { AiProvider, CallContext, ImageInput, MatchCandidate, SubstitutionRequest, TaggableRecipe } from './provider.js';
 import {
   IngredientMatchSchema, PlanConstraintsSchema, ReceiptParseSchema, RecipeExtractionSchema,
@@ -97,6 +99,39 @@ export class MockAiProvider implements AiProvider {
           : { line, candidateId: null, confidence: 0 };
       }),
     });
+  }
+
+  /**
+   * Deterministic sample scan. Relative dates in the fixture ("+2d") resolve against `context.today`.
+   * A close-up (`focusItem`) returns that one item with a readable use-by date so the close-up flow can be exercised.
+   */
+  async scanPantry(images: ImageInput[], context: PantryScanContext = {}, ctx?: CallContext) {
+    await this.pre('scanPantry', ctx);
+    let count = images.length;
+    if (this.o.validateImages) count = (await prepareImages(images, { ...DEFAULT_IMAGE_LIMITS, maxImages: SCAN_MAX_IMAGES })).length;
+    const today = context.today && /^\d{4}-\d{2}-\d{2}$/.test(context.today) ? context.today : new Date().toISOString().slice(0, 10);
+    const resolve = (v: string): string => {
+      const m = /^\+(\d+)d$/.exec(v);
+      if (!m) return v;
+      const d = new Date(`${today}T00:00:00Z`);
+      d.setUTCDate(d.getUTCDate() + Number(m[1]));
+      return d.toISOString().slice(0, 10);
+    };
+    if (context.focusItem?.trim()) {
+      return normaliseScan(PantryScanSchema.parse({
+        items: [{
+          name: context.focusItem.trim().slice(0, 120), form: 'chilled', packaging: 'pack', count: 1,
+          dates: { useBy: resolve('+3d'), legible: true, needsCloseUp: false }, confidence: 0.96, frameRefs: [1],
+        }],
+        warnings: [],
+      }), count);
+    }
+    const raw = clone(scanFx) as { items: Array<{ dates: { useBy?: string; bestBefore?: string } }>; warnings: string[] };
+    for (const it of raw.items) {
+      if (it.dates.useBy) it.dates.useBy = resolve(it.dates.useBy);
+      if (it.dates.bestBefore) it.dates.bestBefore = resolve(it.dates.bestBefore);
+    }
+    return normaliseScan(PantryScanSchema.parse(raw), count);
   }
 
   async ping() {

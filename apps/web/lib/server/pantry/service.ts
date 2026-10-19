@@ -9,6 +9,8 @@ import {
   type ActionResult, type BadgeView, type CategoryView, type ExpiringView, type ItemView, type LeftoverView,
   type PantrySettings, type PantryView, type PendingAdjustmentView, type PurchaseMode, type SuggestionView,
 } from '../../pantry/types';
+import { planScanAdditions, type ScanAddition } from '../../pantry/scan-apply';
+import type { ScanCommitRow, ScanPreviewLine } from '../../pantry/scan-types';
 import type { IngredientLookup } from './ingredients';
 import type { PantryRepository } from './repository';
 import type { LeftoverSource, PurchaseEventSource, RecipeSummarySource } from './sources';
@@ -34,6 +36,7 @@ const fail = (error: string): ActionResult => ({ ok: false, error });
 const ok = (message?: string): ActionResult => ({ ok: true, ...(message ? { message } : {}) });
 const MODES: readonly PurchaseMode[] = ['off', 'suggest', 'auto'];
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const MAX_SCAN_ROWS = 60;
 
 function validDate(d: string): boolean {
   if (!ISO_DATE.test(d)) return false;
@@ -67,6 +70,27 @@ export function expiryBadge(expiry: string, now: string): BadgeView {
 
 export function createPantryService(deps: PantryDeps) {
   const { repo, ingredients } = deps;
+
+  /** Validate client-supplied scan rows (never trusted) and resolve names; first problem wins. */
+  function resolveScanRows(rows: readonly ScanCommitRow[]): { ok: true; rows: ScanAddition[] } | { ok: false; error: string } {
+    if (!Array.isArray(rows) || rows.length > MAX_SCAN_ROWS) return { ok: false, error: `You can add up to ${MAX_SCAN_ROWS} items at a time.` };
+    const out: ScanAddition[] = [];
+    for (const r of rows) {
+      const ing = typeof r?.ingredientId === 'string' ? ingredients.get(r.ingredientId) : undefined;
+      if (typeof r?.ingredientId === 'string' && !ing) return { ok: false, error: 'One of the ingredients is unknown. Please rescan or choose it again.' };
+      const name = (ing?.name ?? (typeof r?.name === 'string' ? r.name.trim() : '')).slice(0, 80);
+      const label = name || 'An item';
+      if (!name) return { ok: false, error: 'Choose an ingredient or type a name for every item.' };
+      const bad = typeof r.value === 'number' ? validateQuantity(r.value, String(r.unit)) : 'Enter a quantity as a number.';
+      if (bad) return { ok: false, error: `${label}: ${bad}` };
+      if (r.expiry !== undefined && (typeof r.expiry !== 'string' || !validDate(r.expiry))) return { ok: false, error: `${label}: the date must be a valid date.` };
+      out.push({
+        key: String(r.key), name, value: r.value, unit: r.unit,
+        ...(ing ? { ingredientId: ing.id } : {}), ...(r.expiry ? { expiry: r.expiry } : {}),
+      });
+    }
+    return { ok: true, rows: out };
+  }
 
   const ctxFor = (settings: PantrySettings): EngineCtx =>
     makeCtx({ now: deps.now(), staleAfterDays: settings.staleAfterDays, ...(deps.newId ? { newId: deps.newId } : {}), ...(deps.converter ? { converter: deps.converter } : {}) });
@@ -279,6 +303,30 @@ export function createPantryService(deps: PantryDeps) {
     },
 
     searchIngredients: (query: string) => ingredients.search(query, 8),
+
+    /**
+     * Scan review: what confirming these rows WOULD do, by running the engine's addStock over a copy of the stock.
+     * Read-only (D84): nothing is saved.
+     */
+    async previewScan(householdId: Uuid, rows: readonly ScanCommitRow[]): Promise<{ ok: true; lines: ScanPreviewLine[] } | { ok: false; error: string }> {
+      const adds = resolveScanRows(rows);
+      if (!adds.ok) return adds;
+      const settings = await repo.getSettings(householdId);
+      const items = await repo.listItems(householdId);
+      return { ok: true, lines: planScanAdditions(items, adds.rows, householdId, ctxFor(settings)).lines };
+    },
+
+    /** Scan confirm: validate every row first, then write ONE ledger update (all rows or none). */
+    async applyScan(householdId: Uuid, rows: readonly ScanCommitRow[]): Promise<ActionResult> {
+      const adds = resolveScanRows(rows);
+      if (!adds.ok) return fail(adds.error);
+      if (adds.rows.length === 0) return fail('Nothing to add. Tick at least one item.');
+      const settings = await repo.getSettings(householdId);
+      const items = await repo.listItems(householdId);
+      const plan = planScanAdditions(items, adds.rows, householdId, ctxFor(settings));
+      await repo.replaceItems(householdId, plan.items);
+      return ok(`Added ${adds.rows.length} item${adds.rows.length === 1 ? '' : 's'} to your pantry`);
+    },
   };
 }
 

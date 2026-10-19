@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { getCurrentHouseholdId, getPantryService } from '../../lib/server/pantry/deps';
 import { AddItem } from './add-item';
 import { LeftoversPanel, PendingPurchases, UseWhatIHave } from './insights';
@@ -14,6 +15,9 @@ export default async function PantryPage() {
       <header className={s.section}>
         <h1>Pantry</h1>
         <p className={s.lead}>What you have in, what needs using up, and what you could cook with it.</p>
+        <div>
+          <Link className="fr-btn fr-btn--secondary fr-btn--md" href="/pantry/scan">Scan groceries</Link>
+        </div>
       </header>
       <StalePrompts items={view.staleItems} />
       <PendingPurchases pending={view.pending} mode={view.settings.purchaseMode} />

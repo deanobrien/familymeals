@@ -1,3 +1,4 @@
+import type { PantryScan, PantryScanContext } from './pantry-scan.js';
 import type {
   HouseholdContext, IngredientMatches, PlanConstraints, ReceiptParse, RecipeExtraction, Substitutions, TagSuggestion,
 } from './schemas.js';
@@ -37,6 +38,8 @@ export interface AiProvider {
   parsePlanPrompt(prompt: string, householdContext: HouseholdContext, ctx?: CallContext): Promise<PlanConstraints>;
   suggestIngredientMatches(lines: string[], candidates: MatchCandidate[], ctx?: CallContext): Promise<IngredientMatches>;
   suggestSubstitutions(req: SubstitutionRequest, ctx?: CallContext): Promise<Substitutions>;
+  /** Photos / video frames of a kitchen -> de-duplicated items with counts, pack sizes and (only if legible) dates. */
+  scanPantry(images: ImageInput[], context?: PantryScanContext, ctx?: CallContext): Promise<PantryScan>;
   /** Optional live connectivity check (credentials + endpoint + model) used by Settings > Test connection. */
   ping?(): Promise<{ model: string }>;
 }
