@@ -6,7 +6,7 @@ import type { PlanDoc } from '../../plan/types';
 import * as h from './handlers';
 import { InMemoryPlanRecipeSource, loadFixtureRecipes, type PlanRecipe } from './recipe-source';
 import { createPlanServices } from './services';
-import { createRoundRobinSolver } from './solver-adapter';
+import { createEngineSolver, quickMealDates, toEngineCandidate, toEngineConstraints } from './engine-solver';
 
 const WEEK = '2026-10-19';
 const mockAi = (): AiProvider => createAiProvider({ AI_PROVIDER: 'mock', NODE_ENV: 'test' });
@@ -94,7 +94,8 @@ describe('prompt flow with mock AI', () => {
     expect(p.slots).toHaveLength(7);
     expect(p.reimposedExclusions).toContain('peanuts');
     expect(p.report.length).toBeGreaterThan(0);
-    expect(p.explanations.join(' ')).toMatch(/cannot be cooked|divide exactly/);
+    // engine planner explains proportion rounding (report detail or explanation)
+    expect([...p.explanations, ...p.report.map((r) => r.detail)].join(' ')).toMatch(/rounded to whole meals|cannot be cooked|divide exactly/);
     // the mock returns half-vegetarian proportions: meat + vegetarian targets add to 7
     expect(p.report.some((r) => /meals/.test(r.constraint))).toBe(true);
     // Lauren is mentioned but the demo household resolves her; no unresolved-member message
@@ -161,32 +162,61 @@ describe('prompt flow with mock AI', () => {
   });
 });
 
-describe('round-robin solver adapter', () => {
+describe('engine solver adapter (@fr/engine/planner)', () => {
   const cands = loadFixtureRecipes().filter((r) => r.mealTypes.includes('dinner')).map((r) => ({
     id: r.id, title: r.title, ingredientNames: r.ingredientNames, tags: r.tags, mealTypes: r.mealTypes,
     dietCategory: r.dietCategory, costPence: r.costPerServingPence == null ? null : r.costPerServingPence * 4,
   }));
-  const solver = createRoundRobinSolver();
+  const base = { includeTags: [], excludeIngredients: [], favouritesOf: [] };
 
-  it('honours rounded diet proportions and flags uncosted budget honestly', async () => {
-    const res = await solver.solve(
-      { days: 7, mealTypes: ['dinner'], dietProportions: { vegetarian: 0.5, meat: 0.5 }, includeTags: [], excludeIngredients: [], favouritesOf: [], budgetPence: 6000 },
-      cands, { weekStart: WEEK, servings: 4 },
+  it('maps AI constraints onto the engine schema', () => {
+    const e = toEngineConstraints(
+      { ...base, days: 7, mealTypes: ['dinner'], dietProportions: { vegetarian: 0.5, meat: 0 }, budgetPence: 6000, quickMealDays: 2, excludeIngredients: ['peanuts'] },
+      { weekStart: WEEK, servings: 4 },
     );
+    expect(e).toMatchObject({ startDate: WEEK, days: 7, servings: 4, budgetPence: 6000, excludeTerms: ['peanuts'] });
+    expect(e.dietProportions).toEqual({ vegetarian: { fraction: 0.5 } });
+    expect(e.quickMeals?.dates).toEqual(['2026-10-19', '2026-10-20']); // Mon, Tue
+    expect(quickMealDates('2026-10-24', 3, 3)).toEqual(['2026-10-24', '2026-10-25', '2026-10-26']); // Sat, Sun, Mon
+  });
+
+  it('converts plan-servings cost to per-serving and drops candidates without a diet category', () => {
+    expect(toEngineCandidate({ id: 'a', title: 'A', ingredientNames: [], tags: [], mealTypes: ['dinner'], dietCategory: 'fish', costPence: 1000 }, 4)?.estCostPerServingPence).toBe(250);
+    expect(toEngineCandidate({ id: 'b', title: 'B', ingredientNames: [], tags: [], mealTypes: ['dinner'] }, 4)).toBeNull();
+  });
+
+  it('fills a week deterministically and flags uncosted budget honestly', async () => {
+    const solver = createEngineSolver();
+    const c = { ...base, days: 7, mealTypes: ['dinner' as const], dietProportions: { vegetarian: 0.5, meat: 0.5 }, budgetPence: 6000 };
+    const res = await solver.solve(c, cands, { weekStart: WEEK, servings: 4 });
     expect(res.slots).toHaveLength(7);
     expect(res.slots.every((s) => s.recipeId)).toBe(true);
-    const budget = res.report.find((r) => r.constraint === 'Budget');
-    expect(budget).toBeDefined();
-    expect(res.explanations.join(' ')).toMatch(/rounded/);
+    expect(res.report.find((r) => r.constraint === 'Budget')).toBeDefined();
+    const again = await solver.solve(c, cands, { weekStart: WEEK, servings: 4 });
+    expect(again.slots.map((s) => s.recipeId)).toEqual(res.slots.map((s) => s.recipeId));
+    if (cands.some((x) => x.costPence == null) && res.uncostedMeals.length) {
+      expect(res.report.find((r) => r.constraint === 'Budget')?.met).toBe(false);
+    }
+  });
+
+  it('never plans a recipe that hits a hard exclusion term', async () => {
+    const solver = createEngineSolver();
+    const res = await solver.solve({ ...base, days: 7, mealTypes: ['dinner'], excludeIngredients: ['fish'] }, cands, { weekStart: WEEK, servings: 4 });
+    const fishy = new Set(cands.filter((c) => c.ingredientNames.some((n) => /fish/i.test(n))).map((c) => c.id));
+    expect(res.slots.some((s) => s.recipeId && fishy.has(s.recipeId))).toBe(false);
   });
 
   it('leaves slots open when no recipe fits the meal type', async () => {
-    const res = await solver.solve({ days: 2, mealTypes: ['breakfast'], includeTags: [], excludeIngredients: [], favouritesOf: [] }, cands, { weekStart: WEEK, servings: 2 });
+    const res = await createEngineSolver().solve({ ...base, days: 2, mealTypes: ['breakfast'] }, cands, { weekStart: WEEK, servings: 2 });
+    expect(res.slots).toHaveLength(2);
     expect(res.slots.every((s) => s.recipeId === null)).toBe(true);
   });
 
-  it('validate rejects non-positive servings', async () => {
-    const v = await solver.validate({ slots: [{ date: WEEK, mealType: 'dinner', recipeId: 'x', servings: 0 }] }, { days: 7, mealTypes: ['dinner'], includeTags: [], excludeIngredients: [], favouritesOf: [] });
-    expect(v.ok).toBe(false);
+  it('validate rejects non-positive servings and unknown recipes', async () => {
+    const solver = createEngineSolver({ loadCandidates: async (ids) => cands.filter((c) => ids.includes(c.id)) });
+    const c = { ...base, days: 7, mealTypes: ['dinner' as const] };
+    expect((await solver.validate({ slots: [{ date: WEEK, mealType: 'dinner', recipeId: cands[0]!.id, servings: 0 }] }, c)).ok).toBe(false);
+    expect((await solver.validate({ slots: [{ date: WEEK, mealType: 'dinner', recipeId: 'nope', servings: 2 }] }, c)).ok).toBe(false);
+    expect((await solver.validate({ slots: [{ date: WEEK, mealType: 'dinner', recipeId: cands[0]!.id, servings: 2 }] }, c)).ok).toBe(true);
   });
 });

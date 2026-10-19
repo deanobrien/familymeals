@@ -5,7 +5,7 @@ import {
 } from '@fr/plan-orchestrator';
 import { InMemoryPlanRecipeSource, toRecipeRepo, type PlanRecipeSource } from './recipe-source';
 import { InMemoryMealPlanRepository, type MealPlanRepository } from './repository';
-import { createRoundRobinSolver } from './solver-adapter';
+import { createEngineSolver } from './engine-solver';
 
 export const DEMO_HOUSEHOLD_ID = 'demo-household';
 
@@ -73,11 +73,12 @@ export function createPlanServices(opts: { ai?: AiProvider; recipes?: PlanRecipe
     getFavouriteRecipeIds: async (_h, memberId) => (memberId === 'm-lauren' ? ['06-fish-pie', '08-chickpea-stew'] : []),
   };
   const ai = opts.ai ?? createAiProvider({ ...process.env, AI_PROVIDER: process.env.AI_PROVIDER ?? 'mock' });
+  const recipeRepo = toRecipeRepo(recipes);
   const orchestrator = new PlanOrchestrator({
     ai,
-    solver: createRoundRobinSolver(), // TODO: @fr/engine/planner solve/validatePlan
+    solver: createEngineSolver({ loadCandidates: (ids) => recipeRepo.getRecipes(household.id, ids) }),
     households,
-    recipes: toRecipeRepo(recipes),
+    recipes: recipeRepo,
     costs: createCostService(recipes),
     proposals: new InMemoryProposalStore(),
   });
