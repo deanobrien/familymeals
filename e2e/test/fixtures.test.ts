@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import sharp from 'sharp';
-import { HouseholdSeed, Quantity, ReceiptFixture, RecipeFixture, PurchaseEvent } from '../fixtures-src/contract.js';
+import { ReceiptParseLine } from '@fr/domain';
+import {
+  HouseholdSeed, Quantity, ReceiptFixture, RecipeFixture, PurchaseEvent, toCanonicalReceiptLines,
+} from '../fixtures-src/contract.js';
 
 const root = join(import.meta.dirname, '..', 'fixtures');
 const load = (...p: string[]) => JSON.parse(readFileSync(join(root, ...p), 'utf8'));
@@ -51,6 +54,13 @@ describe('receipt fixtures', () => {
     expect(r.lines.reduce((s, l) => s + l.linePricePence, 0)).toBe(r.totalPence);
     expect(r.lines.some((l) => l.expectedIngredient === null)).toBe(true);
     for (const l of r.lines) if (l.kind !== 'item') expect(l.linePricePence).toBeLessThan(0);
+  });
+  it.each(files)('%s maps onto the canonical @fr/domain receipt line (positive discountPence)', (f) => {
+    const r = ReceiptFixture.parse(load('receipts', f));
+    const { lines, orphanDiscountPence } = toCanonicalReceiptLines(r.lines);
+    expect(orphanDiscountPence).toBe(0);
+    for (const l of lines) ReceiptParseLine.parse(l);
+    expect(lines.reduce((s, l) => s + l.pricePence - l.discountPence, 0)).toBe(r.totalPence);
   });
   it('includes a multi-buy discount', () => {
     const kinds = files.flatMap((f) => ReceiptFixture.parse(load('receipts', f)).lines.map((l) => l.kind));
