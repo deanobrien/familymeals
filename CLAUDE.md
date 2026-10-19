@@ -17,6 +17,7 @@ Every lane must leave build, test, typecheck and lint green.
 pnpm workspace + Turborepo. Scope `@fr/*`. Packages export TS source directly (`main: src/index.ts`); `apps/web` consumes them via `transpilePackages`. Package `build` is a `tsc` type-check only (no emit).
 
 - `apps/web` - Next.js App Router, strict TS
+- `apps/mobile` - `@fr/mobile`, Expo SDK 58 + expo-router Android app (L14; mock DataSource, jest-expo tests, no `build`; `pnpm mobile:export` bundles; never import `@fr/ai`/`@fr/ui`; D27)
 - `packages/domain` - `@fr/domain` zod types/contracts (L1; CONTRACT-SEED conformance test, row schemas, RPC DTOs)
 - `packages/engine` - `@fr/engine`, pure TS, subpath exports `./units ./parse ./normalise ./scale ./aggregate ./cost ./nutrition ./planner ./receipt-match ./shopping ./pantry` (root export = L3 core). One shared `src/contract.ts` (CONTRACT-SEED copy; TODO re-export `@fr/domain`). Production unit conversion goes through `src/units/converter.ts` (`createQuantityConverter`, `createGramsConverter`) over L3 `convertQuantity`; pint = 568.26125 ml. Ranges: cost = max, nutrition = midpoint (estimate). Tests in `packages/engine/test/<module>/`; coverage thresholds (`pnpm --filter @fr/engine coverage`) apply to the L3 core dirs
 - `packages/ai` - AI provider interface, Claude adapter, mock (SERVER-ONLY; `import 'server-only'` guard, ESLint blocks imports from apps/web outside `app/api/**` and `lib/server/**`)
