@@ -92,12 +92,28 @@ test.describe('route protection (Supabase env present, no session)', () => {
 });
 
 test.describe('live Supabase flows', () => {
-  test.fixme('sign up -> confirm -> onboarding creates a household', async () => {});
-  test.fixme('sign in with wrong password shows a generic error', async () => {});
-  test.fixme('owner invites by link; invitee signs up and accepts; sees shared household', async () => {});
-  test.fixme('used, expired and revoked invites show the same invalid state', async () => {});
-  test.fixme('owner removes a member; removed member is redirected and sees no data', async () => {});
-  test.fixme('transfer ownership then former owner can leave', async () => {});
-  test.fixme('household pending deletion shows the read-only banner and hides write controls', async () => {});
-  test.fixme('household switcher changes the active household and persists across reload', async () => {});
+  test('sign up -> confirm -> onboarding creates a household', async () => {
+    test.fixme(true, 'needs live Supabase');
+  });
+  test('sign in with wrong password shows a generic error', async () => {
+    test.fixme(true, 'needs live Supabase');
+  });
+  test('owner invites by link; invitee signs up and accepts; sees shared household', async () => {
+    test.fixme(true, 'needs live Supabase');
+  });
+  test('used, expired and revoked invites show the same invalid state', async () => {
+    test.fixme(true, 'needs live Supabase');
+  });
+  test('owner removes a member; removed member is redirected and sees no data', async () => {
+    test.fixme(true, 'needs live Supabase');
+  });
+  test('transfer ownership then former owner can leave', async () => {
+    test.fixme(true, 'needs live Supabase');
+  });
+  test('household pending deletion shows the read-only banner and hides write controls', async () => {
+    test.fixme(true, 'needs live Supabase');
+  });
+  test('household switcher changes the active household and persists across reload', async () => {
+    test.fixme(true, 'needs live Supabase');
+  });
 });
