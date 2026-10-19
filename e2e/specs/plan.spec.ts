@@ -151,7 +151,7 @@ test('constraint chips: review the AI reading, correct it, re-plan without anoth
   const chips = page.getByTestId('constraint-chips');
   await expect(chips).toBeVisible();
   await expect(chips.getByLabel('Servings')).toHaveValue('4');
-  await expect(chips.getByLabel('Budget in pounds')).toHaveValue('60'); // the mock reads the example prompt
+  await expect(chips.getByLabel('Budget in pounds')).toHaveValue('100'); // the mock reads the example prompt (£100)
   await expect(chips).toContainText('Vegetarian: about 50%');
   await expect(chips).toContainText('peanuts'); // household exclusion, locked
   await expect(chips.getByTestId('constraint-chip').filter({ hasText: 'peanuts' })).toContainText('locked');
