@@ -90,7 +90,6 @@ SQL (`metric_base_factor`, `shopping_item_outstanding`) converts mg/g/kg and ml/
 
 `@fr/ui` imports `ValueStatus`/`PriceKind` types from `@fr/domain` (type-only; re-exported unchanged, `@fr/domain` added as a dependency). `e2e/fixtures-src/contract.ts` now imports Uuid/IsoDate/Unit/Quantity/PurchaseEvent/RecipeIngredientLine etc. from `@fr/domain`; QA-only shapes (ExtractedRecipe, ReceiptLine with negative discount lines and expected-* fields, HouseholdSeed) stay local, with `toCanonicalReceiptLines()` mapping `rawText/quantity/linePricePence` onto `ReceiptParseLine` (negative discount lines become positive `discountPence` on the previous item line). Fixture JSON shapes did not change, so nothing was regenerated.
 
-<<<<<<< HEAD
 ## D27 Merge batch 4: app lanes + one Next config (2026-10-19)
 
 Merged into `prj018/w0a-skeleton`: L1 (domain/schema), L23 (home/settings/privacy), L12 (recipe library), L13 (photo import + `@fr/recipe-import`), L15/L16 (planner + `@fr/plan-orchestrator`), L22 (pantry UI). `apps/web/next.config.mjs` is one config: `transpilePackages` lists every workspace package apps/web imports (`@fr/ai`, `@fr/domain`, `@fr/engine`, `@fr/plan-orchestrator`, `@fr/recipe-import`, `@fr/refdata`, `@fr/ui`) and one webpack `extensionAlias` (`.js -> .ts/.tsx/.js`, `.mjs -> .mts/.mjs`) because `@fr/recipe-import` uses NodeNext-style `./x.js` specifiers. `apps/web/vitest.config.ts` has one `server-only` alias (`lib/server/import/server-only-stub.ts`). `pnpm-lock.yaml` conflicts resolved by regenerating with `pnpm install`. `.claude/` git-ignored.
@@ -110,8 +109,7 @@ The library repository (`lib/recipes/factory.ts`, `InMemoryRecipeRepository`) is
 ## D31 Navigation
 
 `@fr/ui` `NavKey` adds `pantry` and `receipts`; `DEFAULT_NAV` = Home, Recipes, Meal planner, Shopping list, Pantry, Receipts, Household, Settings. `NavItem.mobile: false` keeps Receipts out of the phone bottom bar (7 items; grid now sized by item count). `/receipts` is a placeholder link (404) until the receipts lane merges.
-=======
-## D27 L14 mobile: apps/mobile (2026-10-19)
+
+## D27m L14 mobile: apps/mobile (2026-10-19)
 
 Expo SDK 58 app merged as `@fr/mobile`. **Linker: the workspace keeps pnpm default isolated linker** (no `node-linker=hoisted`, no root `.npmrc` change, web/Next untouched). Expo SDK 58 / Metro supports isolated installs (symlinks + package exports on by default); `expo export`, jest-expo and expo-doctor all pass without hoisting, so the L14 `.npmrc` was dropped and no `public-hoist-pattern` entries were needed. `metro.config.js` relies on Expo automatic monorepo config and only adds the `@fr/ai` guard (throws); ESLint also forbids `@fr/ai` and `@fr/ui` in `apps/mobile`. `src/contract.ts` deleted: shared types come from `@fr/domain` (type-only imports); Household/Recipe/ShoppingListItem/UserSession stay mobile-local in `src/viewModels.ts`. `@fr/engine` not added (unused). Workspace typescript (~5.7) and react overrides apply to mobile (excluded from `expo install --check` via `expo.install.exclude`). Mobile has no `build` script so turbo `build` skips it; `typecheck` and `test` (jest-expo) run in root `pnpm typecheck` / `pnpm test`. Bundle check: `pnpm mobile:export` (output `apps/mobile/dist`, git-ignored; delete after).
->>>>>>> worktree-agent-a4f83e6534a921abc
