@@ -28,3 +28,7 @@ Known caveats:
 4. L18: library/planner costs and nutrition from `@fr/engine/cost` / `/nutrition` with the shared price store (shopping basket already does).
 5. Receipt pantry adds -> pantry service; household-scoped recipes; real member profiles for the planner.
 6. Owner decisions still open: Git host/remote (then run the CI workflow), Supabase cloud project, Anthropic/OpenAI keys, product name.
+
+## AI photo import lane (D40-D42)
+
+Done: OpenAI/Azure adapter, Settings > AI provider (encrypted key), richer extraction (multi-page, rotation, bracket quantities, printed nutrition/allergens, staples, source), cover images, review/detail display. Untested: live extraction against the real OpenAI API (needs the owner's key). Configure: Settings > AI provider > OpenAI, paste key, Save, Test connection, then Recipes > Import.

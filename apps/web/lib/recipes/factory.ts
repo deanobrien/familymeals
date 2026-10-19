@@ -2,6 +2,7 @@
 // TODO(L1): when RECIPE_REPOSITORY=supabase, return the DB-backed implementation.
 // This is the ONE recipe store: the library (L12), photo import's RecipeSink (L13), the planner and pantry
 // recipe sources all read/write it (DECISIONS D30).
+import { getRecipeCalculator } from '../server/calc';
 import { getIngredientCatalogue } from '../server/refdata/catalogue';
 import { InMemoryRecipeRepository } from './memory-repository';
 import type { RecipeRepository } from './repository';
@@ -33,7 +34,7 @@ export function getRecipeRepository(): RecipeRepository {
   if (kind !== 'memory') {
     throw new Error(`RECIPE_REPOSITORY=${kind} is not implemented yet (only "memory")`);
   }
-  const repo = new InMemoryRecipeRepository(withCanonicalIngredients(loadSeedRecipes()));
+  const repo = new InMemoryRecipeRepository(withCanonicalIngredients(loadSeedRecipes()), getRecipeCalculator());
   g[KEY] = repo;
   return repo;
 }

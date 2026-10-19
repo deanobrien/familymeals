@@ -37,5 +37,5 @@ export async function POST(req: Request) {
   if (!out.ok) {
     return NextResponse.json({ error: out.error, ...(out.uploadId ? { uploadId: out.uploadId } : {}) }, { status: out.status });
   }
-  return NextResponse.json({ uploadId: out.uploadId, draft: out.draft, existing: out.existing });
+  return NextResponse.json({ uploadId: out.uploadId, draft: out.draft, existing: out.existing, ...(out.provider ? { provider: out.provider } : {}) });
 }

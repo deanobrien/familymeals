@@ -1,4 +1,5 @@
 // Client-safe plan types (no server imports). Shared by the planner UI and the server actions.
+import type { NutrientMap } from '@fr/engine/nutrition';
 import type { PlanProposal } from '@fr/plan-orchestrator';
 
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
@@ -48,6 +49,10 @@ export interface RecipeLite {
   /** null = unknown; never 0. */
   costPerServingPence: number | null;
   costKind: 'estimate' | null;
+  /** true when some of the recipe's ingredients are unpriced, so the cost is a lower bound. */
+  costPartial?: boolean;
+  /** Calculated per-serving nutrition (CoFID, D61); null/undefined = not calculated. Unknown values stay unknown. */
+  nutritionPerServing?: NutrientMap | null;
   /** Household hard exclusions this recipe hits (blocks planning it). */
   excludedBy: string[];
 }

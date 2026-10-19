@@ -8,6 +8,8 @@
  */
 const nextConfig = {
   reactStrictMode: true,
+  // Lets a second dev server (e.g. the e2e run on another port) use its own build dir so it never clobbers `pnpm dev`.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   transpilePackages: [
     '@fr/ai',
     '@fr/domain',

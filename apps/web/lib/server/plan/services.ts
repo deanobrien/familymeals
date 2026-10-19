@@ -5,6 +5,7 @@ import {
   type CostService, type Household, type HouseholdRepo, type MealRef, type ShoppingRequirement,
 } from '@fr/plan-orchestrator';
 import { getRecipeRepository } from '../../recipes/factory';
+import { getRecipeCalculator } from '../calc';
 import { RepositoryPlanRecipeSource, toRecipeRepo, type PlanRecipeSource } from './recipe-source';
 import { getPlanStore, InMemoryMealPlanRepository, resetPlanStore, type MealPlanRepository } from './repository';
 import { createEngineSolver } from './engine-solver';
@@ -81,7 +82,7 @@ export function createPlanServices(opts: {
   buildRequirements?: CostService['buildRequirements'];
 } = {}): PlanServices {
   const household = opts.household ?? demoHousehold();
-  const recipes = opts.recipes ?? new RepositoryPlanRecipeSource(getRecipeRepository());
+  const recipes = opts.recipes ?? new RepositoryPlanRecipeSource(getRecipeRepository(), (r) => getRecipeCalculator().nutritionPerServing(r));
   const households: HouseholdRepo = {
     getHousehold: async (id) => (id === household.id ? structuredClone(household) : null),
     // TODO(Supabase): per-member favourites. Demo: Lauren's favourites are the household favourites.

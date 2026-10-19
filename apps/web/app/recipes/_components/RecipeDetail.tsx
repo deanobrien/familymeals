@@ -8,31 +8,19 @@ import {
   Button,
   ConfirmDialog,
   Icon,
-  NutritionTable,
   Stepper,
-  Tabs,
   formatMinutes,
-  formatPence,
   useToast,
 } from '@fr/ui';
-import { nutritionRows } from '../../../lib/recipes/nutrition';
+import type { RecipeCalculation } from '../../../lib/calc/types';
 import { scaleQuantityLabel, servingsFactor } from '../../../lib/recipes/scale';
-import {
-  costPerServing,
-  totalMinutes,
-  type RecipeView,
-} from '../../../lib/recipes/types';
+import { totalMinutes, type RecipeView } from '../../../lib/recipes/types';
 import { deleteRecipeAction, duplicateRecipeAction, toggleFavouriteAction } from '../actions';
 import styles from '../recipes.module.css';
+import { CostPanel } from './CostPanel';
+import { NutritionPanel } from './NutritionPanel';
 
-const PRICE_LABEL = {
-  user_confirmed: 'your price',
-  receipt: 'receipt price',
-  retailer_verified: 'retailer price',
-  generic_estimate: 'estimate',
-} as const;
-
-export function RecipeDetail({ recipe, justDuplicated = false }: { recipe: RecipeView; justDuplicated?: boolean }) {
+export function RecipeDetail({ recipe, calc, justDuplicated = false }: { recipe: RecipeView; calc: RecipeCalculation; justDuplicated?: boolean }) {
   const router = useRouter();
   const toast = useToast();
   const [servings, setServings] = useState(recipe.servings);
@@ -40,9 +28,6 @@ export function RecipeDetail({ recipe, justDuplicated = false }: { recipe: Recip
   const [pending, startTransition] = useTransition();
   const factor = servingsFactor(recipe.servings, servings);
   const total = totalMinutes(recipe);
-  const perServing = costPerServing(recipe);
-  const scaledTotal = recipe.cost.totalPence != null ? Math.round(recipe.cost.totalPence * factor) : null;
-  const priceTag = PRICE_LABEL[recipe.cost.kind];
 
   const fav = () =>
     startTransition(async () => {
@@ -145,37 +130,16 @@ export function RecipeDetail({ recipe, justDuplicated = false }: { recipe: Recip
       </div>
 
       <div className={styles.cols} style={{ marginTop: 'var(--fr-space-6)' }}>
-        <section className={styles.panel} aria-labelledby="cost-h">
-          <h2 id="cost-h">Cost</h2>
-          {perServing != null && scaledTotal != null ? (
-            <>
-              <p className={styles.costBig} data-testid="cost-per-serving">{formatPence(perServing)} per serving</p>
-              <p data-testid="cost-total">
-                {formatPence(scaledTotal)} for {servings} {servings === 1 ? 'serving' : 'servings'}{' '}
-                <Badge tone={recipe.cost.kind === 'generic_estimate' ? 'warning' : 'success'}>{priceTag}</Badge>
-              </p>
-              {recipe.cost.source && <p className="fr-muted">{recipe.cost.source}</p>}
-            </>
-          ) : (
-            <p className={styles.costBig} data-testid="cost-unknown">Cost unknown</p>
-          )}
-        </section>
-
-        <section className={styles.panel} aria-labelledby="nut-h">
-          <h2 id="nut-h">Nutrition</h2>
-          {recipe.nutritionPerServing.length === 0 && (
-            <p className="fr-muted">Nutrition has not been calculated for this recipe yet.</p>
-          )}
-          <Tabs
-            label="Nutrition basis"
-            items={[
-              { value: 'serving', label: 'Per serving', content: <NutritionTable caption="Nutrition per serving" rows={nutritionRows(recipe.nutritionPerServing, 1)} /> },
-              { value: 'recipe', label: 'Per recipe', content: <NutritionTable caption={`Nutrition per recipe (${recipe.servings} servings)`} rows={nutritionRows(recipe.nutritionPerServing, recipe.servings)} /> },
-            ]}
-          />
-          <p className="fr-muted" style={{ fontSize: 'var(--fr-text-xs)' }}>Estimates for information only, not medical advice.</p>
-        </section>
+        <CostPanel cost={calc.cost} servings={servings} factor={factor} />
+        <NutritionPanel nutrition={calc.nutrition} servings={servings} printed={recipe.printedNutrition ?? null} />
       </div>
+
+      {recipe.printedAllergens && recipe.printedAllergens.length > 0 && (
+        <p data-testid="printed-allergens">
+          <strong>Allergens printed on the card:</strong> {recipe.printedAllergens.join(', ')}
+          <span className="fr-muted" style={{ fontSize: 'var(--fr-text-xs)' }}> (as printed; check the packaging)</span>
+        </p>
+      )}
 
       {recipe.originalText && (
         <details className={styles.panel}>
