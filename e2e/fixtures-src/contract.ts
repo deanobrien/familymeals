@@ -1,54 +1,33 @@
-// zod mirror of ../CONTRACT-SEED.ts (QA-side validation only; L1 owns the real versions).
+// QA-side fixture contract. Shared shapes come from @fr/domain (single source of truth, merge batch 3);
+// only the QA-owned fixture shapes (expected extraction, receipt acceptance lines, household seed) live here.
 import { z } from 'zod';
+import {
+  DietCategory,
+  IsoDate,
+  IsoDateTime,
+  MealType,
+  Pence as DomainPence,
+  PriceKind,
+  PurchaseEvent,
+  Quantity as DomainQuantity,
+  QuantityKind,
+  RecipeIngredientLine,
+  SignedPence,
+  Unit,
+  Uuid,
+  type ReceiptParseLine,
+} from '@fr/domain';
 
-export const Uuid = z.string().uuid();
-export const IsoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-export const IsoDateTime = z.string().datetime();
-export const Pence = z.number().int();
+export { DietCategory, IsoDate, IsoDateTime, MealType, PriceKind, PurchaseEvent, QuantityKind, RecipeIngredientLine, Unit, Uuid };
 
-export const Unit = z.enum([
-  'mg', 'g', 'kg', 'ml', 'l', 'tsp', 'tbsp', 'cup', 'floz', 'pint',
-  'item', 'clove', 'slice', 'can', 'pack', 'bunch', 'sprig', 'stick',
-]);
-export const QuantityKind = z.enum(['exact', 'range', 'approximate', 'to_taste', 'unparsed']);
+/** Non-negative integer pence (domain). Signed lines use `SignedPence` below. */
+export const Pence = DomainPence;
 
-export const Quantity = z
-  .object({
-    kind: QuantityKind,
-    value: z.number().optional(),
-    min: z.number().optional(),
-    max: z.number().optional(),
-    unit: Unit.optional(),
-    approxLabel: z.string().optional(),
-    originalText: z.string().min(1),
-  })
-  .superRefine((q, ctx) => {
-    const bad = (m: string) => ctx.addIssue({ code: 'custom', message: m });
-    if (q.kind === 'exact' && q.value === undefined) bad('exact needs value');
-    if (q.kind === 'range') {
-      if (q.min === undefined || q.max === undefined) bad('range needs min+max');
-      else if (q.min > q.max) bad('min > max');
-    }
-    if (q.kind === 'approximate' && !q.approxLabel) bad('approximate needs approxLabel');
-    if (q.kind === 'approximate' && q.unit) bad('approximate must not carry a convertible unit');
-    if (q.kind === 'to_taste' && (q.value !== undefined || q.unit)) bad('to_taste has no value/unit');
-  });
-
-export const MealType = z.enum(['breakfast', 'lunch', 'dinner', 'snack']);
-export const DietCategory = z.enum(['meat', 'fish', 'vegetarian', 'vegan']);
-
-export const RecipeIngredientLine = z.object({
-  id: Uuid, recipeId: Uuid, ingredientId: Uuid.optional(),
-  quantity: Quantity, preparation: z.string().optional(),
-  optional: z.boolean(), order: z.number().int().nonnegative(),
-});
-
-export const PriceKind = z.enum(['user_confirmed', 'receipt', 'retailer_verified', 'generic_estimate']);
-export const PurchaseEvent = z.object({
-  id: Uuid, shoppingListItemId: Uuid, quantity: Quantity,
-  actualPricePence: Pence.optional(), receiptLineId: Uuid.optional(),
-  createdBy: Uuid, createdAt: IsoDateTime, voidedBy: Uuid.optional(),
-});
+/**
+ * Domain Quantity (ratified: approximate => approxLabel + no unit; to_taste/unparsed carry no value/unit) with the
+ * extra QA rule that originalText is never empty in fixtures.
+ */
+export const Quantity = DomainQuantity.refine((q) => q.originalText.length > 0, { message: 'originalText must be non-empty' });
 
 // ---- QA-owned fixture shapes (PROPOSED extraction/receipt output; L4/L13/L21 should align) ----
 
@@ -61,6 +40,7 @@ export const ExtractedIngredient = z.object({
 });
 export const ExtractedRecipe = z.object({
   title: z.string().min(1),
+  /** ratified: servings is a positive integer everywhere */
   servings: z.number().int().positive().optional(),
   ingredients: z.array(ExtractedIngredient).min(1),
   steps: z.array(z.string().min(1)).min(1),
@@ -76,15 +56,17 @@ export const RecipeFixture = z.object({
 });
 
 export const ReceiptLineKind = z.enum(['item', 'multibuy_discount', 'promo_discount']);
+/** QA acceptance line: carries expected-* fields, so it stays QA-only. Discount lines are NEGATIVE on this side. */
 export const ReceiptLine = z.object({
   id: Uuid,
   rawText: z.string(),
   kind: ReceiptLineKind,
   quantity: z.number().int().positive().default(1),
-  linePricePence: Pence, // negative for discounts
+  linePricePence: SignedPence, // negative for discounts
   expectedIngredient: z.string().nullable(), // null = must NOT match any recipe ingredient
   expectedPack: Quantity.optional(),
 });
+export type QaReceiptLine = z.infer<typeof ReceiptLine>;
 export const ReceiptFixture = z.object({
   image: z.string(),
   retailer: z.string(),
@@ -93,6 +75,32 @@ export const ReceiptFixture = z.object({
   totalPence: Pence,
   note: z.string(),
 });
+export type QaReceiptFixture = z.infer<typeof ReceiptFixture>;
+
+/**
+ * Map QA fixture lines onto the ratified canonical wire shape (`ReceiptParseLine` in @fr/domain):
+ *   rawText -> rawText, quantity -> quantity, linePricePence -> pricePence,
+ *   negative discount lines -> positive `discountPence` on the PREVIOUS item line (orphan discounts are dropped
+ *   from the output and reported via `orphanDiscountPence`).
+ */
+export function toCanonicalReceiptLines(lines: readonly QaReceiptLine[]): {
+  lines: ReceiptParseLine[];
+  orphanDiscountPence: number;
+} {
+  const out: ReceiptParseLine[] = [];
+  let orphan = 0;
+  for (const l of lines) {
+    if (l.kind === 'item') {
+      out.push({ rawText: l.rawText, quantity: l.quantity, pricePence: l.linePricePence, discountPence: 0 });
+    } else {
+      const saved = Math.abs(l.linePricePence);
+      const prev = out[out.length - 1];
+      if (prev) prev.discountPence += saved;
+      else orphan += saved;
+    }
+  }
+  return { lines: out, orphanDiscountPence: orphan };
+}
 
 export const HouseholdSeed = z.object({
   household: z.object({ id: Uuid, name: z.string() }),

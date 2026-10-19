@@ -1,3 +1,4 @@
+import type { PriceKind, ValueStatus } from '@fr/domain';
 import type { ComponentType, ReactNode } from 'react';
 import { Badge, Card } from './Surfaces';
 import { IconButton } from './Button';
@@ -203,8 +204,7 @@ export function MealSlot({ label, meal, onAdd, onOpen, onRemove }: MealSlotProps
 }
 
 /* ---------- NutritionTable ---------- */
-// TODO(@fr/domain): replace this structural copy of ValueStatus with an import from @fr/domain once L1 merges (do not widen locally).
-export type ValueStatus = 'known' | 'zero' | 'unknown' | 'unavailable';
+export type { ValueStatus };
 export interface NutritionRow {
   label: string;
   status: ValueStatus;
@@ -253,8 +253,7 @@ export function NutritionTable({ rows, caption = 'Nutrition per serving' }: { ro
 }
 
 /* ---------- CostBreakdown ---------- */
-// TODO(@fr/domain): replace this structural copy of PriceKind with an import from @fr/domain once L1 merges.
-export type PriceKind = 'user_confirmed' | 'receipt' | 'retailer_verified' | 'generic_estimate';
+export type { PriceKind };
 export interface CostLine {
   label: string;
   pricePence?: number | null;

@@ -58,6 +58,36 @@ No separate package: fixtures live in `e2e/fixtures`, specs in `e2e/specs`, help
 
 `@fr/ui` AppShell uses `DEFAULT_NAV` with label "Meal planner" at `/plan`; `PLACEHOLDER_NAV` in `@fr/domain` is now unused by the app except `APP_NAME` (L1 merge can drop it).
 
+<<<<<<< HEAD
 ## D15 @fr/engine merge (batch 2, 2026-10-19)
 
 One package, relative internal imports, extensionless; per-lane package.json/tsconfig/lockfiles dropped. Tests moved to `packages/engine/test/<module>/` (core = `test/core`, plus `test/integration` running parse -> match -> scale -> aggregate -> cost -> nutrition on `@fr/refdata`). Single `src/contract.ts` (CONTRACT-SEED, TODO `@fr/domain`). `UnitConverter` interface names are kept per module but are aliases of `QuantityConverter`/`GramsConverter` from `src/units/converter.ts`, a thin adapter over L3 `convertQuantity`; L10 `toBase` now delegates to L3 `toBaseAmount` (`PINT_ML` deleted, pint = 568.26125). Ranges: cost max, nutrition midpoint. zod ^4.6.7 as engine dependency (planner schemas only). Engine purity ESLint rule (no `node:*`, `sharp`, `@fr/ai`); ESLint ignores `.claude/**` (agent worktrees). Behaviour change: L7 `proportionalCost` treats a unitless count as `item` instead of `missing_unit`. Root index exports L3 core only because sub-modules reuse names. Package typecheck includes tests via `tsconfig.test.json`; `build` checks src only.
+=======
+## D20 Merge batch 3: @fr/domain + schema (2026-10-19)
+
+L1 merged: `packages/domain` (`@fr/domain`, zod 4; primitives, CONTRACT-SEED shapes, row schemas, RPC DTOs, db-mapping, tests incl. the compile-time CONTRACT-SEED conformance check), `packages/db` (PGlite migration + RLS runner, `tests/rls`, `tests/support/supabase-stub.sql`, `src/database.types.ts` placeholder) and `supabase/migrations/` (L1 0001-0013 renamed to `2026101900NN00_<name>.sql`, same order, after the baseline). The baseline's pgcrypto and 0001's pg_trgm do not conflict, so no extension line was removed; the PGlite runner loads both contrib extensions. `APP_NAME`/`PLACEHOLDER_NAV`/`PACKAGE_NAME` kept in `packages/domain/src/placeholder.ts` because apps/web imports them. Full schema notes: `supabase/SCHEMA.md`. (Numbered D20+ to avoid colliding with the parallel engine batch.)
+
+## D21 Owner decision A: purchase history survives account deletion
+
+`purchase_events.created_by` and `voided_by` are nullable with `ON DELETE SET NULL`; new `created_by_display_name` snapshot (BEFORE INSERT trigger: member display name, else person profile name). The append-only trigger allows the FK anonymisation UPDATE (actor columns only going to NULL). `@fr/domain`: `PurchaseEventRow.createdBy` nullable + `createdByDisplayName`; contract `PurchaseEvent.createdBy` unchanged (required for new events). Migration `20261019001400_owner_decisions.sql`.
+
+## D22 Owner decision B: household-custom ingredients deferred
+
+No change. `ingredients` stays reference-only; future work is a nullable `household_id` (shared-or-own). Recorded in SCHEMA.md.
+
+## D23 Owner decision C: SQL converts metric only
+
+SQL (`metric_base_factor`, `shopping_item_outstanding`) converts mg/g/kg and ml/l only; imperial/cup/tsp/tbsp/floz/pint conversion stays in `@fr/engine/units` (pint 568.26125 ml). Confirmed in SCHEMA.md; no code change.
+
+## D24 Owner decision D: read-only during the 14-day deletion grace
+
+`is_household_writable()` (active member + household `active`) replaces `is_household_member()` in every INSERT/UPDATE/DELETE policy (public + storage, rewritten dynamically in 0014; a test asserts none remain). Owner-gated writes also require `household_is_active()`; RPC-only writers (`record_purchase`, `void_purchase`, `create_invitation`, `accept_invitation`) are guarded by `guard_household_writable()` triggers for end-user calls. `cancel_household_deletion()`, `member_leave()`, consent withdrawal and service-role purge still work. Tests: `packages/db/tests/rls/004_owner_decisions.sql`.
+
+## D25 Ratified contract rules applied in @fr/domain
+
+`Quantity` adopts L6 strictness for `approximate` (needs `approxLabel`, no unit); servings were already positive integers. SQL `quantity_is_valid()` is deliberately left looser (zod is the stricter gate). Canonical receipt wire shape added as `ReceiptParseLine`/`ReceiptParse` (`{ rawText, quantity?, pricePence, discountPence >= 0 }`) - not named `ReceiptLine`, which is the persisted row schema. `ExtractedRecipe` and `PlanConstraints` are not in `@fr/domain` yet (arrive with the ai/engine swap).
+
+## D26 @fr/ui and e2e swapped to @fr/domain
+
+`@fr/ui` imports `ValueStatus`/`PriceKind` types from `@fr/domain` (type-only; re-exported unchanged, `@fr/domain` added as a dependency). `e2e/fixtures-src/contract.ts` now imports Uuid/IsoDate/Unit/Quantity/PurchaseEvent/RecipeIngredientLine etc. from `@fr/domain`; QA-only shapes (ExtractedRecipe, ReceiptLine with negative discount lines and expected-* fields, HouseholdSeed) stay local, with `toCanonicalReceiptLines()` mapping `rawText/quantity/linePricePence` onto `ReceiptParseLine` (negative discount lines become positive `discountPence` on the previous item line). Fixture JSON shapes did not change, so nothing was regenerated.
+>>>>>>> worktree-agent-a93189867514625b2
