@@ -1,0 +1,460 @@
+[
+  {
+    "id": "kit-tikka-wraps",
+    "title": "Chicken Tikka Wraps with Mango Chutney",
+    "servings": 2,
+    "lines": [
+      {
+        "name": "chicken breast",
+        "quantity": {
+          "kind": "exact",
+          "value": 300,
+          "unit": "g",
+          "originalText": "300g"
+        },
+        "optional": false
+      },
+      {
+        "name": "tortillas",
+        "quantity": {
+          "kind": "exact",
+          "value": 4,
+          "unit": "item",
+          "originalText": "4"
+        },
+        "optional": false
+      },
+      {
+        "name": "natural yoghurt",
+        "quantity": {
+          "kind": "exact",
+          "value": 150,
+          "unit": "g",
+          "originalText": "150g"
+        },
+        "optional": false
+      },
+      {
+        "name": "curry powder",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "tsp",
+          "originalText": "2 tsp"
+        },
+        "optional": false
+      },
+      {
+        "name": "turmeric",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "tsp",
+          "originalText": "1 tsp"
+        },
+        "optional": false
+      },
+      {
+        "name": "mango chutney",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "pack",
+          "originalText": "1 pot"
+        },
+        "optional": false
+      },
+      {
+        "name": "little gem lettuce",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "item",
+          "originalText": "1"
+        },
+        "optional": false
+      },
+      {
+        "name": "red onion",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "item",
+          "originalText": "1"
+        },
+        "optional": false
+      },
+      {
+        "name": "lime",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "item",
+          "originalText": "1"
+        },
+        "optional": false
+      },
+      {
+        "name": "fresh coriander",
+        "quantity": {
+          "kind": "exact",
+          "value": 10,
+          "unit": "g",
+          "originalText": "10g"
+        },
+        "optional": false
+      },
+      {
+        "name": "nigella seeds",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "tsp",
+          "originalText": "1 tsp"
+        },
+        "optional": false
+      },
+      {
+        "name": "vegetable oil",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "tbsp",
+          "originalText": "1 tbsp"
+        },
+        "optional": false
+      }
+    ]
+  },
+  {
+    "id": "kit-creamy-tomato-pasta",
+    "title": "Creamy Sun-dried Tomato Pasta",
+    "servings": 4,
+    "lines": [
+      {
+        "name": "pasta",
+        "quantity": {
+          "kind": "exact",
+          "value": 300,
+          "unit": "g",
+          "originalText": "300g"
+        },
+        "optional": false
+      },
+      {
+        "name": "chopped tomatoes",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "can",
+          "originalText": "1 x 400g tin"
+        },
+        "optional": false
+      },
+      {
+        "name": "tomato paste",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "tbsp",
+          "originalText": "2 tbsp"
+        },
+        "optional": false
+      },
+      {
+        "name": "sun-dried tomatoes",
+        "quantity": {
+          "kind": "exact",
+          "value": 50,
+          "unit": "g",
+          "originalText": "50g"
+        },
+        "optional": false
+      },
+      {
+        "name": "soft cheese",
+        "quantity": {
+          "kind": "exact",
+          "value": 100,
+          "unit": "g",
+          "originalText": "100g"
+        },
+        "optional": false
+      },
+      {
+        "name": "grated Italian hard cheese",
+        "quantity": {
+          "kind": "exact",
+          "value": 40,
+          "unit": "g",
+          "originalText": "40g"
+        },
+        "optional": false
+      },
+      {
+        "name": "basil",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "pack",
+          "originalText": "1 pack"
+        },
+        "optional": false
+      },
+      {
+        "name": "dried oregano",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "tsp",
+          "originalText": "1 tsp"
+        },
+        "optional": false
+      },
+      {
+        "name": "garlic",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "clove",
+          "originalText": "2 cloves"
+        },
+        "optional": false
+      },
+      {
+        "name": "chicken stock mix",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "pack",
+          "originalText": "1 sachet"
+        },
+        "optional": false
+      },
+      {
+        "name": "olive oil",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "tbsp",
+          "originalText": "1 tbsp"
+        },
+        "optional": false
+      }
+    ]
+  },
+  {
+    "id": "kit-smoky-chicken-rice",
+    "title": "Smoky Chicken Thighs with Sultana Rice",
+    "servings": 4,
+    "lines": [
+      {
+        "name": "chicken thigh",
+        "quantity": {
+          "kind": "exact",
+          "value": 500,
+          "unit": "g",
+          "originalText": "500g"
+        },
+        "optional": false
+      },
+      {
+        "name": "smoked paprika",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "tsp",
+          "originalText": "2 tsp"
+        },
+        "optional": false
+      },
+      {
+        "name": "basmati rice",
+        "quantity": {
+          "kind": "exact",
+          "value": 300,
+          "unit": "g",
+          "originalText": "300g"
+        },
+        "optional": false
+      },
+      {
+        "name": "sultanas",
+        "quantity": {
+          "kind": "exact",
+          "value": 40,
+          "unit": "g",
+          "originalText": "40g"
+        },
+        "optional": false
+      },
+      {
+        "name": "red pepper",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "item",
+          "originalText": "2"
+        },
+        "optional": false
+      },
+      {
+        "name": "red onion",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "item",
+          "originalText": "2"
+        },
+        "optional": false
+      },
+      {
+        "name": "chicken stock mix",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "pack",
+          "originalText": "1 sachet"
+        },
+        "optional": false
+      },
+      {
+        "name": "garlic",
+        "quantity": {
+          "kind": "exact",
+          "value": 3,
+          "unit": "clove",
+          "originalText": "3 cloves"
+        },
+        "optional": false
+      },
+      {
+        "name": "natural yoghurt",
+        "quantity": {
+          "kind": "exact",
+          "value": 100,
+          "unit": "g",
+          "originalText": "100g"
+        },
+        "optional": false
+      },
+      {
+        "name": "olive oil",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "tbsp",
+          "originalText": "1 tbsp"
+        },
+        "optional": false
+      }
+    ]
+  },
+  {
+    "id": "kit-sweet-potato-curry",
+    "title": "Sweet Potato and Chickpea Curry",
+    "servings": 4,
+    "lines": [
+      {
+        "name": "coconut milk",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "can",
+          "originalText": "1 x 400ml tin"
+        },
+        "optional": false
+      },
+      {
+        "name": "curry paste",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "tbsp",
+          "originalText": "2 tbsp"
+        },
+        "optional": false
+      },
+      {
+        "name": "sweet potato",
+        "quantity": {
+          "kind": "exact",
+          "value": 400,
+          "unit": "g",
+          "originalText": "400g"
+        },
+        "optional": false
+      },
+      {
+        "name": "baby spinach",
+        "quantity": {
+          "kind": "exact",
+          "value": 100,
+          "unit": "g",
+          "originalText": "100g"
+        },
+        "optional": false
+      },
+      {
+        "name": "chickpeas",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "can",
+          "originalText": "1 x 400g tin"
+        },
+        "optional": false
+      },
+      {
+        "name": "basmati rice",
+        "quantity": {
+          "kind": "exact",
+          "value": 200,
+          "unit": "g",
+          "originalText": "200g"
+        },
+        "optional": false
+      },
+      {
+        "name": "tomato puree",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "tbsp",
+          "originalText": "1 tbsp"
+        },
+        "optional": false
+      },
+      {
+        "name": "fresh coriander",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "bunch",
+          "originalText": "1 bunch"
+        },
+        "optional": false
+      },
+      {
+        "name": "ginger",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "item",
+          "originalText": "1 thumb"
+        },
+        "optional": false
+      },
+      {
+        "name": "garlic",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "clove",
+          "originalText": "2 cloves"
+        },
+        "optional": false
+      }
+    ]
+  }
+]

@@ -4,7 +4,7 @@
  */
 import { z } from 'zod';
 import {
-  IngredientForm, IsoDate, IsoDateTime, NutrientKey, NutrientUnit, Pence, PriceKind, Quantity, Uuid, ValueStatus,
+  CountUnit, IngredientForm, IsoDate, IsoDateTime, NutrientKey, NutrientUnit, Pence, PriceKind, Quantity, Uuid, ValueStatus,
 } from './primitives';
 
 export const CanonicalIngredient = z.object({
@@ -16,6 +16,8 @@ export const CanonicalIngredient = z.object({
   densityGPerMl: z.object({ value: z.number().positive(), source: z.string().min(1) }).optional(),
   /** e.g. 1 onion; always an estimate */
   unitWeightG: z.object({ value: z.number().positive(), source: z.string().min(1), estimate: z.literal(true) }).optional(),
+  /** Weight of ONE count unit other than 'item' (a can, clove, slice, bunch, sprig, stick, pack); always an estimate (D90). */
+  countUnitWeightsG: z.partialRecord(CountUnit, z.object({ value: z.number().positive(), source: z.string().min(1), estimate: z.literal(true) })).optional(),
   /** fresh vs ground coriander stay separate */
   form: IngredientForm.optional(),
 });

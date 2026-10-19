@@ -51,6 +51,13 @@
       "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
       "estimate": true
     },
+    "countUnitWeightsG": {
+      "bunch": {
+        "value": 100,
+        "source": "One bunch of 6-8 spring onions (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-352",
@@ -107,6 +114,13 @@
       "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
       "estimate": true
     },
+    "countUnitWeightsG": {
+      "clove": {
+        "value": 4,
+        "source": "One medium garlic clove, peeled (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-244",
@@ -140,7 +154,11 @@
     "category": "fruit_veg",
     "aliases": [
       "white potato",
-      "maincrop potato"
+      "maincrop potato",
+      "floury potato",
+      "maris piper",
+      "maris piper potato",
+      "king edward potato"
     ],
     "unitWeightG": {
       "value": 200,
@@ -286,6 +304,13 @@
       "source": "One celery stick, trimmed (estimate)",
       "estimate": true
     },
+    "countUnitWeightsG": {
+      "stick": {
+        "value": 40,
+        "source": "One celery stick, trimmed (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-636",
@@ -312,6 +337,11 @@
     "aliases": [
       "fennel bulb"
     ],
+    "unitWeightG": {
+      "value": 250,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-241",
@@ -323,7 +353,10 @@
     "slug": "broccoli",
     "name": "broccoli",
     "category": "fruit_veg",
-    "aliases": [],
+    "aliases": [
+      "tenderstem broccoli",
+      "broccoli florets"
+    ],
     "unitWeightG": {
       "value": 350,
       "source": "One medium head (estimate)",
@@ -399,6 +432,11 @@
     "aliases": [
       "sprouts"
     ],
+    "unitWeightG": {
+      "value": 20,
+      "source": "One sprout (estimate)",
+      "estimate": true
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-177",
@@ -411,8 +449,16 @@
     "name": "kale",
     "category": "fruit_veg",
     "aliases": [
-      "curly kale"
+      "curly kale",
+      "cavolo nero"
     ],
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 200,
+        "source": "One 200 g bag (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-234",
@@ -427,6 +473,13 @@
     "aliases": [
       "baby spinach"
     ],
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 200,
+        "source": "One 200 g bag (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-521",
@@ -454,7 +507,16 @@
       "bok choy",
       "pak choy"
     ],
-    "form": "fresh"
+    "unitWeightG": {
+      "value": 130,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-516",
+      "match": "proxy"
+    }
   },
   {
     "id": "7229ccfe-7ae5-56b3-a7cd-506f9307dad3",
@@ -486,6 +548,13 @@
       "arugula",
       "rucola"
     ],
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 60,
+        "source": "One 60 g bag (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-522",
@@ -498,6 +567,13 @@
     "name": "watercress",
     "category": "fruit_veg",
     "aliases": [],
+    "countUnitWeightsG": {
+      "bunch": {
+        "value": 85,
+        "source": "One bunch / 85 g bag (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh"
   },
   {
@@ -510,6 +586,13 @@
       "value": 300,
       "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
       "estimate": true
+    },
+    "countUnitWeightsG": {
+      "slice": {
+        "value": 5,
+        "source": "One thin slice (estimate)",
+        "estimate": true
+      }
     },
     "form": "fresh",
     "cofid": {
@@ -524,12 +607,22 @@
     "category": "fruit_veg",
     "aliases": [
       "tomatoes",
-      "fresh tomato"
+      "fresh tomato",
+      "plum tomato",
+      "vine tomato",
+      "salad tomato"
     ],
     "unitWeightG": {
       "value": 85,
       "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
       "estimate": true
+    },
+    "countUnitWeightsG": {
+      "slice": {
+        "value": 15,
+        "source": "One slice (estimate)",
+        "estimate": true
+      }
     },
     "form": "fresh",
     "cofid": {
@@ -543,12 +636,21 @@
     "name": "cherry tomato",
     "category": "fruit_veg",
     "aliases": [
-      "cherry tomatoes"
+      "cherry tomatoes",
+      "baby plum tomato",
+      "cherry vine tomato"
     ],
     "unitWeightG": {
       "value": 15,
       "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
       "estimate": true
+    },
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 250,
+        "source": "One 250 g punnet (estimate)",
+        "estimate": true
+      }
     },
     "form": "fresh",
     "cofid": {
@@ -570,7 +672,11 @@
       "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
       "estimate": true
     },
-    "form": "fresh"
+    "form": "fresh",
+    "cofid": {
+      "code": "13-524",
+      "match": "exact"
+    }
   },
   {
     "id": "122d8902-088b-5561-a129-4c4ad0cd2f98",
@@ -605,7 +711,11 @@
       "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
       "estimate": true
     },
-    "form": "fresh"
+    "form": "fresh",
+    "cofid": {
+      "code": "13-526",
+      "match": "exact"
+    }
   },
   {
     "id": "1d9f9443-4104-58cf-a40f-87c4999c68e9",
@@ -699,6 +809,13 @@
       "value": 20,
       "source": "One button/chestnut mushroom (estimate)",
       "estimate": true
+    },
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 250,
+        "source": "One 250 g punnet (estimate)",
+        "estimate": true
+      }
     },
     "form": "fresh",
     "cofid": {
@@ -834,6 +951,13 @@
     "name": "asparagus",
     "category": "fruit_veg",
     "aliases": [],
+    "countUnitWeightsG": {
+      "bunch": {
+        "value": 250,
+        "source": "One bunch / 250 g bundle (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-157",
@@ -863,6 +987,18 @@
     "name": "radish",
     "category": "fruit_veg",
     "aliases": [],
+    "unitWeightG": {
+      "value": 10,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "countUnitWeightsG": {
+      "bunch": {
+        "value": 150,
+        "source": "One bunch (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-656",
@@ -951,6 +1087,13 @@
       "source": "One whole medium lemon (estimate)",
       "estimate": true
     },
+    "countUnitWeightsG": {
+      "slice": {
+        "value": 8,
+        "source": "One thin slice (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "14-128",
@@ -967,6 +1110,13 @@
       "value": 60,
       "source": "One whole lime (estimate)",
       "estimate": true
+    },
+    "countUnitWeightsG": {
+      "slice": {
+        "value": 6,
+        "source": "One thin slice (estimate)",
+        "estimate": true
+      }
     },
     "form": "fresh",
     "cofid": {
@@ -1084,6 +1234,13 @@
     "name": "rhubarb",
     "category": "fruit_veg",
     "aliases": [],
+    "countUnitWeightsG": {
+      "stick": {
+        "value": 50,
+        "source": "One trimmed stalk (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "14-252",
@@ -1096,6 +1253,11 @@
     "name": "mango",
     "category": "fruit_veg",
     "aliases": [],
+    "unitWeightG": {
+      "value": 300,
+      "source": "Flesh of one medium mango (estimate)",
+      "estimate": true
+    },
     "form": "fresh",
     "cofid": {
       "code": "14-378",
@@ -1108,6 +1270,11 @@
     "name": "pineapple",
     "category": "fruit_veg",
     "aliases": [],
+    "unitWeightG": {
+      "value": 450,
+      "source": "Flesh of one medium pineapple (estimate)",
+      "estimate": true
+    },
     "form": "fresh",
     "cofid": {
       "code": "14-376",
@@ -1137,7 +1304,16 @@
     "name": "plum",
     "category": "fruit_veg",
     "aliases": [],
-    "form": "fresh"
+    "unitWeightG": {
+      "value": 60,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "14-372",
+      "match": "exact"
+    }
   },
   {
     "id": "681a0b55-4a5c-52b0-b83b-2604e8244469",
@@ -1148,7 +1324,16 @@
       "cantaloupe",
       "honeydew"
     ],
-    "form": "fresh"
+    "unitWeightG": {
+      "value": 800,
+      "source": "Flesh of one medium melon (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "14-354",
+      "match": "exact"
+    }
   },
   {
     "id": "ade1c18b-87f3-5f48-b0a4-0b4fd6a3389c",
@@ -1156,11 +1341,20 @@
     "name": "coconut milk",
     "category": "tinned_jarred",
     "aliases": [
-      "tinned coconut milk"
+      "tinned coconut milk",
+      "light coconut milk",
+      "full fat coconut milk"
     ],
     "densityGPerMl": {
       "value": 0.97,
       "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "countUnitWeightsG": {
+      "can": {
+        "value": 388,
+        "source": "Standard UK 400 ml tin; weight = 400 ml x density 0.97 g/ml (estimate)",
+        "estimate": true
+      }
     },
     "form": "canned",
     "cofid": {
@@ -1214,6 +1408,11 @@
     "aliases": [
       "apricots (dried)"
     ],
+    "unitWeightG": {
+      "value": 10,
+      "source": "One ready-to-eat dried apricot (estimate)",
+      "estimate": true
+    },
     "form": "dried",
     "cofid": {
       "code": "14-031",
@@ -1228,6 +1427,11 @@
     "aliases": [
       "medjool dates"
     ],
+    "unitWeightG": {
+      "value": 25,
+      "source": "One pitted medjool-type date (estimate)",
+      "estimate": true
+    },
     "form": "dried",
     "cofid": {
       "code": "14-394",
@@ -1240,6 +1444,11 @@
     "name": "prunes",
     "category": "baking",
     "aliases": [],
+    "unitWeightG": {
+      "value": 10,
+      "source": "One stoned prune (estimate)",
+      "estimate": true
+    },
     "form": "dried",
     "cofid": {
       "code": "14-231",
@@ -1253,7 +1462,11 @@
     "category": "meat_poultry",
     "aliases": [
       "chicken breast fillet",
-      "skinless chicken breast"
+      "skinless chicken breast",
+      "chicken fillets",
+      "chicken breast fillets",
+      "diced chicken breast",
+      "mini chicken fillets"
     ],
     "unitWeightG": {
       "value": 165,
@@ -1273,7 +1486,9 @@
     "category": "meat_poultry",
     "aliases": [
       "chicken thighs",
-      "boneless chicken thigh"
+      "boneless chicken thigh",
+      "chicken thigh fillets",
+      "diced chicken thigh"
     ],
     "unitWeightG": {
       "value": 110,
@@ -1313,7 +1528,11 @@
       "source": "One drumstick with bone (estimate)",
       "estimate": true
     },
-    "form": "fresh"
+    "form": "fresh",
+    "cofid": {
+      "code": "18-293",
+      "match": "proxy"
+    }
   },
   {
     "id": "ede6db38-36ca-5eab-bb0f-842d465389f9",
@@ -1321,7 +1540,16 @@
     "name": "chicken wings",
     "category": "meat_poultry",
     "aliases": [],
-    "form": "fresh"
+    "unitWeightG": {
+      "value": 40,
+      "source": "One chicken wing (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "18-295",
+      "match": "exact"
+    }
   },
   {
     "id": "0cfc4ca7-3ed4-5cc8-aed0-7d2cd5cfc079",
@@ -1360,7 +1588,8 @@
     "category": "meat_poultry",
     "aliases": [
       "diced beef",
-      "braising steak"
+      "braising steak",
+      "braising beef"
     ],
     "form": "fresh",
     "cofid": {
@@ -1521,12 +1750,27 @@
     "aliases": [
       "streaky bacon",
       "back bacon",
-      "bacon rashers"
+      "bacon rashers",
+      "bacon lardons",
+      "smoked bacon lardons",
+      "lardons"
     ],
     "unitWeightG": {
       "value": 30,
       "source": "One back bacon rasher (estimate)",
       "estimate": true
+    },
+    "countUnitWeightsG": {
+      "slice": {
+        "value": 30,
+        "source": "One back bacon rasher (estimate)",
+        "estimate": true
+      },
+      "pack": {
+        "value": 240,
+        "source": "One 8-rasher pack (estimate)",
+        "estimate": true
+      }
     },
     "form": "fresh",
     "cofid": {
@@ -1556,6 +1800,13 @@
     "aliases": [
       "cooked ham"
     ],
+    "countUnitWeightsG": {
+      "slice": {
+        "value": 15,
+        "source": "One thin slice of cooked ham (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "19-496",
@@ -1568,6 +1819,13 @@
     "name": "chorizo",
     "category": "meat_poultry",
     "aliases": [],
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 225,
+        "source": "One standard UK 225 g ring (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "19-516",
@@ -1595,6 +1853,11 @@
     "name": "duck breast",
     "category": "meat_poultry",
     "aliases": [],
+    "unitWeightG": {
+      "value": 170,
+      "source": "One duck breast (estimate)",
+      "estimate": true
+    },
     "form": "fresh",
     "cofid": {
       "code": "18-489",
@@ -1674,6 +1937,13 @@
       "tinned tuna",
       "canned tuna"
     ],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 112,
+        "source": "Typical UK 145 g tin, drained weight (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned",
     "cofid": {
       "code": "16-416",
@@ -1688,6 +1958,13 @@
     "aliases": [
       "tinned sardines"
     ],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 90,
+        "source": "Typical UK 120 g tin, drained weight (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned",
     "cofid": {
       "code": "16-424",
@@ -1702,6 +1979,11 @@
     "aliases": [
       "mackerel fillet"
     ],
+    "unitWeightG": {
+      "value": 130,
+      "source": "One mackerel fillet (estimate)",
+      "estimate": true
+    },
     "form": "fresh",
     "cofid": {
       "code": "16-393",
@@ -1714,6 +1996,11 @@
     "name": "smoked mackerel",
     "category": "fish_seafood",
     "aliases": [],
+    "unitWeightG": {
+      "value": 90,
+      "source": "One smoked mackerel fillet (estimate)",
+      "estimate": true
+    },
     "form": "fresh",
     "cofid": {
       "code": "16-414",
@@ -1744,6 +2031,18 @@
     "aliases": [
       "anchovy fillets"
     ],
+    "unitWeightG": {
+      "value": 4,
+      "source": "One anchovy fillet (estimate)",
+      "estimate": true
+    },
+    "countUnitWeightsG": {
+      "can": {
+        "value": 30,
+        "source": "Typical UK 50 g tin, drained weight (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned",
     "cofid": {
       "code": "16-448",
@@ -1875,7 +2174,11 @@
       "value": 0.95,
       "source": "Typical specific gravity / household cup weight of fats and oils; approx."
     },
-    "form": "other"
+    "form": "other",
+    "cofid": {
+      "code": "12-500",
+      "match": "proxy"
+    }
   },
   {
     "id": "b3876b3d-139d-55fb-bd6e-c91d26154693",
@@ -1901,7 +2204,8 @@
     "name": "double cream",
     "category": "dairy_eggs",
     "aliases": [
-      "heavy cream"
+      "heavy cream",
+      "whipping cream"
     ],
     "densityGPerMl": {
       "value": 0.99,
@@ -1952,7 +2256,8 @@
     "category": "dairy_eggs",
     "aliases": [
       "plain yogurt",
-      "natural yogurt"
+      "natural yogurt",
+      "plain yoghurt"
     ],
     "densityGPerMl": {
       "value": 1.04,
@@ -1991,6 +2296,13 @@
       "cheddar cheese",
       "mature cheddar"
     ],
+    "countUnitWeightsG": {
+      "slice": {
+        "value": 20,
+        "source": "One cheese slice (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "12-346",
@@ -2005,6 +2317,13 @@
     "aliases": [
       "mozzarella ball"
     ],
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 125,
+        "source": "One standard UK 125 g ball (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "12-360",
@@ -2018,7 +2337,14 @@
     "category": "dairy_eggs",
     "aliases": [
       "parmigiano reggiano",
-      "grana padano"
+      "grana padano",
+      "italian hard cheese",
+      "grated italian hard cheese",
+      "hard italian cheese",
+      "italian style hard cheese",
+      "vegetarian italian style hard cheese",
+      "pecorino",
+      "grated parmesan"
     ],
     "form": "fresh",
     "cofid": {
@@ -2034,6 +2360,13 @@
     "aliases": [
       "feta cheese"
     ],
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 200,
+        "source": "One standard UK 200 g block (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "12-525",
@@ -2047,9 +2380,23 @@
     "category": "dairy_eggs",
     "aliases": [
       "soft cheese",
-      "philadelphia"
+      "philadelphia",
+      "soft white cheese",
+      "light soft cheese",
+      "full fat soft cheese"
     ],
-    "form": "fresh"
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 200,
+        "source": "One standard UK 200 g tub (estimate)",
+        "estimate": true
+      }
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "12-551",
+      "match": "proxy"
+    }
   },
   {
     "id": "27614699-7ac5-5489-bc42-1ab942eeff61",
@@ -2069,6 +2416,18 @@
     "name": "halloumi",
     "category": "dairy_eggs",
     "aliases": [],
+    "countUnitWeightsG": {
+      "slice": {
+        "value": 28,
+        "source": "One slice of a 225 g block cut into 8 (estimate)",
+        "estimate": true
+      },
+      "pack": {
+        "value": 225,
+        "source": "One standard UK 225 g block (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "12-496",
@@ -2211,7 +2570,11 @@
       "value": 0.54,
       "source": "Typical household cup weight (spooned & levelled), common baking reference charts; approx."
     },
-    "form": "other"
+    "form": "other",
+    "cofid": {
+      "code": "11-1045",
+      "match": "proxy"
+    }
   },
   {
     "id": "b41c05c5-9fa0-537f-8072-d461325af84c",
@@ -2565,6 +2928,13 @@
       "source": "One medium slice of sliced loaf (estimate)",
       "estimate": true
     },
+    "countUnitWeightsG": {
+      "slice": {
+        "value": 36,
+        "source": "One medium slice of sliced loaf (estimate)",
+        "estimate": true
+      }
+    },
     "form": "other",
     "cofid": {
       "code": "11-980",
@@ -2585,6 +2955,13 @@
       "source": "One medium slice (estimate)",
       "estimate": true
     },
+    "countUnitWeightsG": {
+      "slice": {
+        "value": 38,
+        "source": "One medium slice (estimate)",
+        "estimate": true
+      }
+    },
     "form": "other",
     "cofid": {
       "code": "11-981",
@@ -2599,12 +2976,20 @@
     "aliases": [
       "tortilla",
       "flour tortilla",
-      "tortilla wrap"
+      "tortilla wrap",
+      "soft flour tortillas"
     ],
     "unitWeightG": {
       "value": 60,
       "source": "One standard flour tortilla wrap (estimate)",
       "estimate": true
+    },
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 480,
+        "source": "One pack of 8 wraps (estimate)",
+        "estimate": true
+      }
     },
     "form": "other",
     "cofid": {
@@ -2740,6 +3125,13 @@
     "aliases": [
       "noodles"
     ],
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 250,
+        "source": "One 250 g pack (estimate)",
+        "estimate": true
+      }
+    },
     "form": "dried",
     "cofid": {
       "code": "11-719",
@@ -2752,6 +3144,13 @@
     "name": "rice noodles",
     "category": "pasta_rice_grains",
     "aliases": [],
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 250,
+        "source": "One 250 g pack (estimate)",
+        "estimate": true
+      }
+    },
     "form": "dried"
   },
   {
@@ -2762,6 +3161,13 @@
     "aliases": [
       "lasagna sheets"
     ],
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 250,
+        "source": "One 250 g box (estimate)",
+        "estimate": true
+      }
+    },
     "form": "dried",
     "cofid": {
       "code": "11-716",
@@ -2987,6 +3393,13 @@
       "garbanzo beans",
       "tinned chickpeas"
     ],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 240,
+        "source": "Typical UK 400 g tin, drained weight (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned",
     "cofid": {
       "code": "13-670",
@@ -3003,7 +3416,11 @@
       "value": 0.78,
       "source": "Typical household cup weight of dry grain/pulse; approx."
     },
-    "form": "dried"
+    "form": "dried",
+    "cofid": {
+      "code": "13-074",
+      "match": "exact"
+    }
   },
   {
     "id": "dda84f4b-e01d-5d8c-b6cd-49b307d69bc5",
@@ -3013,6 +3430,13 @@
     "aliases": [
       "red kidney beans"
     ],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 240,
+        "source": "Typical UK 400 g tin, drained weight (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned",
     "cofid": {
       "code": "13-660",
@@ -3025,6 +3449,13 @@
     "name": "black beans",
     "category": "tinned_jarred",
     "aliases": [],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 240,
+        "source": "Typical UK 400 g tin, drained weight (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned"
   },
   {
@@ -3037,6 +3468,13 @@
       "butter beans",
       "haricot beans"
     ],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 240,
+        "source": "Typical UK 400 g tin, drained weight (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned",
     "cofid": {
       "code": "13-666",
@@ -3049,6 +3487,13 @@
     "name": "baked beans",
     "category": "tinned_jarred",
     "aliases": [],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 400,
+        "source": "Standard UK 400 g tin, whole contents (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned",
     "cofid": {
       "code": "13-532",
@@ -3062,8 +3507,20 @@
     "category": "tinned_jarred",
     "aliases": [
       "chopped tomatoes",
-      "canned tomatoes"
+      "canned tomatoes",
+      "tinned chopped tomatoes",
+      "chopped tinned tomatoes",
+      "tomatoes (tinned)",
+      "tin of chopped tomatoes",
+      "tinned plum tomatoes"
     ],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 400,
+        "source": "Standard UK 400 g tin, whole contents (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned",
     "cofid": {
       "code": "13-530",
@@ -3116,6 +3573,13 @@
       "tinned sweetcorn",
       "canned corn"
     ],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 285,
+        "source": "Typical UK 340 g tin, drained weight (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned",
     "cofid": {
       "code": "13-529",
@@ -3130,6 +3594,13 @@
     "aliases": [
       "canned peas"
     ],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 200,
+        "source": "Typical UK 300 g tin, drained weight (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned",
     "cofid": {
       "code": "13-564",
@@ -3373,6 +3844,10 @@
     "aliases": [
       "mustard"
     ],
+    "densityGPerMl": {
+      "value": 1.05,
+      "source": "Typical household teaspoon/tablespoon weight of a thick paste or sauce; approx."
+    },
     "form": "other",
     "cofid": {
       "code": "17-364",
@@ -3387,6 +3862,10 @@
     "aliases": [
       "wholegrain mustard"
     ],
+    "densityGPerMl": {
+      "value": 1.05,
+      "source": "Typical household teaspoon/tablespoon weight of a thick paste or sauce; approx."
+    },
     "form": "other",
     "cofid": {
       "code": "17-365",
@@ -3401,6 +3880,10 @@
     "aliases": [
       "hp sauce"
     ],
+    "densityGPerMl": {
+      "value": 1.2,
+      "source": "Typical specific gravity of syrups/honey; approx."
+    },
     "form": "other",
     "cofid": {
       "code": "17-678",
@@ -3413,6 +3896,10 @@
     "name": "sweet chilli sauce",
     "category": "sauces_condiments",
     "aliases": [],
+    "densityGPerMl": {
+      "value": 1.2,
+      "source": "Typical specific gravity of syrups/honey; approx."
+    },
     "form": "other"
   },
   {
@@ -3424,6 +3911,10 @@
       "tabasco",
       "sriracha"
     ],
+    "densityGPerMl": {
+      "value": 1,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
     "form": "other",
     "cofid": {
       "code": "17-719",
@@ -3436,6 +3927,10 @@
     "name": "fish sauce",
     "category": "sauces_condiments",
     "aliases": [],
+    "densityGPerMl": {
+      "value": 1.15,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
     "form": "other"
   },
   {
@@ -3444,6 +3939,10 @@
     "name": "oyster sauce",
     "category": "sauces_condiments",
     "aliases": [],
+    "densityGPerMl": {
+      "value": 1.2,
+      "source": "Typical specific gravity of syrups/honey; approx."
+    },
     "form": "other"
   },
   {
@@ -3452,6 +3951,10 @@
     "name": "hoisin sauce",
     "category": "sauces_condiments",
     "aliases": [],
+    "densityGPerMl": {
+      "value": 1.2,
+      "source": "Typical specific gravity of syrups/honey; approx."
+    },
     "form": "other"
   },
   {
@@ -3462,6 +3965,17 @@
     "aliases": [
       "green pesto"
     ],
+    "densityGPerMl": {
+      "value": 0.95,
+      "source": "Typical household teaspoon/tablespoon weight of a thick paste or sauce; approx."
+    },
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 190,
+        "source": "One standard UK 190 g jar (estimate)",
+        "estimate": true
+      }
+    },
     "form": "other",
     "cofid": {
       "code": "17-622",
@@ -3476,8 +3990,23 @@
     "aliases": [
       "korma paste",
       "tikka masala paste",
-      "madras paste"
+      "madras paste",
+      "thai green curry paste",
+      "thai red curry paste",
+      "rogan josh paste",
+      "jalfrezi paste"
     ],
+    "densityGPerMl": {
+      "value": 1.2,
+      "source": "Typical household teaspoon/tablespoon weight of a thick paste or sauce; approx."
+    },
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 280,
+        "source": "One standard UK 280 g jar (estimate)",
+        "estimate": true
+      }
+    },
     "form": "other",
     "cofid": {
       "code": "17-720",
@@ -3492,6 +4021,10 @@
     "aliases": [
       "gravy powder"
     ],
+    "densityGPerMl": {
+      "value": 0.6,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
     "form": "dried",
     "cofid": {
       "code": "17-724",
@@ -3544,13 +4077,19 @@
     "name": "vegetable stock",
     "category": "sauces_condiments",
     "aliases": [
-      "vegetable broth"
+      "vegetable broth",
+      "vegetable stock pot",
+      "veg stock"
     ],
     "densityGPerMl": {
       "value": 1,
       "source": "Typical specific gravity of liquid foods; approx."
     },
-    "form": "other"
+    "form": "other",
+    "cofid": {
+      "code": "17-681",
+      "match": "proxy"
+    }
   },
   {
     "id": "dad69ff0-6243-5591-acc1-fa790f867fa1",
@@ -3560,13 +4099,21 @@
     "aliases": [
       "table salt",
       "sea salt",
-      "cooking salt"
+      "cooking salt",
+      "flaked sea salt",
+      "sea salt flakes",
+      "maldon salt",
+      "rock salt"
     ],
     "densityGPerMl": {
       "value": 1.2,
       "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
     },
-    "form": "other"
+    "form": "other",
+    "cofid": {
+      "code": "17-367",
+      "match": "exact"
+    }
   },
   {
     "id": "bbdcb460-989a-5d8b-a512-2684980027df",
@@ -3593,6 +4140,10 @@
     "name": "white pepper",
     "category": "herbs_spices",
     "aliases": [],
+    "densityGPerMl": {
+      "value": 0.55,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
     "form": "ground",
     "cofid": {
       "code": "13-881",
@@ -3680,6 +4231,10 @@
       "red pepper flakes",
       "crushed chillies"
     ],
+    "densityGPerMl": {
+      "value": 0.3,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
     "form": "dried",
     "cofid": {
       "code": "13-873",
@@ -3710,6 +4265,10 @@
     "name": "cumin seeds",
     "category": "herbs_spices",
     "aliases": [],
+    "densityGPerMl": {
+      "value": 0.4,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
     "form": "dried",
     "cofid": {
       "code": "13-889",
@@ -3740,6 +4299,10 @@
     "name": "coriander seeds",
     "category": "herbs_spices",
     "aliases": [],
+    "densityGPerMl": {
+      "value": 0.3,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
     "form": "dried",
     "cofid": {
       "code": "13-875",
@@ -3838,7 +4401,23 @@
     "name": "cinnamon stick",
     "category": "herbs_spices",
     "aliases": [],
-    "form": "dried"
+    "unitWeightG": {
+      "value": 3,
+      "source": "One cinnamon stick (estimate)",
+      "estimate": true
+    },
+    "countUnitWeightsG": {
+      "stick": {
+        "value": 3,
+        "source": "One cinnamon stick (estimate)",
+        "estimate": true
+      }
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "13-874",
+      "match": "proxy"
+    }
   },
   {
     "id": "98e16a2f-efb6-5e81-a3e6-5a203851607a",
@@ -3866,6 +4445,10 @@
     "aliases": [
       "cloves"
     ],
+    "densityGPerMl": {
+      "value": 0.45,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
     "form": "ground",
     "cofid": {
       "code": "13-816",
@@ -3881,6 +4464,10 @@
       "mixed spice",
       "pimento"
     ],
+    "densityGPerMl": {
+      "value": 0.5,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
     "form": "ground",
     "cofid": {
       "code": "13-801",
@@ -3909,6 +4496,11 @@
     "aliases": [
       "bay leaves"
     ],
+    "unitWeightG": {
+      "value": 0.2,
+      "source": "One dried bay leaf (estimate)",
+      "estimate": true
+    },
     "form": "dried",
     "cofid": {
       "code": "13-806",
@@ -3985,7 +4577,8 @@
     "name": "mixed herbs",
     "category": "herbs_spices",
     "aliases": [
-      "italian seasoning"
+      "italian seasoning",
+      "dried mixed herbs"
     ],
     "densityGPerMl": {
       "value": 0.15,
@@ -4065,6 +4658,23 @@
       "coriander leaves",
       "fresh cilantro"
     ],
+    "countUnitWeightsG": {
+      "bunch": {
+        "value": 30,
+        "source": "One supermarket bunch / 30 g pack (estimate)",
+        "estimate": true
+      },
+      "sprig": {
+        "value": 2,
+        "source": "One sprig with leaves (estimate)",
+        "estimate": true
+      },
+      "pack": {
+        "value": 30,
+        "source": "One 30 g supermarket pack (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-888",
@@ -4078,8 +4688,26 @@
     "category": "fruit_veg",
     "aliases": [
       "flat-leaf parsley",
-      "curly parsley"
+      "curly parsley",
+      "parsley"
     ],
+    "countUnitWeightsG": {
+      "bunch": {
+        "value": 30,
+        "source": "One supermarket bunch / 30 g pack (estimate)",
+        "estimate": true
+      },
+      "sprig": {
+        "value": 2,
+        "source": "One sprig with leaves (estimate)",
+        "estimate": true
+      },
+      "pack": {
+        "value": 30,
+        "source": "One 30 g supermarket pack (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-844",
@@ -4091,7 +4719,26 @@
     "slug": "fresh-basil",
     "name": "fresh basil",
     "category": "fruit_veg",
-    "aliases": [],
+    "aliases": [
+      "basil"
+    ],
+    "countUnitWeightsG": {
+      "bunch": {
+        "value": 30,
+        "source": "One supermarket 30 g pot (estimate)",
+        "estimate": true
+      },
+      "sprig": {
+        "value": 2,
+        "source": "One sprig with leaves (estimate)",
+        "estimate": true
+      },
+      "pack": {
+        "value": 30,
+        "source": "One 30 g supermarket pot (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-804",
@@ -4106,6 +4753,23 @@
     "aliases": [
       "mint leaves"
     ],
+    "countUnitWeightsG": {
+      "bunch": {
+        "value": 30,
+        "source": "One supermarket bunch / 30 g pack (estimate)",
+        "estimate": true
+      },
+      "sprig": {
+        "value": 1,
+        "source": "One sprig with leaves (estimate)",
+        "estimate": true
+      },
+      "pack": {
+        "value": 30,
+        "source": "One 30 g supermarket pack (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-836",
@@ -4118,8 +4782,27 @@
     "name": "fresh thyme",
     "category": "fruit_veg",
     "aliases": [
-      "thyme"
+      "thyme",
+      "thyme sprigs",
+      "fresh thyme sprigs"
     ],
+    "countUnitWeightsG": {
+      "bunch": {
+        "value": 25,
+        "source": "One supermarket bunch / 25 g pack (estimate)",
+        "estimate": true
+      },
+      "sprig": {
+        "value": 1,
+        "source": "One sprig with leaves (estimate)",
+        "estimate": true
+      },
+      "pack": {
+        "value": 25,
+        "source": "One 25 g supermarket pack (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-893",
@@ -4134,6 +4817,23 @@
     "aliases": [
       "rosemary"
     ],
+    "countUnitWeightsG": {
+      "bunch": {
+        "value": 25,
+        "source": "One supermarket bunch / 25 g pack (estimate)",
+        "estimate": true
+      },
+      "sprig": {
+        "value": 2,
+        "source": "One sprig with leaves (estimate)",
+        "estimate": true
+      },
+      "pack": {
+        "value": 25,
+        "source": "One 25 g supermarket pack (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-892",
@@ -4148,6 +4848,18 @@
     "aliases": [
       "sage"
     ],
+    "countUnitWeightsG": {
+      "bunch": {
+        "value": 25,
+        "source": "One supermarket bunch / 25 g pack (estimate)",
+        "estimate": true
+      },
+      "sprig": {
+        "value": 1,
+        "source": "One sprig with leaves (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-853",
@@ -4162,6 +4874,18 @@
     "aliases": [
       "dill"
     ],
+    "countUnitWeightsG": {
+      "bunch": {
+        "value": 25,
+        "source": "One supermarket bunch / 25 g pack (estimate)",
+        "estimate": true
+      },
+      "sprig": {
+        "value": 1,
+        "source": "One sprig (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-824",
@@ -4174,6 +4898,13 @@
     "name": "chives",
     "category": "fruit_veg",
     "aliases": [],
+    "countUnitWeightsG": {
+      "bunch": {
+        "value": 20,
+        "source": "One supermarket bunch / pot (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-887",
@@ -4188,6 +4919,18 @@
     "aliases": [
       "lemon grass"
     ],
+    "unitWeightG": {
+      "value": 20,
+      "source": "One trimmed stalk (estimate)",
+      "estimate": true
+    },
+    "countUnitWeightsG": {
+      "stick": {
+        "value": 20,
+        "source": "One trimmed stalk (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh"
   },
   {
@@ -4196,6 +4939,13 @@
     "name": "curry leaves",
     "category": "fruit_veg",
     "aliases": [],
+    "countUnitWeightsG": {
+      "sprig": {
+        "value": 1.5,
+        "source": "One sprig with leaves (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-821",
@@ -4261,6 +5011,10 @@
       "linseed",
       "flax seeds"
     ],
+    "densityGPerMl": {
+      "value": 0.6,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
     "form": "other"
   },
   {
@@ -4269,6 +5023,10 @@
     "name": "chia seeds",
     "category": "nuts_seeds",
     "aliases": [],
+    "densityGPerMl": {
+      "value": 0.65,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
     "form": "other"
   },
   {
@@ -4314,6 +5072,10 @@
     "aliases": [
       "cashews"
     ],
+    "densityGPerMl": {
+      "value": 0.55,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
     "form": "other",
     "cofid": {
       "code": "14-811",
@@ -4328,6 +5090,10 @@
     "aliases": [
       "roasted peanuts"
     ],
+    "densityGPerMl": {
+      "value": 0.6,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
     "form": "other",
     "cofid": {
       "code": "14-877",
@@ -4390,6 +5156,10 @@
     "name": "pistachios",
     "category": "nuts_seeds",
     "aliases": [],
+    "densityGPerMl": {
+      "value": 0.5,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
     "form": "other",
     "cofid": {
       "code": "14-840",
@@ -4488,6 +5258,13 @@
     "aliases": [
       "bean curd"
     ],
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 280,
+        "source": "One standard UK 280 g block (estimate)",
+        "estimate": true
+      }
+    },
     "form": "fresh",
     "cofid": {
       "code": "13-570",
@@ -4513,7 +5290,16 @@
     "aliases": [
       "veggie sausages"
     ],
-    "form": "frozen"
+    "unitWeightG": {
+      "value": 50,
+      "source": "One vegetarian sausage (estimate)",
+      "estimate": true
+    },
+    "form": "frozen",
+    "cofid": {
+      "code": "15-658",
+      "match": "proxy"
+    }
   },
   {
     "id": "de16be43-adb0-51fb-8a10-34f7fb1a4628",
@@ -4523,6 +5309,17 @@
     "aliases": [
       "houmous"
     ],
+    "densityGPerMl": {
+      "value": 1.05,
+      "source": "Typical household teaspoon/tablespoon weight of a thick paste or sauce; approx."
+    },
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 200,
+        "source": "One standard UK 200 g tub (estimate)",
+        "estimate": true
+      }
+    },
     "form": "other",
     "cofid": {
       "code": "13-556",
@@ -4538,6 +5335,11 @@
       "black olives",
       "green olives"
     ],
+    "unitWeightG": {
+      "value": 4,
+      "source": "One pitted olive (estimate)",
+      "estimate": true
+    },
     "form": "other",
     "cofid": {
       "code": "14-340",
@@ -4561,6 +5363,11 @@
       "pickled gherkins",
       "cornichons"
     ],
+    "unitWeightG": {
+      "value": 15,
+      "source": "One medium gherkin (estimate)",
+      "estimate": true
+    },
     "form": "other",
     "cofid": {
       "code": "13-246",
@@ -4575,6 +5382,11 @@
     "aliases": [
       "sundried tomatoes"
     ],
+    "unitWeightG": {
+      "value": 8,
+      "source": "One sun-dried tomato half (estimate)",
+      "estimate": true
+    },
     "form": "dried"
   },
   {
@@ -4585,6 +5397,13 @@
     "aliases": [
       "creamed coconut"
     ],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 400,
+        "source": "Standard UK 400 ml tin, approx. (estimate)",
+        "estimate": true
+      }
+    },
     "form": "other"
   },
   {
@@ -4595,6 +5414,13 @@
     "aliases": [
       "pineapple chunks"
     ],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 230,
+        "source": "Typical UK 435 g tin, drained weight (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned",
     "cofid": {
       "code": "14-211",
@@ -4607,6 +5433,13 @@
     "name": "tinned peaches",
     "category": "tinned_jarred",
     "aliases": [],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 235,
+        "source": "Typical UK 410 g tin, drained weight (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned",
     "cofid": {
       "code": "14-188",
@@ -4653,7 +5486,11 @@
     "aliases": [
       "mixed veg"
     ],
-    "form": "frozen"
+    "form": "frozen",
+    "cofid": {
+      "code": "13-543",
+      "match": "proxy"
+    }
   },
   {
     "id": "e84dae88-a36e-55e5-8f65-68b6520db722",
@@ -4662,9 +5499,22 @@
     "category": "frozen",
     "aliases": [
       "mixed berries",
-      "summer fruits"
+      "summer fruits",
+      "frozen mixed berries",
+      "berry mix"
     ],
-    "form": "frozen"
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 500,
+        "source": "One 500 g bag (estimate)",
+        "estimate": true
+      }
+    },
+    "form": "frozen",
+    "cofid": {
+      "code": "14-375",
+      "match": "proxy"
+    }
   },
   {
     "id": "06895b0d-0ef0-5a12-8a2f-89dd662d1154",
@@ -4675,7 +5525,11 @@
       "chips",
       "french fries"
     ],
-    "form": "frozen"
+    "form": "frozen",
+    "cofid": {
+      "code": "13-487",
+      "match": "proxy"
+    }
   },
   {
     "id": "5c87fc14-1173-5d65-8367-31062a741d50",
@@ -4685,7 +5539,16 @@
     "aliases": [
       "pizza"
     ],
-    "form": "frozen"
+    "unitWeightG": {
+      "value": 400,
+      "source": "Typical UK supermarket standard item/serving size (estimate)",
+      "estimate": true
+    },
+    "form": "frozen",
+    "cofid": {
+      "code": "11-936",
+      "match": "proxy"
+    }
   },
   {
     "id": "aaa83b93-7442-5df7-90d2-033e0af23fa8",
@@ -4709,6 +5572,13 @@
     "aliases": [
       "ready-rolled puff pastry"
     ],
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 320,
+        "source": "One 320 g ready-rolled sheet (estimate)",
+        "estimate": true
+      }
+    },
     "form": "other",
     "cofid": {
       "code": "11-852",
@@ -4723,7 +5593,18 @@
     "aliases": [
       "ready-rolled shortcrust pastry"
     ],
-    "form": "other"
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 320,
+        "source": "One 320 g ready-rolled sheet (estimate)",
+        "estimate": true
+      }
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-851",
+      "match": "exact"
+    }
   },
   {
     "id": "989b1601-7ba1-57c3-95ee-6720d60f9959",
@@ -4733,6 +5614,13 @@
     "aliases": [
       "phyllo pastry"
     ],
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 270,
+        "source": "One 270 g pack (estimate)",
+        "estimate": true
+      }
+    },
     "form": "other",
     "cofid": {
       "code": "11-855",
@@ -4836,7 +5724,11 @@
       "cream crackers",
       "water biscuits"
     ],
-    "form": "other"
+    "form": "other",
+    "cofid": {
+      "code": "11-820",
+      "match": "proxy"
+    }
   },
   {
     "id": "27d1856b-d9c6-5ad9-9822-a29c7aa4a9d7",
@@ -4873,6 +5765,11 @@
       "tea bags",
       "black tea"
     ],
+    "unitWeightG": {
+      "value": 2,
+      "source": "One tea bag (estimate)",
+      "estimate": true
+    },
     "form": "other"
   },
   {
@@ -5020,7 +5917,11 @@
       "lager",
       "ale"
     ],
-    "form": "other"
+    "form": "other",
+    "cofid": {
+      "code": "17-506",
+      "match": "proxy"
+    }
   },
   {
     "id": "3ee683b7-192a-5fbb-ad6c-56149acd8a72",
@@ -5110,6 +6011,13 @@
     "aliases": [
       "ready-made custard"
     ],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 400,
+        "source": "Standard UK 400 g tin, whole contents (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned",
     "cofid": {
       "code": "12-543",
@@ -5124,6 +6032,17 @@
     "aliases": [
       "sweetened condensed milk"
     ],
+    "densityGPerMl": {
+      "value": 1.3,
+      "source": "Typical specific gravity of syrups/honey; approx."
+    },
+    "countUnitWeightsG": {
+      "can": {
+        "value": 397,
+        "source": "Standard UK 397 g tin (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned",
     "cofid": {
       "code": "12-520",
@@ -5136,6 +6055,17 @@
     "name": "evaporated milk",
     "category": "tinned_jarred",
     "aliases": [],
+    "densityGPerMl": {
+      "value": 1.07,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "countUnitWeightsG": {
+      "can": {
+        "value": 410,
+        "source": "Standard UK 410 g tin (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned",
     "cofid": {
       "code": "12-522",
@@ -5192,6 +6122,11 @@
     "aliases": [
       "candied cherries"
     ],
+    "unitWeightG": {
+      "value": 5,
+      "source": "One glace cherry (estimate)",
+      "estimate": true
+    },
     "form": "dried",
     "cofid": {
       "code": "14-335",
@@ -5204,6 +6139,10 @@
     "name": "mixed nuts",
     "category": "nuts_seeds",
     "aliases": [],
+    "densityGPerMl": {
+      "value": 0.55,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
     "form": "other",
     "cofid": {
       "code": "14-880",
@@ -5218,6 +6157,13 @@
     "aliases": [
       "canned salmon"
     ],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 145,
+        "source": "Typical UK 213 g tin, drained weight (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned",
     "cofid": {
       "code": "16-420",
@@ -5230,6 +6176,13 @@
     "name": "tinned mackerel",
     "category": "tinned_jarred",
     "aliases": [],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 125,
+        "source": "Typical UK tin, net contents weight (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned"
   },
   {
@@ -5240,6 +6193,13 @@
     "aliases": [
       "tomato soup"
     ],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 400,
+        "source": "Standard UK 400 g tin, whole contents (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned",
     "cofid": {
       "code": "17-636",
@@ -5252,6 +6212,13 @@
     "name": "tinned mushrooms",
     "category": "tinned_jarred",
     "aliases": [],
+    "countUnitWeightsG": {
+      "can": {
+        "value": 215,
+        "source": "Typical UK 285 g tin, drained weight (estimate)",
+        "estimate": true
+      }
+    },
     "form": "canned"
   },
   {
@@ -5267,7 +6234,11 @@
       "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
       "estimate": true
     },
-    "form": "fresh"
+    "form": "fresh",
+    "cofid": {
+      "code": "13-491",
+      "match": "exact"
+    }
   },
   {
     "id": "c9cfa4bc-4664-50c3-ad78-a14cbf3b1994",
@@ -5296,7 +6267,11 @@
     "category": "world_foods",
     "aliases": [
       "miso"
-    ]
+    ],
+    "densityGPerMl": {
+      "value": 1.2,
+      "source": "Typical household teaspoon/tablespoon weight of a thick paste or sauce; approx."
+    }
   },
   {
     "id": "ed26f2de-419b-576e-89b8-521f3fac3990",
@@ -5338,6 +6313,11 @@
     "aliases": [
       "seaweed sheets"
     ],
+    "unitWeightG": {
+      "value": 2.8,
+      "source": "One nori sheet (estimate)",
+      "estimate": true
+    },
     "form": "dried",
     "cofid": {
       "code": "13-340",
@@ -5364,6 +6344,10 @@
     "aliases": [
       "horseradish"
     ],
+    "densityGPerMl": {
+      "value": 1,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
     "form": "other",
     "cofid": {
       "code": "17-314",
@@ -5376,6 +6360,10 @@
     "name": "mint sauce",
     "category": "sauces_condiments",
     "aliases": [],
+    "densityGPerMl": {
+      "value": 1.05,
+      "source": "Typical specific gravity of syrups/honey; approx."
+    },
     "form": "other",
     "cofid": {
       "code": "17-707",
@@ -5388,6 +6376,10 @@
     "name": "cranberry sauce",
     "category": "sauces_condiments",
     "aliases": [],
+    "densityGPerMl": {
+      "value": 1.25,
+      "source": "Typical specific gravity of syrups/honey; approx."
+    },
     "form": "other"
   },
   {
@@ -5398,6 +6390,10 @@
     "aliases": [
       "apple purée"
     ],
+    "densityGPerMl": {
+      "value": 1.05,
+      "source": "Typical specific gravity of syrups/honey; approx."
+    },
     "form": "other",
     "cofid": {
       "code": "17-851",
@@ -5410,6 +6406,10 @@
     "name": "tartare sauce",
     "category": "sauces_condiments",
     "aliases": [],
+    "densityGPerMl": {
+      "value": 1,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
     "form": "other",
     "cofid": {
       "code": "17-722",
@@ -5422,6 +6422,10 @@
     "name": "salad cream",
     "category": "sauces_condiments",
     "aliases": [],
+    "densityGPerMl": {
+      "value": 1,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
     "form": "other",
     "cofid": {
       "code": "17-703",
@@ -5436,6 +6440,10 @@
     "aliases": [
       "barbecue sauce"
     ],
+    "densityGPerMl": {
+      "value": 1.15,
+      "source": "Typical specific gravity of syrups/honey; approx."
+    },
     "form": "other",
     "cofid": {
       "code": "17-705",
@@ -5448,6 +6456,11 @@
     "name": "pickled onions",
     "category": "tinned_jarred",
     "aliases": [],
+    "unitWeightG": {
+      "value": 15,
+      "source": "One pickled onion (estimate)",
+      "estimate": true
+    },
     "form": "other",
     "cofid": {
       "code": "13-309",
@@ -5466,7 +6479,11 @@
       "value": 1,
       "source": "Typical specific gravity of liquid foods; approx."
     },
-    "form": "other"
+    "form": "other",
+    "cofid": {
+      "code": "17-681",
+      "match": "proxy"
+    }
   },
   {
     "id": "93984b07-be48-53bc-84d5-0284c90f1a84",
@@ -5477,6 +6494,10 @@
       "marmite",
       "bovril"
     ],
+    "densityGPerMl": {
+      "value": 1.35,
+      "source": "Typical household teaspoon/tablespoon weight of a thick paste or sauce; approx."
+    },
     "form": "other",
     "cofid": {
       "code": "17-517",
@@ -5515,6 +6536,333 @@
     "cofid": {
       "code": "17-640",
       "match": "exact"
+    }
+  },
+  {
+    "id": "a7b0faba-1b91-5e34-aaff-167109bb4c9d",
+    "slug": "nigella-seeds",
+    "name": "nigella seeds",
+    "category": "herbs_spices",
+    "aliases": [
+      "kalonji",
+      "black onion seeds",
+      "black seed"
+    ],
+    "densityGPerMl": {
+      "value": 0.55,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "dried"
+  },
+  {
+    "id": "b3aaa2ce-c462-591e-b436-d339f4dcd1e3",
+    "slug": "mango-chutney",
+    "name": "mango chutney",
+    "category": "sauces_condiments",
+    "aliases": [
+      "major grey chutney"
+    ],
+    "densityGPerMl": {
+      "value": 1.25,
+      "source": "Typical specific gravity of syrups/honey; approx."
+    },
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 40,
+        "source": "One meal-kit chutney pot (estimate)",
+        "estimate": true
+      }
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-343",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "cfd63f67-a946-5474-8951-2b2c83a09d23",
+    "slug": "little-gem-lettuce",
+    "name": "little gem lettuce",
+    "category": "fruit_veg",
+    "aliases": [
+      "little gem",
+      "gem lettuce",
+      "baby gem"
+    ],
+    "unitWeightG": {
+      "value": 100,
+      "source": "One little gem head, trimmed (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-520",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "e94fd48b-8ca3-55d5-98c9-030f676c5462",
+    "slug": "chicken-stock-powder",
+    "name": "chicken stock powder",
+    "category": "sauces_condiments",
+    "aliases": [
+      "chicken stock mix",
+      "chicken stock granules",
+      "chicken stock mix sachet",
+      "chicken bouillon powder"
+    ],
+    "densityGPerMl": {
+      "value": 0.6,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 10,
+        "source": "One meal-kit stock sachet (estimate)",
+        "estimate": true
+      }
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "17-726",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "32781bfa-a9fc-5185-a1c8-b628531fabf7",
+    "slug": "harissa-paste",
+    "name": "harissa paste",
+    "category": "sauces_condiments",
+    "aliases": [
+      "harissa",
+      "rose harissa"
+    ],
+    "densityGPerMl": {
+      "value": 1.1,
+      "source": "Typical household teaspoon/tablespoon weight of a thick paste or sauce; approx."
+    },
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 90,
+        "source": "One standard UK 90 g jar (estimate)",
+        "estimate": true
+      }
+    },
+    "form": "other"
+  },
+  {
+    "id": "e58f59f2-d6eb-5b4c-a3ad-dc60e31dc381",
+    "slug": "garlic-puree",
+    "name": "garlic puree",
+    "category": "sauces_condiments",
+    "aliases": [
+      "garlic paste",
+      "garlic purée"
+    ],
+    "densityGPerMl": {
+      "value": 1.05,
+      "source": "Typical household teaspoon/tablespoon weight of a thick paste or sauce; approx."
+    },
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 90,
+        "source": "One standard UK 90 g tube (estimate)",
+        "estimate": true
+      }
+    },
+    "form": "other",
+    "cofid": {
+      "code": "13-244",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "9bceda99-3201-52ad-960a-8d2630f493b1",
+    "slug": "white-fish",
+    "name": "white fish",
+    "category": "fish_seafood",
+    "aliases": [
+      "white fish fillets",
+      "white fish fillet",
+      "skinless white fish fillets",
+      "white fish pieces",
+      "frozen white fish fillets"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "16-372",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "e4682749-a090-57e0-8763-c9afe9f6dfb8",
+    "slug": "ras-el-hanout",
+    "name": "ras el hanout",
+    "category": "herbs_spices",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.5,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground"
+  },
+  {
+    "id": "0be13e0c-6b58-503e-a704-d3cbd1e94494",
+    "slug": "cajun-seasoning",
+    "name": "cajun seasoning",
+    "category": "herbs_spices",
+    "aliases": [
+      "cajun spice",
+      "blackened seasoning"
+    ],
+    "densityGPerMl": {
+      "value": 0.55,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground"
+  },
+  {
+    "id": "7001deca-fbfe-58a4-b12c-fdf078b4dcb6",
+    "slug": "fajita-seasoning",
+    "name": "fajita seasoning",
+    "category": "herbs_spices",
+    "aliases": [
+      "fajita spice mix",
+      "fajita spice"
+    ],
+    "densityGPerMl": {
+      "value": 0.55,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground"
+  },
+  {
+    "id": "1f71abf1-ebfd-5a12-b42e-1dabc07e3670",
+    "slug": "jerk-seasoning",
+    "name": "jerk seasoning",
+    "category": "herbs_spices",
+    "aliases": [
+      "jerk spice",
+      "jerk marinade"
+    ],
+    "densityGPerMl": {
+      "value": 0.55,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground"
+  },
+  {
+    "id": "1ca58607-c1de-5d4f-b397-e368fd759989",
+    "slug": "chinese-five-spice",
+    "name": "chinese five spice",
+    "category": "herbs_spices",
+    "aliases": [
+      "five spice",
+      "chinese 5 spice"
+    ],
+    "densityGPerMl": {
+      "value": 0.5,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground"
+  },
+  {
+    "id": "fb00660c-a069-5680-8de2-28dab055fdad",
+    "slug": "pizza-base",
+    "name": "pizza base",
+    "category": "bakery",
+    "aliases": [
+      "pizza bases",
+      "pizza dough base"
+    ],
+    "unitWeightG": {
+      "value": 150,
+      "source": "Typical UK supermarket standard item/serving size (estimate)",
+      "estimate": true
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-1016",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "70b77e4b-2ecf-5d8c-bd1e-6aa1424aceda",
+    "slug": "ciabatta",
+    "name": "ciabatta",
+    "category": "bakery",
+    "aliases": [
+      "ciabatta roll",
+      "ciabatta loaf"
+    ],
+    "unitWeightG": {
+      "value": 180,
+      "source": "Half a ciabatta loaf / one ciabatta (estimate)",
+      "estimate": true
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-980",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "751aa26b-8837-5bfc-9eab-02f35f4393aa",
+    "slug": "baguette",
+    "name": "baguette",
+    "category": "bakery",
+    "aliases": [
+      "french stick",
+      "french bread"
+    ],
+    "unitWeightG": {
+      "value": 250,
+      "source": "One part-baked baguette (estimate)",
+      "estimate": true
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-980",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "77b80148-955c-5cbe-84de-28e2b24d48a7",
+    "slug": "beansprouts",
+    "name": "beansprouts",
+    "category": "fruit_veg",
+    "aliases": [
+      "bean sprouts",
+      "mung beansprouts"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-426",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "e78192ff-eaf2-53d8-8608-a9ef332a848f",
+    "slug": "mixed-salad-leaves",
+    "name": "mixed salad leaves",
+    "category": "fruit_veg",
+    "aliases": [
+      "salad leaves",
+      "baby leaf salad",
+      "mixed leaves",
+      "salad bag"
+    ],
+    "countUnitWeightsG": {
+      "pack": {
+        "value": 120,
+        "source": "One 120 g bag (estimate)",
+        "estimate": true
+      }
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-520",
+      "match": "proxy"
     }
   }
 ]

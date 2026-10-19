@@ -6,6 +6,7 @@
  *  - Count units only convert to the *same* count unit (a clove is not a bulb, a can is not a pack).
  *  - volume↔mass ONLY when the ingredient carries `densityGPerMl`.
  *  - count('item' / unitless)↔mass ONLY via `unitWeightG`, and the result is flagged `estimate`.
+ *  - other count units (can, clove, slice, bunch, sprig, stick, pack)↔mass ONLY via `countUnitWeightsG[unit]` (estimate).
  *  - `approximate`, `to_taste` and `unparsed` quantities are NEVER converted.
  */
 import type {
@@ -108,7 +109,7 @@ export interface ConversionOptions {
 export function conversionFactor(
   from: Unit | undefined,
   to: Unit | undefined,
-  ingredient?: Pick<CanonicalIngredient, 'densityGPerMl' | 'unitWeightG'>,
+  ingredient?: Pick<CanonicalIngredient, 'densityGPerMl' | 'unitWeightG' | 'countUnitWeightsG'>,
   options: ConversionOptions = {},
 ): { ok: true; factor: number; estimate: boolean } | { ok: false; reason: ConversionFailure } {
   const allowEstimate = options.allowEstimate ?? true;
@@ -137,14 +138,28 @@ export function conversionFactor(
 
   if (pair === 'count>mass' || pair === 'mass>count') {
     const countUnit = pair === 'count>mass' ? from : to;
-    if ((countUnit ?? 'item') !== 'item') return { ok: false, reason: 'incompatible_count_unit' };
-    const weight = ingredient?.unitWeightG?.value;
+    const cu = (countUnit ?? 'item') as CountUnit;
+    // 'item' uses unitWeightG; any other count unit needs its own entry in countUnitWeightsG (D90).
+    if (cu !== 'item' && ingredient?.countUnitWeightsG?.[cu] === undefined) return { ok: false, reason: 'incompatible_count_unit' };
+    const weight = cu === 'item' ? ingredient?.unitWeightG?.value : ingredient?.countUnitWeightsG?.[cu]?.value;
     if (!allowEstimate || !isFinitePositive(weight)) return { ok: false, reason: 'missing_unit_weight' };
     const factor = pair === 'count>mass' ? weight / toInfo.toBase : fromInfo.toBase / weight;
     return { ok: true, factor, estimate: true };
   }
 
-  // count<->volume is never meaningful without a chain of estimates.
+  // count<->volume: only for a non-item count unit that has both a countUnitWeightsG entry and a density
+  // (e.g. a 400 ml tin of coconut milk); the result is an estimate. 'item' never converts to volume.
+  if (pair === 'count>volume' || pair === 'volume>count') {
+    const countUnit = ((pair === 'count>volume' ? from : to) ?? 'item') as CountUnit;
+    const weight = countUnit === 'item' ? undefined : ingredient?.countUnitWeightsG?.[countUnit]?.value;
+    const density = ingredient?.densityGPerMl?.value;
+    if (!allowEstimate || !isFinitePositive(weight) || !isFinitePositive(density)) return { ok: false, reason: 'incompatible_dimension' };
+    const ml = weight / density;
+    const factor = pair === 'count>volume' ? ml / toInfo.toBase : fromInfo.toBase / ml;
+    return { ok: true, factor, estimate: true };
+  }
+
+  // count<->volume is otherwise never meaningful without a chain of estimates.
   return { ok: false, reason: 'incompatible_dimension' };
 }
 
@@ -159,7 +174,7 @@ function isFinitePositive(n: number | undefined): n is number {
 export function convertQuantity(
   q: Quantity,
   target: Unit,
-  ingredient?: Pick<CanonicalIngredient, 'densityGPerMl' | 'unitWeightG'>,
+  ingredient?: Pick<CanonicalIngredient, 'densityGPerMl' | 'unitWeightG' | 'countUnitWeightsG'>,
   options: ConversionOptions = {},
 ): ConversionResult {
   if (q.kind !== 'exact' && q.kind !== 'range') return { ok: false, reason: 'not_convertible_kind' };

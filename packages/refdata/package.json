@@ -15,7 +15,9 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "import:cofid": "tsx scripts/import-cofid.ts"
+    "import:cofid": "tsx scripts/import-cofid.ts",
+    "build:seed": "tsx scripts/build-seed.ts",
+    "coverage": "tsx scripts/coverage.ts --kits"
   },
   "dependencies": {
     "xlsx": "0.18.5",
