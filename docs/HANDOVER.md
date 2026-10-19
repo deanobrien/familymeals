@@ -111,7 +111,7 @@ NEXT_PUBLIC_SITE_URL=https://family-recipes-dean-cph4g5cuh9fmhhfy.ukwest-01.azur
 |---|---|---|
 | B1 | Bug fixes found while testing | check `git log` on the branch / DECISIONS for the list |
 | LV1 | Live verification against a **local Supabase** (Docker) | the gate for pushing migrations to the cloud project; expect findings about RLS, RPCs, Realtime, list_seq |
-| D2 | Deploy-zip "no rebuild" fix | the zip must not make Kudu/Oryx run a build (see DEPLOY-APP-SERVICE.md section 6 and `claude/memories/oryx-rebuild-on-zip-deploy.md`); `scripts/package-appservice.ps1` and the deploy doc will change |
+| D2 | Deploy-zip "no rebuild" fix | **done and merged** (commit "Package: stop App Service Oryx/Kudu server-side builds"): the packaging script now emits start-only `package.json` files, no lockfiles and a `.deployment` file; see DEPLOY-APP-SERVICE.md section 6. Needs a real redeploy to confirm |
 | X1 | Recipe discovery from TheMealDB | new recipe-source provider; see ROADMAP idea backlog |
 | X2 | Open Food Facts product source | new product-source provider (barcodes/pack data) |
 
@@ -121,7 +121,7 @@ If a lane's branch is merged into your checkout, its decisions are in `DECISIONS
 
 1. **Finish LV1** (local Supabase run of the full app and the live-ish test suite). Fix what it finds.
 2. **Push the schema**: `pnpm exec supabase link --project-ref guzsjqoosjqxfuqrjhxu` then `pnpm exec supabase db push` (database password from the password manager). Gated on LV1 being clean. Then enable Realtime for the tables in migration `20261019001100_realtime.sql` if the dashboard shows the publication empty ([SUPABASE.md](SUPABASE.md) section 4), and configure Auth URLs (section 5 there).
-3. **Rebuild and redeploy the zip** (with D2's fix): `scripts/package-appservice.ps1`, then Kudu upload; rebuild whenever `NEXT_PUBLIC_*` values change (they are baked in).
+3. **Rebuild and redeploy the zip** (it now includes the D2 no-rebuild fix): `scripts/package-appservice.ps1`, then Kudu upload; rebuild whenever `NEXT_PUBLIC_*` values change (they are baked in).
 4. **Smoke test** on the Azure hostname with the checklist in DEPLOY-APP-SERVICE.md section 7 (sign-up email, household, recipe, photo import, planner, restart).
 5. **Mobile `list_seq`**: the Android shopping sync still uses the global `seq` cursor and resnapshots on gaps; move it to the per-list `list_seq` (D121, D129).
 6. Replace the remaining local-file store (uploaded photos under `/home/data`) with Supabase Storage, then drop `ALLOW_LOCAL_FILE_STORE`.

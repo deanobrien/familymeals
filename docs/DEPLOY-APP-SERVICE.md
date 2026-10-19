@@ -83,7 +83,7 @@ If the build fails with `EPERM` symlink errors you are building in the repo inst
 | `NODE_ENV` | `production` | fixed | no |
 | `HOSTNAME` | `0.0.0.0` | fixed (Next listens on all interfaces; App Service sets `PORT`) | no |
 | `SCM_DO_BUILD_DURING_DEPLOYMENT` | `false` | fixed: the zip is pre-built, stop Kudu running a build | no |
-| `ENABLE_ORYX_BUILD` | `false` | fixed: stop Oryx re-building (and clobbering) the pre-built standalone output on a zip deploy | no |
+| `ENABLE_ORYX_BUILD` | `false` | fixed, set together with the row above: the zip is pre-built and also carries a `.deployment` file and a build-script-free root `package.json`, so Oryx never runs `npm install` / `npm run build` | no |
 | `WEBSITES_CONTAINER_START_TIME_LIMIT` | `600` | the first start extracts a large zip and can exceed the 230 s default; raise (max 1800) if the log shows the container being killed | no |
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://guzsjqoosjqxfuqrjhxu.supabase.co` | Supabase API settings | no |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon / publishable key | Supabase API settings | no (RLS protects data) |
@@ -130,13 +130,13 @@ Supabase dashboard > Authentication > URL Configuration:
 az webapp deploy --resource-group rg-family-recipes --name family-recipes-dean --src-path dist\appservice.zip --type zip
 ```
 
-This goes through Kudu's zip-deploy pipeline, which can invoke Oryx and rebuild (see section 6). Prefer route A until the D2 fix (below) is confirmed.
+This goes through Kudu's zip-deploy pipeline. Since the D2 fix the zip is built so that Oryx has nothing to build (section 6), but route A is the one proven end to end; use route B only with Azure CLI 2.60+.
 
 Redeploying replaces wwwroot but **not** `/home/data`. Keep the previous zip (rename with date/commit) to roll back.
 
 ## 6. Pitfalls that cost time
 
-- **Kudu/Oryx rebuild**: a zip containing a `package.json` can make Kudu run Oryx (`npm install` / `next build`), which fails or replaces the standalone output. Hence `SCM_DO_BUILD_DURING_DEPLOYMENT=false` and `ENABLE_ORYX_BUILD=false`, clearing wwwroot before the drag-and-drop upload, and a start command that is exactly `node apps/web/server.js`. Lane D2 is making the packaged zip safe against this ("no rebuild"); check `scripts/package-appservice.ps1` and `claude/memories/` for its outcome.
+- **Kudu/Oryx rebuild** (fixed by lane D2, `scripts/package-appservice.ps1` step 3b): Oryx used to find the root `package.json` with a build script and run `npm install` + `npm run build` (failing with "turbo: not found" or replacing the standalone output). The script now rewrites the zip's root and `apps/web` `package.json` to minimal start-only manifests (`node apps/web/server.js`), removes lockfiles, `pnpm-workspace.yaml`, `turbo.json` and `.npmrc`, and adds a `.deployment` file with `SCM_DO_BUILD_DURING_DEPLOYMENT=false`. Keep it that way; also keep the two app settings, clear wwwroot before a drag-and-drop upload, and confirm `apps/web/server.js` sits directly under wwwroot afterwards.
 - **Unique default hostname**: not `<name>.azurewebsites.net`. Old `az` versions fail against it with `WSAECONNRESET`: update the CLI.
 - **`NEXT_PUBLIC_*` baked at build time**: changing a Supabase URL/key or the hostname needs a rebuilt zip, not just an app setting.
 - **sharp on Linux**: the zip must contain `node_modules/@img/sharp-linux-x64` and `sharp-libvips-linux-x64` (the script verifies and fails loudly). Symptom otherwise: `Could not load the "sharp" module using the linux-x64 runtime` when importing a photo.
