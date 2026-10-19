@@ -109,3 +109,31 @@ The library repository (`lib/recipes/factory.ts`, `InMemoryRecipeRepository`) is
 ## D31 Navigation
 
 `@fr/ui` `NavKey` adds `pantry` and `receipts`; `DEFAULT_NAV` = Home, Recipes, Meal planner, Shopping list, Pantry, Receipts, Household, Settings. `NavItem.mobile: false` keeps Receipts out of the phone bottom bar (7 items; grid now sized by item count). `/receipts` is a placeholder link (404) until the receipts lane merges.
+
+## D60 Real cost and nutrition: one server-only calc module (lane C1)
+
+`apps/web/lib/server/calc/` (`import 'server-only'`) replaces the placeholder seed values. `costRecipe` = `@fr/engine/cost` over refdata generic prices (`@fr/refdata/prices.json`) plus household observations from an injected `PriceSource` (`observations()` + `version()`; the engine ranks user_confirmed > receipt > retailer_verified > generic_estimate, so household prices win automatically); `nutritionForRecipe` = `@fr/engine/nutrition` over per-100g CoFID profiles (`@fr/refdata/cofid.json`, linked through each ingredient's `cofid.code`; a `proxy` mapping marks every value an estimate). `createRecipeCalculator` caches the full result per recipe VERSION (id + `updatedAt` + servings + price-source version), so an edit recomputes and a price change invalidates. `@fr/refdata` gained `./prices.json` and `./cofid.json` exports (JSON imports, no fs, like D28); a drift test compares prices.json with `loadSeed()`. Result shapes live client-safe in `lib/calc/types.ts`.
+
+## D61 Nutrition policy
+
+Per serving = recipe total / recipe servings. Unknown never becomes 0: an ingredient without a CoFID profile, or one whose weight cannot be resolved, makes every dependent nutrient `unknown` with the sum of the known parts only as `lowerBound` (shown as a note, never as the value). Non-optional "to taste" lines are treated as negligible (engine `treatToTasteAsNegligible`, reported in `warnings`) so salt/pepper do not blank every recipe; ranges use the midpoint, unit-weight and bracketed/proxy CoFID values are flagged `estimate`. The detail page scales ingredients with the servings stepper, so per-serving values stay constant and the per-recipe tab = per-serving x chosen servings. The page always shows "Estimated from UK CoFID data (...)" and the engine `NUTRITION_DISCLAIMER`; coverage % and the list of ingredients without data are shown.
+
+## D62 Cost labelling and partial costs
+
+The cost figure is the sum of PRICED lines only. When any non-optional line cannot be priced the result is `isPartial` and every surface says "At least": detail page ("At least £x per serving", "partial" badge, "n of m ingredients priced", uncosted lines listed with reasons), planner slot, week cost label ("... N meals with unpriced ingredients") and recipe search. The whole figure is labelled with the LEAST trusted price kind used (`generic_estimate` -> "estimate") and the price source and date are printed. Nothing priceable at all = unknown (null), never 0. `RecipeCost.partial` carries the flag on `RecipeView`. Known weakness: library sort-by-cost and price bands rank by the (possibly partial) lower bound, so a recipe with a missing price can look cheaper than it is; the card does not show the partial flag yet (needs a `@fr/ui` `RecipeCard` prop).
+
+## D63 Cost and nutrition are derived, not stored; seed placeholders removed
+
+`RecipeView.cost` / `nutritionPerServing` are no longer stored or seeded. `InMemoryRecipeRepository` takes an optional `RecipeSummariser` (the server factory injects the calculator) and fills both fields on every read (`view()`), so list sort/filter/price bands, `get`, `create`, `update` and `duplicate` always reflect the current recipe version and prices; with no summariser (unit tests of other lanes, import pipeline tests) cost is null and nutrition empty. `seed.ts` lost `totalPence`/`nutrition` enrichment and the fake nutrient rows; fixtures are untouched. Specs and tests asserting placeholder numbers (0.95/5.70, "Cost unknown" for the flapjacks recipe) now assert computed values or the partial/unknown behaviour.
+
+## D64 Planner: computed costs and weekly nutrition
+
+`RepositoryPlanRecipeSource` takes an optional `nutritionOf` (calc `nutritionPerServing`); `PlanRecipe`/`RecipeLite` carry `costPartial` and the per-serving `NutrientMap`. `weekCost` counts partial meals and says "At least". `lib/plan/nutrition.ts` runs the engine `summariseWeek` client-side over the page's recipes, so the new "Nutrition this week" panel (`app/plan/week-nutrition.tsx`) updates live as the grid changes: week total, average per planned day and average per serving, `Unknown` where any meal lacks data, count of meals without nutrition, the engine disclaimer constant, no targets or adequacy language. Eating-out and leftovers meals are excluded. `loadFixtureRecipes` (fixture-backed `InMemoryPlanRecipeSource`, unit tests only) keeps its demo costs.
+
+## D65 Printed card nutrition is feature-detected
+
+If a `RecipeView` carries `printedNutrition` (`{ basis, values: [{ nutrient, amount, unit }], note? }`, the shape from `@fr/ai`, added by the import lane) the nutrition panel adds a separate "From the recipe card" column on the per-serving table (printed names mapped to our nutrients, unmapped rows appended, kJ ignored), with the printed basis and note stated and the figures labelled as not calculated and not scaled. Absent field = column skipped (`lib/calc/format.ts` `printedNutritionOf`, unit-tested). The per-recipe tab never shows printed values.
+
+## D66 Open gaps (not fixed in this lane)
+
+Refdata coverage limits what can be priced or weighed: no unit weights for `can`/`clove`, aliases missing for e.g. "white fish fillets", "braising beef", "floury potatoes", "mixed berries", "curry paste"/"coconut milk" packs not convertible. These show as uncosted / no-data lines, which is honest but makes most seed recipes partial. The receipts lane should provide a `PriceSource` (set on `getRecipeCalculator()` via `createRecipeCalculator({ priceSource })`); `getRecipeCalculator` currently uses generic prices only.

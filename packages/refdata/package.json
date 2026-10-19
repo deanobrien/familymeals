@@ -7,7 +7,9 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./ingredients.json": "./data/out/ingredients.json"
+    "./ingredients.json": "./data/out/ingredients.json",
+    "./prices.json": "./data/out/prices.json",
+    "./cofid.json": "./data/out/cofid.json"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

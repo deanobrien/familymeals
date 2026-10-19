@@ -25,12 +25,20 @@ test('manual planning: add, servings, move, eating out, cost honesty, save, reop
   await expect(plan.slot(MON, 'dinner')).toContainText('Family Fish Pie');
   await expect(plan.slot(MON, 'dinner')).toContainText('estimate');
 
-  // an uncosted recipe keeps the week honest
+  // a recipe with unpriced ingredients keeps the week honest: its cost is a lower bound
   await plan.addToSlot(TUE, 'dinner').click();
-  await pick(page, 'Gran’s Fiddly Flapjacks & Soup'); // the library seed's uncosted recipe
-  await expect(plan.slot(TUE, 'dinner')).toContainText('Uncosted');
-  await expect(page.getByTestId('week-cost')).toContainText('uncosted');
+  await pick(page, 'Gran’s Fiddly Flapjacks & Soup'); // seed recipe with unpriced lines (salt, parsley, stock)
+  await expect(plan.slot(TUE, 'dinner')).toContainText('At least');
+  await expect(page.getByTestId('week-cost')).toContainText('At least');
+  await expect(page.getByTestId('week-cost')).toContainText('unpriced');
   await expect(page.getByTestId('week-cost')).toContainText('estimate');
+
+  // weekly nutrition summary: estimates only, with the disclaimer and no adequacy claims
+  const nutrition = page.getByTestId('week-nutrition');
+  await expect(nutrition).toBeVisible();
+  await expect(page.getByTestId('week-nutrition-disclaimer')).toContainText('not medical or dietary advice');
+  await expect(nutrition.getByRole('table')).toContainText('Week total');
+  await expect(nutrition).not.toContainText(/recommended|target|deficien/i);
 
   // change servings (default 4 -> 5)
   await plan.slot(MON, 'dinner').getByRole('button', { name: /^Edit/ }).click();

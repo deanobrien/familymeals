@@ -16,6 +16,8 @@ function toLite(r: PlanRecipe, exclusions: string[]): RecipeLite {
     id: r.id, title: r.title, dietCategory: r.dietCategory, tags: r.tags, mealTypes: r.mealTypes,
     baseServings: r.baseServings, totalMinutes: r.totalMinutes,
     costPerServingPence: r.costPerServingPence, costKind: r.costPerServingPence == null ? null : 'estimate',
+    ...(r.costPartial ? { costPartial: true } : {}),
+    nutritionPerServing: r.nutritionPerServing ?? null,
     excludedBy: violatesExclusions(r.ingredientNames, exclusions),
   };
 }

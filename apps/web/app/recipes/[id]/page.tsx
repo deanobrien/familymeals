@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getRecipeRepository } from '../../../lib/recipes/factory';
+import { getRecipeCalculator } from '../../../lib/server/calc';
 import { RecipeDetail } from '../_components/RecipeDetail';
 
 export const dynamic = 'force-dynamic';
@@ -19,5 +20,5 @@ export default async function Page({ params, searchParams }: Props) {
   const sp = await searchParams;
   const recipe = UUID.test(id) ? await getRecipeRepository().get(id) : null;
   if (!recipe) notFound();
-  return <RecipeDetail recipe={recipe} justDuplicated={sp.duplicated === '1'} />;
+  return <RecipeDetail recipe={recipe} calc={getRecipeCalculator().forRecipe(recipe)} justDuplicated={sp.duplicated === '1'} />;
 }
