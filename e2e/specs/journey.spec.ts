@@ -133,6 +133,7 @@ test.describe.serial('Main journey (BRIEF s15)', () => {
     await expect(list.purchase('Pasta')).toHaveCount(1);
     await expect(page.getByRole('status').filter({ hasText: 'Bought Pasta.' })).toBeVisible();
     await expect(list.progress()).toContainText(/^1 of \d+ items done/);
+    await expect(list.syncIndicator()).toHaveAttribute('data-status', 'synced'); // the server has it before the next step
   });
 
   test('9. a second session in the household sees the update without reloading (polling sync)', async ({ browser, page }) => {
