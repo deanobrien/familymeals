@@ -10,6 +10,7 @@ This repo is local-only: no remote, nothing pushed. Never commit secrets.
 - E2E: `pnpm e2e:install` once, then `pnpm test:e2e` (globalSetup resets the in-memory stores via the dev-only `POST /api/dev/reset` and warms routes, so it can rerun on the same server; `E2E_PORT` / `E2E_WORKERS` override port 3100 / 4 workers)
 - Mobile: `pnpm --filter @fr/mobile test` (jest-expo), `pnpm mobile:export` (bundle check)
 - Supabase: `pnpm exec supabase <cmd>` (local stack needs Docker)
+- Azure App Service package: `scripts/package-appservice.ps1` -> `dist/appservice.zip` (D150-D154; steps in `docs/DEPLOY-APP-SERVICE.md`; start `node apps/web/server.js`, health `/api/health`)
 
 Every lane must leave build, test, typecheck and lint green.
 

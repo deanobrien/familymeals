@@ -37,3 +37,7 @@ Known caveats (before pass 3; the recipe-store/receipt-price/pantry-extras items
 ## AI photo import lane (D40-D42)
 
 Done: OpenAI/Azure adapter, Settings > AI provider (encrypted key), richer extraction (multi-page, rotation, bracket quantities, printed nutrition/allergens, staples, source), cover images, review/detail display. Untested: live extraction against the real OpenAI API (needs the owner's key). Configure: Settings > AI provider > OpenAI, paste key, Save, Test connection, then Recipes > Import.
+
+## D1 Azure App Service deploy prep (2026-10-19, branch `prj018/d1-appservice`)
+
+Standalone build + `scripts/package-appservice.ps1` (symlink-free hoisted build copy, linux-x64 sharp, forward-slash zip), `/api/health`, production config guard (`ALLOW_LOCAL_FILE_STORE` escape hatch until S2 moves AI settings/uploads to Supabase), security headers/CSP, `docs/DEPLOY-APP-SERVICE.md` (D150-D154). The CSP and the deployed app were not exercised against a live Supabase / Azure: the owner's smoke checklist is the first real test.

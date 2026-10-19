@@ -42,6 +42,19 @@
       "sharp",
       "esbuild",
       "supabase"
-    ]
+    ],
+    "supportedArchitectures": {
+      "os": [
+        "current",
+        "linux"
+      ],
+      "cpu": [
+        "current",
+        "x64"
+      ],
+      "libc": [
+        "glibc"
+      ]
+    }
   }
 }
