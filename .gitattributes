@@ -1,0 +1,19 @@
+# Normalise every text file to LF in the repo and the working tree, whatever core.autocrlf says.
+* text=auto eol=lf
+
+# Binaries: never touch line endings or diff as text.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.xlsx binary
+*.zip binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.mp4 binary
+*.heic binary
