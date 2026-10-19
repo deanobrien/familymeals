@@ -23,7 +23,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
         <Link href="/forgot-password">Forgot your password?</Link>
       </p>
       <p>
-        New here? <Link href="/sign-up">Create an account</Link>
+        New here? <Link href={next === '/' ? '/sign-up' : `/sign-up?next=${encodeURIComponent(next)}`}>Create an account</Link>
       </p>
     </AuthCard>
   );

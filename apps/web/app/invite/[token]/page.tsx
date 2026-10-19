@@ -54,7 +54,7 @@ export default async function InvitePage({
           <p>Sign in or create an account to accept this invitation.</p>
           <p>
             <Link href={`/sign-in?next=${encodeURIComponent(`/invite/${token}`)}`}>Sign in</Link> or{' '}
-            <Link href="/sign-up">create an account</Link>
+            <Link href={`/sign-up?next=${encodeURIComponent(`/invite/${token}`)}`}>create an account</Link>
           </p>
         </>
       )}

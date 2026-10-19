@@ -5,6 +5,10 @@ import { APP_NAME } from '@fr/domain';
 import '@fr/ui/tokens.css';
 import '@fr/ui/styles.css';
 import { Shell } from './shell';
+import { MOCK_HOUSEHOLD_NAME, MOCK_USER_NAME } from '../lib/server/auth/mock';
+import { resolveAuthMode } from '../lib/supabase/env';
+
+const MOCK_LABEL = `Demo mode (local mock auth, Supabase not configured): signed in as ${MOCK_USER_NAME}, household ${MOCK_HOUSEHOLD_NAME}. Data is in memory and resets when the server restarts.`;
 
 const display = Fraunces({ subsets: ['latin'], variable: '--font-display', display: 'swap' });
 const body = Inter({ subsets: ['latin'], variable: '--font-body', display: 'swap' });
@@ -18,7 +22,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en-GB" className={`${display.variable} ${body.variable}`}>
       <body style={{ margin: 0 }}>
-        <Shell>{children}</Shell>
+        <Shell {...(resolveAuthMode() === 'mock' ? { mockLabel: MOCK_LABEL } : {})}>{children}</Shell>
       </body>
     </html>
   );

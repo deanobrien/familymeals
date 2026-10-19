@@ -15,14 +15,52 @@ const ROUTE_KEYS: ReadonlyArray<readonly [string, NavKey]> = [
   ['/settings', 'settings'],
 ];
 
+/** Sign-in / sign-up / password / callback / invite pages render without the app navigation. */
+const AUTH_PATHS = ['/sign-in', '/sign-up', '/forgot-password', '/reset-password'];
+const AUTH_PREFIXES = ['/auth/', '/invite/'];
+
+export function isAuthRoute(pathname: string): boolean {
+  return AUTH_PATHS.includes(pathname) || AUTH_PREFIXES.some((p) => pathname.startsWith(p));
+}
+
 function activeKey(pathname: string): NavKey {
   return ROUTE_KEYS.find(([p]) => pathname === p || pathname.startsWith(`${p}/`))?.[1] ?? 'home';
 }
 
-export function Shell({ children }: { children: ReactNode }) {
+/** Shown on every page in local mock-auth mode so nobody mistakes the demo for a real account. */
+function MockBanner({ label }: { label: string }) {
+  return (
+    <div
+      role="note"
+      data-testid="mock-auth-banner"
+      style={{
+        background: 'var(--fr-warning-soft)',
+        color: 'var(--fr-warning)',
+        borderBottom: '1px solid currentColor',
+        padding: '0.4rem 1rem',
+        fontSize: '0.875rem',
+        textAlign: 'center',
+      }}
+    >
+      {label}
+    </div>
+  );
+}
+
+export function Shell({ children, mockLabel }: { children: ReactNode; mockLabel?: string }) {
   const pathname = usePathname();
+  const banner = mockLabel ? <MockBanner label={mockLabel} /> : null;
+  if (isAuthRoute(pathname)) {
+    return (
+      <ToastProvider>
+        {banner}
+        {children}
+      </ToastProvider>
+    );
+  }
   return (
     <ToastProvider>
+      {banner}
       <AppShell active={activeKey(pathname)} linkComponent={Link}>
         {children}
       </AppShell>

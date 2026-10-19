@@ -46,23 +46,26 @@ export async function signInAction(fd: FormData): Promise<void> {
 }
 
 export async function signUpAction(fd: FormData): Promise<void> {
-  requireSupabaseMode('/sign-up');
+  // A pending invite (/invite/<token>) survives sign-up via `next`; otherwise continue to onboarding.
+  const requested = safeNextPath(field(fd, 'next'));
+  const next = requested === '/' ? '/household/new' : requested;
+  requireSupabaseMode('/sign-up', requested);
   const email = Email.safeParse(field(fd, 'email').trim());
   const pw = NewPassword.safeParse(field(fd, 'password'));
-  if (!email.success) back('/sign-up', 'invalid_input');
-  if (!pw.success) back('/sign-up', 'weak_password');
+  if (!email.success) back('/sign-up', 'invalid_input', requested);
+  if (!pw.success) back('/sign-up', 'weak_password', requested);
   const supabase = await createSupabaseServerClient();
   const origin = await getSiteUrl();
   const { data, error } = await supabase.auth.signUp({
     email: email.data,
     password: pw.data,
-    options: { emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent('/household/new')}` },
+    options: { emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}` },
   });
-  if (error) back('/sign-up', mapAuthApiError(error));
+  if (error) back('/sign-up', mapAuthApiError(error), requested);
   // With email confirmation on, there is no session yet; with it off, continue straight to onboarding.
   // The same "check your email" outcome is used for new and existing addresses (no enumeration).
-  if (data.session) redirect('/household/new');
-  redirect('/sign-up?sent=1');
+  if (data.session) redirect(next);
+  redirect(requested === '/' ? '/sign-up?sent=1' : `/sign-up?sent=1&next=${encodeURIComponent(requested)}`);
 }
 
 export async function forgotPasswordAction(fd: FormData): Promise<void> {
