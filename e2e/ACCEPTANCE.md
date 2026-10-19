@@ -74,7 +74,7 @@ Fixtures: `fixtures/recipes/*.png`, `fixtures/receipts/*.png`, `fixtures/househo
 | 3.15 | Full journey (BRIEF s15 steps 1-11) via `pnpm e2e` | `journey.spec.ts` has no fixme remaining and is green |
 
 ## Accessibility and responsive checklist
-Automated: `a11y-responsive.spec.ts` (axe-core via `@axe-core/playwright`, tags wcag2a/wcag2aa/wcag21aa; fail on serious/critical). Run at **375, 768, 1280** px on every route: `/`, `/sign-in`, `/household`, `/recipes`, `/recipes/new/import`, `/plan`, `/shopping`, `/receipts/new`, `/pantry`.
+Automated: `a11y-responsive.spec.ts` (axe-core via `@axe-core/playwright`, tags wcag2a/wcag2aa/wcag21aa; fail on serious/critical). Run at **375, 768, 1280** px on every route: `/`, `/sign-in`, `/household`, `/recipes`, `/recipes/import`, `/plan`, `/shopping`, `/receipts`, `/pantry`.
 
 Manual (per viewport):
 - [ ] No horizontal page scroll; no clipped or overlapping text/controls
