@@ -8,6 +8,7 @@ export default tseslint.config(
       '**/node_modules/**',
       '.claude/**',
       '**/.next/**',
+      '**/.next-*/**',
       '**/.turbo/**',
       '**/dist/**',
       '**/next-env.d.ts',
