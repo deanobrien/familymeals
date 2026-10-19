@@ -2,6 +2,8 @@
  * Unified Next config (see DECISIONS D27).
  * - transpilePackages: every workspace package apps/web imports (they export TS source, D3).
  * - extensionAlias: some packages use NodeNext-style './x.js' specifiers that point at './x.ts'.
+ * - sharp: native module used by @fr/ai image preparation (server only).
+ * - serverActions.bodySizeLimit: receipt and recipe photos are uploaded through server actions.
  * @type {import('next').NextConfig}
  */
 const nextConfig = {
@@ -15,6 +17,8 @@ const nextConfig = {
     '@fr/refdata',
     '@fr/ui',
   ],
+  serverExternalPackages: ['sharp'],
+  experimental: { serverActions: { bodySizeLimit: '16mb' } },
   webpack(config) {
     config.resolve.extensionAlias = {
       ...config.resolve.extensionAlias,
