@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
+import { resolveRequestAuth } from '../../../lib/server/auth/request-auth';
 import { runExtraction, type ExtractInput } from '../../../lib/server/import/pipeline';
+import { recipeSinkFor } from '../../../lib/server/import/sink';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -14,10 +16,12 @@ const bad = (message: string, status = 400) =>
 /** POST multipart (images[], title?) or JSON { uploadId, title? } to retry stored photos. */
 export async function POST(req: Request) {
   let input: ExtractInput;
+  let requestedHousehold: string | undefined;
   const type = req.headers.get('content-type') ?? '';
   try {
     if (type.includes('application/json')) {
-      const body = (await req.json()) as { uploadId?: unknown; title?: unknown };
+      const body = (await req.json()) as { uploadId?: unknown; title?: unknown; householdId?: unknown };
+      if (typeof body.householdId === 'string') requestedHousehold = body.householdId;
       if (typeof body.uploadId !== 'string') return bad('Missing uploadId.');
       input = { uploadId: body.uploadId, ...(typeof body.title === 'string' ? { title: body.title } : {}) };
     } else {
@@ -26,6 +30,8 @@ export async function POST(req: Request) {
       if (files.length === 0) return bad('Add at least one photo of the recipe.');
       if (files.length > MAX_FILES) return bad(`You can add up to ${MAX_FILES} pages.`);
       const title = form.get('title');
+      const household = form.get('householdId');
+      if (typeof household === 'string') requestedHousehold = household;
       input = {
         images: await Promise.all(files.map(async (f) => new Uint8Array(await f.arrayBuffer()))),
         ...(typeof title === 'string' ? { title } : {}),
@@ -39,7 +45,13 @@ export async function POST(req: Request) {
     return bad('That upload could not be read. Please try again.');
   }
 
-  const out = await runExtraction(input);
+  // Web session (cookies) or the Android app (Bearer access token); the household must be one the caller belongs to (D102).
+  const who = await resolveRequestAuth(req, requestedHousehold);
+  if (!who.ok) return NextResponse.json({ error: { code: 'UNAUTHENTICATED', message: who.message, retryable: false } }, { status: who.status });
+  if (who.auth.readOnly) return bad('This household is read-only while it is pending deletion.', 403);
+  input.owner = { userId: who.auth.userId, householdId: who.auth.householdId };
+
+  const out = await runExtraction(input, { sink: recipeSinkFor(who.auth) });
   if (!out.ok) {
     return NextResponse.json({ error: out.error, ...(out.uploadId ? { uploadId: out.uploadId } : {}) }, { status: out.status });
   }

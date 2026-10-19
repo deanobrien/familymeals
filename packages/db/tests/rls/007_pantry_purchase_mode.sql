@@ -1,4 +1,4 @@
--- pantry_settings.purchase_mode is the source of truth; households.pantry_deduct_on_purchase is a derived mirror (D108).
+-- pantry_settings.purchase_mode is the source of truth; households.pantry_deduct_on_purchase is a derived mirror (D104).
 begin;
 
 insert into auth.users (id, email) values

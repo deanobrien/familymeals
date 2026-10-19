@@ -4,11 +4,10 @@ import { buildExtractionForm, type UploadImage } from './extraction';
  * Client for the web app's recipe-import endpoints (apps/web/app/api/extract and /save). The AI provider key
  * stays on the server; the app only ever sends photos and the user's Supabase access token.
  *
- * SERVER CHANGE NEEDED (documented in apps/mobile/README.md): those routes currently have no authentication and
- * a process-wide in-memory recipe store. For this client to work against a deployed web app they must
- *   1. accept `Authorization: Bearer <supabase access token>` (verify with supabase.auth.getUser(token)),
- *   2. read the multipart `householdId` field and check household membership,
- *   3. save through a Supabase-backed RecipeSink scoped to that household.
+ * Server side (DECISIONS D102, done): the routes accept `Authorization: Bearer <supabase access token>`, verify it with
+ * supabase.auth.getUser(token), check the user is an active member of the multipart `householdId`, and save through
+ * the caller's own RecipeSink (the Supabase repository when DATA_BACKEND=supabase). The save call needs no household:
+ * the upload remembers who made it.
  */
 
 export class ImportApiError extends Error {

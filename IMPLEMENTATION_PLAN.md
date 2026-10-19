@@ -13,6 +13,8 @@ Merge order within a wave: contracts/packages before apps.
 - [~] W0b L6 QA harness: fixtures + e2e specs merged (batch 1); RLS tests in `packages/db`; e2e rerunnable (dev reset/seed endpoints, D36); CI workflow file added but not run (no remote, D38)
 - [ ] **Gate G0**: Brief M0 acceptance + schema merged + engine core green
 
+- [x] S1 Supabase repositories for recipes / plans / pantry (D50-D58, migration `20261019001520`) and M2 Android SupabaseDataSource + offline queue + camera import (D70-D76); wired by integrator pass 3 (D100-D105, migration `20261019001540`). Not yet verified against a live Supabase/PostgREST.
+
 ## Wave 1 - Core features (needs G0)
 
 - [x] L11 Auth & household (merged batch 5: `@supabase/ssr`, middleware, mock-auth demo mode, households, invitations, `transfer_ownership` RPC; all lanes use `getAppContext()`, D35/D37). Live-Supabase e2e flows still fixme

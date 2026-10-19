@@ -1,12 +1,19 @@
 import { randomUUID } from 'node:crypto';
 import type { RecipeDraft } from '@fr/recipe-import';
 
+export interface UploadOwner {
+  userId: string;
+  householdId: string;
+}
+
 /** Temp store of uploaded page images (and the built draft) so a failed/edited import can be retried or saved. */
 export interface UploadRecord {
   id: string;
   images: Uint8Array[];
   title?: string;
   draft?: RecipeDraft;
+  /** Who uploaded it (D102): only that user, in that household, can retry or save it. */
+  owner?: UploadOwner;
   createdAt: number;
 }
 
@@ -26,9 +33,9 @@ function sweep(now = Date.now()) {
   }
 }
 
-export function putUpload(images: Uint8Array[], title?: string): UploadRecord {
+export function putUpload(images: Uint8Array[], title?: string, owner?: UploadOwner): UploadRecord {
   sweep();
-  const rec: UploadRecord = { id: randomUUID(), images, createdAt: Date.now() };
+  const rec: UploadRecord = { id: randomUUID(), images, createdAt: Date.now(), ...(owner ? { owner } : {}) };
   if (title !== undefined) rec.title = title;
   map().set(rec.id, rec);
   return rec;

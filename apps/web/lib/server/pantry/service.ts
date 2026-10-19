@@ -223,6 +223,33 @@ export function createPantryService(deps: PantryDeps) {
       return ok(`Added ${name}`);
     },
 
+    /**
+     * Stock bought outside the shopping list (receipt "extra" lines the shopper chose to add, D103). Source = 'purchase';
+     * the ingredient is matched by exact name/alias only (no guessing), else the line is kept as free text. Lines the
+     * engine rejects (bad quantity) are skipped and counted. All rows are written in ONE replaceItems.
+     */
+    async addPurchased(
+      householdId: Uuid,
+      entries: readonly { name: string; value: number; unit: string; ingredientId?: string }[],
+    ): Promise<{ added: number; skipped: number }> {
+      const settings = await repo.getSettings(householdId);
+      const ctx = ctxFor(settings);
+      let items = await repo.listItems(householdId);
+      let added = 0;
+      for (const e of entries) {
+        const ing = (e.ingredientId ? ingredients.get(e.ingredientId) : undefined) ?? ingredients.findByName(e.name);
+        const name = (ing?.name ?? e.name.trim()).slice(0, 80);
+        if (!name || validateQuantity(e.value, e.unit)) continue;
+        items = addStock(items, {
+          householdId, name, quantity: exactQ(e.value, e.unit as never), source: 'purchase',
+          ...(ing ? { ingredientId: ing.id } : {}),
+        }, ctx);
+        added++;
+      }
+      if (added > 0) await repo.replaceItems(householdId, items);
+      return { added, skipped: entries.length - added };
+    },
+
     async correctItem(householdId: Uuid, input: CorrectItemInput): Promise<ActionResult> {
       const bad = validateQuantity(input.value, input.unit, true);
       if (bad) return fail(bad);

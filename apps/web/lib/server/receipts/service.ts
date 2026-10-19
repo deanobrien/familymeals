@@ -7,7 +7,9 @@ import { getAppContext } from '../context';
 import { getPriceStore } from '../prices/store';
 import { getIngredientCatalogue } from '../refdata/catalogue';
 import { getShoppingRepository } from '../shopping/repository';
+import { getPantryService } from '../pantry/deps';
 import { ensureDemoReceipts, getMemoryServices } from './memory';
+import { PantryServiceReceiptPort } from './pantry-port';
 import { ShoppingOutstandingSource, ShoppingPurchaseSink } from './shopping-ports';
 import { confirmReceipt, loadReview, processReceiptUpload, ReceiptError, type PipelineDeps } from './pipeline';
 
@@ -30,7 +32,8 @@ export async function getPipelineDeps(): Promise<PipelineDeps> {
     parser: { parseReceipt: (image) => provider.parseReceipt(image, { householdId: ctx.householdId }) },
     outstanding: new ShoppingOutstandingSource(shopping, { converter: catalogue.converter }, catalogue.get),
     receipts: mem.receipts,
-    purchases: new ShoppingPurchaseSink(ctx.householdId, shopping, getPriceStore(), mem.purchases),
+    // Extras the shopper adds to the pantry go to the household's pantry service (D103); prices to the household's store.
+    purchases: new ShoppingPurchaseSink(ctx.householdId, shopping, getPriceStore(), new PantryServiceReceiptPort(ctx.householdId, getPantryService(ctx.householdId))),
     newId: () => randomUUID(),
     now: () => new Date(),
   };

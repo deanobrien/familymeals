@@ -1,4 +1,4 @@
--- One source of truth for "what happens to the pantry when something is bought" (DECISIONS D108).
+-- One source of truth for "what happens to the pantry when something is bought" (DECISIONS D104).
 --
 --   pantry_settings.purchase_mode  ('off' | 'suggest' | 'auto')   <- the setting; the app reads and writes only this
 --   households.pantry_deduct_on_purchase (boolean)                 <- legacy column kept for the @fr/domain Household

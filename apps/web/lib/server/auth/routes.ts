@@ -21,6 +21,16 @@ export const PUBLIC_PREFIXES: readonly string[] = ['/auth/', '/invite/'];
 
 export const PUBLIC_API_PREFIXES: readonly string[] = [];
 
+/**
+ * API routes the Android app calls with `Authorization: Bearer <supabase access token>` instead of cookies (D102).
+ * Middleware lets a bearer request through; the ROUTE verifies the token (auth.getUser) and household membership.
+ */
+export const BEARER_API_PATHS: readonly string[] = ['/api/extract', '/api/extract/save'];
+
+export function acceptsBearer(pathname: string, authorization: string | null | undefined): boolean {
+  return BEARER_API_PATHS.includes(pathname) && /^Bearer\s+\S+$/i.test(authorization?.trim() ?? '');
+}
+
 /** Auth pages a signed-in user is bounced away from. */
 export const GUEST_ONLY_PATHS: readonly string[] = ['/sign-in', '/sign-up', '/forgot-password'];
 

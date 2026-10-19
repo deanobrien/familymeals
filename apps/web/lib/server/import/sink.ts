@@ -1,5 +1,8 @@
 import type { FinalisedRecipe, RecipeSummary } from '@fr/recipe-import';
 import { getRecipeRepository } from '../../recipes/factory';
+import type { RequestAuth } from '../auth/request-auth';
+import { summariserForHousehold } from '../calc/household';
+import { createSupabaseRecipeRepository, useSupabaseBackend } from '../supabase/backend';
 import type { RecipeRepository } from '../../recipes/repository';
 import { recipeInputSchema, type RecipeInput } from '../../recipes/schema';
 import type { DietCategory, Quantity } from '../../recipes/types';
@@ -112,6 +115,19 @@ export class RepositoryRecipeSink implements RecipeSink {
     const r = this.finalised.get(id);
     return r ? structuredClone(r) : undefined;
   }
+}
+
+/**
+ * The sink for an authenticated caller (D102). With the Supabase backend the recipe is saved through the CALLER's own
+ * client and household (a bearer token from the Android app, or the web session), never a shared one; otherwise the
+ * process-wide in-memory sink.
+ */
+export function recipeSinkFor(auth: Pick<RequestAuth, 'dataContext'>): RecipeSink {
+  const ctx = auth.dataContext;
+  if (ctx && useSupabaseBackend()) {
+    return new RepositoryRecipeSink(createSupabaseRecipeRepository(async () => ctx, summariserForHousehold));
+  }
+  return getRecipeSink();
 }
 
 const g = globalThis as unknown as { __frRecipeSink?: RecipeSink };

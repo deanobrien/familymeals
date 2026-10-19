@@ -7,7 +7,7 @@ import { describeActiveProvider, getAiProvider } from '../ai/provider';
 import { coverUrl, getUploadFiles, type UploadFiles } from '../uploads/dev-store';
 import { ingredientMatcher, ingredientParser } from './engine-adapter';
 import { getRecipeSink, type RecipeSink } from './sink';
-import { deleteUpload, getUpload, putUpload } from './upload-store';
+import { deleteUpload, getUpload, putUpload, type UploadOwner } from './upload-store';
 
 export interface PipelineDeps {
   provider?: AiProvider;
@@ -32,9 +32,17 @@ export interface ExtractInput {
   /** Retry an earlier upload without re-sending the images. */
   uploadId?: string;
   title?: string;
+  /** The authenticated uploader (D102). A retry / save by anyone else is treated as an expired upload. */
+  owner?: UploadOwner;
 }
 
 const MAX_TITLE = 200;
+
+/** An upload belongs to whoever created it: same user AND household (both undefined = unauthenticated unit-test use). */
+export function sameOwner(a: UploadOwner | undefined, b: UploadOwner | undefined): boolean {
+  if (!a || !b) return !a && !b;
+  return a.userId === b.userId && a.householdId === b.householdId;
+}
 
 /**
  * The provider for THIS request, from Settings > AI provider, else env, else the dev mock (DECISIONS D6, D41).
@@ -71,7 +79,7 @@ export async function runExtraction(input: ExtractInput, deps: PipelineDeps = {}
 
   if (uploadId) {
     const rec = getUpload(uploadId);
-    if (!rec) {
+    if (!rec || !sameOwner(rec.owner, input.owner)) {
       return { ok: false, status: 410, error: { code: 'UPLOAD_EXPIRED', message: 'Your uploaded photos have expired. Please upload them again.', retryable: false } };
     }
     images = rec.images;
@@ -90,7 +98,7 @@ export async function runExtraction(input: ExtractInput, deps: PipelineDeps = {}
     return { ok: false, ...toError(e) };
   }
 
-  const rec = uploadId ? getUpload(uploadId)! : putUpload(images, title);
+  const rec = uploadId ? getUpload(uploadId)! : putUpload(images, title, input.owner);
   uploadId = rec.id;
   if (title !== undefined) rec.title = title;
 
@@ -133,10 +141,10 @@ const fail = (status: number, code: string, message: string): SaveOutcome => ({ 
  * user-editable fields: provenance (original extraction, image refs, timestamp) comes from the server copy,
  * and blocking issues are recomputed here.
  */
-export async function saveImport(input: { uploadId: string; draft: RecipeDraft }, deps: PipelineDeps = {}): Promise<SaveOutcome> {
+export async function saveImport(input: { uploadId: string; draft: RecipeDraft; owner?: UploadOwner }, deps: PipelineDeps = {}): Promise<SaveOutcome> {
   const sink = deps.sink ?? getRecipeSink();
   const rec = getUpload(input.uploadId);
-  if (!rec?.draft) return fail(410, 'UPLOAD_EXPIRED', 'This import has expired. Please upload the photos again.');
+  if (!rec?.draft || !sameOwner(rec.owner, input.owner)) return fail(410, 'UPLOAD_EXPIRED', 'This import has expired. Please upload the photos again.');
 
   const d = input.draft;
   if (!d || typeof d !== 'object' || !Array.isArray(d.ingredients) || !Array.isArray(d.steps) || typeof d.title?.value !== 'string') {
