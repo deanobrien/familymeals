@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Badge, Button, Card, CardBody, Input } from '@fr/ui';
+import { downscaleImage } from '../../../lib/images/downscale';
 import type { ApiError, ProviderInfo } from './import-flow';
 
 const MAX_PAGES = 6;
@@ -23,21 +24,9 @@ interface Props {
 
 /** Turn an image a quarter turn clockwise in the browser (before upload). Bakes in EXIF orientation first. */
 export async function rotateImageFile(file: File, quarterTurnsClockwise = 1): Promise<File> {
-  const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
-  const turns = ((quarterTurnsClockwise % 4) + 4) % 4;
-  const swap = turns % 2 === 1;
-  const canvas = document.createElement('canvas');
-  canvas.width = swap ? bmp.height : bmp.width;
-  canvas.height = swap ? bmp.width : bmp.height;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('canvas unavailable');
-  ctx.translate(canvas.width / 2, canvas.height / 2);
-  ctx.rotate((turns * Math.PI) / 2);
-  ctx.drawImage(bmp, -bmp.width / 2, -bmp.height / 2);
-  bmp.close();
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.92));
-  if (!blob) throw new Error('could not encode image');
-  return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
+  const out = await downscaleImage(file, { quarterTurns: quarterTurnsClockwise });
+  if (out === file && quarterTurnsClockwise % 4 !== 0) throw new Error('could not rotate image');
+  return out;
 }
 
 export function UploadStep({ onExtract, provider }: Props) {
@@ -47,6 +36,7 @@ export function UploadStep({ onExtract, provider }: Props) {
   const [error, setError] = useState<ApiError | null>(null);
   const [retryId, setRetryId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [preparing, setPreparing] = useState(false);
   const [rotating, setRotating] = useState<number | null>(null);
   const nextId = useRef(1);
   const pagesRef = useRef<Page[]>([]);
@@ -54,7 +44,7 @@ export function UploadStep({ onExtract, provider }: Props) {
 
   useEffect(() => () => pagesRef.current.forEach((p) => URL.revokeObjectURL(p.url)), []);
 
-  function addFiles(list: FileList | null) {
+  async function addFiles(list: FileList | null) {
     if (!list || list.length === 0) return;
     const incoming = [...list].filter((f) => f.type === '' || f.type.startsWith('image/'));
     const room = MAX_PAGES - pages.length;
@@ -68,7 +58,11 @@ export function UploadStep({ onExtract, provider }: Props) {
     );
     setRetryId(null);
     setError(null);
-    setPages((cur) => [...cur, ...accepted.map((file) => ({ id: nextId.current++, file, url: URL.createObjectURL(file) }))]);
+    if (accepted.length === 0) return;
+    setPreparing(true);
+    const files = await Promise.all(accepted.map((f) => downscaleImage(f)));
+    setPreparing(false);
+    setPages((cur) => [...cur, ...files.slice(0, Math.max(0, MAX_PAGES - cur.length)).map((file) => ({ id: nextId.current++, file, url: URL.createObjectURL(file) }))]);
   }
 
   function move(i: number, d: -1 | 1) {
@@ -164,7 +158,7 @@ export function UploadStep({ onExtract, provider }: Props) {
                 multiple
                 data-testid="photo-input"
                 className="fr-visually-hidden"
-                onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }}
+                onChange={(e) => { void addFiles(e.target.files); e.target.value = ''; }}
               />
             </label>
             <label className="fr-btn fr-btn--secondary fr-btn--md" style={{ cursor: 'pointer' }}>
@@ -175,7 +169,7 @@ export function UploadStep({ onExtract, provider }: Props) {
                 capture="environment"
                 data-testid="camera-input"
                 className="fr-visually-hidden"
-                onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }}
+                onChange={(e) => { void addFiles(e.target.files); e.target.value = ''; }}
               />
             </label>
             <Badge>{pages.length} of {MAX_PAGES} pages</Badge>
@@ -183,6 +177,7 @@ export function UploadStep({ onExtract, provider }: Props) {
           <p className="fr-muted" style={{ margin: '0.5rem 0 0' }}>
             Add every side of the card (front and back, in any order). If a photo is sideways, turn it with Rotate.
           </p>
+          {preparing && <p role="status">Preparing photos...</p>}
           {notice && <p role="status">{notice}</p>}
         </CardBody>
       </Card>
@@ -240,7 +235,7 @@ export function UploadStep({ onExtract, provider }: Props) {
       )}
 
       <div>
-        <Button onClick={() => void submit()} disabled={busy || pages.length === 0} loading={busy}>
+        <Button onClick={() => void submit()} disabled={busy || preparing || pages.length === 0} loading={busy}>
           Extract recipe
         </Button>
       </div>

@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { Button } from '@fr/ui';
+import { downscaleImage } from '../../lib/images/downscale';
 import { uploadReceiptAction, type UploadState } from './actions';
 
 export function UploadForm() {
@@ -18,6 +19,17 @@ export function UploadForm() {
           capture="environment"
           className="fr-control"
           required
+          onChange={async (e) => {
+            // Shrink big phone photos in the browser before the server action upload.
+            const input = e.currentTarget;
+            const file = input.files?.[0];
+            if (!file) return;
+            const small = await downscaleImage(file);
+            if (small === file) return;
+            const dt = new DataTransfer();
+            dt.items.add(small);
+            input.files = dt.files;
+          }}
         />
         <span className="fr-field__hint">Take a photo or choose an image (JPEG, PNG or WebP). Nothing is marked as bought until you confirm it.</span>
         {state.error && <span role="alert" className="fr-field__error">{state.error}</span>}
