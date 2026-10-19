@@ -25,3 +25,9 @@
 .preview > li { padding: var(--fr-space-2) 0; border-bottom: 1px solid var(--fr-border); display: flex; flex-direction: column; gap: 2px; }
 .preview > li:last-child { border-bottom: 0; }
 .arrow { font-weight: 600; }
+.product { display: flex; flex-direction: column; gap: var(--fr-space-2); padding: var(--fr-space-3); border: 1px solid var(--fr-border); border-radius: var(--fr-radius-md); background: var(--fr-surface); }
+.productHead { display: flex; gap: var(--fr-space-3); align-items: center; }
+.productImg { width: 64px; height: 64px; object-fit: contain; border-radius: var(--fr-radius-md); background: var(--fr-border); flex: none; }
+.nutrition { list-style: none; margin: var(--fr-space-2) 0 0; padding: 0; display: grid; gap: 2px; font-size: var(--fr-text-sm); }
+.nutrition li { display: flex; justify-content: space-between; gap: var(--fr-space-3); max-width: 22rem; }
+.video { width: 100%; max-width: 420px; border-radius: var(--fr-radius-md); background: #000; }

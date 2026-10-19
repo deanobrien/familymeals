@@ -2,6 +2,7 @@
 
 import { Badge, Tabs } from '@fr/ui';
 import type { NutritionResult } from '../../../lib/calc/types';
+import { PRODUCT_NUTRITION_LABEL } from '../../../lib/products/types';
 import {
   NUTRIENT_DISPLAY,
   nutrientCell,
@@ -104,6 +105,16 @@ export function NutritionPanel({ nutrition, servings, printed }: Props) {
       )}
       {nutrition.warnings.length > 0 && (
         <p className="fr-muted" style={{ fontSize: 'var(--fr-text-xs)' }}>{nutrition.warnings.join('; ')}.</p>
+      )}
+      {nutrition.productSources && nutrition.productSources.length > 0 && (
+        <ul className="fr-muted" style={{ fontSize: 'var(--fr-text-xs)' }} data-testid="nutrition-product-sources" aria-label="Nutrition from product labels">
+          {nutrition.productSources.map((p) => (
+            <li key={p.ingredientId}>
+              {p.ingredientName}: {PRODUCT_NUTRITION_LABEL} ({p.productName}, barcode {p.barcode},{' '}
+              <a href={p.url} target="_blank" rel="noopener noreferrer">Open Food Facts</a>)
+            </li>
+          ))}
+        </ul>
       )}
       <p className="fr-muted" style={{ fontSize: 'var(--fr-text-xs)' }} data-testid="nutrition-attribution">{nutrition.attribution}</p>
       <p className="fr-muted" style={{ fontSize: 'var(--fr-text-xs)' }}>{nutrition.disclaimer}</p>

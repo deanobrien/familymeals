@@ -1,6 +1,7 @@
 // Review-row state and its pure transitions for /pantry/scan (DECISIONS D84-D88). Client-safe, no I/O.
 import { estimateShelfLife } from './shelf-life';
 import type { IngredientRef, ScanCommitRow, ScanForm, ScanPackaging, ScanRowDto } from './scan-types';
+import type { Product, ProductLookupDto } from '../products/types';
 
 export type DateSource = 'none' | 'scan' | 'closeup' | 'user' | 'estimate';
 export type CloseUpState = 'idle' | 'busy' | 'unread' | 'done';
@@ -35,6 +36,9 @@ export interface ScanRow {
   bestBeforeSource: DateSource;
   closeUp: CloseUpState;
   closeUpMessage?: string;
+  /** Set when the row came from a barcode (X2): the product to show provenance for and link on confirm. */
+  barcode?: string;
+  product?: Product;
 }
 
 const LOW_CONFIDENCE = 0.5;
@@ -71,6 +75,34 @@ export function rowFromDto(dto: ScanRowDto): ScanRow {
   if (dto.packSizeText) row.packSizeText = dto.packSizeText;
   if (dto.packSize) row.packSize = dto.packSize;
   if (dto.notes) row.notes = dto.notes;
+  return row;
+}
+
+/**
+ * A barcode lookup as a review row (X2). Name, pack size, matched ingredient and allergens come from the product record;
+ * dates are NOT on the product, so they start empty and come from a close-up photo, the owner, or the opt-in estimate.
+ * Only a clean ingredient match is pre-selected; an ambiguous or missing one is left for the owner to choose.
+ */
+export function rowFromProduct(lookup: ProductLookupDto, key: string): ScanRow {
+  const p = lookup.product;
+  const canned = p.categories.some((c) => /canned|tinned/.test(c));
+  const packaging: ScanPackaging = canned ? 'tin' : p.nutrition.per === 'ml' ? 'bottle' : 'pack';
+  const packSize = p.packSize && (p.packSize.unit === 'g' || p.packSize.unit === 'ml') && p.packSize.value !== undefined
+    ? { value: p.packSize.value, unit: p.packSize.unit }
+    : undefined;
+  // A multipack ("6 x 125 g") is ONE pack of the whole size; the owner can edit the count.
+  const q = defaultQuantity({ count: 1, packaging, ...(packSize ? { packSize } : {}) });
+  const row: ScanRow = {
+    key, scannedName: p.brand && !p.name.toLowerCase().startsWith(p.brand.toLowerCase()) ? `${p.brand} ${p.name}` : p.name,
+    form: canned ? 'canned' : 'ambient', packaging, confidence: 1, frameRefs: [], match: lookup.match, needsCloseUp: false,
+    include: true,
+    ingredient: lookup.match.status === 'matched' ? lookup.match.ingredient : null,
+    freeName: p.name, count: '1', value: fmtNum(q.value), unit: q.unit, valueEdited: false,
+    useBy: '', bestBefore: '', useBySource: 'none', bestBeforeSource: 'none', closeUp: 'idle',
+    barcode: p.barcode, product: p,
+  };
+  if (p.packSizeText) row.packSizeText = p.packSizeText;
+  if (packSize) row.packSize = packSize;
   return row;
 }
 
@@ -172,6 +204,7 @@ export function toCommitRows(rows: readonly ScanRow[]): CommitResult {
       key: r.key, value, unit: r.unit,
       ...(r.ingredient ? { ingredientId: r.ingredient.id } : { name: name.slice(0, 80) }),
       ...(expiry ? { expiry } : {}),
+      ...(r.barcode ? { barcode: r.barcode } : {}),
     });
   }
   return { rows: out, errors };

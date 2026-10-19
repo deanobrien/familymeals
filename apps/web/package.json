@@ -14,6 +14,7 @@
     "@fr/domain": "workspace:*",
     "@fr/engine": "workspace:*",
     "@fr/plan-orchestrator": "workspace:*",
+    "@fr/product-sources": "workspace:*",
     "@fr/recipe-import": "workspace:*",
     "@fr/refdata": "workspace:*",
     "@fr/ui": "workspace:*",

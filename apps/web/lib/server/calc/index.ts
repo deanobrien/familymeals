@@ -16,6 +16,9 @@ import type { NutrientValue, PriceKind, RecipeCost, RecipeView } from '../../rec
 import { MISSING_LABEL, UNCOSTED_LABEL, type CostResult, type CostSourceUsed, type NutritionResult, type RecipeCalculation } from '../../calc/types';
 import { getIngredientCatalogue, type IngredientCatalogue } from '../refdata/catalogue';
 import { loadCofidProfiles, loadGenericPrices, type CofidProfiles } from './refdata';
+import type { ProductNutritionSource } from './product-nutrition';
+import { getProductSnapshotStore } from '../products/store';
+import type { ProductSourceUsed } from '../../products/types';
 
 /**
  * Real cost + nutrition for library recipes (DECISIONS D60-D63): `@fr/engine` cost / nutrition over the
@@ -51,6 +54,8 @@ export interface CalcDeps {
   /** Generic refdata prices first; household observations are appended by the calculator. */
   prices: readonly PriceObservation[];
   cofid: CofidProfiles;
+  /** Household product-label nutrition (linked products): preferred over CoFID for the ingredients it covers (D186). */
+  products?: ProductNutritionSource;
   now?: () => Date;
 }
 
@@ -123,8 +128,11 @@ export function costRecipe(recipe: CalcRecipe, deps: CalcDeps, opts: { scale?: n
  */
 export function nutritionForRecipe(recipe: CalcRecipe, deps: CalcDeps): NutritionResult {
   const lines = toEngineLines(recipe, deps.catalogue);
+  const productsUsed = new Map<string, ProductSourceUsed>();
   const nLines: NutritionLine[] = lines.map((l) => {
-    const profile = l.ingredientId ? deps.cofid.profile(l.ingredientId) : undefined;
+    const hit = l.ingredientId ? deps.products?.forIngredient(l.ingredientId) : undefined;
+    if (hit) productsUsed.set(hit.used.ingredientId, hit.used);
+    const profile = hit ? hit.profile : l.ingredientId ? deps.cofid.profile(l.ingredientId) : undefined;
     return {
       id: l.id,
       name: l.name,
@@ -146,7 +154,10 @@ export function nutritionForRecipe(recipe: CalcRecipe, deps: CalcDeps): Nutritio
     missing: r.missingIngredients.map((m) => ({ name: m.name, reason: m.reason, reasonLabel: MISSING_LABEL[m.reason] ?? m.reason })),
     warnings: r.warnings,
     hasEstimates: Object.values(r.totals).some((n) => n.estimate),
-    attribution: deps.cofid.attribution,
+    attribution: productsUsed.size > 0
+      ? `${deps.cofid.attribution} Where a product is named below, its figures come from the product label via Open Food Facts (Product data \u00a9 Open Food Facts contributors, ODbL).`
+      : deps.cofid.attribution,
+    ...(productsUsed.size > 0 ? { productSources: [...productsUsed.values()] } : {}),
     disclaimer: NUTRITION_DISCLAIMER,
     calculatedAt: r.calculatedAt,
   };
@@ -173,6 +184,7 @@ export interface CalculatorOptions {
   priceSource?: PriceSource;
   genericPrices?: readonly PriceObservation[];
   cofid?: CofidProfiles;
+  productSource?: ProductNutritionSource;
   now?: () => Date;
 }
 
@@ -191,11 +203,11 @@ export function createRecipeCalculator(opts: CalculatorOptions = {}): RecipeCalc
       pricesFor = v;
       prices = opts.priceSource ? [...opts.priceSource.observations(), ...generic] : generic;
     }
-    return { catalogue, prices, cofid, ...(opts.now ? { now: opts.now } : {}) };
+    return { catalogue, prices, cofid, ...(opts.productSource ? { products: opts.productSource } : {}), ...(opts.now ? { now: opts.now } : {}) };
   };
 
   // Cache per recipe VERSION: id + updatedAt + servings + the price source version. Edits bump updatedAt.
-  const keyOf = (r: CalcRecipe) => `${r.id}|${r.updatedAt}|${r.servings}|${opts.priceSource?.version() ?? ''}`;
+  const keyOf = (r: CalcRecipe) => `${r.id}|${r.updatedAt}|${r.servings}|${opts.priceSource?.version() ?? ''}|${opts.productSource?.version() ?? ''}`;
 
   const forRecipe = (r: CalcRecipe): RecipeCalculation => {
     const key = keyOf(r);
@@ -242,7 +254,7 @@ const calculators = (): Map<string, RecipeCalculator> => ((globalThis as G)[KEY]
 export function getRecipeCalculator(householdId: string): RecipeCalculator {
   const map = calculators();
   let calc = map.get(householdId);
-  if (!calc) map.set(householdId, (calc = createRecipeCalculator({ priceSource: getPriceStore().asPriceSource(householdId) })));
+  if (!calc) map.set(householdId, (calc = createRecipeCalculator({ priceSource: getPriceStore().asPriceSource(householdId), productSource: getProductSnapshotStore().asNutritionSource(householdId) })));
   return calc;
 }
 
@@ -252,6 +264,7 @@ export function getRecipeCalculator(householdId: string): RecipeCalculator {
  */
 export async function getFreshRecipeCalculator(householdId: string): Promise<RecipeCalculator> {
   await getPriceStore().refresh?.(householdId);
+  await getProductSnapshotStore().refresh?.(householdId);
   return getRecipeCalculator(householdId);
 }
 

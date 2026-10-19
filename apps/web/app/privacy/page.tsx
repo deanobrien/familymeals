@@ -70,6 +70,11 @@ export default function PrivacyPage() {
           train their models. This involves a transfer outside the UK, protected by contractual
           safeguards.
         </li>
+        <li>
+          <em>Open Food Facts:</em> when you scan a barcode, the barcode number (not your name, account or household) is sent to
+          Open Food Facts to look the product up. Product data &copy; Open Food Facts contributors, ODbL; see{' '}
+          <a href="/about/sources">Data sources</a>.
+        </li>
         <li>We never sell your data or use it for advertising.</li>
       </ul>
 
