@@ -6,19 +6,18 @@ import {
   NUTRIENT_DISPLAY,
   nutrientCell,
   printedKey,
-  type PrintedNutritionLike,
 } from '../../../lib/calc/format';
-import type { NutrientKey } from '../../../lib/recipes/types';
+import type { NutrientKey, PrintedNutritionView } from '../../../lib/recipes/types';
 import styles from '../recipes.module.css';
 
 interface Props {
   nutrition: NutritionResult;
   /** Servings chosen on the page. Ingredients scale with servings, so per-serving values stay put and per-recipe values grow. */
   servings: number;
-  printed: PrintedNutritionLike | null;
+  printed: PrintedNutritionView | null;
 }
 
-function Table({ caption, nutrition, multiplier, printed }: { caption: string; nutrition: NutritionResult; multiplier: number; printed: PrintedNutritionLike | null }) {
+function Table({ caption, nutrition, multiplier, printed }: { caption: string; nutrition: NutritionResult; multiplier: number; printed: PrintedNutritionView | null }) {
   const printedBy = new Map<NutrientKey, { amount: number; unit: string; name: string }>();
   const printedExtra: { name: string; amount: number; unit: string }[] = [];
   for (const v of printed?.values ?? []) {
@@ -63,8 +62,8 @@ function Table({ caption, nutrition, multiplier, printed }: { caption: string; n
         </tbody>
       </table>
       {printed && (
-        <p className="fr-muted" style={{ fontSize: 'var(--fr-text-xs)' }} data-testid="printed-basis">
-          Recipe card figures are as printed, {printed.basis}{printed.note ? ` (${printed.note})` : ''}. They are not calculated by us and are not scaled.
+        <p className="fr-muted" style={{ fontSize: 'var(--fr-text-xs)' }} data-testid="printed-nutrition">
+          Recipe card figures are as printed, {printed.basis}{printed.note ? ` (${printed.note})` : ''}. They are source-provided, not calculated by this app, and are not scaled.
         </p>
       )}
     </div>

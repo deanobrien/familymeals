@@ -48,22 +48,6 @@ export function nutrientCell(n: NutrientLike | undefined, multiplier = 1): Nutri
   return { text: 'Unknown', unknown: true, estimate: false, ...(note ? { note } : {}) };
 }
 
-/** Printed (on-the-card) nutrition, as another lane's `printedNutrition` field. Shape-compatible with @fr/ai. */
-export interface PrintedNutritionLike {
-  basis: string;
-  values: { nutrient: string; amount: number; unit: string }[];
-  note?: string;
-}
-
-/** Feature-detect `printedNutrition` on a recipe: shown only when the field exists and has values. */
-export function printedNutritionOf(recipe: object): PrintedNutritionLike | null {
-  const p = (recipe as { printedNutrition?: unknown }).printedNutrition;
-  if (!p || typeof p !== 'object') return null;
-  const o = p as Partial<PrintedNutritionLike>;
-  if (typeof o.basis !== 'string' || !Array.isArray(o.values) || o.values.length === 0) return null;
-  return o as PrintedNutritionLike;
-}
-
 const PRINTED_KEYS: Array<[RegExp, NutrientKey]> = [
   [/^(calories|energy|kcal)/i, 'energy_kcal'],
   [/^(sat|of which sat)/i, 'saturates'],

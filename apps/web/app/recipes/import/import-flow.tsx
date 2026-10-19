@@ -8,10 +8,14 @@ import { ReviewStep } from './review-step';
 
 export interface ApiError { code: string; message: string; retryable: boolean }
 
+/** Which AI is reading the photos (never includes a key). */
+export interface ProviderInfo { label: string; isMock: boolean; /** false = a real provider is selected but unusable (missing key etc). */ configured?: boolean }
+
 export interface Extracted {
   uploadId: string;
   draft: RecipeDraft;
   existing: RecipeSummary[];
+  provider?: ProviderInfo;
 }
 
 async function readJson(res: Response): Promise<Record<string, unknown>> {
@@ -24,7 +28,7 @@ async function readJson(res: Response): Promise<Record<string, unknown>> {
 
 const NETWORK_ERROR: ApiError = { code: 'NETWORK', message: 'We could not reach the server. Check your connection and try again.', retryable: true };
 
-export function ImportFlow() {
+export function ImportFlow({ provider }: { provider?: ProviderInfo }) {
   const router = useRouter();
   const [extracted, setExtracted] = useState<Extracted | null>(null);
 
@@ -43,7 +47,12 @@ export function ImportFlow() {
           ...(typeof json.uploadId === 'string' ? { uploadId: json.uploadId } : {}),
         };
       }
-      setExtracted({ uploadId: json.uploadId as string, draft: json.draft as RecipeDraft, existing: (json.existing as RecipeSummary[]) ?? [] });
+      setExtracted({
+        uploadId: json.uploadId as string,
+        draft: json.draft as RecipeDraft,
+        existing: (json.existing as RecipeSummary[]) ?? [],
+        ...(json.provider ? { provider: json.provider as ProviderInfo } : {}),
+      });
       return {};
     } catch {
       return { error: NETWORK_ERROR };
@@ -68,7 +77,16 @@ export function ImportFlow() {
   }
 
   if (extracted) {
-    return <ReviewStep initial={extracted.draft} existing={extracted.existing} onSave={save} onStartOver={() => setExtracted(null)} />;
+    return (
+      <ReviewStep
+        initial={extracted.draft}
+        existing={extracted.existing}
+        uploadId={extracted.uploadId}
+        provider={extracted.provider ?? provider}
+        onSave={save}
+        onStartOver={() => setExtracted(null)}
+      />
+    );
   }
-  return <UploadStep onExtract={extract} />;
+  return <UploadStep onExtract={extract} provider={provider} />;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { nutrientCell, printedKey, printedNutritionOf } from './format';
+import { nutrientCell, printedKey } from './format';
 
 describe('nutrientCell', () => {
   it('shows numbers only for known/zero and never renders unknown as 0', () => {
@@ -17,16 +17,7 @@ describe('nutrientCell', () => {
   });
 });
 
-describe('printed nutrition (field from the import lane, feature-detected)', () => {
-  it('is null when the field is absent or malformed', () => {
-    expect(printedNutritionOf({ title: 'x' })).toBeNull();
-    expect(printedNutritionOf({ printedNutrition: { basis: 'per person', values: [] } })).toBeNull();
-    expect(printedNutritionOf({ printedNutrition: 'nope' })).toBeNull();
-  });
-  it('is returned as printed when present', () => {
-    const p = { basis: 'per person', values: [{ nutrient: 'Calories', amount: 822, unit: 'kcal' }], note: 'supplied ingredients only' };
-    expect(printedNutritionOf({ printedNutrition: p })).toEqual(p);
-  });
+describe('printed nutrition names', () => {
   it('maps printed names to nutrient keys and ignores kJ', () => {
     expect(printedKey('Calories', 'kcal')).toBe('energy_kcal');
     expect(printedKey('Energy', 'kJ')).toBeNull();

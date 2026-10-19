@@ -12,7 +12,6 @@ import {
   formatMinutes,
   useToast,
 } from '@fr/ui';
-import { printedNutritionOf } from '../../../lib/calc/format';
 import type { RecipeCalculation } from '../../../lib/calc/types';
 import { scaleQuantityLabel, servingsFactor } from '../../../lib/recipes/scale';
 import { totalMinutes, type RecipeView } from '../../../lib/recipes/types';
@@ -132,8 +131,15 @@ export function RecipeDetail({ recipe, calc, justDuplicated = false }: { recipe:
 
       <div className={styles.cols} style={{ marginTop: 'var(--fr-space-6)' }}>
         <CostPanel cost={calc.cost} servings={servings} factor={factor} />
-        <NutritionPanel nutrition={calc.nutrition} servings={servings} printed={printedNutritionOf(recipe)} />
+        <NutritionPanel nutrition={calc.nutrition} servings={servings} printed={recipe.printedNutrition ?? null} />
       </div>
+
+      {recipe.printedAllergens && recipe.printedAllergens.length > 0 && (
+        <p data-testid="printed-allergens">
+          <strong>Allergens printed on the card:</strong> {recipe.printedAllergens.join(', ')}
+          <span className="fr-muted" style={{ fontSize: 'var(--fr-text-xs)' }}> (as printed; check the packaging)</span>
+        </p>
+      )}
 
       {recipe.originalText && (
         <details className={styles.panel}>

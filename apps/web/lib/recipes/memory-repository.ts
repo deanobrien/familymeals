@@ -111,6 +111,16 @@ function sortRecipes(items: RecipeView[], sort: RecipeQuery['sort']): RecipeView
   return out;
 }
 
+/** Printed card data is carried through edits unless the caller sends new values. */
+function printedFields(input: RecipeInput, prev: RecipeView | null): Pick<RecipeView, 'printedNutrition' | 'printedAllergens'> {
+  const nutrition = input.printedNutrition ?? prev?.printedNutrition;
+  const allergens = input.printedAllergens ?? prev?.printedAllergens;
+  return {
+    ...(nutrition ? { printedNutrition: clone(nutrition) } : {}),
+    ...(allergens ? { printedAllergens: [...allergens] } : {}),
+  };
+}
+
 function build(id: string, input: RecipeInput, prev: RecipeView | null, now: string): RecipeView {
   return {
     id,
@@ -144,6 +154,7 @@ function build(id: string, input: RecipeInput, prev: RecipeView | null, now: str
     // Cost/nutrition are derived, never stored: InMemoryRecipeRepository.view() fills them from the injected summariser.
     cost: { totalPence: null, kind: 'generic_estimate' },
     nutritionPerServing: [],
+    ...printedFields(input, prev),
     createdAt: prev?.createdAt ?? now,
     updatedAt: now,
   };
