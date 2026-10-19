@@ -1,0 +1,44 @@
+{
+  "title": "Smoky Chicken Wraps With Lime Yoghurt",
+  "description": "A two-sided meal-kit card: ingredients and nutrition on the front, method on the back.",
+  "ingredients": [
+    { "originalText": "1 red onion", "name": "red onion", "quantity": { "kind": "exact", "value": 1, "unit": "item", "originalText": "1" }, "optional": false, "pantryStaple": false, "confidence": 0.95 },
+    { "originalText": "1 tsp smoked paprika [2 tsp]", "name": "smoked paprika", "quantity": { "kind": "exact", "value": 1, "unit": "tsp", "originalText": "1 tsp" }, "optional": false, "pantryStaple": false, "confidence": 0.9 },
+    { "originalText": "200ml chicken stock [400ml]", "name": "chicken stock", "quantity": { "kind": "exact", "value": 200, "unit": "ml", "originalText": "200ml" }, "optional": false, "pantryStaple": false, "confidence": 0.9 },
+    { "originalText": "2 x 125g chicken breast fillets", "name": "chicken breast fillets", "quantity": { "kind": "exact", "value": 2, "unit": "item", "originalText": "2" }, "optional": false, "pantryStaple": false, "confidence": 0.9 },
+    { "originalText": "4 large tortillas", "name": "tortillas", "quantity": { "kind": "exact", "value": 4, "unit": "item", "originalText": "4" }, "optional": false, "pantryStaple": false, "confidence": 0.95 },
+    { "originalText": "olive oil", "name": "olive oil", "quantity": { "kind": "to_taste", "originalText": "olive oil" }, "optional": false, "pantryStaple": true, "confidence": 0.9 },
+    { "originalText": "salt", "name": "salt", "quantity": { "kind": "to_taste", "originalText": "salt" }, "optional": false, "pantryStaple": true, "confidence": 0.9 }
+  ],
+  "steps": [
+    "Slice the onion and fry in a little olive oil for 5 minutes.",
+    "Add the paprika and chicken, cook for 8 minutes, then pour in the stock and simmer.",
+    "Warm the tortillas, fill and serve."
+  ],
+  "servings": 2,
+  "prepMinutes": 10,
+  "cookMinutes": 25,
+  "tags": ["chicken", "wraps"],
+  "cuisine": "mexican",
+  "warnings": ["Card gives amounts for 2 people, with doubled amounts in [brackets] for 4 people; using the amounts for 2."],
+  "confidence": { "title": 0.98, "ingredients": 0.9, "steps": 0.85, "servings": 0.9 },
+  "printedNutrition": {
+    "basis": "per person",
+    "note": "supplied ingredients only, pre-cooking",
+    "values": [
+      { "nutrient": "Calories", "amount": 640, "unit": "kcal" },
+      { "nutrient": "Fat", "amount": 14, "unit": "g" },
+      { "nutrient": "Sat fat", "amount": 4, "unit": "g" },
+      { "nutrient": "Carbs", "amount": 82, "unit": "g" },
+      { "nutrient": "Sugar", "amount": 9, "unit": "g" },
+      { "nutrient": "Fibre", "amount": 7, "unit": "g" },
+      { "nutrient": "Protein", "amount": 42, "unit": "g" },
+      { "nutrient": "Salt", "amount": 2.1, "unit": "g" }
+    ]
+  },
+  "printedAllergens": ["A1: gluten", "A7: milk"],
+  "sourcePublisher": "Example Meal Kit Co",
+  "sourceReference": "Recipe bag 1234",
+  "frontImageIndex": 1,
+  "frontImageRotation": 0
+}

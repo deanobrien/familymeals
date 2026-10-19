@@ -35,8 +35,26 @@ export const ExtractedIngredientSchema = z.object({
   quantity: QuantitySchema,
   preparation: z.string().optional(),
   optional: z.boolean().default(false),
+  /** "You need: olive oil, salt" style lines the card expects the cook to already have. */
+  pantryStaple: z.boolean().default(false),
   confidence: Conf,
 });
+
+/** Nutrition exactly as PRINTED on the card. Source-provided, never calculated by us. */
+export const PrintedNutritionSchema = z.object({
+  /** What the numbers refer to, as printed: "per person", "per serving", "per 100g". */
+  basis: z.string().min(1),
+  values: z.array(z.object({
+    /** As printed, e.g. "Calories", "Fat", "Sat fat", "Carbs", "Sugar", "Fibre", "Protein", "Salt". */
+    nutrient: z.string().min(1),
+    amount: z.number().nonnegative(),
+    /** As printed: "kcal", "kJ", "g", "mg". */
+    unit: z.string().min(1),
+  })).min(1),
+  /** Printed footnote such as "supplied ingredients only, pre-cooking". */
+  note: z.string().optional(),
+});
+export type PrintedNutrition = z.infer<typeof PrintedNutritionSchema>;
 
 export const RecipeExtractionSchema = z.object({
   title: z.string().min(1),
@@ -51,6 +69,18 @@ export const RecipeExtractionSchema = z.object({
   warnings: z.array(z.string()).default([]),
   /** Per-field confidence, keyed by field name (title, servings, ingredients, steps, times...). */
   confidence: z.record(z.string(), Conf).default({}),
+  /** Printed nutrition (source-provided, not calculated). */
+  printedNutrition: PrintedNutritionSchema.optional(),
+  /** Allergens exactly as printed, e.g. "A1: gluten", "A7: milk". */
+  printedAllergens: z.array(z.string().min(1)).optional(),
+  /** Brand / publisher printed on the card, e.g. "Gousto". */
+  sourcePublisher: z.string().min(1).optional(),
+  /** Card / recipe number as printed, e.g. "Recipe bag 3065". */
+  sourceReference: z.string().min(1).optional(),
+  /** 1-based index of the image that is the FRONT of the card (title / photo of the dish). */
+  frontImageIndex: z.number().int().min(1).optional(),
+  /** Degrees CLOCKWISE the front image must be turned to read upright: 0, 90, 180 or 270. */
+  frontImageRotation: z.number().int().optional(),
 });
 export type RecipeExtraction = z.infer<typeof RecipeExtractionSchema>;
 

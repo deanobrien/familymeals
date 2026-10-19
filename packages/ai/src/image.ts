@@ -65,3 +65,16 @@ export async function prepareImages(inputs: Uint8Array[], limits: ImageLimits = 
   if (inputs.length > limits.maxImages) throw new AiError('TOO_MANY_IMAGES', `${inputs.length} > ${limits.maxImages}`);
   return Promise.all(inputs.map((i) => prepareImage(i, limits)));
 }
+
+/** Snap any angle to 0/90/180/270 clockwise. */
+export function normaliseRotation(degrees: number | undefined): 0 | 90 | 180 | 270 {
+  if (degrees === undefined || !Number.isFinite(degrees)) return 0;
+  return ((((Math.round(degrees / 90) * 90) % 360) + 360) % 360) as 0 | 90 | 180 | 270;
+}
+
+/** Rotate an already-prepared image clockwise by 0/90/180/270 and re-encode as JPEG (used for cover images). */
+export async function rotateJpeg(data: Uint8Array, degrees: number): Promise<Buffer> {
+  const deg = normaliseRotation(degrees);
+  const img = sharp(Buffer.from(data), { failOn: 'error', limitInputPixels: 100_000_000 });
+  return (deg === 0 ? img : img.rotate(deg)).jpeg({ quality: 85 }).toBuffer();
+}
