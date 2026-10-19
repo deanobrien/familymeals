@@ -25,6 +25,8 @@ Known caveats (before pass 3; the recipe-store/receipt-price/pantry-extras items
 - The client-side shopping converter has no ingredient densities / unit weights (the server is authoritative); optimistic UI can briefly differ for cross-dimension purchases.
 - Receipt `PurchaseEvent.createdBy` = session user; mock mode has one user, so "another shopper" in e2e is a second browser of the same user.
 
+**S2 Supabase stores + Realtime (2026-10-19, D120-D129):** with `DATA_BACKEND=supabase` shopping (engine-decided, `record_purchase`/`void_purchase` + `apply_shopping_command`, per-list `list_seq` cursor), Realtime hint feed (poll only while the channel is down; mock mode polls), receipts, household price observations, pantry purchase feed + plan open slots, planner profile (consent-gated exclusions) and per-household AI settings (ciphertext row, owner-only write) are Supabase-backed; migrations `001600`, `001610`, `001620`; engine `applyLogEntry` (logged rejections authoritative). Verified in the S2 worktree before the final main merge: `pnpm build`, `pnpm typecheck`, `pnpm lint`, `pnpm turbo run test --force` (18 tasks: engine 749, web 437, ai 92, refdata 59, mobile 42, domain 38, recipe-import 31, ui 26, e2e fixtures 26, db 16, plan-orchestrator 14); `pnpm test:e2e` on one dev server (E2E_PORT=3129, own APP_DATA_DIR + NEXT_DIST_DIR): run 1 had 4 cold-server timeouts that all passed on a targeted rerun, run 2 172 passed / 100 skipped. NOT verified live: PostgREST, the Realtime server, true concurrent sessions (D128). Open: D129.
+
 ## Next
 
 1. Supabase adapters behind the in-memory interfaces (recipes, plans, pantry, shopping command log + `record_purchase`, receipts, price observations); generate `database.types.ts`.
