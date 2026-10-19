@@ -10,8 +10,10 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@fr/ai": "workspace:*",
     "@fr/domain": "workspace:*",
     "@fr/ui": "workspace:*",
+    "@fr/recipe-import": "workspace:*",
     "next": "^15.1.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
