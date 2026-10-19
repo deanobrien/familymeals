@@ -88,3 +88,11 @@ export function maskKey(key: string): string {
   const prefix = /^sk-/.test(k) ? 'sk-' : '';
   return `${prefix}…${tail}`;
 }
+
+/** Thrown by a settings backend when this caller may not change the settings (e.g. not the household owner). */
+export class SettingsWriteRefused extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'SettingsWriteRefused';
+  }
+}

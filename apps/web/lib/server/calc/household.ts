@@ -3,11 +3,15 @@
 import 'server-only';
 import type { RecipeSummariser } from '../../recipes/memory-repository';
 import type { SummariserFor } from '../supabase/backend';
-import { getGenericRecipeCalculator, getRecipeCalculator } from './index';
+import { getFreshRecipeCalculator, getGenericRecipeCalculator } from './index';
 
 /** Summariser for ONE known household (Supabase mode: the household is part of the data context). */
 export const summariserForHousehold: SummariserFor = (householdId) => ({
-  summarise: (recipe) => getRecipeCalculator(householdId).summarise(recipe),
+  summarise: async (recipe) => (await getFreshRecipeCalculator(householdId)).summarise(recipe),
+  async forRequest() {
+    const calc = await getFreshRecipeCalculator(householdId);
+    return { summarise: (recipe) => calc.summarise(recipe) };
+  },
 });
 
 /**
@@ -16,14 +20,14 @@ export const summariserForHousehold: SummariserFor = (householdId) => ({
  * signed out there is no household, so only the generic refdata prices apply.
  */
 export function createSessionSummariser(resolveHouseholdId: () => Promise<string | null>): RecipeSummariser {
-  const calculatorOf = (householdId: string | null) => (householdId ? getRecipeCalculator(householdId) : getGenericRecipeCalculator());
+  const calculatorOf = async (householdId: string | null) => (householdId ? getFreshRecipeCalculator(householdId) : getGenericRecipeCalculator());
   return {
     async summarise(recipe) {
-      return calculatorOf(await resolveHouseholdId()).summarise(recipe);
+      return (await calculatorOf(await resolveHouseholdId())).summarise(recipe);
     },
     // The repository resolves the household ONCE per operation (a list of 200 recipes must not do 200 session lookups).
     async forRequest() {
-      const calc = calculatorOf(await resolveHouseholdId());
+      const calc = await calculatorOf(await resolveHouseholdId());
       return { summarise: (recipe) => calc.summarise(recipe) };
     },
   };

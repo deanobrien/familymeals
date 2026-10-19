@@ -48,7 +48,7 @@ export function sameOwner(a: UploadOwner | undefined, b: UploadOwner | undefined
  * The provider for THIS request, from Settings > AI provider, else env, else the dev mock (DECISIONS D6, D41).
  * The mock refuses to run in production unless explicitly allowed.
  */
-function defaultProvider(): AiProvider {
+function defaultProvider(): Promise<AiProvider> {
   return getAiProvider();
 }
 
@@ -103,8 +103,8 @@ export async function runExtraction(input: ExtractInput, deps: PipelineDeps = {}
   if (title !== undefined) rec.title = title;
 
   try {
-    const provider = deps.provider ?? defaultProvider();
-    const info = deps.provider ? undefined : describeActiveProvider();
+    const provider = deps.provider ?? (await defaultProvider());
+    const info = deps.provider ? undefined : await describeActiveProvider();
     const extraction = await provider.extractRecipe(images, title);
     const refs = images.map((_, i) => `import-uploads/${rec.id}/page-${i + 1}`);
     const draft = buildDraft(

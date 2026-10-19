@@ -9,6 +9,8 @@ import { formatAmount, formatQuantity } from '../../lib/shopping/format';
 import { PRICE_KIND_LABEL, estimateBasket, type PriceBook } from '../../lib/shopping/prices';
 import type { Notice, Transport } from '../../lib/shopping/controller';
 import { useShopping } from '../../lib/shopping/use-shopping';
+import { createSupabaseLiveFeed, type LiveFeed, type RealtimeClientLike } from '../../lib/shopping/live';
+import { createSupabaseBrowserClient } from '../../lib/supabase/browser';
 import { AISLES, type SnapshotDto } from '../../lib/shopping/types';
 import { generateShoppingFromPlan, snapshotShopping, syncShopping } from './actions';
 import { ItemFormSheet, PartialSheet, type ItemFormValues } from './forms';
@@ -22,7 +24,7 @@ const transport: Transport = {
 
 const AISLE_ORDER: string[] = [...AISLES];
 
-export function ShoppingClient({ initial, planId, approvedPlanId, actorId, prices }: {
+export function ShoppingClient({ initial, planId, approvedPlanId, actorId, prices, realtimeHouseholdId }: {
   initial: SnapshotDto;
   /** /shopping?plan=<id>: build the list from that approved plan once. */
   planId?: string;
@@ -31,6 +33,8 @@ export function ShoppingClient({ initial, planId, approvedPlanId, actorId, price
   /** Signed-in member id (server household context). */
   actorId: string;
   prices: PriceBook;
+  /** Set when the list lives in Supabase: subscribe to its command log instead of polling (D122). */
+  realtimeHouseholdId?: string;
 }) {
   const { toast } = useToast();
   const router = useRouter();
@@ -61,7 +65,15 @@ export function ShoppingClient({ initial, planId, approvedPlanId, actorId, price
     [toast],
   );
 
-  const { controller, state, actor } = useShopping(initial, transport, onNotice, actorId);
+  const liveFeed = useMemo<LiveFeed | undefined>(() => {
+    if (!realtimeHouseholdId) return undefined;
+    try {
+      return createSupabaseLiveFeed(createSupabaseBrowserClient() as unknown as RealtimeClientLike, realtimeHouseholdId);
+    } catch {
+      return undefined; // no public Supabase env in this bundle: keep polling
+    }
+  }, [realtimeHouseholdId]);
+  const { controller, state, actor } = useShopping(initial, transport, onNotice, actorId, liveFeed);
   const ctx = defaultEngineContext;
 
   // "Generate from plan": /shopping?plan=<id>

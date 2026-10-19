@@ -13,7 +13,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..
 type Row = Record<string, unknown>;
 type Res = { data: unknown; error: { message: string; code?: string } | null };
 
-const JSONB_ARGS = new Set(['p_input', 'p_doc', 'p_items']);
+const JSONB_ARGS = new Set(['p_input', 'p_doc', 'p_items', 'p_command', 'p_result', 'p_qty', 'p_receipt', 'p_lines', 'p_config', 'p_keys']);
 const q = (id: string) => `"${id.replace(/"/g, '""')}"`;
 
 class Builder implements PromiseLike<Res> {
@@ -21,7 +21,7 @@ class Builder implements PromiseLike<Res> {
   private cols = '*';
   private rows: Row[] = [];
   private values: Row = {};
-  private wheres: Array<{ col: string; op: 'eq' | 'neq' | 'in'; val: unknown }> = [];
+  private wheres: Array<{ col: string; op: 'eq' | 'neq' | 'in' | 'gt'; val: unknown }> = [];
   private orders: string[] = [];
   private lo?: number;
   private hi?: number;
@@ -70,6 +70,10 @@ class Builder implements PromiseLike<Res> {
     this.wheres.push({ col, op: 'neq', val });
     return this;
   }
+  gt(col: string, val: unknown) {
+    this.wheres.push({ col, op: 'gt', val });
+    return this;
+  }
   in(col: string, val: unknown[]) {
     this.wheres.push({ col, op: 'in', val });
     return this;
@@ -100,7 +104,7 @@ class Builder implements PromiseLike<Res> {
         return `${q(w.col)} = any($${params.length})`;
       }
       params.push(w.val);
-      return `${q(w.col)} ${w.op === 'eq' ? '=' : '<>'} $${params.length}`;
+      return `${q(w.col)} ${w.op === 'eq' ? '=' : w.op === 'gt' ? '>' : '<>'} $${params.length}`;
     });
     return ` where ${parts.join(' and ')}`;
   }

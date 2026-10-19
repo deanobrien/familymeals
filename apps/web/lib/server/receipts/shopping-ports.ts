@@ -70,7 +70,7 @@ export class ShoppingPurchaseSink implements PurchaseSink {
   }
 
   async recordPriceObservations(observations: PriceObservation[]): Promise<void> {
-    this.prices.record(this.householdId, observations);
+    await this.prices.record(this.householdId, observations);
   }
 
   async addToPantry(entries: PantryEntry[]): Promise<void> {

@@ -16,6 +16,13 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { SupabaseMealPlanRepository, SupabasePlanRecipeSource, type PlanSourceOptions } from './meal-plan-repository';
 import { SupabasePantryRepository } from './pantry-repository';
 import { SupabaseRecipeRepository } from './recipe-repository';
+import { SupabaseReceiptRepository } from './receipt-repository';
+import { SupabaseShoppingRepository } from './shopping-repository';
+import { SupabaseHouseholdProfile, SupabasePurchaseEventSource } from './household-sources';
+import type { EngineContext } from '../../shopping/engine';
+import type { ShoppingRepository } from '../shopping/repository';
+import type { ReceiptRepository } from '../receipts/ports';
+import type { PurchaseEventSource } from '../pantry/sources';
 import type { RecipeSummariser } from '../../recipes/memory-repository';
 import type { RecipeRepository } from '../../recipes/repository';
 import type { MealPlanRepository } from '../plan/repository';
@@ -145,4 +152,18 @@ export function createSupabasePlanRecipeSource(
 }
 export function createSupabasePantryRepository(resolve: () => Promise<DataContext> = getDataContext): PantryRepository {
   return lazy((c) => new SupabasePantryRepository(c.client), resolve);
+}
+
+// ---- lane S2 (D120-D127): shopping, receipts, pantry purchase feed, planner profile ----
+export function createSupabaseShoppingRepository(ctx: EngineContext, resolve: () => Promise<DataContext> = getDataContext): ShoppingRepository {
+  return lazy((c) => new SupabaseShoppingRepository({ client: c.client, householdId: c.householdId, ctx }), resolve);
+}
+export function createSupabaseReceiptRepository(resolve: () => Promise<DataContext> = getDataContext): ReceiptRepository {
+  return lazy((c) => new SupabaseReceiptRepository(c.client, c.householdId), resolve);
+}
+export function createSupabasePurchaseEventSource(resolve: () => Promise<DataContext> = getDataContext): PurchaseEventSource {
+  return lazy((c) => new SupabasePurchaseEventSource(c.client, c.householdId), resolve);
+}
+export function createSupabaseHouseholdProfile(resolve: () => Promise<DataContext> = getDataContext): Pick<SupabaseHouseholdProfile, 'load' | 'favourites'> {
+  return lazy((c) => new SupabaseHouseholdProfile(c.client, c.householdId), resolve);
 }

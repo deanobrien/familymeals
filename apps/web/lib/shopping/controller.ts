@@ -5,6 +5,7 @@ import {
   clientEnqueue, clientIngest, clientResync, clientTakeConflicts, clientView, createClient,
   defaultEngineContext,
 } from './engine';
+import type { LiveFeed, LiveStatus } from './live';
 import type { ListMeta, SnapshotDto, SyncResponse } from './types';
 
 /** Server round trips (server actions in the app; fakes in tests). */
@@ -46,9 +47,13 @@ export interface ControllerDeps {
   newId: () => Uuid;
   now?: () => string;
   onNotice?: (n: Notice) => void;
+  /** Supabase Realtime hint feed (D122). Absent (mock mode): poll every POLL_MS. Present: poll only while it is down. */
+  live?: LiveFeed;
+  setInterval?: (fn: () => void, ms: number) => unknown;
+  clearInterval?: (h: unknown) => void;
 }
 
-/** Placeholder for Supabase Realtime: poll the command log. TODO: subscribe to shopping_command_log inserts. */
+/** Poll interval: always in mock mode; with Realtime only while the channel is down (fallback). */
 export const POLL_MS = 4000;
 
 /**
@@ -61,7 +66,8 @@ export class ShoppingController {
   private listeners = new Set<() => void>();
   private running: Promise<void> | undefined;
   private again = false;
-  private timer: ReturnType<typeof setInterval> | undefined;
+  private timer: unknown;
+  private liveStatus: LiveStatus | 'none' = 'none';
   private readonly now: () => string;
   private cleanup: Array<() => void> = [];
 
@@ -206,6 +212,8 @@ export class ShoppingController {
     for (const r of conflicts) {
       // Undo of an event that never became a purchase (our own tick lost the race) is noise.
       if (r.type === 'undo' && r.reason === 'event_not_found') continue;
+      // The server retried this tick under a derived id (Supabase lock-time re-check, D121): bookkeeping, not a conflict.
+      if (r.reason === 'superseded') continue;
       const name = r.itemId ? this.state.client.confirmed.items[r.itemId]?.displayName : undefined;
       this.deps.onNotice?.({
         kind: r.reason === 'already_complete' ? 'conflict' : 'rejected', result: r,
@@ -219,11 +227,19 @@ export class ShoppingController {
   start(): () => void {
     this.restore();
     void this.sync(); // replays anything persisted from a previous session
-    this.timer = setInterval(() => {
-      if (typeof document !== 'undefined' && document.hidden) return;
-      if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
-      void this.sync();
-    }, POLL_MS);
+    if (this.deps.live) {
+      const stopLive = this.deps.live.start(
+        (seq) => {
+          // Our own echo, or something we already have: nothing to fetch.
+          if (seq !== undefined && seq <= this.state.client.cursor && this.state.client.pending.length === 0) return;
+          void this.sync();
+        },
+        (status) => this.onLiveStatus(status),
+      );
+      this.cleanup.push(stopLive);
+    } else {
+      this.startPolling();
+    }
     if (typeof window !== 'undefined') {
       const online = () => void this.sync();
       const offline = () => this.set(this.state.client, undefined, 'offline');
@@ -240,9 +256,42 @@ export class ShoppingController {
     return () => this.stop();
   }
 
-  stop(): void {
-    if (this.timer) clearInterval(this.timer);
+  /** Realtime up: stop polling and catch up from the cursor (events missed while down). Down: poll until it is back. */
+  private onLiveStatus(status: LiveStatus): void {
+    const was = this.liveStatus;
+    this.liveStatus = status;
+    if (status === 'live') {
+      this.stopPolling();
+      if (was !== 'live') void this.sync();
+    } else {
+      this.startPolling();
+    }
+  }
+
+  /** For tests / diagnostics: is the fallback poll running? */
+  get polling(): boolean {
+    return this.timer !== undefined;
+  }
+
+  private startPolling(): void {
+    if (this.timer !== undefined) return;
+    const every = this.deps.setInterval ?? ((fn: () => void, ms: number) => setInterval(fn, ms));
+    this.timer = every(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+      void this.sync();
+    }, POLL_MS);
+  }
+
+  private stopPolling(): void {
+    if (this.timer === undefined) return;
+    (this.deps.clearInterval ?? ((h: unknown) => clearInterval(h as ReturnType<typeof setInterval>)))(this.timer);
     this.timer = undefined;
+  }
+
+  stop(): void {
+    this.stopPolling();
+    this.liveStatus = 'none';
     for (const c of this.cleanup) c();
     this.cleanup = [];
   }
