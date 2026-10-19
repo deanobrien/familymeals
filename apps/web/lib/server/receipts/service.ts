@@ -1,6 +1,7 @@
 import 'server-only';
 import { randomUUID } from 'node:crypto';
-import { AiError, createAiProvider, prepareImage } from '@fr/ai';
+import { AiError, prepareImage } from '@fr/ai';
+import { settingsAiProvider } from '../ai/provider';
 import type { LineDecision, ReceiptListEntry } from '../../receipts/types';
 import { getAppContext } from '../context';
 import { getPriceStore } from '../prices/store';
@@ -11,15 +12,15 @@ import { ShoppingOutstandingSource, ShoppingPurchaseSink } from './shopping-port
 import { confirmReceipt, loadReview, processReceiptUpload, ReceiptError, type PipelineDeps } from './pipeline';
 
 /**
- * Production wiring (D34): household + user from the session (getAppContext), AI provider from env
- * (AI_PROVIDER=mock by default). Outstanding items come from the household's shopping list; confirmed lines
+ * Production wiring (D34): household + user from the session (getAppContext), AI provider from Settings (else env,
+ * else the dev mock). Outstanding items come from the household's shopping list; confirmed lines
  * are recorded on that list and as receipt price observations in the shared price store.
  * TODO(Supabase): receipts tables + record_purchase.
  */
-export async function getPipelineDeps(env: Record<string, string | undefined> = process.env): Promise<PipelineDeps> {
+export async function getPipelineDeps(): Promise<PipelineDeps> {
   const ctx = await getAppContext();
   const mem = getMemoryServices();
-  const provider = createAiProvider({ ...env, AI_PROVIDER: env.AI_PROVIDER ?? 'mock' });
+  const provider = settingsAiProvider; // Settings > AI provider, else env, else the dev mock (D41)
   const catalogue = getIngredientCatalogue();
   const shopping = getShoppingRepository();
   return {
