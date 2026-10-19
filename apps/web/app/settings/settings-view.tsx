@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
 import { Badge, Button, Card, Checkbox, ConfirmDialog, Input, Select, useToast } from '@fr/ui';
 import s from '../../lib/dashboard/dashboard.module.css';
+import { AiProviderSection } from './ai-provider-section';
+import type { AiSettingsView } from './ai-actions';
 import { consentEvent, defaultConsentSink, type ConsentSink } from './consent';
 import {
   COMMON_EXCLUSIONS,
@@ -26,11 +28,12 @@ function collectErrors(issues: { path: PropertyKey[]; message: string }[]): Erro
   return out;
 }
 
-export function SettingsView({ consentSink = defaultConsentSink }: { consentSink?: ConsentSink }) {
+export function SettingsView({ consentSink = defaultConsentSink, ai }: { consentSink?: ConsentSink; ai?: AiSettingsView }) {
   return (
     <div className={s.page}>
       <h1>Settings</h1>
       <PreferencesSection />
+      <AiProviderSection initial={ai} />
       <AiUsageSection />
       <ExclusionsSection sink={consentSink} />
       <PantrySection />

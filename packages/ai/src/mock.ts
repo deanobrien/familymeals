@@ -1,4 +1,5 @@
 import recipeFx from '../fixtures/recipe-extraction.json' with { type: 'json' };
+import mealkitFx from '../fixtures/recipe-extraction-mealkit.json' with { type: 'json' };
 import receiptFx from '../fixtures/receipt-parse.json' with { type: 'json' };
 import tagFx from '../fixtures/tag-suggestion.json' with { type: 'json' };
 import planFx from '../fixtures/plan-constraints.json' with { type: 'json' };
@@ -54,8 +55,9 @@ export class MockAiProvider implements AiProvider {
   async extractRecipe(images: ImageInput[], hint?: string, ctx?: CallContext) {
     await this.pre('extractRecipe', ctx);
     if (this.o.validateImages) await prepareImages(images);
-    const r = RecipeExtractionSchema.parse(clone(recipeFx));
-    if (hint?.trim()) r.title = hint.trim().slice(0, 200);
+    // A hint mentioning a meal kit returns the two-sided card fixture (printed nutrition/allergens, bracket quantities).
+    const r = RecipeExtractionSchema.parse(clone(hint && /meal[ -]?kit/i.test(hint) ? mealkitFx : recipeFx));
+    if (hint?.trim() && !/meal[ -]?kit/i.test(hint)) r.title = hint.trim().slice(0, 200);
     return r;
   }
 
@@ -95,6 +97,11 @@ export class MockAiProvider implements AiProvider {
           : { line, candidateId: null, confidence: 0 };
       }),
     });
+  }
+
+  async ping() {
+    this.guard();
+    return { model: 'mock' };
   }
 
   async suggestSubstitutions(_req: SubstitutionRequest, ctx?: CallContext) {

@@ -1,7 +1,10 @@
+import { loadAiSettingsAction } from './ai-actions';
 import { SettingsView } from './settings-view';
 
 export const metadata = { title: 'Settings' };
+// AI provider settings come from a server-side file, so never prerender this page.
+export const dynamic = 'force-dynamic';
 
-export default function Page() {
-  return <SettingsView />;
+export default async function Page() {
+  return <SettingsView ai={await loadAiSettingsAction()} />;
 }

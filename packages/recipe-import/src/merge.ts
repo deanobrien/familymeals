@@ -40,6 +40,18 @@ export function mergeExtractions(pages: RecipeExtraction[]): RecipeExtraction {
     pages.find((p) => p[k] !== undefined)?.[k];
 
   const merged: RecipeExtraction = { title: first.title, ingredients, steps, tags, warnings, confidence };
+  const allergens: string[] = [];
+  for (const p of pages) for (const a of p.printedAllergens ?? []) if (!allergens.some((x) => normText(x) === normText(a))) allergens.push(a);
+  if (allergens.length) merged.printedAllergens = allergens;
+  const nutrition = pages.find((p) => p.printedNutrition)?.printedNutrition;
+  if (nutrition) merged.printedNutrition = nutrition;
+  const publisher = pages.find((p) => p.sourcePublisher)?.sourcePublisher; if (publisher) merged.sourcePublisher = publisher;
+  const reference = pages.find((p) => p.sourceReference)?.sourceReference; if (reference) merged.sourceReference = reference;
+  const frontPage = pages.find((p) => p.frontImageIndex !== undefined);
+  if (frontPage) {
+    merged.frontImageIndex = frontPage.frontImageIndex;
+    if (frontPage.frontImageRotation !== undefined) merged.frontImageRotation = frontPage.frontImageRotation;
+  }
   const description = pick('description'); if (description !== undefined) merged.description = description;
   const servings = pick('servings'); if (servings !== undefined) merged.servings = servings;
   const prep = pick('prepMinutes'); if (prep !== undefined) merged.prepMinutes = prep;

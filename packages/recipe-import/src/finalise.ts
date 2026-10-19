@@ -1,14 +1,22 @@
-import type { Quantity, QuantityKind, RecipeExtraction, Unit } from './extraction.js';
+import type { PrintedNutrition, Quantity, QuantityKind, RecipeExtraction, Unit } from './extraction.js';
 import type { RecipeDraft } from './types.js';
 
 export interface RecipePayload {
   id: string; title: string; description?: string; servings?: number; prepMinutes?: number; cookMinutes?: number;
   tags: string[]; cuisine?: string; source?: string;
+  sourcePublisher?: string; sourceReference?: string;
+  /** As printed on the card (source-provided, never calculated). */
+  printedNutrition?: PrintedNutrition & { source: 'recipe card'; calculated: false };
+  printedAllergens?: string[];
+  /** Stored cover image reference (front of the card). */
+  imageRef?: string;
 }
 export interface RecipeIngredientPayload {
   id: string; recipeId: string; ingredientId?: string; order: number;
   /** Always preserved from the photo. */
   originalText: string; name: string; preparation?: string; optional: boolean;
+  /** Card expects the cook to already have it ("You need: ..."). */
+  pantryStaple?: boolean;
   quantity: Quantity;
   quantityKind: QuantityKind; quantityValue?: number; quantityMin?: number; quantityMax?: number;
   unit?: Unit; approxLabel?: string;
@@ -46,6 +54,11 @@ export function finaliseDraft(draft: RecipeDraft, opts: { newId?: () => string }
   if (draft.cookMinutes !== undefined) recipe.cookMinutes = draft.cookMinutes;
   if (draft.cuisine !== undefined) recipe.cuisine = draft.cuisine;
   if (draft.source !== undefined) recipe.source = draft.source;
+  if (draft.sourcePublisher !== undefined) recipe.sourcePublisher = draft.sourcePublisher;
+  if (draft.sourceReference !== undefined) recipe.sourceReference = draft.sourceReference;
+  if (draft.printedNutrition !== undefined) recipe.printedNutrition = structuredClone(draft.printedNutrition);
+  if (draft.printedAllergens !== undefined) recipe.printedAllergens = [...draft.printedAllergens];
+  if (draft.coverImageRef !== undefined) recipe.imageRef = draft.coverImageRef;
 
   const ingredients = draft.ingredients.map((i, order): RecipeIngredientPayload => {
     const q = i.quantity.value;
@@ -55,6 +68,7 @@ export function finaliseDraft(draft: RecipeDraft, opts: { newId?: () => string }
     };
     if (i.ingredientId.value !== undefined) p.ingredientId = i.ingredientId.value;
     if (i.preparation !== undefined) p.preparation = i.preparation;
+    if (i.pantryStaple) p.pantryStaple = true;
     if (q.value !== undefined) p.quantityValue = q.value;
     if (q.min !== undefined) p.quantityMin = q.min;
     if (q.max !== undefined) p.quantityMax = q.max;
@@ -71,6 +85,7 @@ export function finaliseDraft(draft: RecipeDraft, opts: { newId?: () => string }
         originalText: i.originalText, name: i.name.value, quantity: i.quantity.value, optional: i.optional, confidence: i.confidence,
       };
       if (i.preparation !== undefined) e.preparation = i.preparation;
+      if (i.pantryStaple) e.pantryStaple = true;
       if (i.ingredientId.value !== undefined) e.ingredientId = i.ingredientId.value;
       return e;
     }),
@@ -82,6 +97,10 @@ export function finaliseDraft(draft: RecipeDraft, opts: { newId?: () => string }
   if (recipe.prepMinutes !== undefined) corrected.prepMinutes = recipe.prepMinutes;
   if (recipe.cookMinutes !== undefined) corrected.cookMinutes = recipe.cookMinutes;
   if (recipe.cuisine !== undefined) corrected.cuisine = recipe.cuisine;
+  if (recipe.printedNutrition !== undefined) corrected.printedNutrition = { basis: recipe.printedNutrition.basis, values: recipe.printedNutrition.values, ...(recipe.printedNutrition.note ? { note: recipe.printedNutrition.note } : {}) };
+  if (recipe.printedAllergens !== undefined) corrected.printedAllergens = [...recipe.printedAllergens];
+  if (recipe.sourcePublisher !== undefined) corrected.sourcePublisher = recipe.sourcePublisher;
+  if (recipe.sourceReference !== undefined) corrected.sourceReference = recipe.sourceReference;
 
   return {
     recipe, ingredients, steps,

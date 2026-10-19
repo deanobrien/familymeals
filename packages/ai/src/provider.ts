@@ -37,4 +37,6 @@ export interface AiProvider {
   parsePlanPrompt(prompt: string, householdContext: HouseholdContext, ctx?: CallContext): Promise<PlanConstraints>;
   suggestIngredientMatches(lines: string[], candidates: MatchCandidate[], ctx?: CallContext): Promise<IngredientMatches>;
   suggestSubstitutions(req: SubstitutionRequest, ctx?: CallContext): Promise<Substitutions>;
+  /** Optional live connectivity check (credentials + endpoint + model) used by Settings > Test connection. */
+  ping?(): Promise<{ model: string }>;
 }
