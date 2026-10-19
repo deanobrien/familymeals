@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { Badge, Button, Checkbox, EmptyState, IconButton, Input, SearchField, Select, Sheet, Stepper } from '@fr/ui';
 import { addDays, dateShort, dayShort, weekDates, weekLabel } from '../../lib/plan/dates';
 import { formatPence, mealCost, weekCost, weekCostLabel } from '../../lib/plan/cost';
+import { weekNutrition } from '../../lib/plan/nutrition';
 import {
   getEntry, markSlot, mealCount, moveEntry, removeEntry, setMealTypes, setNote, setRecipe, setServings, shiftToWeek, slotKey, swapRecipe,
 } from '../../lib/plan/ops';
 import { MEAL_LABEL, MEAL_TYPES, type MealType, type PlanDoc, type PlanPageData, type RecipeLite, type SlotRef } from '../../lib/plan/types';
 import { approvePlanAction, generateShoppingAction, loadWeekAction, savePlanAction } from './actions';
 import { PromptPanel } from './prompt-panel';
+import { WeekNutritionPanel } from './week-nutrition';
 import './plan.css';
 
 interface Msg { tone: 'info' | 'error'; text: string; items?: string[]; href?: string; hrefLabel?: string }
@@ -30,6 +32,7 @@ export function Planner({ data }: { data: PlanPageData }) {
   const days = weekDates(doc.weekStart);
   const meals = MEAL_TYPES.filter((m) => doc.mealTypes.includes(m));
   const cost = weekCost(doc, recipes);
+  const nutrition = useMemo(() => weekNutrition(doc, recipes), [doc, recipes]);
 
   const apply = (next: PlanDoc) => {
     setDoc(next);
@@ -190,7 +193,7 @@ export function Planner({ data }: { data: PlanPageData }) {
                   </div>
                   <div className="plan__slot-meta">
                     {e.kind === 'recipe' && <span>{e.servings} servings</span>}
-                    {c.status === 'estimate' && <span>{formatPence(c.pence)} estimate</span>}
+                    {c.status === 'estimate' && <span>{c.partial ? 'At least ' : ''}{formatPence(c.pence)} estimate</span>}
                     {c.status === 'uncosted' && <span>Uncosted</span>}
                     {e.kind !== 'recipe' && <Badge>{e.kind === 'eating_out' ? 'No shopping' : 'Uses leftovers'}</Badge>}
                   </div>
@@ -203,6 +206,8 @@ export function Planner({ data }: { data: PlanPageData }) {
         ))}
       </div>
       <p className="plan__muted">Drag a meal to another slot to move it (hold Alt or Ctrl to duplicate). On a phone, use Edit to move, duplicate or swap.</p>
+
+      <WeekNutritionPanel data={nutrition} />
 
       <PromptPanel
         weekStart={doc.weekStart}
@@ -349,7 +354,7 @@ function RecipeSearchSheet({ state, recipes, onClose, onPick }: { state: SearchS
                 <span className="plan__muted">
                   {r.dietCategory ?? 'recipe'}
                   {r.totalMinutes ? ` · ${r.totalMinutes} min` : ''}
-                  {` · ${r.costPerServingPence == null ? 'uncosted' : `${formatPence(r.costPerServingPence)} per serving (estimate)`}`}
+                  {` · ${r.costPerServingPence == null ? 'uncosted' : `${r.costPartial ? 'at least ' : ''}${formatPence(r.costPerServingPence)} per serving (estimate)`}`}
                   {mealType && !r.mealTypes.includes(mealType) ? ` · not usually ${MEAL_LABEL[mealType].toLowerCase()}` : ''}
                 </span>
                 {blocked && <span className="plan__muted">Excluded: contains {r.excludedBy.join(', ')}</span>}

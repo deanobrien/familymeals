@@ -57,13 +57,15 @@ test.describe('browse and search', () => {
 
     await page.goto('/recipes?sort=cost');
     await expect(page.getByRole('combobox', { name: 'Sort by' })).toHaveValue('cost');
-    // Recipes with unknown cost sort last (after every costed recipe, incl. the priciest seed, Family Fish Pie).
-    // Not asserted as the very last card: the shared store may also hold uncosted recipes saved by the import spec.
+    // Cost is computed (engine + generic UK prices): per serving Overnight Berry Porridge ~15p < Sunday Tomato Pasta
+    // 68p < Smoky Chickpea Stew 82p. Recipes with unknown cost sort last (not asserted: the shared store may also hold
+    // uncosted recipes saved by the import spec).
     await expect(recipeLinks(page).first()).toBeVisible();
     const titles = await recipeLinks(page).allTextContents();
-    const flapjacks = titles.findIndex((t) => t.includes('Fiddly Flapjacks'));
-    expect(flapjacks).toBeGreaterThan(titles.findIndex((t) => t.includes('Family Fish Pie')));
-    expect(flapjacks).toBeGreaterThan(-1);
+    const at = (s: string) => titles.findIndex((t) => t.includes(s));
+    expect(at('Overnight Berry Porridge')).toBeGreaterThan(-1);
+    expect(at('Sunday Tomato Pasta')).toBeGreaterThan(at('Overnight Berry Porridge'));
+    expect(at('Smoky Chickpea Stew')).toBeGreaterThan(at('Sunday Tomato Pasta'));
   });
 
   test('favourites can be toggled from a card', async ({ page }) => {
@@ -86,29 +88,50 @@ test.describe('recipe detail', () => {
 
     const qty = page.getByTestId('ingredient-qty');
     await expect(qty.first()).toHaveText('400 g');
-    await expect(page.getByTestId('cost-per-serving')).toContainText('£0.95 per serving');
+    await expect(page.getByTestId('cost-per-serving')).toContainText('£0.68 per serving');
+    await expect(page.getByTestId('cost-total')).toContainText('£2.73 for 4 servings');
     await expect(page.getByTestId('cost-total').getByText('estimate')).toBeVisible();
+    await expect(page.getByTestId('cost-source')).toContainText('Generic UK estimate');
 
     await page.getByRole('button', { name: 'Increase servings' }).click();
     await page.getByRole('button', { name: 'Increase servings' }).click(); // 4 -> 6
     await expect(page.getByRole('status').filter({ hasText: 'scaled for 6 servings' })).toBeVisible();
     await expect(qty.first()).toHaveText('600 g');
-    await expect(page.getByTestId('cost-total')).toContainText('£5.70 for 6 servings');
-    await expect(page.getByTestId('cost-per-serving')).toContainText('£0.95 per serving');
+    await expect(page.getByTestId('cost-total')).toContainText('£4.10 for 6 servings');
+    await expect(page.getByTestId('cost-per-serving')).toContainText('£0.68 per serving');
     await page.getByRole('button', { name: /Reset to 4/ }).click();
     await expect(qty.first()).toHaveText('400 g');
 
-    // Known nutrients show a number, missing ones show Unknown (never 0).
+    // Nutrition is computed from CoFID: attribution shown, and values that depend on ingredients without data are Unknown.
     const table = page.getByRole('table', { name: 'Nutrition per serving' });
     await expect(table.getByRole('row', { name: /Energy/ })).toContainText('kcal');
+    await expect(page.getByTestId('nutrition-attribution')).toContainText('Estimated from UK CoFID data');
     await expect(page.getByRole('link', { name: 'Add to plan' })).toHaveAttribute('href', /\/plan\?add=/);
   });
 
-  test('unknown cost and nutrition are labelled, and approximate amounts do not scale', async ({ page }) => {
+  test('fully matched recipe shows known nutrition with estimate labels; per-recipe basis follows servings', async ({ page }) => {
+    await page.goto('/recipes?q=lemon');
+    await recipeLinks(page).filter({ hasText: 'Lemon Drizzle Loaf' }).click();
+    const serving = page.getByRole('table', { name: 'Nutrition per serving' });
+    const energy = serving.getByRole('row', { name: /Energy/ });
+    await expect(energy).toContainText('kcal');
+    await expect(energy).not.toContainText('Unknown');
+    await expect(page.getByTestId('nutrition-coverage')).toContainText('100%');
+    const before = await energy.textContent();
+    await page.getByRole('button', { name: 'Increase servings' }).click();
+    // ingredients scale with servings, so per-serving values do not change
+    await expect(serving.getByRole('row', { name: /Energy/ })).toHaveText(before ?? '');
+    await page.getByRole('tab', { name: 'Per recipe' }).click();
+    await expect(page.getByRole('table', { name: /Nutrition per recipe \(9 servings\)/ })).toBeVisible();
+  });
+
+  test('unpriced ingredients are listed, cost is a lower bound, unknown nutrition is never zero, approximate amounts do not scale', async ({ page }) => {
     await page.goto('/recipes?q=flapjacks');
     await recipeLinks(page).first().click();
-    await expect(page.getByTestId('cost-unknown')).toHaveText('Cost unknown');
-    await expect(page.getByText('Nutrition has not been calculated')).toBeVisible();
+    await expect(page.getByTestId('cost-per-serving')).toContainText('At least');
+    await expect(page.getByTestId('uncosted-lines')).toContainText('flaked sea salt');
+    await expect(page.getByTestId('cost-coverage')).toContainText('priced');
+    await expect(page.getByTestId('nutrition-missing')).toBeAttached();
     const table = page.getByRole('table', { name: 'Nutrition per serving' });
     await expect(table.getByRole('row', { name: /Protein/ })).toContainText('Unknown');
     await expect(table.getByRole('row', { name: /Protein/ })).not.toContainText(/\b0 g/);

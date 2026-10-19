@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
+import type { NutrientMap } from '@fr/engine/nutrition';
 import type { Candidate, CandidateFilter, MealType, RecipeRepo } from '@fr/plan-orchestrator';
 import { violatesExclusions } from '@fr/plan-orchestrator';
 import type { RecipeRepository } from '../../recipes/repository';
@@ -9,6 +10,10 @@ export interface PlanRecipe extends Candidate {
   baseServings: number;
   /** Per-serving cost estimate in pence; null = unknown (never 0). */
   costPerServingPence: number | null;
+  /** true when some ingredients are unpriced, so the cost is a lower bound. */
+  costPartial?: boolean;
+  /** Calculated per-serving nutrition (D61); null/undefined = not calculated. */
+  nutritionPerServing?: NutrientMap | null;
   ingredientLines: { name: string; quantityText: string }[];
   /** Canonical ingredient ids of matched lines (unmatched lines are absent). */
   ingredientIds?: string[];
@@ -95,7 +100,7 @@ const mealTypesFor = (m: MealType): MealType[] => (m === 'lunch' || m === 'dinne
 export const QUICK_MINUTES = 30;
 
 /** Library RecipeView -> PlanRecipe (cost per serving stays null when unknown, never 0). */
-export function toPlanRecipe(r: RecipeView): PlanRecipe {
+export function toPlanRecipe(r: RecipeView, nutritionOf?: (r: RecipeView) => NutrientMap | null): PlanRecipe {
   const minutes = totalMinutes(r);
   const tags = [...new Set([...r.tags, r.diet, ...(minutes != null && minutes <= QUICK_MINUTES ? ['quick'] : [])])];
   return {
@@ -110,20 +115,26 @@ export function toPlanRecipe(r: RecipeView): PlanRecipe {
     ...(minutes != null ? { totalMinutes: minutes } : {}),
     baseServings: r.servings,
     costPerServingPence: costPerServing(r),
+    ...(r.cost.partial ? { costPartial: true } : {}),
+    ...(nutritionOf ? { nutritionPerServing: nutritionOf(r) } : {}),
     favourite: r.favourite,
   };
 }
 
 /** Plannable recipes straight from the shared recipe store (the library repository, DECISIONS D30). */
 export class RepositoryPlanRecipeSource implements PlanRecipeSource {
-  constructor(private readonly repo: RecipeRepository) {}
+  /** `nutritionOf` supplies calculated per-serving nutrition (lib/server/calc); omitted = planner shows no nutrition. */
+  constructor(
+    private readonly repo: RecipeRepository,
+    private readonly nutritionOf?: (r: RecipeView) => NutrientMap | null,
+  ) {}
   async list() {
     const all = await this.repo.list({ q: '', tags: [], sort: 'name', page: 1, pageSize: 10_000 });
-    return all.items.map(toPlanRecipe);
+    return all.items.map((r) => toPlanRecipe(r, this.nutritionOf));
   }
   async get(_h: string, ids: string[]) {
     const found = await Promise.all(ids.map((id) => this.repo.get(id)));
-    return found.filter((r): r is RecipeView => r !== null).map(toPlanRecipe);
+    return found.filter((r): r is RecipeView => r !== null).map((r) => toPlanRecipe(r, this.nutritionOf));
   }
 }
 

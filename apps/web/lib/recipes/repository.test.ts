@@ -4,6 +4,8 @@ import { loadSeedRecipes } from './seed';
 import { nutritionRows } from './nutrition';
 import { parseRecipeQuery, recipeInputSchema, recipeQueryToParams, type RecipeInput, type RecipeQuery } from './schema';
 import { costPerServing } from './types';
+import { withCanonicalIngredients } from './factory';
+import { createRecipeCalculator } from '../server/calc';
 
 const base: RecipeQuery = { q: '', tags: [], sort: 'name', page: 1, pageSize: 50 };
 const q = (patch: Partial<RecipeQuery> = {}): RecipeQuery => ({ ...base, ...patch });
@@ -44,7 +46,7 @@ describe('seed', () => {
 describe('InMemoryRecipeRepository', () => {
   let repo: InMemoryRecipeRepository;
   beforeEach(() => {
-    repo = new InMemoryRecipeRepository(loadSeedRecipes());
+    repo = new InMemoryRecipeRepository(withCanonicalIngredients(loadSeedRecipes()), createRecipeCalculator());
   });
 
   it('lists sorted by name and pages', async () => {
@@ -76,6 +78,9 @@ describe('InMemoryRecipeRepository', () => {
     const quickPrep = await repo.list(q({ maxPrepMinutes: 10 }));
     expect(quickPrep.items.every((r) => (r.prepMinutes ?? 99) <= 10)).toBe(true);
     expect((await repo.list(q({ diet: 'fish' }))).total).toBe(1);
+    const low = await repo.list(q({ priceBand: 'low' }));
+    expect(low.total).toBeGreaterThan(0);
+    expect(low.items.every((r) => (costPerServing(r) ?? 9999) < 150)).toBe(true);
     const high = await repo.list(q({ priceBand: 'high' }));
     expect(high.items.every((r) => (costPerServing(r) ?? 0) > 300)).toBe(true);
     expect((await repo.list(q({ priceBand: 'unknown' }))).items.every((r) => costPerServing(r) == null)).toBe(true);
@@ -94,9 +99,15 @@ describe('InMemoryRecipeRepository', () => {
   });
 
   it('sorts with unknown values last', async () => {
+    // Computed costs: a recipe nothing in the catalogue can price has an unknown cost and sorts last.
+    await repo.create(input({
+      title: 'Zzz Mystery Dish',
+      ingredients: [{ name: 'quantum goo', quantity: { kind: 'exact', value: 1, unit: 'g', originalText: '1 g' }, optional: false }],
+    }));
     const byCost = (await repo.list(q({ sort: 'cost' }))).items;
     const costs = byCost.map(costPerServing);
     expect(costs[costs.length - 1]).toBeNull();
+    expect(costs.filter((c) => c != null).length).toBeGreaterThan(5);
     const known = costs.filter((c): c is number => c != null);
     expect(known).toEqual([...known].sort((a, b) => a - b));
     const byRating = (await repo.list(q({ sort: 'rating' }))).items;
@@ -109,7 +120,9 @@ describe('InMemoryRecipeRepository', () => {
   it('creates, gets, updates and deletes', async () => {
     const created = await repo.create(input());
     expect(created.tags).toEqual(['soup']);
-    expect(created.cost.totalPence).toBeNull();
+    // carrot is priced; stock is not in the catalogue, so the cost is a partial lower bound
+    expect(created.cost.totalPence).toBeGreaterThan(0);
+    expect(created.cost.partial).toBe(true);
     expect((await repo.get(created.id))?.title).toBe('Test Soup');
 
     const updated = await repo.update(created.id, input({ title: 'Better Soup', originalText: 'changed!' }));
@@ -124,7 +137,7 @@ describe('InMemoryRecipeRepository', () => {
     expect(await repo.get(created.id)).toBeNull();
   });
 
-  it('keeps placeholder cost on edit unless ingredients change', async () => {
+  it('recomputes cost and nutrition when ingredients or servings change', async () => {
     const [first] = (await repo.list(q({ q: 'pasta' }))).items;
     if (!first) throw new Error('seed missing');
     const same = await repo.update(first.id, {
@@ -133,9 +146,15 @@ describe('InMemoryRecipeRepository', () => {
       servings: first.servings,
       ingredients: first.ingredients.map((i) => ({ name: i.name, quantity: i.quantity, optional: i.optional })),
     });
+    expect(first.cost.totalPence).toBeGreaterThan(0);
     expect(same?.cost.totalPence).toBe(first.cost.totalPence);
     const changed = await repo.update(first.id, input());
-    expect(changed?.cost.totalPence).toBeNull();
+    expect(changed?.cost.totalPence).not.toBe(first.cost.totalPence);
+    expect(changed?.nutritionPerServing.length).toBeGreaterThan(0);
+    // same ingredients, more servings: same total, lower per-serving cost
+    const more = await repo.update(first.id, { ...input(), title: first.title, servings: first.servings * 2, ingredients: first.ingredients.map((i) => ({ name: i.name, quantity: i.quantity, optional: i.optional })) });
+    expect(more?.cost.totalPence).toBe(first.cost.totalPence);
+    expect(costPerServing(more!)).toBeLessThan(costPerServing(first)!);
   });
 
   it('duplicates with a copy title and fresh ids', async () => {

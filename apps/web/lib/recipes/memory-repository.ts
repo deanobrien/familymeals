@@ -1,7 +1,15 @@
 import { randomUUID } from 'node:crypto';
 import type { RecipeInput, RecipeQuery } from './schema';
 import type { RecipeListResult, RecipeRepository, TagCount } from './repository';
-import { costPerServing, totalMinutes, type RecipeView } from './types';
+import { costPerServing, totalMinutes, type NutrientValue, type RecipeCost, type RecipeView } from './types';
+
+/** Computes the derived cost/nutrition summary stored on a RecipeView (injected by the server factory, D60). */
+export interface RecipeSummariser {
+  summarise(recipe: Pick<RecipeView, 'id' | 'servings' | 'ingredients' | 'updatedAt'>): {
+    cost: RecipeCost;
+    nutritionPerServing: NutrientValue[];
+  };
+}
 
 /** Cost-per-serving bands in pence: low < £1.50, mid £1.50-£3.00, high > £3.00. */
 export const BUDGET_PENCE = 150;
@@ -143,37 +151,34 @@ function build(id: string, input: RecipeInput, prev: RecipeView | null, now: str
     steps: input.steps.map((text, idx) => ({ id: randomUUID(), order: idx, text })),
     favourite: prev?.favourite ?? false,
     rating: prev?.rating ?? null,
-    // Cost/nutrition are placeholders until the engines merge; edits to ingredients invalidate them.
-    cost: prev && sameIngredients(prev, input) ? prev.cost : { totalPence: null, kind: 'generic_estimate' },
-    nutritionPerServing: prev && sameIngredients(prev, input) ? prev.nutritionPerServing : [],
+    // Cost/nutrition are derived, never stored: InMemoryRecipeRepository.view() fills them from the injected summariser.
+    cost: { totalPence: null, kind: 'generic_estimate' },
+    nutritionPerServing: [],
     ...printedFields(input, prev),
     createdAt: prev?.createdAt ?? now,
     updatedAt: now,
   };
 }
 
-function sameIngredients(prev: RecipeView, input: RecipeInput): boolean {
-  if (prev.ingredients.length !== input.ingredients.length) return false;
-  return prev.ingredients.every((p, i) => {
-    const n = input.ingredients[i];
-    return !!n && p.name === n.name && JSON.stringify(p.quantity) === JSON.stringify(n.quantity);
-  });
-}
-
 export class InMemoryRecipeRepository implements RecipeRepository {
   private readonly store = new Map<string, RecipeView>();
 
-  constructor(seed: RecipeView[] = []) {
+  constructor(seed: RecipeView[] = [], private readonly calc?: RecipeSummariser) {
     for (const r of seed) this.store.set(r.id, clone(r));
   }
 
+  /** Copy of a stored recipe with the derived cost/nutrition filled in (cached per recipe version by the summariser). */
+  private view(r: RecipeView): RecipeView {
+    return { ...clone(r), ...(this.calc ? this.calc.summarise(r) : {}) };
+  }
+
   async list(query: RecipeQuery): Promise<RecipeListResult> {
-    const matched = sortRecipes(applyFilters([...this.store.values()], query), query.sort);
+    const matched = sortRecipes(applyFilters([...this.store.values()].map((r) => this.view(r)), query), query.sort);
     const pageSize = Math.max(1, query.pageSize);
     const pageCount = Math.max(1, Math.ceil(matched.length / pageSize));
     const page = Math.min(Math.max(1, query.page), pageCount);
     return {
-      items: clone(matched.slice((page - 1) * pageSize, page * pageSize)),
+      items: matched.slice((page - 1) * pageSize, page * pageSize),
       total: matched.length,
       page,
       pageSize,
@@ -183,14 +188,14 @@ export class InMemoryRecipeRepository implements RecipeRepository {
 
   async get(id: string): Promise<RecipeView | null> {
     const r = this.store.get(id);
-    return r ? clone(r) : null;
+    return r ? this.view(r) : null;
   }
 
   async create(input: RecipeInput, opts: { id?: string } = {}): Promise<RecipeView> {
     if (opts.id && this.store.has(opts.id)) throw new Error(`Recipe ${opts.id} already exists`);
     const r = build(opts.id ?? randomUUID(), input, null, new Date().toISOString());
     this.store.set(r.id, r);
-    return clone(r);
+    return this.view(r);
   }
 
   async update(id: string, input: RecipeInput): Promise<RecipeView | null> {
@@ -198,7 +203,7 @@ export class InMemoryRecipeRepository implements RecipeRepository {
     if (!prev) return null;
     const r = build(id, input, prev, new Date().toISOString());
     this.store.set(id, r);
-    return clone(r);
+    return this.view(r);
   }
 
   async delete(id: string): Promise<boolean> {
@@ -221,7 +226,7 @@ export class InMemoryRecipeRepository implements RecipeRepository {
       updatedAt: now,
     };
     this.store.set(copy.id, copy);
-    return clone(copy);
+    return this.view(copy);
   }
 
   async toggleFavourite(id: string): Promise<RecipeView | null> {
@@ -229,7 +234,7 @@ export class InMemoryRecipeRepository implements RecipeRepository {
     if (!r) return null;
     r.favourite = !r.favourite;
     r.updatedAt = new Date().toISOString();
-    return clone(r);
+    return this.view(r);
   }
 
   async listTags(): Promise<TagCount[]> {
@@ -253,14 +258,14 @@ export class InMemoryRecipeRepository implements RecipeRepository {
     for (const r of this.store.values()) {
       if (r.id === excludeId) continue;
       if (title && normaliseTitle(r.title) === title) {
-        out.push(clone(r));
+        out.push(this.view(r));
         continue;
       }
       if (names.size >= 3) {
         const theirs = new Set(r.ingredients.map((i) => normaliseIngredient(i.name)));
         const inter = [...names].filter((n) => theirs.has(n)).length;
         const union = new Set([...names, ...theirs]).size;
-        if (union > 0 && inter / union >= 0.8) out.push(clone(r));
+        if (union > 0 && inter / union >= 0.8) out.push(this.view(r));
       }
     }
     return out;

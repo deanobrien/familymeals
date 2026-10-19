@@ -69,11 +69,14 @@ export interface StepView {
 }
 
 export interface RecipeCost {
-  /** Whole-recipe cost in pence (null = unknown). Placeholder until the cost engine merges. */
+  /** Whole-recipe cost in pence (null = unknown). Computed by lib/server/calc (D60), never stored or hand-entered. */
   totalPence: Pence | null;
+  /** Least-trusted price kind used for any line. */
   kind: PriceKind;
   observedOn?: string;
   source?: string;
+  /** true when some lines could not be priced, so totalPence is a lower bound. */
+  partial?: boolean;
 }
 
 /** Nutrition exactly as printed on an imported recipe card. Source-provided, NEVER calculated by us. */
