@@ -1,19 +1,15 @@
-export const PACKAGE_NAME = '@fr/domain' as const;
-
-/** Placeholder product name; the real name is an owner decision (see PARALLEL-DELIVERY-PLAN). */
-export const APP_NAME = 'Family Recipes';
-
-export interface NavLink {
-  label: string;
-  href: string;
-}
-
-/** Placeholder nav; lane L2 owns the real shell. */
-export const PLACEHOLDER_NAV: readonly NavLink[] = [
-  { label: 'Home', href: '/' },
-  { label: 'Recipes', href: '/recipes' },
-  { label: 'Meal planner', href: '/plan' },
-  { label: 'Shopping list', href: '/shopping' },
-  { label: 'Household', href: '/household' },
-  { label: 'Settings', href: '/settings' },
-];
+/**
+ * @fr/domain — PRJ-018 zod schemas + inferred TS types.
+ *   primitives  units, Quantity, enums (CONTRACT-SEED names)
+ *   contract    CONTRACT-SEED shapes (CanonicalIngredient, Requirement, PurchaseEvent, ...)
+ *   entities    one row schema per table/view in migrations/
+ *   rpc         SQL RPC inputs/results (invitations, record_purchase, ...)
+ *   db-mapping  snake_case row <-> camelCase domain, quantity column folding
+ */
+export * from './primitives';
+export * from './contract';
+export * from './entities';
+export * from './rpc';
+export * from './db-mapping';
+export * from './placeholder';
+export * from './receipt';
