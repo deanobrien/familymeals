@@ -1,0 +1,24 @@
+.page { display: flex; flex-direction: column; gap: var(--fr-space-5); max-width: 72rem; }
+.sub { margin: 0; color: var(--fr-text-muted); }
+.grid { display: grid; gap: var(--fr-space-4); grid-template-columns: 1fr; }
+@media (min-width: 720px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+.wide { grid-column: 1 / -1; }
+.card { padding: var(--fr-space-4); display: flex; flex-direction: column; gap: var(--fr-space-3); }
+.card h2 { margin: 0; font-size: 1.05rem; }
+.big { font-size: 1.75rem; font-weight: 600; margin: 0; }
+.muted { color: var(--fr-text-muted); margin: 0; font-size: 0.9rem; }
+.row { display: flex; gap: var(--fr-space-2); flex-wrap: wrap; align-items: center; }
+.list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--fr-space-2); }
+.link { color: var(--fr-accent); text-decoration: underline; }
+.strip { display: flex; gap: var(--fr-space-1); }
+.dot { flex: 1; height: 0.5rem; border-radius: 999px; background: var(--fr-surface-2); border: 1px solid var(--fr-border); }
+.dotOn { background: var(--fr-accent); border-color: var(--fr-accent); }
+.form { display: flex; flex-direction: column; gap: var(--fr-space-4); max-width: 40rem; }
+.fieldset { border: 1px solid var(--fr-border); border-radius: var(--fr-radius-lg); padding: var(--fr-space-4); display: flex; flex-direction: column; gap: var(--fr-space-3); margin: 0; }
+.fieldset legend { font-weight: 600; padding: 0 var(--fr-space-2); }
+.checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: var(--fr-space-2); }
+.prose { max-width: 44rem; display: flex; flex-direction: column; gap: var(--fr-space-3); line-height: 1.55; }
+.prose h2 { margin: var(--fr-space-4) 0 0; font-size: 1.15rem; }
+.prose p, .prose ul { margin: 0; }
+.tbd { background: var(--fr-warning-soft); color: var(--fr-warning); padding: 0 var(--fr-space-1); border-radius: var(--fr-radius-sm, 4px); font-weight: 600; }
