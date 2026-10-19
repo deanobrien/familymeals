@@ -1,0 +1,196 @@
+{
+  "household": {
+    "id": "b2b2b201-0000-4000-8000-000000000001",
+    "name": "The Patels (B)"
+  },
+  "members": [
+    {
+      "userId": "b2b2b202-0000-4000-8000-000000000001",
+      "email": "priya.patel@fr-test.test",
+      "displayName": "Priya Patel",
+      "role": "owner"
+    },
+    {
+      "userId": "b2b2b202-0000-4000-8000-000000000002",
+      "email": "raj.patel@fr-test.test",
+      "displayName": "Raj Patel",
+      "role": "member"
+    }
+  ],
+  "recipes": [
+    {
+      "id": "b2b2b203-0000-4000-8000-000000000001",
+      "householdId": "b2b2b201-0000-4000-8000-000000000001",
+      "title": "Patel Dal Tadka",
+      "diet": "vegan",
+      "servings": 4,
+      "createdBy": "b2b2b202-0000-4000-8000-000000000001"
+    },
+    {
+      "id": "b2b2b203-0000-4000-8000-000000000002",
+      "householdId": "b2b2b201-0000-4000-8000-000000000001",
+      "title": "Patel Fish Curry",
+      "diet": "fish",
+      "servings": 4,
+      "createdBy": "b2b2b202-0000-4000-8000-000000000001"
+    },
+    {
+      "id": "b2b2b203-0000-4000-8000-000000000003",
+      "householdId": "b2b2b201-0000-4000-8000-000000000001",
+      "title": "Patel Paneer Wrap",
+      "diet": "vegetarian",
+      "servings": 2,
+      "createdBy": "b2b2b202-0000-4000-8000-000000000001"
+    }
+  ],
+  "recipeIngredients": [
+    {
+      "id": "b2b2b204-0000-4000-8000-000000000001",
+      "recipeId": "b2b2b203-0000-4000-8000-000000000001",
+      "quantity": {
+        "kind": "exact",
+        "value": 300,
+        "unit": "g",
+        "originalText": "300 g"
+      },
+      "optional": false,
+      "order": 0,
+      "name": "red lentils"
+    },
+    {
+      "id": "b2b2b204-0000-4000-8000-000000000002",
+      "recipeId": "b2b2b203-0000-4000-8000-000000000002",
+      "quantity": {
+        "kind": "exact",
+        "value": 600,
+        "unit": "g",
+        "originalText": "600 g"
+      },
+      "optional": false,
+      "order": 1,
+      "name": "white fish fillets"
+    },
+    {
+      "id": "b2b2b204-0000-4000-8000-000000000003",
+      "recipeId": "b2b2b203-0000-4000-8000-000000000002",
+      "quantity": {
+        "kind": "exact",
+        "value": 400,
+        "unit": "ml",
+        "originalText": "400 ml"
+      },
+      "optional": false,
+      "order": 2,
+      "name": "coconut milk"
+    },
+    {
+      "id": "b2b2b204-0000-4000-8000-000000000004",
+      "recipeId": "b2b2b203-0000-4000-8000-000000000003",
+      "quantity": {
+        "kind": "exact",
+        "value": 225,
+        "unit": "g",
+        "originalText": "225 g"
+      },
+      "optional": false,
+      "order": 3,
+      "name": "paneer"
+    }
+  ],
+  "mealPlan": {
+    "id": "b2b2b205-0000-4000-8000-000000000001",
+    "householdId": "b2b2b201-0000-4000-8000-000000000001",
+    "weekStart": "2026-10-19",
+    "approved": true,
+    "meals": [
+      {
+        "id": "b2b2b206-0000-4000-8000-000000000001",
+        "recipeId": "b2b2b203-0000-4000-8000-000000000001",
+        "date": "2026-10-19",
+        "mealType": "dinner",
+        "servings": 4
+      },
+      {
+        "id": "b2b2b206-0000-4000-8000-000000000002",
+        "recipeId": "b2b2b203-0000-4000-8000-000000000002",
+        "date": "2026-10-20",
+        "mealType": "dinner",
+        "servings": 4
+      },
+      {
+        "id": "b2b2b206-0000-4000-8000-000000000003",
+        "recipeId": "b2b2b203-0000-4000-8000-000000000003",
+        "date": "2026-10-21",
+        "mealType": "dinner",
+        "servings": 2
+      }
+    ]
+  },
+  "shoppingList": {
+    "id": "b2b2b207-0000-4000-8000-000000000001",
+    "householdId": "b2b2b201-0000-4000-8000-000000000001",
+    "planId": "b2b2b205-0000-4000-8000-000000000001",
+    "items": [
+      {
+        "id": "b2b2b208-0000-4000-8000-000000000001",
+        "displayName": "red lentils",
+        "quantity": {
+          "kind": "exact",
+          "value": 300,
+          "unit": "g",
+          "originalText": "300 g"
+        },
+        "aisle": "Groceries",
+        "manual": false
+      },
+      {
+        "id": "b2b2b208-0000-4000-8000-000000000002",
+        "displayName": "white fish fillets",
+        "quantity": {
+          "kind": "exact",
+          "value": 600,
+          "unit": "g",
+          "originalText": "600 g"
+        },
+        "aisle": "Groceries",
+        "manual": false
+      },
+      {
+        "id": "b2b2b208-0000-4000-8000-000000000003",
+        "displayName": "coconut milk",
+        "quantity": {
+          "kind": "exact",
+          "value": 400,
+          "unit": "ml",
+          "originalText": "400 ml"
+        },
+        "aisle": "Groceries",
+        "manual": false
+      },
+      {
+        "id": "b2b2b208-0000-4000-8000-000000000004",
+        "displayName": "paneer",
+        "quantity": {
+          "kind": "exact",
+          "value": 225,
+          "unit": "g",
+          "originalText": "225 g"
+        },
+        "aisle": "Groceries",
+        "manual": false
+      },
+      {
+        "id": "b2b2b208-0000-4000-8000-000000000100",
+        "displayName": "kitchen roll",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "pack",
+          "originalText": "1 pack"
+        },
+        "aisle": "Household",
+        "manual": true
+      }
+    ]
+  }
+}

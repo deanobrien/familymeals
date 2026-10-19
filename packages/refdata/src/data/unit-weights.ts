@@ -1,0 +1,74 @@
+/**
+ * Typical weight in grams of ONE item/clove/slice of an ingredient (edible portion unless noted).
+ * ALL are estimates (contract: estimate: true). Sizes follow typical UK "medium" produce and standard
+ * UK supermarket pack items. Source is typical UK cookery/retail knowledge, not a measured dataset;
+ * where CoFID publishes "weighed with skin/core" factors these could later refine the numbers.
+ * Keyed by canonical ingredient name.
+ */
+export const SRC_PRODUCE = 'Typical UK medium item, edible portion (estimate; common cookery references)';
+export const SRC_RETAIL = 'Typical UK supermarket standard item/serving size (estimate)';
+
+export type UnitWeightEntry = readonly [name: string, grams: number, source: string];
+
+export const UNIT_WEIGHTS: readonly UnitWeightEntry[] = [
+  ['onion', 150, SRC_PRODUCE],
+  ['red onion', 130, SRC_PRODUCE],
+  ['spring onion', 15, SRC_PRODUCE],
+  ['shallot', 40, SRC_PRODUCE],
+  ['leek', 150, SRC_PRODUCE],
+  ['garlic clove', 4, SRC_PRODUCE],
+  ['ginger', 25, 'Thumb-sized (approx. 2.5 cm) piece, peeled (estimate)'],
+  ['potato', 200, SRC_PRODUCE],
+  ['new potato', 40, SRC_PRODUCE],
+  ['sweet potato', 250, SRC_PRODUCE],
+  ['jacket potato', 250, SRC_PRODUCE],
+  ['carrot', 80, SRC_PRODUCE],
+  ['parsnip', 120, SRC_PRODUCE],
+  ['beetroot', 80, SRC_PRODUCE],
+  ['celery', 40, 'One celery stick, trimmed (estimate)'],
+  ['courgette', 200, SRC_PRODUCE],
+  ['aubergine', 300, SRC_PRODUCE],
+  ['tomato', 85, SRC_PRODUCE],
+  ['cherry tomato', 15, SRC_PRODUCE],
+  ['red pepper', 160, SRC_PRODUCE],
+  ['green pepper', 160, SRC_PRODUCE],
+  ['yellow pepper', 160, SRC_PRODUCE],
+  ['chilli', 12, SRC_PRODUCE],
+  ['green chilli', 10, SRC_PRODUCE],
+  ['mushroom', 20, 'One button/chestnut mushroom (estimate)'],
+  ['avocado', 130, 'Flesh of one medium avocado (estimate)'],
+  ['cucumber', 300, SRC_PRODUCE],
+  ['lettuce', 300, 'One round/little gem-sized head, trimmed (estimate)'],
+  ['broccoli', 350, 'One medium head (estimate)'],
+  ['cauliflower', 600, 'One medium head, trimmed (estimate)'],
+  ['sweetcorn', 200, 'Kernels from one medium cob (estimate)'],
+  ['butternut squash', 900, SRC_PRODUCE],
+  ['apple', 150, SRC_PRODUCE],
+  ['pear', 160, SRC_PRODUCE],
+  ['banana', 110, 'Peeled medium banana (estimate)'],
+  ['orange', 150, 'Peeled medium orange (estimate)'],
+  ['lemon', 90, 'One whole medium lemon (estimate)'],
+  ['lime', 60, 'One whole lime (estimate)'],
+  ['peach', 150, SRC_PRODUCE],
+  ['egg', 50, 'Edible contents of one UK medium egg, shell removed (estimate)'],
+  ['chicken breast', 165, 'One skinless fillet (estimate)'],
+  ['chicken thigh', 110, 'One boneless skinless thigh (estimate)'],
+  ['chicken drumstick', 100, 'One drumstick with bone (estimate)'],
+  ['pork chops', 170, 'One loin chop, bone in (estimate)'],
+  ['lamb chops', 120, 'One loin chop, bone in (estimate)'],
+  ['pork sausages', 57, 'One standard pork sausage (estimate)'],
+  ['bacon', 30, 'One back bacon rasher (estimate)'],
+  ['salmon', 125, 'One salmon fillet portion (estimate)'],
+  ['cod', 140, 'One cod fillet portion (estimate)'],
+  ['fish fingers', 28, 'One standard fish finger (estimate)'],
+  ['bread', 36, 'One medium slice of sliced loaf (estimate)'],
+  ['wholemeal bread', 38, 'One medium slice (estimate)'],
+  ['wrap', 60, 'One standard flour tortilla wrap (estimate)'],
+  ['pitta bread', 60, 'One standard white pitta (estimate)'],
+  ['naan bread', 130, 'One standard naan (estimate)'],
+  ['bread roll', 60, 'One soft white roll (estimate)'],
+  ['crumpet', 45, SRC_RETAIL],
+  ['stock cube', 10, 'One standard stock cube (estimate)'],
+  ['digestive biscuits', 15, 'One digestive biscuit (estimate)'],
+  ['weetabix', 19, 'One wheat biscuit (estimate)'],
+];

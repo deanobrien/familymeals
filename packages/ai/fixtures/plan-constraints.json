@@ -1,0 +1,11 @@
+{
+  "days": 7,
+  "mealTypes": ["dinner"],
+  "servings": 4,
+  "budgetPence": 6000,
+  "dietProportions": { "vegetarian": 0.5, "meat": 0.5 },
+  "includeTags": [],
+  "excludeIngredients": [],
+  "favouritesOf": [],
+  "quickMealDays": 2
+}

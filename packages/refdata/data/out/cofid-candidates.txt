@@ -1,0 +1,840 @@
+onion :: ^Onions, (old|mature)?.*raw
+    13-499  Onions, raw
+    13-590  Onions, dried, raw
+red onion :: ^Onions, raw
+    13-499  Onions, raw
+spring onion :: ^Spring onions
+    13-351  Spring onions, bulbs only, raw
+    13-352  Spring onions, bulbs and tops, raw
+shallot :: ^Shallots
+    13-342  Shallots, raw
+leek :: ^Leeks, raw
+    13-624  Leeks, raw
+garlic clove :: ^Garlic, raw
+    13-244  Garlic, raw
+ginger :: NO MATCH
+potato :: ^Potatoes, old, raw
+    13-489  Potatoes, old, raw, flesh only
+new potato :: NO MATCH
+sweet potato :: ^Sweet potato, raw
+    13-463  Sweet potato, raw, flesh only
+carrot :: ^Carrots, old, raw
+    13-496  Carrots, old, raw
+parsnip :: ^Parsnip, raw
+    13-312  Parsnip, raw
+swede :: NO MATCH
+turnip :: NO MATCH
+beetroot :: ^Beetroot, raw
+    13-164  Beetroot, raw
+celery :: ^Celery, raw
+    13-636  Celery, raw
+celeriac :: ^Celeriac, raw
+    13-219  Celeriac, raw
+fennel :: ^Fennel, (Florence, )?raw
+    13-241  Fennel, Florence, raw
+broccoli :: ^Broccoli, green, raw
+    13-502  Broccoli, green, raw
+cauliflower :: ^Cauliflower, raw
+    13-512  Cauliflower, raw
+cabbage :: ^Cabbage, (white, )?raw
+    13-509  Cabbage, white, raw
+red cabbage :: ^Cabbage, red, raw
+    13-190  Cabbage, red, raw
+savoy cabbage :: NO MATCH
+brussels sprouts :: ^Brussels sprouts, raw
+    13-177  Brussels sprouts, raw
+kale :: NO MATCH
+spinach :: ^Spinach, (baby, )?raw
+    13-521  Spinach, baby, raw
+spring greens :: ^Spring greens, raw
+    13-348  Spring greens, raw
+pak choi :: ^Pak choi
+    13-516  Pak choi, steamed
+lettuce :: ^Lettuce, (average|cos|round)
+    13-520  Lettuce, average, raw
+rocket :: ^Rocket
+    13-522  Rocket, raw
+watercress :: ^Watercress
+    13-669  Watercress, raw
+cucumber :: ^Cucumber, (flesh and skin, )?raw
+    13-523  Cucumber, raw, flesh and skin
+tomato :: ^Tomatoes, (standard, )?raw
+    13-517  Tomatoes, standard, raw
+cherry tomato :: ^Tomatoes, cherry
+    13-519  Tomatoes, cherry, raw
+red pepper :: NO MATCH
+green pepper :: NO MATCH
+yellow pepper :: NO MATCH
+chilli :: NO MATCH
+green chilli :: NO MATCH
+courgette :: ^Courgette, raw
+    13-627  Courgette, raw
+aubergine :: ^Aubergine, raw
+    13-161  Aubergine, raw
+mushroom :: NO MATCH
+butternut squash :: ^Squash, butternut, raw
+    13-355  Squash, butternut, raw
+pumpkin :: NO MATCH
+sweetcorn :: ^Sweetcorn, (kernels, )?raw
+    13-622  Sweetcorn, kernels, raw
+peas :: ^Peas, frozen, raw
+    13-527  Peas, frozen, raw
+mangetout :: NO MATCH
+green beans :: ^Beans, (green|French), raw
+    13-514  Beans, green, raw
+runner beans :: ^Beans, runner, raw
+    13-112  Beans, runner, raw
+broad beans :: NO MATCH
+asparagus :: ^Asparagus, raw
+    13-157  Asparagus, raw
+avocado :: NO MATCH
+radish :: NO MATCH
+apple :: ^Apples, eating, raw
+    14-319  Apples, eating, raw, flesh and skin
+    14-346  Apples, eating, raw, flesh and skin, weighed with core
+pear :: ^Pears, raw
+    14-321  Pears, raw, flesh and skin
+    14-366  Pears, raw, flesh only, peeled, weighed with skin and core
+banana :: ^Bananas, (flesh only|raw)
+    14-318  Bananas, flesh only
+    14-347  Bananas, raw, flesh only, weighed with skin
+orange :: NO MATCH
+lemon :: ^Lemons, whole
+    14-128  Lemons, whole, without pips
+lime :: ^Lime juice
+    14-279  Lime juice, fresh
+    17-201  Lime juice cordial, diluted
+    17-200  Lime juice cordial, undiluted
+lemon juice :: ^Lemon juice
+    14-277  Lemon juice, fresh
+    14-278  Lemon juice, fresh, weighed as whole fruit
+lime juice :: ^Lime juice
+    14-279  Lime juice, fresh
+    17-201  Lime juice cordial, diluted
+    17-200  Lime juice cordial, undiluted
+grapes :: NO MATCH
+strawberries :: ^Strawberries, raw
+    14-324  Strawberries, raw
+raspberries :: ^Raspberries, raw
+    14-375  Raspberries, raw
+blueberries :: NO MATCH
+blackberries :: ^Blackberries, raw
+    14-388  Blackberries, raw
+rhubarb :: NO MATCH
+mango :: NO MATCH
+pineapple :: NO MATCH
+peach :: ^Peaches, raw
+    14-299  Peaches, raw, flesh and skin
+plum :: ^Plums, (average|raw)
+    14-314  Plums, average, stewed with sugar, flesh and skin
+    14-315  Plums, average, flesh and skin, stewed without sugar
+    14-316  Plums, average, flesh and skin, stewed with sugar, weighed with stones
+    14-317  Plums, average, flesh and skin, stewed without sugar, weighed with stones
+melon :: ^Melon, (Cantaloupe|Honeydew|Galia)
+    14-159  Melon, Galia, flesh only
+    14-160  Melon, Galia, flesh only, weighed whole
+    14-357  Melon, Honeydew, flesh only, weighed whole
+    14-161  Melon, Galia, flesh only, weighed with skin
+coconut milk :: NO MATCH
+desiccated coconut :: ^Coconut, desiccated
+    14-873  Coconut, desiccated
+raisins :: ^Raisins
+    14-393  Raisins, dried
+dried apricots :: ^Apricots, dried
+    14-031  Apricots, dried
+    14-032  Apricots, dried, stewed with sugar
+    14-033  Apricots, dried, stewed without sugar
+dates :: ^Dates, dried
+    14-394  Dates, dried, flesh and skin
+    14-399  Dates, dried, flesh and skin, weighed with stones
+prunes :: NO MATCH
+chicken breast :: NO MATCH
+chicken thigh :: ^Chicken, dark meat, raw
+    18-289  Chicken, dark meat, raw
+whole chicken :: ^Chicken, whole, raw
+    18-297  Chicken, whole, raw, meat and skin
+    18-298  Chicken, whole, raw, meat and skin, weighed with bone
+chicken drumstick :: ^Chicken, drumstick
+    18-334  Chicken, drumsticks, roasted, meat only
+    18-310  Chicken, drumsticks, casseroled, meat only
+    18-335  Chicken, drumsticks, roasted, meat and skin
+    18-311  Chicken, drumsticks, casseroled, meat and skin
+chicken wings :: ^Chicken, wing
+    18-295  Chicken, wing quarter, raw, meat and skin
+    18-320  Chicken, wing quarter, casseroled, meat only
+    18-339  Chicken, wing quarter, roasted, meat and skin
+    18-321  Chicken, wing quarter, casseroled, meat and skin
+minced beef :: ^Beef, mince, raw
+    18-469  Beef, mince, raw
+    18-508  Beef, mince, raw, extra lean
+beef steak :: NO MATCH
+stewing beef :: ^Beef, stewing steak, raw
+    18-076  Beef, stewing steak, raw, lean
+    18-077  Beef, stewing steak, raw, lean and fat
+beef joint :: ^Beef, topside, raw
+    18-084  Beef, topside, raw, lean
+    18-085  Beef, topside, raw, lean and fat
+minced lamb :: ^Lamb, mince
+    18-481  Lamb, mince, raw
+    18-159  Lamb, mince, stewed
+    19-608  Lamb, mince, stewed with onions
+lamb chops :: ^Lamb, (loin chops|chops)
+    18-141  Lamb, loin chops, grilled, lean
+    18-149  Lamb, loin chops, roasted, lean
+    18-145  Lamb, loin chops, microwaved, lean
+    18-476  Lamb, loin chops, raw, lean and fat
+diced lamb :: ^Lamb, (leg|shoulder), raw
+    18-170  Lamb, shoulder, raw, lean and fat
+    18-171  Lamb, shoulder, raw, lean and fat, weighed with bone
+pork chops :: ^Pork, loin chops
+    18-534  Pork, loin chops, grilled, lean
+    18-613  Pork, loin chops, roasted, lean
+    18-536  Pork, loin chops, raw, lean and fat
+    18-535  Pork, loin chops, grilled, lean and fat
+pork mince :: ^Pork, mince
+    18-606  Pork, mince, raw
+    18-607  Pork, mince, stewed
+pork shoulder :: ^Pork, shoulder
+    18-542  Pork, shoulder chops (collar), braised, lean
+    18-545  Pork, shoulder chops (collar), raw, lean and fat
+    18-547  Pork, shoulder joint (collar), pot-roasted, lean
+    18-549  Pork, shoulder joint (collar), raw, lean and fat
+pork belly :: ^Pork, belly
+    18-555  Pork, belly joint, roasted, lean and fat
+    18-557  Pork, belly joint/slices, raw, lean and fat
+    18-556  Pork, belly joint/slices, grilled, lean and fat
+    18-558  Pork, belly joint/slices, raw, lean and fat, weighed with bone
+pork sausages :: ^Sausages, pork, (raw|grilled)
+    19-510  Sausages, pork, raw
+bacon :: NO MATCH
+gammon :: NO MATCH
+ham :: NO MATCH
+chorizo :: ^Chorizo
+    19-516  Chorizo
+turkey breast :: NO MATCH
+duck breast :: ^Duck, (meat only|breast)
+    18-489  Duck, meat only, raw
+salmon :: ^Salmon, (farmed|raw)
+    16-356  Salmon, farmed, flesh only, raw
+    16-359  Salmon, farmed, flesh only, baked
+    16-357  Salmon, farmed, flesh only, grilled
+    16-358  Salmon, farmed, flesh only, steamed
+cod :: NO MATCH
+haddock :: NO MATCH
+smoked haddock :: NO MATCH
+tuna chunks :: ^Tuna, canned in (brine|water), drained
+    16-416  Tuna, canned in brine, drained
+sardines :: ^Sardines, canned in (brine|tomato|oil)
+    16-424  Sardines, canned in brine, drained
+    16-422  Sardines, canned in tomato sauce, whole contents
+mackerel :: NO MATCH
+smoked mackerel :: NO MATCH
+prawns :: ^Prawns
+    16-387  Prawns, king, raw
+    16-482  Prawns, standard, dried
+    16-388  Prawns, king, grilled from raw
+    16-389  Prawns, king, purchased cooked
+anchovies :: ^Anchovies, canned
+    16-448  Anchovies, canned in oil, drained
+fish fingers :: ^Fish fingers
+    16-371  Fish fingers, pollock, grilled
+    16-405  Fish fingers, cod, grilled/baked
+    16-406  Fish fingers, salmon, grilled/baked
+    16-444  Fish fingers, cod, fried in rapeseed oil
+egg :: ^Eggs, chicken, whole, raw
+    12-937  Eggs, chicken, whole, raw
+milk :: ^Milk, whole, pasteurised, average
+    12-596  Milk, whole, pasteurised, average
+semi-skimmed milk :: ^Milk, semi-skimmed, pasteurised, average
+    12-313  Milk, semi-skimmed, pasteurised, average
+skimmed milk :: ^Milk, skimmed, pasteurised, average
+    12-307  Milk, skimmed, pasteurised, average
+butter :: ^Butter, (average|salted)
+    17-685  Butter, salted
+margarine :: ^Fat spread
+    12-499  Fat spread, low fat (26-39%), polyunsaturated
+    12-503  Fat spread, reduced fat (41-62%), polyunsaturated
+    17-710  Fat spread, reduced fat (62-75%), polyunsaturated
+    12-504  Fat spread, reduced fat (41-62%), not polyunsaturated
+single cream :: NO MATCH
+double cream :: NO MATCH
+soured cream :: NO MATCH
+creme fraiche :: ^Creme fraiche
+    12-335  Creme fraiche, full fat
+    12-336  Creme fraiche, half fat
+natural yoghurt :: ^Yogurt, (natural|whole milk)
+    12-375  Yogurt, whole milk, fruit
+    12-184  Yogurt, whole milk, plain
+    12-515  Yogurt, whole milk, twin pot, not fruit
+    12-530  Yogurt, whole milk, infant, fruit flavour
+greek yoghurt :: ^Yogurt, Greek
+    12-377  Yogurt, Greek style, fruit
+    12-555  Yogurt, Greek style, plain
+cheddar :: ^Cheese, Cheddar, (average|English)
+    12-346  Cheese, Cheddar, English
+mozzarella :: ^Cheese, mozzarella
+    12-360  Cheese, Mozzarella, fresh
+parmesan :: ^Cheese, Parmesan
+    12-526  Cheese, Parmesan, fresh
+feta :: ^Cheese, Feta
+    12-525  Cheese, Feta
+cream cheese :: NO MATCH
+cottage cheese :: ^Cheese, cottage, plain
+    12-539  Cheese, cottage, plain
+    12-550  Cheese, cottage, plain, reduced fat
+halloumi :: ^Cheese, halloumi
+    12-496  Cheese, Halloumi
+ricotta :: ^Cheese, ricotta
+    12-176  Cheese, Ricotta
+brie :: ^Cheese, Brie
+    12-491  Cheese, Brie, rind only
+    12-344  Cheese, Brie, with outer rind removed
+goats cheese :: ^Cheese, goats
+    12-357  Cheese, goats milk, full fat, soft, white rind
+paneer :: ^Cheese, paneer
+    12-495  Cheese, Paneer
+plain flour :: NO MATCH
+self-raising flour :: NO MATCH
+strong bread flour :: NO MATCH
+wholemeal flour :: ^Flour, wheat, wholemeal
+    11-889  Flour, wheat, wholemeal
+    11-890  Flour, wheat, wholemeal, bread/strong
+    11-891  Flour, wheat, wholemeal, self raising
+cornflour :: NO MATCH
+baking powder :: ^Baking powder
+    17-355  Baking powder
+bicarbonate of soda :: ^Bicarbonate of soda
+    17-356  Bicarbonate of soda
+dried yeast :: ^Yeast, dried
+    17-379  Yeast, dried
+caster sugar :: ^Sugar, white
+    17-063  Sugar, white
+granulated sugar :: ^Sugar, white
+    17-063  Sugar, white
+icing sugar :: ^Sugar, icing
+    17-062  Sugar, icing
+light brown sugar :: ^Sugar, brown
+    17-060  Sugar, brown
+dark brown sugar :: ^Sugar, (muscovado|brown)
+    17-060  Sugar, brown
+demerara sugar :: ^Sugar, demerara
+    17-061  Sugar, Demerara
+golden syrup :: ^Syrup, golden
+    17-065  Syrup, golden
+maple syrup :: NO MATCH
+honey :: ^Honey
+    17-050  Honey
+    17-051  Honey and comb
+treacle :: ^Treacle, black
+    17-826  Treacle, black
+cocoa powder :: ^Cocoa powder
+    12-545  Cocoa powder
+    12-565  Cocoa powder, made up with whole milk
+    12-564  Cocoa powder, made up with skimmed milk
+    12-563  Cocoa powder, made up with semi-skimmed milk
+dark chocolate :: ^Chocolate, plain
+    17-491  Chocolate, plain
+milk chocolate :: ^Chocolate, milk
+    17-648  Chocolate, milk
+vanilla extract :: NO MATCH
+ground almonds :: ^Almonds
+    14-897  Almonds, toasted
+    14-896  Almonds, whole kernels
+    14-870  Almonds, flaked and ground
+    14-898  Almonds, weighed with shells
+rolled oats :: ^Porridge oats
+    11-788  Porridge oats, unfortified
+    11-789  Porridge oats, unfortified, cooked, made up with semi-skimmed milk
+breadcrumbs :: NO MATCH
+bread :: ^Bread, white, sliced
+    11-980  Bread, white, sliced
+    11-1137  Bread, white, sliced, fried in rapeseed oil
+wholemeal bread :: ^Bread, wholemeal
+    11-981  Bread, wholemeal, average
+    11-982  Bread, wholemeal, toasted
+wrap :: ^Tortilla
+    11-925  Tortilla, wheat, soft
+    17-644  Tortilla chips fried in sunflower oil
+pitta bread :: ^Bread, pitta, white
+    11-974  Bread, pitta, white
+naan bread :: ^Bread, naan
+    11-973  Bread, naan, retail
+    11-910  Bread, naan, peshwari naan, takeaway and retail
+bread roll :: ^Bread rolls
+    11-986  Bread rolls, wholemeal
+    11-983  Bread rolls, brown, soft
+    11-1006  Bread rolls, white, soft
+    11-984  Bread rolls, malted wheat
+crumpet :: ^Crumpets
+    11-989  Crumpets, toasted
+tortilla chips :: ^Tortilla chips
+    17-644  Tortilla chips fried in sunflower oil
+pasta :: ^Pasta, white, dried
+    11-716  Pasta, white, dried, raw
+    11-1129  Pasta, white, dried, boiled in unsalted water
+wholewheat pasta :: NO MATCH
+egg noodles :: ^Noodles, egg, dried
+    11-719  Noodles, egg, dried, raw
+rice noodles :: ^Noodles, rice
+    11-725  Noodles, rice, fine, dried, boiled in unsalted water
+lasagne sheets :: ^Pasta, white, dried
+    11-716  Pasta, white, dried, raw
+    11-1129  Pasta, white, dried, boiled in unsalted water
+white rice :: ^Rice, white, (long grain|easy cook), raw
+    11-861  Rice, white, long grain, raw
+basmati rice :: ^Rice, white, (long grain|easy cook), raw
+    11-861  Rice, white, long grain, raw
+brown rice :: ^Rice, brown
+    11-866  Rice, brown, basmati, raw
+    11-870  Rice, brown, easy cook, raw
+    11-868  Rice, brown, wholegrain, raw
+    11-867  Rice, brown, basmati, boiled in unsalted water
+arborio rice :: ^Rice, (risotto|white, (long|short))
+    11-861  Rice, white, long grain, raw
+    11-863  Rice, white, long grain, easy cook, raw
+    11-862  Rice, white, long grain, boiled in unsalted water
+    11-864  Rice, white, long grain, easy cook, boiled in unsalted water
+couscous :: ^Couscous
+    11-901  Couscous, plain, raw
+    11-902  Couscous, plain, cooked
+quinoa :: ^Quinoa
+    14-843  Quinoa, raw
+pearl barley :: ^Barley, pearl
+    11-002  Barley, pearl, raw
+    11-003  Barley, pearl, boiled
+bulgur wheat :: ^Wheat, bulgur
+    11-904  Wheat, bulgur, raw
+polenta :: ^Polenta
+    11-905  Polenta, hydrated, raw
+semolina :: ^Semolina
+    11-903  Semolina, raw
+red lentils :: ^Lentils, red, split, dried
+    13-657  Lentils, red, split, dried, raw
+    13-658  Lentils, red, split, dried, boiled in unsalted water
+green lentils :: ^Lentils, green
+    13-089  Lentils, green and brown, whole, dried, raw
+    13-661  Lentils, green and brown, whole, dried, boiled in unsalted water
+chickpeas :: NO MATCH
+dried chickpeas :: NO MATCH
+kidney beans :: ^Beans, red kidney, canned
+    13-660  Beans, red kidney, canned in water, re-heated, drained
+black beans :: ^Beans, black
+    13-062  Beans, blackeye, whole, dried, raw
+    13-063  Beans, blackeye, whole, dried, boiled in unsalted water
+cannellini beans :: ^Beans, cannellini
+    13-666  Beans, cannellini, canned, re-heated, drained
+baked beans :: ^Baked beans, canned in tomato sauce
+    13-532  Baked beans, canned in tomato sauce
+    13-579  Baked beans, canned in tomato sauce, with pork sausages
+    13-535  Baked beans, canned in tomato sauce, reduced sugar, reduced salt
+tinned tomatoes :: ^Tomatoes, canned
+    13-530  Tomatoes, canned, whole contents
+tomato puree :: ^Tomato puree
+    13-531  Tomato puree
+passata :: ^Tomatoes, canned
+    13-530  Tomatoes, canned, whole contents
+sweetcorn tinned :: NO MATCH
+tinned peas :: ^Peas, canned
+    13-564  Peas, canned in water, re-heated, drained
+olive oil :: ^Oil, olive
+    17-038  Oil, olive
+vegetable oil :: ^Oil, (vegetable|sunflower|rapeseed)
+    17-041  Oil, rapeseed
+    17-045  Oil, sunflower
+    17-686  Oil, vegetable, average
+sesame oil :: ^Oil, sesame
+    17-043  Oil, sesame
+coconut oil :: ^Oil, coconut
+    17-031  Oil, coconut
+white wine vinegar :: ^Vinegar
+    17-339  Vinegar
+red wine vinegar :: ^Vinegar
+    17-339  Vinegar
+balsamic vinegar :: ^Vinegar
+    17-339  Vinegar
+malt vinegar :: ^Vinegar
+    17-339  Vinegar
+cider vinegar :: ^Vinegar
+    17-339  Vinegar
+soy sauce :: ^Soy sauce
+    17-721  Soy sauce, light and dark varieties
+worcestershire sauce :: ^Worcestershire sauce
+    17-723  Worcestershire sauce
+tomato ketchup :: ^Tomato ketchup
+    17-709  Tomato ketchup
+mayonnaise :: ^Mayonnaise
+    17-809  Mayonnaise, homemade
+    17-679  Mayonnaise, reduced fat
+    17-654  Mayonnaise, standard, retail
+english mustard :: ^Mustard, (English|smooth|powder)
+    17-364  Mustard, smooth
+    17-363  Mustard, powder, made up
+dijon mustard :: ^Mustard, (Dijon|smooth|wholegrain)
+    17-364  Mustard, smooth
+    17-365  Mustard, wholegrain
+brown sauce :: NO MATCH
+sweet chilli sauce :: NO MATCH
+hot sauce :: ^Chilli sauce
+    17-719  Chilli sauce
+fish sauce :: NO MATCH
+oyster sauce :: NO MATCH
+hoisin sauce :: NO MATCH
+pesto :: ^Pesto
+    17-623  Pesto, red
+    17-622  Pesto, green
+    15-838  Pesto sauce, homemade
+curry paste :: ^Curry paste
+    17-720  Curry paste
+gravy granules :: NO MATCH
+stock cube :: ^Stock cubes
+    17-515  Stock cubes, beef
+    17-726  Stock cubes, chicken
+    17-727  Stock cubes, vegetable
+    17-774  Stock cubes, chicken, made up with water
+chicken stock :: ^Stock, chicken
+    17-681  Stock, chicken, ready made, retail
+vegetable stock :: ^Stock cubes
+    17-515  Stock cubes, beef
+    17-726  Stock cubes, chicken
+    17-727  Stock cubes, vegetable
+    17-774  Stock cubes, chicken, made up with water
+salt :: NO MATCH
+black pepper :: ^Pepper, black
+    13-880  Pepper, black
+white pepper :: ^Pepper, white
+    13-881  Pepper, white
+paprika :: ^Paprika
+    13-879  Paprika
+smoked paprika :: ^Paprika
+    13-879  Paprika
+cayenne pepper :: NO MATCH
+chilli powder :: ^Chilli powder
+    13-873  Chilli powder
+chilli flakes :: ^Chilli powder
+    13-873  Chilli powder
+ground cumin :: ^Cumin
+    13-889  Cumin seeds
+cumin seeds :: ^Cumin
+    13-889  Cumin seeds
+ground coriander :: ^Coriander
+    13-875  Coriander seeds
+    13-818  Coriander leaves, dried
+    13-888  Coriander leaves, fresh
+coriander seeds :: NO MATCH
+turmeric :: ^Turmeric
+    13-861  Turmeric, ground
+garam masala :: ^Garam masala
+    13-829  Garam masala
+curry powder :: ^Curry powder
+    13-876  Curry powder
+    13-823  Curry powder, mixed flavours
+ground ginger :: ^Ginger, ground
+    13-832  Ginger, ground
+ground cinnamon :: ^Cinnamon
+    13-874  Cinnamon, ground
+cinnamon stick :: ^Cinnamon
+    13-874  Cinnamon, ground
+ground nutmeg :: ^Nutmeg
+    13-877  Nutmeg, ground
+ground cloves :: ^Cloves
+    13-816  Cloves, dried
+allspice :: ^Allspice
+    13-801  Allspice, ground
+cardamom pods :: ^Cardamom
+    13-809  Cardamom, ground
+bay leaf :: NO MATCH
+dried oregano :: ^Oregano
+    13-891  Oregano, fresh
+    13-878  Oregano, dried, ground
+dried thyme :: ^Thyme, dried
+    13-883  Thyme, dried, ground
+dried rosemary :: ^Rosemary
+    13-882  Rosemary, dried
+    13-892  Rosemary, fresh
+dried basil :: ^Basil, dried
+    13-805  Basil, dried, ground
+mixed herbs :: ^Mixed herbs
+    13-884  Mixed herbs, dried
+dried sage :: ^Sage, dried
+    13-854  Sage, dried, ground
+dried parsley :: ^Parsley, dried
+    13-845  Parsley, dried
+garlic powder :: ^Garlic powder
+    13-830  Garlic powder
+onion powder :: ^Onions, dried
+    13-590  Onions, dried, raw
+fresh coriander :: ^Coriander leaves
+    13-818  Coriander leaves, dried
+    13-888  Coriander leaves, fresh
+fresh parsley :: ^Parsley, fresh
+    13-844  Parsley, fresh
+fresh basil :: ^Basil, fresh
+    13-804  Basil, fresh
+fresh mint :: ^Mint, fresh
+    13-836  Mint, fresh
+fresh thyme :: ^Thyme, fresh
+    13-893  Thyme, fresh
+fresh rosemary :: ^Rosemary, fresh
+    13-892  Rosemary, fresh
+fresh sage :: ^Sage, fresh
+    13-853  Sage, fresh
+fresh dill :: ^Dill, fresh
+    13-824  Dill, fresh
+chives :: ^Chives
+    13-887  Chives, fresh
+lemongrass :: NO MATCH
+curry leaves :: ^Curry leaves
+    13-821  Curry leaves, fresh
+sesame seeds :: ^Sesame seeds
+    14-844  Sesame seeds
+sunflower seeds :: ^Sunflower seeds
+    14-845  Sunflower seeds
+    14-846  Sunflower seeds, toasted
+pumpkin seeds :: ^Pumpkin seeds
+    14-842  Pumpkin seeds
+flaxseed :: NO MATCH
+chia seeds :: NO MATCH
+almonds :: ^Almonds
+    14-897  Almonds, toasted
+    14-896  Almonds, whole kernels
+    14-870  Almonds, flaked and ground
+    14-898  Almonds, weighed with shells
+walnuts :: ^Walnuts
+    14-879  Walnuts, kernel only
+    14-887  Walnuts, kernel only, weighed with shells
+cashew nuts :: ^Cashew nuts
+    14-811  Cashew nuts, kernel only, plain
+    14-812  Cashew nuts, kernel only, roasted and salted
+peanuts :: ^Peanuts, (plain|dry roasted|roasted)
+    14-878  Peanuts, dry roasted
+    14-834  Peanuts, roasted and salted
+hazelnuts :: ^Hazelnuts
+    14-874  Hazelnuts, kernel only
+    14-885  Hazelnuts, kernel only, weighed with shells
+pecans :: ^Pecan nuts
+    14-837  Pecan nuts, kernel only
+    14-838  Pecan nuts, kernel only, weighed with shells
+pine nuts :: ^Pine nuts
+    14-839  Pine nuts, kernel only
+pistachios :: ^Pistachio
+    14-840  Pistachio nuts, kernel only, roasted and salted
+    14-841  Pistachio nuts, kernel only, roasted and salted, weighed with shells
+peanut butter :: ^Peanut butter
+    14-892  Peanut butter, smooth
+tahini :: ^Tahini
+    14-847  Tahini paste
+jam :: ^Jam, fruit with edible seeds
+    17-073  Jam, fruit with edible seeds
+marmalade :: ^Marmalade
+    17-078  Marmalade
+chocolate spread :: ^Chocolate spread
+    17-659  Chocolate spread
+tofu :: ^Tofu
+    15-888  Tofu spread
+    15-887  Tofu burger, baked
+    13-570  Tofu, soya bean, steamed
+    13-571  Tofu, soya bean, steamed, fried
+quorn mince :: ^Quorn
+    15-262  Quorn korma
+    13-574  Quorn, pieces, as purchased
+vegetarian sausages :: ^Sausages, vegetarian
+    15-658  Sausages, vegetarian, baked/grilled
+hummus :: ^Houmous
+    13-556  Houmous
+olives :: NO MATCH
+capers :: NO MATCH
+gherkins :: ^Gherkins
+    13-245  Gherkins, raw
+    13-246  Gherkins, pickled, drained
+sun-dried tomatoes :: NO MATCH
+coconut cream :: NO MATCH
+tinned pineapple :: ^Pineapple, canned
+    14-211  Pineapple, canned in juice, whole contents
+    14-212  Pineapple, canned in syrup, whole contents
+tinned peaches :: ^Peaches, canned
+    14-188  Peaches, canned in juice, whole contents
+    14-189  Peaches, canned in syrup, whole contents
+frozen peas :: ^Peas, frozen
+    13-527  Peas, frozen, raw
+    13-528  Peas, frozen, microwaved
+    13-536  Peas, frozen, boiled in unsalted water
+frozen sweetcorn :: NO MATCH
+frozen spinach :: ^Spinach, frozen
+    13-458  Spinach, frozen, boiled in unsalted water
+frozen mixed vegetables :: ^Vegetables, mixed, frozen
+    13-543  Vegetables, mixed, frozen, boiled in unsalted water
+frozen berries :: ^Raspberries, raw
+    14-375  Raspberries, raw
+oven chips :: NO MATCH
+frozen pizza :: ^Pizza
+    11-1016  Pizza base, raw
+    15-255  Pizza, tomato, homemade
+    11-1011  Pizza, fish topped, takeaway
+    11-1012  Pizza, chicken topped, retail
+ice cream :: ^Ice cream, (dairy|vanilla)
+    12-508  Ice cream, dairy, vanilla, soft scoop
+    12-511  Ice cream, dairy, luxury, with chocolate/caramel
+puff pastry :: NO MATCH
+shortcrust pastry :: ^Pastry, shortcrust
+    11-853  Pastry, shortcrust, retail, cooked
+    11-1052  Pastry, shortcrust, cooked, homemade
+    11-851  Pastry, shortcrust, retail, uncooked
+    11-1017  Pastry, shortcrust, uncooked, homemade
+filo pastry :: ^Pastry, filo
+    11-856  Pastry, filo, retail, cooked
+    11-855  Pastry, filo, retail, uncooked
+gelatine :: ^Gelatine
+    17-360  Gelatine
+cornflakes :: ^Breakfast cereal, cornflakes
+    11-742  Breakfast cereal, cornflakes, fortified
+    11-745  Breakfast cereal, cornflakes, unfortified
+    11-749  Breakfast cereal, cornflakes, frosted, fortified
+    11-746  Breakfast cereal, cornflakes, crunchy / honey nut coated, fortified
+muesli :: ^Muesli
+    11-780  Muesli, Swiss style, unfortified
+    11-781  Muesli, Swiss style, no added sugar or salt, unfortified
+weetabix :: NO MATCH
+digestive biscuits :: ^Biscuits, digestive
+    11-799  Biscuits, digestive, plain
+    11-803  Biscuits, digestive, with oats, plain
+    11-807  Biscuits, digestive, half coated in chocolate
+oatcakes :: ^Oatcakes
+    11-1100  Oatcakes, homemade
+    11-823  Oatcakes, plain, retail
+crackers :: ^Crackers
+    11-1134  Crackers, wholemeal, homemade
+crisps :: NO MATCH
+popcorn :: ^Popcorn
+    17-691  Popcorn, candied
+    17-692  Popcorn, salted, retail
+tea :: ^Tea
+    17-171  Tea, green, infusion
+    17-172  Tea, herbal, infusion
+    17-166  Tea, black, infusion, weak
+    17-167  Tea, black, infusion, strong
+coffee :: ^Coffee, instant
+    17-159  Coffee, instant, made up with water
+    17-160  Coffee, instant, made up with water and whole milk
+    17-161  Coffee, instant, made up with water and semi-skimmed milk
+orange juice :: ^Orange juice
+    14-329  Orange juice, chilled
+    14-330  Orange juice, ambient, UHT
+    14-369  Orange juice, freshly squeezed
+    14-370  Orange juice, freshly squeezed, weighed as whole fruit
+apple juice :: ^Apple juice
+    14-331  Apple juice, clear, ambient and chilled
+    14-272  Apple juice concentrate, unsweetened, commerical
+oat milk :: NO MATCH
+soya milk :: NO MATCH
+almond milk :: NO MATCH
+dairy-free spread :: ^Fat spread
+    12-499  Fat spread, low fat (26-39%), polyunsaturated
+    12-503  Fat spread, reduced fat (41-62%), polyunsaturated
+    17-710  Fat spread, reduced fat (62-75%), polyunsaturated
+    12-504  Fat spread, reduced fat (41-62%), not polyunsaturated
+red wine :: ^Wine, red
+    17-752  Wine, red
+white wine :: ^Wine, white
+    17-755  Wine, white, dry
+    17-233  Wine, white, sweet
+    17-756  Wine, white, medium
+    17-757  Wine, white, sparkling
+beer :: ^Beer
+    17-208  Beer, bitter, best, premium
+    17-748  Beer, bitter, strong (>5% ABV)
+    17-506  Beer, bitter, average (<4% ABV)
+cider :: ^Cider
+    17-222  Cider, dry
+    17-224  Cider, sweet
+    17-822  Cider, strong
+    17-223  Cider, low alcohol
+water :: ^Water
+    13-669  Watercress, raw
+    17-377  Water, distilled
+    13-394  Water chestnuts, raw
+double concentrated tomato puree :: ^Tomato puree
+    13-531  Tomato puree
+suet :: ^Suet
+    17-011  Suet, shredded
+    17-759  Suet, vegetable, reduced fat
+mincemeat :: ^Mincemeat
+    17-765  Mincemeat
+    17-852  Mincemeat, vegetarian, homemade
+custard powder :: ^Custard powder
+    11-1138  Custard powder
+tinned custard :: ^Custard, ready
+    12-543  Custard, ready to eat, canned and tetra-pak
+condensed milk :: ^Milk, condensed, whole, sweetened
+    12-520  Milk, condensed, whole, sweetened
+evaporated milk :: ^Milk, evaporated
+    12-324  Milk, evaporated, light
+    12-522  Milk, evaporated, whole
+skimmed milk powder :: ^Milk, skimmed, dried
+    12-521  Milk, skimmed, dried, fortified
+dried mushrooms :: NO MATCH
+mixed peel :: NO MATCH
+glace cherries :: ^Cherries, glace
+    14-335  Cherries, glace
+mixed nuts :: ^Nuts, mixed
+    14-880  Nuts, mixed
+tinned salmon :: NO MATCH
+tinned mackerel :: NO MATCH
+tinned tomato soup :: ^Soup, tomato
+    17-636  Soup, tomato, carton, chilled
+tinned mushrooms :: NO MATCH
+jacket potato :: ^Potatoes, old, baked
+    13-620  Potatoes, old, baked, flesh only
+    13-491  Potatoes, old, baked, flesh and skin
+    13-621  Potatoes, old, baked, flesh only, weighed with skin
+sauerkraut :: ^Sauerkraut
+    13-336  Sauerkraut
+kimchi :: NO MATCH
+miso paste :: NO MATCH
+coconut sugar :: ^Sugar, white
+    17-063  Sugar, white
+rice vinegar :: ^Vinegar
+    17-339  Vinegar
+mirin :: ^Wine, white
+    17-755  Wine, white, dry
+    17-233  Wine, white, sweet
+    17-756  Wine, white, medium
+    17-757  Wine, white, sparkling
+nori :: ^Seaweed
+    13-338  Seaweed, Irish moss, raw
+    13-340  Seaweed, nori, dried, raw
+    13-339  Seaweed, kombu, dried, raw
+    13-341  Seaweed, wakame, dried, raw
+wasabi :: ^Horseradish
+    13-258  Horseradish, raw
+    17-314  Horseradish sauce
+horseradish sauce :: ^Horseradish
+    13-258  Horseradish, raw
+    17-314  Horseradish sauce
+mint sauce :: ^Mint sauce
+    17-707  Mint sauce
+    17-811  Mint sauce, homemade
+cranberry sauce :: NO MATCH
+apple sauce :: ^Apple sauce
+    17-851  Apple sauce, homemade
+tartare sauce :: ^Tartare sauce
+    17-722  Tartare sauce
+salad cream :: ^Salad cream
+    17-703  Salad cream
+    17-704  Salad cream, reduced fat
+bbq sauce :: ^Barbecue sauce
+    17-705  Barbecue sauce
+    17-769  Barbecue sauce, homemade
+pickled onions :: ^Onions, pickled
+    13-309  Onions, pickled, drained
+beef stock :: ^Stock cubes
+    17-515  Stock cubes, beef
+    17-726  Stock cubes, chicken
+    17-727  Stock cubes, vegetable
+    17-774  Stock cubes, chicken, made up with water
+yeast extract :: ^Yeast extract
+    17-517  Yeast extract
+lard :: ^Lard
+    17-010  Lard
+ghee :: ^Ghee
+    17-640  Ghee, butter
+    12-502  Ghee made from vegetable oil

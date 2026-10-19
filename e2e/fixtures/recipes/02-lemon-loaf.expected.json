@@ -1,0 +1,91 @@
+{
+  "image": "02-lemon-loaf.png",
+  "extraPages": [],
+  "scenario": "Imperial units (oz, floz) that must convert to canonical g/ml on extraction",
+  "expectedConfidence": "high",
+  "diet": "vegetarian",
+  "expected": {
+    "title": "Lemon Drizzle Loaf",
+    "servings": 8,
+    "ingredients": [
+      {
+        "name": "self-raising flour",
+        "quantity": {
+          "kind": "exact",
+          "value": 227,
+          "unit": "g",
+          "originalText": "8 oz"
+        },
+        "optional": false
+      },
+      {
+        "name": "caster sugar",
+        "quantity": {
+          "kind": "exact",
+          "value": 170,
+          "unit": "g",
+          "originalText": "6 oz"
+        },
+        "optional": false
+      },
+      {
+        "name": "butter",
+        "quantity": {
+          "kind": "exact",
+          "value": 113,
+          "unit": "g",
+          "originalText": "4 oz"
+        },
+        "preparation": "softened",
+        "optional": false
+      },
+      {
+        "name": "eggs",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "item",
+          "originalText": "2"
+        },
+        "optional": false
+      },
+      {
+        "name": "lemons",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "item",
+          "originalText": "2"
+        },
+        "preparation": "zest and juice",
+        "optional": false
+      },
+      {
+        "name": "milk",
+        "quantity": {
+          "kind": "exact",
+          "value": 60,
+          "unit": "ml",
+          "originalText": "2 floz"
+        },
+        "optional": false
+      },
+      {
+        "name": "icing sugar",
+        "quantity": {
+          "kind": "exact",
+          "value": 100,
+          "unit": "g",
+          "originalText": "3.5 oz"
+        },
+        "optional": false
+      }
+    ],
+    "steps": [
+      "Cream the butter and caster sugar until pale.",
+      "Beat in eggs, zest, flour and milk.",
+      "Bake at 180C for 45 minutes.",
+      "Mix lemon juice with icing sugar and pour over the warm loaf."
+    ]
+  }
+}

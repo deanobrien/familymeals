@@ -1,0 +1,125 @@
+{
+  "image": "03-beef-stew-two-page-p1.png",
+  "extraPages": [
+    "03-beef-stew-two-page-p2.png"
+  ],
+  "scenario": "TWO-PAGE recipe: ingredients continue on page 2; merge into one recipe",
+  "expectedConfidence": "high",
+  "diet": "meat",
+  "expected": {
+    "title": "Slow Winter Beef Stew",
+    "servings": 6,
+    "ingredients": [
+      {
+        "name": "braising beef",
+        "quantity": {
+          "kind": "exact",
+          "value": 900,
+          "unit": "g",
+          "originalText": "900 g"
+        },
+        "preparation": "cut into chunks",
+        "optional": false
+      },
+      {
+        "name": "carrots",
+        "quantity": {
+          "kind": "exact",
+          "value": 4,
+          "unit": "item",
+          "originalText": "4"
+        },
+        "preparation": "sliced",
+        "optional": false
+      },
+      {
+        "name": "onions",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "item",
+          "originalText": "2"
+        },
+        "preparation": "quartered",
+        "optional": false
+      },
+      {
+        "name": "beef stock",
+        "quantity": {
+          "kind": "exact",
+          "value": 750,
+          "unit": "ml",
+          "originalText": "750 ml"
+        },
+        "optional": false
+      },
+      {
+        "name": "plain flour",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "tbsp",
+          "originalText": "2 tbsp"
+        },
+        "optional": false
+      },
+      {
+        "name": "potatoes",
+        "quantity": {
+          "kind": "exact",
+          "value": 500,
+          "unit": "g",
+          "originalText": "500 g"
+        },
+        "preparation": "peeled and chunked",
+        "optional": false
+      },
+      {
+        "name": "bay leaves",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "item",
+          "originalText": "2"
+        },
+        "optional": false
+      },
+      {
+        "name": "thyme",
+        "quantity": {
+          "kind": "exact",
+          "value": 4,
+          "unit": "sprig",
+          "originalText": "4 sprigs"
+        },
+        "optional": false
+      },
+      {
+        "name": "tomato puree",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "tbsp",
+          "originalText": "1 tbsp"
+        },
+        "optional": false
+      },
+      {
+        "name": "vegetable oil",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "tbsp",
+          "originalText": "1 tbsp"
+        },
+        "optional": false
+      }
+    ],
+    "steps": [
+      "Toss beef in flour and brown in oil.",
+      "Add vegetables, stock, puree and herbs.",
+      "Cook covered at 150C for 3 hours.",
+      "Season and serve with greens."
+    ]
+  }
+}

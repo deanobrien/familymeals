@@ -1,0 +1,119 @@
+{
+  "image": "04-fractions-ranges.png",
+  "extraPages": [],
+  "scenario": "Unicode fractions, ranges, \"a pinch\", \"to taste\", unitless counts, approximate vs to_taste",
+  "expectedConfidence": "high",
+  "diet": "vegetarian",
+  "expected": {
+    "title": "Gran’s Fiddly Flapjacks & Soup",
+    "servings": 6,
+    "ingredients": [
+      {
+        "name": "rolled oats",
+        "quantity": {
+          "kind": "exact",
+          "value": 1.5,
+          "unit": "cup",
+          "originalText": "1½ cups"
+        },
+        "optional": false
+      },
+      {
+        "name": "butter",
+        "quantity": {
+          "kind": "exact",
+          "value": 0.75,
+          "unit": "cup",
+          "originalText": "¾ cup"
+        },
+        "preparation": "melted",
+        "optional": false
+      },
+      {
+        "name": "garlic",
+        "quantity": {
+          "kind": "range",
+          "min": 2,
+          "max": 3,
+          "unit": "clove",
+          "originalText": "2-3 cloves"
+        },
+        "preparation": "crushed",
+        "optional": false
+      },
+      {
+        "name": "golden syrup",
+        "quantity": {
+          "kind": "exact",
+          "value": 0.5,
+          "unit": "tsp",
+          "originalText": "½ tsp"
+        },
+        "optional": false
+      },
+      {
+        "name": "flaked sea salt",
+        "quantity": {
+          "kind": "approximate",
+          "approxLabel": "pinch",
+          "originalText": "a pinch"
+        },
+        "optional": false
+      },
+      {
+        "name": "chilli flakes",
+        "quantity": {
+          "kind": "approximate",
+          "approxLabel": "dash",
+          "originalText": "a dash"
+        },
+        "optional": true
+      },
+      {
+        "name": "black pepper",
+        "quantity": {
+          "kind": "to_taste",
+          "originalText": "to taste"
+        },
+        "optional": false
+      },
+      {
+        "name": "onions",
+        "quantity": {
+          "kind": "range",
+          "min": 1,
+          "max": 2,
+          "unit": "item",
+          "originalText": "1 to 2"
+        },
+        "optional": false
+      },
+      {
+        "name": "vegetable stock",
+        "quantity": {
+          "kind": "range",
+          "min": 500,
+          "max": 750,
+          "unit": "ml",
+          "originalText": "500-750 ml"
+        },
+        "optional": false
+      },
+      {
+        "name": "parsley",
+        "quantity": {
+          "kind": "approximate",
+          "approxLabel": "handful",
+          "originalText": "a handful"
+        },
+        "optional": false
+      }
+    ],
+    "steps": [
+      "Melt butter and syrup together.",
+      "Stir in oats and salt, press into a tin.",
+      "Bake until golden.",
+      "For the soup, soften onions and garlic then add stock and season to taste."
+    ]
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "image": "06-fish-pie.png",
+  "extraPages": [],
+  "scenario": "Fish category, mixed units, optional garnish",
+  "expectedConfidence": "high",
+  "diet": "fish",
+  "expected": {
+    "title": "Family Fish Pie",
+    "servings": 4,
+    "ingredients": [
+      {
+        "name": "white fish fillets",
+        "quantity": {
+          "kind": "exact",
+          "value": 500,
+          "unit": "g",
+          "originalText": "500 g"
+        },
+        "preparation": "skinned",
+        "optional": false
+      },
+      {
+        "name": "smoked haddock",
+        "quantity": {
+          "kind": "exact",
+          "value": 250,
+          "unit": "g",
+          "originalText": "250 g"
+        },
+        "optional": false
+      },
+      {
+        "name": "milk",
+        "quantity": {
+          "kind": "exact",
+          "value": 500,
+          "unit": "ml",
+          "originalText": "500 ml"
+        },
+        "optional": false
+      },
+      {
+        "name": "floury potatoes",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "kg",
+          "originalText": "1 kg"
+        },
+        "preparation": "peeled",
+        "optional": false
+      },
+      {
+        "name": "butter",
+        "quantity": {
+          "kind": "exact",
+          "value": 50,
+          "unit": "g",
+          "originalText": "50 g"
+        },
+        "optional": false
+      },
+      {
+        "name": "plain flour",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "tbsp",
+          "originalText": "2 tbsp"
+        },
+        "optional": false
+      },
+      {
+        "name": "frozen peas",
+        "quantity": {
+          "kind": "exact",
+          "value": 100,
+          "unit": "g",
+          "originalText": "100 g"
+        },
+        "optional": false
+      },
+      {
+        "name": "chives",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "bunch",
+          "originalText": "1 bunch"
+        },
+        "preparation": "chopped",
+        "optional": true
+      }
+    ],
+    "steps": [
+      "Poach fish in milk for 5 minutes; reserve milk.",
+      "Make a white sauce with butter, flour and the milk.",
+      "Fold in fish and peas, top with mash and bake 25 minutes."
+    ]
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "image": "01-tomato-pasta.png",
+  "extraPages": [],
+  "scenario": "Clean typed single page, metric units, preparation notes",
+  "expectedConfidence": "high",
+  "diet": "vegan",
+  "expected": {
+    "title": "Sunday Tomato Pasta",
+    "servings": 4,
+    "ingredients": [
+      {
+        "name": "spaghetti",
+        "quantity": {
+          "kind": "exact",
+          "value": 400,
+          "unit": "g",
+          "originalText": "400 g"
+        },
+        "optional": false
+      },
+      {
+        "name": "tinned chopped tomatoes",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "can",
+          "originalText": "2 x 400 g tins"
+        },
+        "optional": false
+      },
+      {
+        "name": "garlic",
+        "quantity": {
+          "kind": "exact",
+          "value": 3,
+          "unit": "clove",
+          "originalText": "3 cloves"
+        },
+        "preparation": "finely sliced",
+        "optional": false
+      },
+      {
+        "name": "olive oil",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "tbsp",
+          "originalText": "2 tbsp"
+        },
+        "optional": false
+      },
+      {
+        "name": "onion",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "item",
+          "originalText": "1 large"
+        },
+        "preparation": "diced",
+        "optional": false
+      },
+      {
+        "name": "dried oregano",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "tsp",
+          "originalText": "1 tsp"
+        },
+        "optional": false
+      },
+      {
+        "name": "fresh basil",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "bunch",
+          "originalText": "1 small bunch"
+        },
+        "optional": true
+      }
+    ],
+    "steps": [
+      "Soften the onion in oil for 8 minutes.",
+      "Add garlic, oregano and tomatoes; simmer 20 minutes.",
+      "Boil the spaghetti, drain and toss through the sauce."
+    ]
+  }
+}

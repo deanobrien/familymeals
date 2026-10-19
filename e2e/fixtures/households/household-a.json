@@ -1,0 +1,196 @@
+{
+  "household": {
+    "id": "a1a1a101-0000-4000-8000-000000000001",
+    "name": "The Smiths (A)"
+  },
+  "members": [
+    {
+      "userId": "a1a1a102-0000-4000-8000-000000000001",
+      "email": "alice.smith@fr-test.test",
+      "displayName": "Alice Smith",
+      "role": "owner"
+    },
+    {
+      "userId": "a1a1a102-0000-4000-8000-000000000002",
+      "email": "bob.smith@fr-test.test",
+      "displayName": "Bob Smith",
+      "role": "member"
+    }
+  ],
+  "recipes": [
+    {
+      "id": "a1a1a103-0000-4000-8000-000000000001",
+      "householdId": "a1a1a101-0000-4000-8000-000000000001",
+      "title": "Smith Sunday Roast",
+      "diet": "meat",
+      "servings": 4,
+      "createdBy": "a1a1a102-0000-4000-8000-000000000001"
+    },
+    {
+      "id": "a1a1a103-0000-4000-8000-000000000002",
+      "householdId": "a1a1a101-0000-4000-8000-000000000001",
+      "title": "Smith Veg Lasagne",
+      "diet": "vegetarian",
+      "servings": 4,
+      "createdBy": "a1a1a102-0000-4000-8000-000000000001"
+    },
+    {
+      "id": "a1a1a103-0000-4000-8000-000000000003",
+      "householdId": "a1a1a101-0000-4000-8000-000000000001",
+      "title": "Smith Pea Soup",
+      "diet": "vegan",
+      "servings": 2,
+      "createdBy": "a1a1a102-0000-4000-8000-000000000001"
+    }
+  ],
+  "recipeIngredients": [
+    {
+      "id": "a1a1a104-0000-4000-8000-000000000001",
+      "recipeId": "a1a1a103-0000-4000-8000-000000000001",
+      "quantity": {
+        "kind": "exact",
+        "value": 1.5,
+        "unit": "kg",
+        "originalText": "1.5 kg"
+      },
+      "optional": false,
+      "order": 0,
+      "name": "chicken"
+    },
+    {
+      "id": "a1a1a104-0000-4000-8000-000000000002",
+      "recipeId": "a1a1a103-0000-4000-8000-000000000001",
+      "quantity": {
+        "kind": "exact",
+        "value": 1,
+        "unit": "kg",
+        "originalText": "1 kg"
+      },
+      "optional": false,
+      "order": 1,
+      "name": "potatoes"
+    },
+    {
+      "id": "a1a1a104-0000-4000-8000-000000000003",
+      "recipeId": "a1a1a103-0000-4000-8000-000000000002",
+      "quantity": {
+        "kind": "exact",
+        "value": 250,
+        "unit": "g",
+        "originalText": "250 g"
+      },
+      "optional": false,
+      "order": 2,
+      "name": "lasagne sheets"
+    },
+    {
+      "id": "a1a1a104-0000-4000-8000-000000000004",
+      "recipeId": "a1a1a103-0000-4000-8000-000000000003",
+      "quantity": {
+        "kind": "exact",
+        "value": 500,
+        "unit": "g",
+        "originalText": "500 g"
+      },
+      "optional": false,
+      "order": 3,
+      "name": "frozen peas"
+    }
+  ],
+  "mealPlan": {
+    "id": "a1a1a105-0000-4000-8000-000000000001",
+    "householdId": "a1a1a101-0000-4000-8000-000000000001",
+    "weekStart": "2026-10-19",
+    "approved": true,
+    "meals": [
+      {
+        "id": "a1a1a106-0000-4000-8000-000000000001",
+        "recipeId": "a1a1a103-0000-4000-8000-000000000001",
+        "date": "2026-10-19",
+        "mealType": "dinner",
+        "servings": 4
+      },
+      {
+        "id": "a1a1a106-0000-4000-8000-000000000002",
+        "recipeId": "a1a1a103-0000-4000-8000-000000000002",
+        "date": "2026-10-20",
+        "mealType": "dinner",
+        "servings": 4
+      },
+      {
+        "id": "a1a1a106-0000-4000-8000-000000000003",
+        "recipeId": "a1a1a103-0000-4000-8000-000000000003",
+        "date": "2026-10-21",
+        "mealType": "dinner",
+        "servings": 2
+      }
+    ]
+  },
+  "shoppingList": {
+    "id": "a1a1a107-0000-4000-8000-000000000001",
+    "householdId": "a1a1a101-0000-4000-8000-000000000001",
+    "planId": "a1a1a105-0000-4000-8000-000000000001",
+    "items": [
+      {
+        "id": "a1a1a108-0000-4000-8000-000000000001",
+        "displayName": "chicken",
+        "quantity": {
+          "kind": "exact",
+          "value": 1.5,
+          "unit": "kg",
+          "originalText": "1.5 kg"
+        },
+        "aisle": "Groceries",
+        "manual": false
+      },
+      {
+        "id": "a1a1a108-0000-4000-8000-000000000002",
+        "displayName": "potatoes",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "kg",
+          "originalText": "1 kg"
+        },
+        "aisle": "Groceries",
+        "manual": false
+      },
+      {
+        "id": "a1a1a108-0000-4000-8000-000000000003",
+        "displayName": "lasagne sheets",
+        "quantity": {
+          "kind": "exact",
+          "value": 250,
+          "unit": "g",
+          "originalText": "250 g"
+        },
+        "aisle": "Groceries",
+        "manual": false
+      },
+      {
+        "id": "a1a1a108-0000-4000-8000-000000000004",
+        "displayName": "frozen peas",
+        "quantity": {
+          "kind": "exact",
+          "value": 500,
+          "unit": "g",
+          "originalText": "500 g"
+        },
+        "aisle": "Groceries",
+        "manual": false
+      },
+      {
+        "id": "a1a1a108-0000-4000-8000-000000000100",
+        "displayName": "bin bags",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "pack",
+          "originalText": "1 pack"
+        },
+        "aisle": "Household",
+        "manual": true
+      }
+    ]
+  }
+}

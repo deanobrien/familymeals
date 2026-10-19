@@ -1,0 +1,22 @@
+{
+  "name": "@fr/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "e2e": "playwright test",
+    "test": "vitest run",
+    "generate": "tsx fixtures-src/generate.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^22.10.2",
+    "sharp": "^0.35.5",
+    "tsx": "^4.23.15",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "zod": "^4.6.7"
+  }
+}

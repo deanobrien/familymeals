@@ -1,0 +1,11 @@
+{
+  "retailer": "Example Supermarket",
+  "date": "2026-10-17",
+  "lines": [
+    { "text": "RED LENTILS 500G", "qty": 1, "pricePence": 189, "confidence": 0.95 },
+    { "text": "BRITISH ONIONS 1KG", "qty": 1, "pricePence": 95, "confidence": 0.95 },
+    { "text": "SEMI SKIMMED MILK 2L", "qty": 2, "pricePence": 290, "confidence": 0.9 }
+  ],
+  "totalPence": 574,
+  "warnings": []
+}

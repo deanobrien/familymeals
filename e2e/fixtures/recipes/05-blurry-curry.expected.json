@@ -1,0 +1,57 @@
+{
+  "image": "05-blurry-curry.png",
+  "extraPages": [],
+  "scenario": "DELIBERATELY blurry + low-contrast: extraction must flag low confidence and force review, never silently save",
+  "expectedConfidence": "low",
+  "diet": "vegan",
+  "expected": {
+    "title": "Quick Veg Curry",
+    "servings": 4,
+    "ingredients": [
+      {
+        "name": "chickpeas",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "can",
+          "originalText": "1 tin"
+        },
+        "optional": false
+      },
+      {
+        "name": "coconut milk",
+        "quantity": {
+          "kind": "exact",
+          "value": 400,
+          "unit": "ml",
+          "originalText": "400 ml"
+        },
+        "optional": false
+      },
+      {
+        "name": "curry paste",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "tbsp",
+          "originalText": "2 tbsp"
+        },
+        "optional": false
+      },
+      {
+        "name": "spinach",
+        "quantity": {
+          "kind": "exact",
+          "value": 200,
+          "unit": "g",
+          "originalText": "200 g"
+        },
+        "optional": false
+      }
+    ],
+    "steps": [
+      "Fry the paste for 1 minute.",
+      "Add everything else and simmer 15 minutes."
+    ]
+  }
+}

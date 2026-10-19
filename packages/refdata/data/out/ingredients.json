@@ -1,0 +1,5520 @@
+[
+  {
+    "id": "dda1bd00-8c49-5828-a75b-7b4899da8c77",
+    "slug": "onion",
+    "name": "onion",
+    "category": "fruit_veg",
+    "aliases": [
+      "brown onion",
+      "yellow onion",
+      "white onion"
+    ],
+    "unitWeightG": {
+      "value": 150,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-499",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "519a1b23-6bbc-5081-858c-ac1d78c0635a",
+    "slug": "red-onion",
+    "name": "red onion",
+    "category": "fruit_veg",
+    "aliases": [],
+    "unitWeightG": {
+      "value": 130,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-499",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "f0222ee5-7c8d-5b0d-a025-5782fc93be05",
+    "slug": "spring-onion",
+    "name": "spring onion",
+    "category": "fruit_veg",
+    "aliases": [
+      "scallion",
+      "green onion"
+    ],
+    "unitWeightG": {
+      "value": 15,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-352",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "c4b3e472-5fc7-5a73-aaf3-6ff06b22bb42",
+    "slug": "shallot",
+    "name": "shallot",
+    "category": "fruit_veg",
+    "aliases": [
+      "banana shallot"
+    ],
+    "unitWeightG": {
+      "value": 40,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-342",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "fe46fcbb-2739-55e4-9738-3a34619887bc",
+    "slug": "leek",
+    "name": "leek",
+    "category": "fruit_veg",
+    "aliases": [],
+    "unitWeightG": {
+      "value": 150,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-624",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "d721ffbc-4082-53cd-979a-05b2e535f396",
+    "slug": "garlic-clove",
+    "name": "garlic clove",
+    "category": "fruit_veg",
+    "aliases": [
+      "garlic",
+      "fresh garlic"
+    ],
+    "unitWeightG": {
+      "value": 4,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-244",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "cb9ee6f7-298b-5374-81b3-8aa7649c5aa5",
+    "slug": "ginger",
+    "name": "ginger",
+    "category": "fruit_veg",
+    "aliases": [
+      "root ginger",
+      "fresh ginger"
+    ],
+    "unitWeightG": {
+      "value": 25,
+      "source": "Thumb-sized (approx. 2.5 cm) piece, peeled (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-890",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "eb289134-7e61-5d18-b5a7-6fbb661c47b0",
+    "slug": "potato",
+    "name": "potato",
+    "category": "fruit_veg",
+    "aliases": [
+      "white potato",
+      "maincrop potato"
+    ],
+    "unitWeightG": {
+      "value": 200,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-489",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "76bd70f6-7b09-55c4-b274-98ecee36c326",
+    "slug": "new-potato",
+    "name": "new potato",
+    "category": "fruit_veg",
+    "aliases": [
+      "baby potato",
+      "salad potato"
+    ],
+    "unitWeightG": {
+      "value": 40,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-618",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "b213f065-5950-50f9-898d-9a81dd0fdf63",
+    "slug": "sweet-potato",
+    "name": "sweet potato",
+    "category": "fruit_veg",
+    "aliases": [
+      "yam (US)"
+    ],
+    "unitWeightG": {
+      "value": 250,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-463",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "ebc7e9ba-a0db-59eb-a1d6-57521ea00e1c",
+    "slug": "carrot",
+    "name": "carrot",
+    "category": "fruit_veg",
+    "aliases": [],
+    "unitWeightG": {
+      "value": 80,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-496",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "36c76f2d-21ec-5ba5-94e7-eaa9b12e473f",
+    "slug": "parsnip",
+    "name": "parsnip",
+    "category": "fruit_veg",
+    "aliases": [],
+    "unitWeightG": {
+      "value": 120,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-312",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "2050534a-cfa7-58c0-b98a-45cb76f7424d",
+    "slug": "swede",
+    "name": "swede",
+    "category": "fruit_veg",
+    "aliases": [
+      "rutabaga"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-359",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "686a1da3-6389-5716-ac1a-4177ab37dd50",
+    "slug": "turnip",
+    "name": "turnip",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-389",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "a0814cfa-c62e-5a84-9483-cfb02c0b2242",
+    "slug": "beetroot",
+    "name": "beetroot",
+    "category": "fruit_veg",
+    "aliases": [
+      "beet",
+      "red beet"
+    ],
+    "unitWeightG": {
+      "value": 80,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-164",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "17359293-0584-5795-a84a-cf47084089bf",
+    "slug": "celery",
+    "name": "celery",
+    "category": "fruit_veg",
+    "aliases": [
+      "celery stick",
+      "celery stalk"
+    ],
+    "unitWeightG": {
+      "value": 40,
+      "source": "One celery stick, trimmed (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-636",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "78b10509-4252-53fa-9a73-6697ebde5d2a",
+    "slug": "celeriac",
+    "name": "celeriac",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-219",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "d470b4d6-ddf9-581a-9d9f-ea23e9c2334b",
+    "slug": "fennel",
+    "name": "fennel",
+    "category": "fruit_veg",
+    "aliases": [
+      "fennel bulb"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-241",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "12d49748-3785-5dce-ae4e-2139e591f514",
+    "slug": "broccoli",
+    "name": "broccoli",
+    "category": "fruit_veg",
+    "aliases": [],
+    "unitWeightG": {
+      "value": 350,
+      "source": "One medium head (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-502",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "0b1e5b53-9728-51c7-a230-585524f3d573",
+    "slug": "cauliflower",
+    "name": "cauliflower",
+    "category": "fruit_veg",
+    "aliases": [],
+    "unitWeightG": {
+      "value": 600,
+      "source": "One medium head, trimmed (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-512",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "a72dfd94-494a-5382-b25d-3b59ab4a52db",
+    "slug": "cabbage",
+    "name": "cabbage",
+    "category": "fruit_veg",
+    "aliases": [
+      "white cabbage",
+      "green cabbage"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-509",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "0ac624df-4879-5ce8-bcc6-9df99bb8bbaf",
+    "slug": "red-cabbage",
+    "name": "red cabbage",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-190",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "750d9cd0-60bc-5262-a126-15488043da8f",
+    "slug": "savoy-cabbage",
+    "name": "savoy cabbage",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-582",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "79f12caf-4fae-594f-9ef7-2529ab54e882",
+    "slug": "brussels-sprouts",
+    "name": "brussels sprouts",
+    "category": "fruit_veg",
+    "aliases": [
+      "sprouts"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-177",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "9e833371-57f4-5d1e-b6ad-50f9f609649d",
+    "slug": "kale",
+    "name": "kale",
+    "category": "fruit_veg",
+    "aliases": [
+      "curly kale"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-234",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "8f55d100-de7d-514c-8fea-442e8619ffdc",
+    "slug": "spinach",
+    "name": "spinach",
+    "category": "fruit_veg",
+    "aliases": [
+      "baby spinach"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-521",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "b6c7f4d8-c409-55bc-a649-86494d95ef3c",
+    "slug": "spring-greens",
+    "name": "spring greens",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-348",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "4c7c78f3-a955-595e-9d1b-67fc607788a5",
+    "slug": "pak-choi",
+    "name": "pak choi",
+    "category": "fruit_veg",
+    "aliases": [
+      "bok choy",
+      "pak choy"
+    ],
+    "form": "fresh"
+  },
+  {
+    "id": "7229ccfe-7ae5-56b3-a7cd-506f9307dad3",
+    "slug": "lettuce",
+    "name": "lettuce",
+    "category": "fruit_veg",
+    "aliases": [
+      "round lettuce",
+      "cos lettuce",
+      "romaine"
+    ],
+    "unitWeightG": {
+      "value": 300,
+      "source": "One round/little gem-sized head, trimmed (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-520",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "5339566d-6e58-5601-9f12-5a6474c1a365",
+    "slug": "rocket",
+    "name": "rocket",
+    "category": "fruit_veg",
+    "aliases": [
+      "arugula",
+      "rucola"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-522",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "94f36ad0-493c-5a53-92aa-1523b4320741",
+    "slug": "watercress",
+    "name": "watercress",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh"
+  },
+  {
+    "id": "fdea5afe-6139-5e0d-83cf-76186f3ecd0e",
+    "slug": "cucumber",
+    "name": "cucumber",
+    "category": "fruit_veg",
+    "aliases": [],
+    "unitWeightG": {
+      "value": 300,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-523",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "51907295-9a2e-52f7-afb0-2a1fbccbbcd5",
+    "slug": "tomato",
+    "name": "tomato",
+    "category": "fruit_veg",
+    "aliases": [
+      "tomatoes",
+      "fresh tomato"
+    ],
+    "unitWeightG": {
+      "value": 85,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-517",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "41ea6299-b587-5582-abde-f0ba647c86bf",
+    "slug": "cherry-tomato",
+    "name": "cherry tomato",
+    "category": "fruit_veg",
+    "aliases": [
+      "cherry tomatoes"
+    ],
+    "unitWeightG": {
+      "value": 15,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-519",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "119173a8-1080-5a6e-82b1-4cb10349c28f",
+    "slug": "red-pepper",
+    "name": "red pepper",
+    "category": "fruit_veg",
+    "aliases": [
+      "red bell pepper",
+      "red capsicum"
+    ],
+    "unitWeightG": {
+      "value": 160,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh"
+  },
+  {
+    "id": "122d8902-088b-5561-a129-4c4ad0cd2f98",
+    "slug": "green-pepper",
+    "name": "green pepper",
+    "category": "fruit_veg",
+    "aliases": [
+      "green bell pepper",
+      "green capsicum"
+    ],
+    "unitWeightG": {
+      "value": 160,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-318",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "627d7fe5-a777-5c93-93c8-27d380bd6495",
+    "slug": "yellow-pepper",
+    "name": "yellow pepper",
+    "category": "fruit_veg",
+    "aliases": [
+      "yellow bell pepper"
+    ],
+    "unitWeightG": {
+      "value": 160,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh"
+  },
+  {
+    "id": "1d9f9443-4104-58cf-a40f-87c4999c68e9",
+    "slug": "chilli",
+    "name": "chilli",
+    "category": "fruit_veg",
+    "aliases": [
+      "red chilli",
+      "chile",
+      "chili pepper"
+    ],
+    "unitWeightG": {
+      "value": 12,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-317",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "b34dd903-6e8c-5dd6-bf56-76fb59da5d69",
+    "slug": "green-chilli",
+    "name": "green chilli",
+    "category": "fruit_veg",
+    "aliases": [
+      "green chili"
+    ],
+    "unitWeightG": {
+      "value": 10,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-316",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "b9ac8382-4261-5c1f-9015-88eab3307543",
+    "slug": "courgette",
+    "name": "courgette",
+    "category": "fruit_veg",
+    "aliases": [
+      "zucchini"
+    ],
+    "unitWeightG": {
+      "value": 200,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-627",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "b24733b8-ee4d-5060-8300-120c122baa52",
+    "slug": "aubergine",
+    "name": "aubergine",
+    "category": "fruit_veg",
+    "aliases": [
+      "eggplant",
+      "brinjal"
+    ],
+    "unitWeightG": {
+      "value": 300,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-161",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "43d9eb0b-13e1-55a4-8be7-cae291c4d9e0",
+    "slug": "mushroom",
+    "name": "mushroom",
+    "category": "fruit_veg",
+    "aliases": [
+      "button mushroom",
+      "chestnut mushroom"
+    ],
+    "unitWeightG": {
+      "value": 20,
+      "source": "One button/chestnut mushroom (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-505",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "ec27167e-f4eb-5ea2-b885-d91ec2d3d61a",
+    "slug": "butternut-squash",
+    "name": "butternut squash",
+    "category": "fruit_veg",
+    "aliases": [
+      "squash"
+    ],
+    "unitWeightG": {
+      "value": 900,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-355",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "9b5ce5eb-a137-5179-850c-5041093bc51f",
+    "slug": "pumpkin",
+    "name": "pumpkin",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-326",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "4e68c5e9-6361-5f0d-b3ee-5cb5be5ea61c",
+    "slug": "sweetcorn",
+    "name": "sweetcorn",
+    "category": "fruit_veg",
+    "aliases": [
+      "corn",
+      "corn on the cob"
+    ],
+    "unitWeightG": {
+      "value": 200,
+      "source": "Kernels from one medium cob (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "13-622",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "af3dd4ed-b87b-5ac3-bbb7-6334e41ada26",
+    "slug": "peas",
+    "name": "peas",
+    "category": "fruit_veg",
+    "aliases": [
+      "garden peas",
+      "green peas"
+    ],
+    "form": "frozen",
+    "cofid": {
+      "code": "13-527",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "94faebea-d2ed-5aa6-8a73-da07cb92d6ad",
+    "slug": "mangetout",
+    "name": "mangetout",
+    "category": "fruit_veg",
+    "aliases": [
+      "snow peas",
+      "sugar snap peas"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-122",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "4b7cb03d-0a0e-5918-abfa-f3483ef4c115",
+    "slug": "green-beans",
+    "name": "green beans",
+    "category": "fruit_veg",
+    "aliases": [
+      "french beans",
+      "string beans"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-514",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "c249a775-b601-5c09-8ecd-88391d6c7229",
+    "slug": "runner-beans",
+    "name": "runner beans",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-112",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "dfea6132-2f12-5994-b395-6e12d63972a9",
+    "slug": "broad-beans",
+    "name": "broad beans",
+    "category": "fruit_veg",
+    "aliases": [
+      "fava beans"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-064",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "8290b141-d586-5cfa-be8d-fef3805b242a",
+    "slug": "asparagus",
+    "name": "asparagus",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-157",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "dcaee6d2-c267-5658-82b3-5a4e83b636fd",
+    "slug": "avocado",
+    "name": "avocado",
+    "category": "fruit_veg",
+    "aliases": [],
+    "unitWeightG": {
+      "value": 130,
+      "source": "Flesh of one medium avocado (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "14-386",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "a62995a7-b1cd-5b71-a6e8-8dc4fa345773",
+    "slug": "radish",
+    "name": "radish",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-656",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "8b081b2f-2a25-550a-ae40-fae0125441e2",
+    "slug": "apple",
+    "name": "apple",
+    "category": "fruit_veg",
+    "aliases": [
+      "eating apple",
+      "cooking apple"
+    ],
+    "unitWeightG": {
+      "value": 150,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "14-319",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "378e1871-c6fc-551f-a79b-203afe3ed46d",
+    "slug": "pear",
+    "name": "pear",
+    "category": "fruit_veg",
+    "aliases": [],
+    "unitWeightG": {
+      "value": 160,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "14-321",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "963c25d3-517e-5f85-8407-de6e5a31e3a0",
+    "slug": "banana",
+    "name": "banana",
+    "category": "fruit_veg",
+    "aliases": [],
+    "unitWeightG": {
+      "value": 110,
+      "source": "Peeled medium banana (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "14-318",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "f3fbc0af-367a-54d7-8287-edf0e150da41",
+    "slug": "orange",
+    "name": "orange",
+    "category": "fruit_veg",
+    "aliases": [],
+    "unitWeightG": {
+      "value": 150,
+      "source": "Peeled medium orange (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "14-327",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "5d94a635-8ad5-5c4f-80b1-3c660dc5bf67",
+    "slug": "lemon",
+    "name": "lemon",
+    "category": "fruit_veg",
+    "aliases": [],
+    "unitWeightG": {
+      "value": 90,
+      "source": "One whole medium lemon (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "14-128",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "f298877d-2951-5175-9984-67a15fb30678",
+    "slug": "lime",
+    "name": "lime",
+    "category": "fruit_veg",
+    "aliases": [],
+    "unitWeightG": {
+      "value": 60,
+      "source": "One whole lime (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "14-131",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "d662b4d0-75dc-57df-bceb-0979e10ab4ae",
+    "slug": "lemon-juice",
+    "name": "lemon juice",
+    "category": "fruit_veg",
+    "aliases": [
+      "juice of lemon"
+    ],
+    "densityGPerMl": {
+      "value": 1.03,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "14-277",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "2b50146e-e530-52b1-a0d3-64d9c2c98ef0",
+    "slug": "lime-juice",
+    "name": "lime juice",
+    "category": "fruit_veg",
+    "aliases": [
+      "juice of lime"
+    ],
+    "densityGPerMl": {
+      "value": 1.03,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "14-279",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "60ef210e-a133-5d1b-8679-ea0d30aff933",
+    "slug": "grapes",
+    "name": "grapes",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "14-350",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "d08ec3f8-93e0-5928-a030-8d7790b9cc98",
+    "slug": "strawberries",
+    "name": "strawberries",
+    "category": "fruit_veg",
+    "aliases": [
+      "strawberry"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "14-324",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "4d9d007f-8d78-5f14-a03c-92c82fbe89d1",
+    "slug": "raspberries",
+    "name": "raspberries",
+    "category": "fruit_veg",
+    "aliases": [
+      "raspberry"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "14-375",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "3fe983f6-655e-51c8-a100-d9a6b01ba953",
+    "slug": "blueberries",
+    "name": "blueberries",
+    "category": "fruit_veg",
+    "aliases": [
+      "blueberry"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "14-325",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "5152466e-0d1f-5681-bdf5-f7a6ef998da0",
+    "slug": "blackberries",
+    "name": "blackberries",
+    "category": "fruit_veg",
+    "aliases": [
+      "blackberry"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "14-388",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "30a8d8d8-a9a5-5ec1-9e23-c92a760c856c",
+    "slug": "rhubarb",
+    "name": "rhubarb",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "14-252",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "f34bee79-4695-5614-9978-ebb655b7f159",
+    "slug": "mango",
+    "name": "mango",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "14-378",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "322f519b-bca3-5209-ae08-4951ce33e040",
+    "slug": "pineapple",
+    "name": "pineapple",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "14-376",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "5108c46f-e352-506b-b6db-b5d9898432e4",
+    "slug": "peach",
+    "name": "peach",
+    "category": "fruit_veg",
+    "aliases": [],
+    "unitWeightG": {
+      "value": 150,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "14-299",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "e499796f-61db-5265-b151-c7ec1094d2dc",
+    "slug": "plum",
+    "name": "plum",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh"
+  },
+  {
+    "id": "681a0b55-4a5c-52b0-b83b-2604e8244469",
+    "slug": "melon",
+    "name": "melon",
+    "category": "fruit_veg",
+    "aliases": [
+      "cantaloupe",
+      "honeydew"
+    ],
+    "form": "fresh"
+  },
+  {
+    "id": "ade1c18b-87f3-5f48-b0a4-0b4fd6a3389c",
+    "slug": "coconut-milk",
+    "name": "coconut milk",
+    "category": "tinned_jarred",
+    "aliases": [
+      "tinned coconut milk"
+    ],
+    "densityGPerMl": {
+      "value": 0.97,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "canned",
+    "cofid": {
+      "code": "14-889",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "40aefd21-b9d9-5a27-becc-f3a730af511a",
+    "slug": "desiccated-coconut",
+    "name": "desiccated coconut",
+    "category": "baking",
+    "aliases": [
+      "shredded coconut"
+    ],
+    "densityGPerMl": {
+      "value": 0.35,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "14-873",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "bb3db943-5030-5bd5-89ae-cd3dd8c7f4bb",
+    "slug": "raisins",
+    "name": "raisins",
+    "category": "baking",
+    "aliases": [
+      "sultanas",
+      "currants",
+      "golden raisins"
+    ],
+    "densityGPerMl": {
+      "value": 0.62,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "14-393",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "93ae0c23-49c3-5fc3-bc25-2f0b28154ff0",
+    "slug": "dried-apricots",
+    "name": "dried apricots",
+    "category": "baking",
+    "aliases": [
+      "apricots (dried)"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "14-031",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "ab47b35c-d3b5-58e7-ae9c-4e4bc5a72a21",
+    "slug": "dates",
+    "name": "dates",
+    "category": "baking",
+    "aliases": [
+      "medjool dates"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "14-394",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "e1097c56-c813-5946-8d00-6152813b61fc",
+    "slug": "prunes",
+    "name": "prunes",
+    "category": "baking",
+    "aliases": [],
+    "form": "dried",
+    "cofid": {
+      "code": "14-231",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "b9bcca14-76d7-5a0a-85a9-d3c8fdda8759",
+    "slug": "chicken-breast",
+    "name": "chicken breast",
+    "category": "meat_poultry",
+    "aliases": [
+      "chicken breast fillet",
+      "skinless chicken breast"
+    ],
+    "unitWeightG": {
+      "value": 165,
+      "source": "One skinless fillet (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "18-290",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "9ff99bae-5633-534a-932a-ce2065a037a6",
+    "slug": "chicken-thigh",
+    "name": "chicken thigh",
+    "category": "meat_poultry",
+    "aliases": [
+      "chicken thighs",
+      "boneless chicken thigh"
+    ],
+    "unitWeightG": {
+      "value": 110,
+      "source": "One boneless skinless thigh (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "18-289",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "70fcf5dc-b912-5048-a067-ff792a53d97c",
+    "slug": "whole-chicken",
+    "name": "whole chicken",
+    "category": "meat_poultry",
+    "aliases": [
+      "roasting chicken"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "18-297",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "02aaf42b-9fb3-5906-9874-8ba26c939e22",
+    "slug": "chicken-drumstick",
+    "name": "chicken drumstick",
+    "category": "meat_poultry",
+    "aliases": [
+      "chicken drumsticks"
+    ],
+    "unitWeightG": {
+      "value": 100,
+      "source": "One drumstick with bone (estimate)",
+      "estimate": true
+    },
+    "form": "fresh"
+  },
+  {
+    "id": "ede6db38-36ca-5eab-bb0f-842d465389f9",
+    "slug": "chicken-wings",
+    "name": "chicken wings",
+    "category": "meat_poultry",
+    "aliases": [],
+    "form": "fresh"
+  },
+  {
+    "id": "0cfc4ca7-3ed4-5cc8-aed0-7d2cd5cfc079",
+    "slug": "minced-beef",
+    "name": "minced beef",
+    "category": "meat_poultry",
+    "aliases": [
+      "beef mince",
+      "ground beef"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "18-469",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "aaeebdb1-83f2-5b0c-9d8b-b34839fc7dfe",
+    "slug": "beef-steak",
+    "name": "beef steak",
+    "category": "meat_poultry",
+    "aliases": [
+      "sirloin steak",
+      "rump steak"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "18-064",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "d3b5053d-913a-5fb4-8347-4fc99b9b25aa",
+    "slug": "stewing-beef",
+    "name": "stewing beef",
+    "category": "meat_poultry",
+    "aliases": [
+      "diced beef",
+      "braising steak"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "18-077",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "e18978e5-5a76-5494-b5c0-11a5a82ea6fe",
+    "slug": "beef-joint",
+    "name": "beef joint",
+    "category": "meat_poultry",
+    "aliases": [
+      "topside",
+      "roasting beef"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "18-085",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "5e2819a5-768c-5520-8705-3dd8ccc3528d",
+    "slug": "minced-lamb",
+    "name": "minced lamb",
+    "category": "meat_poultry",
+    "aliases": [
+      "lamb mince"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "18-481",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "03d95e92-5568-59ee-aca6-e8bb5915702b",
+    "slug": "lamb-chops",
+    "name": "lamb chops",
+    "category": "meat_poultry",
+    "aliases": [
+      "lamb chop"
+    ],
+    "unitWeightG": {
+      "value": 120,
+      "source": "One loin chop, bone in (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "18-476",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "e12ac7f3-4361-50eb-8eb9-a7a046a718ba",
+    "slug": "diced-lamb",
+    "name": "diced lamb",
+    "category": "meat_poultry",
+    "aliases": [
+      "lamb shoulder",
+      "lamb leg"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "18-170",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "9d5c1d37-c402-570f-9361-182aa59b3d30",
+    "slug": "pork-chops",
+    "name": "pork chops",
+    "category": "meat_poultry",
+    "aliases": [
+      "pork chop"
+    ],
+    "unitWeightG": {
+      "value": 170,
+      "source": "One loin chop, bone in (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "18-536",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "cd656f94-9be1-5bdd-a341-5e6adb74167f",
+    "slug": "pork-mince",
+    "name": "pork mince",
+    "category": "meat_poultry",
+    "aliases": [
+      "minced pork",
+      "ground pork"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "18-606",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "2b98001e-bab5-57e5-9245-994cb99539e8",
+    "slug": "pork-shoulder",
+    "name": "pork shoulder",
+    "category": "meat_poultry",
+    "aliases": [
+      "pulled pork joint"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "18-549",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "77ce31c6-a0cb-53a7-9781-783fcf058a9a",
+    "slug": "pork-belly",
+    "name": "pork belly",
+    "category": "meat_poultry",
+    "aliases": [
+      "belly pork"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "18-557",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "fab1e008-e1bf-54ef-bcf6-ce84a1b6fa0f",
+    "slug": "pork-sausages",
+    "name": "pork sausages",
+    "category": "meat_poultry",
+    "aliases": [
+      "sausages",
+      "bangers"
+    ],
+    "unitWeightG": {
+      "value": 57,
+      "source": "One standard pork sausage (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "19-510",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "4ef4ef80-4465-5533-a938-310563f7653b",
+    "slug": "bacon",
+    "name": "bacon",
+    "category": "meat_poultry",
+    "aliases": [
+      "streaky bacon",
+      "back bacon",
+      "bacon rashers"
+    ],
+    "unitWeightG": {
+      "value": 30,
+      "source": "One back bacon rasher (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "19-497",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "4216a452-e430-5fa4-a4da-21bd82f09549",
+    "slug": "gammon",
+    "name": "gammon",
+    "category": "meat_poultry",
+    "aliases": [
+      "gammon steak"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "19-020",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "61a9fa78-b298-5d68-8817-3dab251d877e",
+    "slug": "ham",
+    "name": "ham",
+    "category": "meat_poultry",
+    "aliases": [
+      "cooked ham"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "19-496",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "fbe98910-8d12-5611-809f-80fd9488acd0",
+    "slug": "chorizo",
+    "name": "chorizo",
+    "category": "meat_poultry",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "19-516",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "608622cc-aa78-5947-8341-bafc489ace06",
+    "slug": "turkey-breast",
+    "name": "turkey breast",
+    "category": "meat_poultry",
+    "aliases": [
+      "turkey mince",
+      "turkey"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "18-348",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "819b24ae-1026-56f2-9a91-f05410810f3e",
+    "slug": "duck-breast",
+    "name": "duck breast",
+    "category": "meat_poultry",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "18-489",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "5b85dff7-4652-5dc6-83a5-fc0889717f15",
+    "slug": "salmon",
+    "name": "salmon",
+    "category": "fish_seafood",
+    "aliases": [
+      "salmon fillet"
+    ],
+    "unitWeightG": {
+      "value": 125,
+      "source": "One salmon fillet portion (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "16-356",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "7d8c62be-7472-5bd6-bfa0-e7718ea38bf1",
+    "slug": "cod",
+    "name": "cod",
+    "category": "fish_seafood",
+    "aliases": [
+      "cod fillet"
+    ],
+    "unitWeightG": {
+      "value": 140,
+      "source": "One cod fillet portion (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "16-372",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "370baa96-6fa3-5368-815a-4d3e8dca4a86",
+    "slug": "haddock",
+    "name": "haddock",
+    "category": "fish_seafood",
+    "aliases": [
+      "haddock fillet"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "16-375",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "fcab28e8-d4de-5d1f-879a-cfbdb9e674d1",
+    "slug": "smoked-haddock",
+    "name": "smoked haddock",
+    "category": "fish_seafood",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "16-492",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "9839294b-53ad-56d6-b226-0db880bb09b0",
+    "slug": "tuna-chunks",
+    "name": "tuna chunks",
+    "category": "tinned_jarred",
+    "aliases": [
+      "tinned tuna",
+      "canned tuna"
+    ],
+    "form": "canned",
+    "cofid": {
+      "code": "16-416",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "1f347199-4d65-5660-916e-89da40a40e7a",
+    "slug": "sardines",
+    "name": "sardines",
+    "category": "tinned_jarred",
+    "aliases": [
+      "tinned sardines"
+    ],
+    "form": "canned",
+    "cofid": {
+      "code": "16-424",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "8af874b2-e62d-524b-bd40-f257d5784501",
+    "slug": "mackerel",
+    "name": "mackerel",
+    "category": "fish_seafood",
+    "aliases": [
+      "mackerel fillet"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "16-393",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "f0a45b0f-29df-5a24-9332-cf7f7c81a353",
+    "slug": "smoked-mackerel",
+    "name": "smoked mackerel",
+    "category": "fish_seafood",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "16-414",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "6dac41d1-7211-53f0-9279-8bcfdd1f181f",
+    "slug": "prawns",
+    "name": "prawns",
+    "category": "fish_seafood",
+    "aliases": [
+      "shrimp",
+      "king prawns",
+      "tiger prawns"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "16-387",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "08bac574-5011-556d-87b1-0ebef4a500f1",
+    "slug": "anchovies",
+    "name": "anchovies",
+    "category": "tinned_jarred",
+    "aliases": [
+      "anchovy fillets"
+    ],
+    "form": "canned",
+    "cofid": {
+      "code": "16-448",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "b3fc4063-a37b-5bde-9fe5-27dccef861a6",
+    "slug": "fish-fingers",
+    "name": "fish fingers",
+    "category": "frozen",
+    "aliases": [],
+    "unitWeightG": {
+      "value": 28,
+      "source": "One standard fish finger (estimate)",
+      "estimate": true
+    },
+    "form": "frozen",
+    "cofid": {
+      "code": "16-405",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "5d450ea2-76ab-530d-8255-e9934c0106f5",
+    "slug": "egg",
+    "name": "egg",
+    "category": "dairy_eggs",
+    "aliases": [
+      "eggs",
+      "medium egg",
+      "large egg"
+    ],
+    "unitWeightG": {
+      "value": 50,
+      "source": "Edible contents of one UK medium egg, shell removed (estimate)",
+      "estimate": true
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "12-937",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "fb9bac30-285e-57ed-b0d5-d4fafbc59da7",
+    "slug": "milk",
+    "name": "milk",
+    "category": "dairy_eggs",
+    "aliases": [
+      "whole milk",
+      "full fat milk"
+    ],
+    "densityGPerMl": {
+      "value": 1.03,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "12-596",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "418a76af-11eb-522d-bf91-2f10e9f47bb4",
+    "slug": "semi-skimmed-milk",
+    "name": "semi-skimmed milk",
+    "category": "dairy_eggs",
+    "aliases": [
+      "semi skimmed milk"
+    ],
+    "densityGPerMl": {
+      "value": 1.03,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "12-313",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "02b56c76-c86f-5cca-9d6b-7eda8a5b21ee",
+    "slug": "skimmed-milk",
+    "name": "skimmed milk",
+    "category": "dairy_eggs",
+    "aliases": [
+      "skim milk"
+    ],
+    "densityGPerMl": {
+      "value": 1.035,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "12-307",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "d2b4186e-31d2-545b-9548-f9e27292b4e3",
+    "slug": "butter",
+    "name": "butter",
+    "category": "dairy_eggs",
+    "aliases": [
+      "salted butter",
+      "unsalted butter"
+    ],
+    "densityGPerMl": {
+      "value": 0.95,
+      "source": "Typical specific gravity / household cup weight of fats and oils; approx."
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "17-685",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "8a5a7fb2-4ce2-5b01-aa54-8f5fc5fc1c11",
+    "slug": "margarine",
+    "name": "margarine",
+    "category": "dairy_eggs",
+    "aliases": [
+      "baking spread",
+      "vegetable spread"
+    ],
+    "densityGPerMl": {
+      "value": 0.95,
+      "source": "Typical specific gravity / household cup weight of fats and oils; approx."
+    },
+    "form": "other"
+  },
+  {
+    "id": "b3876b3d-139d-55fb-bd6e-c91d26154693",
+    "slug": "single-cream",
+    "name": "single cream",
+    "category": "dairy_eggs",
+    "aliases": [
+      "light cream"
+    ],
+    "densityGPerMl": {
+      "value": 1.01,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "12-332",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "c3b11ccd-ea75-5ed5-bfd1-76f870d2cfff",
+    "slug": "double-cream",
+    "name": "double cream",
+    "category": "dairy_eggs",
+    "aliases": [
+      "heavy cream"
+    ],
+    "densityGPerMl": {
+      "value": 0.99,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "12-334",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "1af4d66c-df02-58c3-95dc-c596fc832220",
+    "slug": "soured-cream",
+    "name": "soured cream",
+    "category": "dairy_eggs",
+    "aliases": [
+      "sour cream"
+    ],
+    "densityGPerMl": {
+      "value": 1,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "fresh"
+  },
+  {
+    "id": "9bc0b682-5fb2-5b1d-a75f-8258e8b71930",
+    "slug": "creme-fraiche",
+    "name": "creme fraiche",
+    "category": "dairy_eggs",
+    "aliases": [
+      "crème fraîche"
+    ],
+    "densityGPerMl": {
+      "value": 1,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "12-335",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "f87320d4-9166-5a9b-bcdc-cac4d76beddc",
+    "slug": "natural-yoghurt",
+    "name": "natural yoghurt",
+    "category": "dairy_eggs",
+    "aliases": [
+      "plain yogurt",
+      "natural yogurt"
+    ],
+    "densityGPerMl": {
+      "value": 1.04,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "12-184",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "903fb64f-31a0-517f-8e52-db943714d4aa",
+    "slug": "greek-yoghurt",
+    "name": "greek yoghurt",
+    "category": "dairy_eggs",
+    "aliases": [
+      "greek yogurt"
+    ],
+    "densityGPerMl": {
+      "value": 1.05,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "12-555",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "668e0d01-6453-5f2a-89c2-2984efccdd3f",
+    "slug": "cheddar",
+    "name": "cheddar",
+    "category": "dairy_eggs",
+    "aliases": [
+      "cheddar cheese",
+      "mature cheddar"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "12-346",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "33815056-f3b2-5b9d-b854-3dbc7946b321",
+    "slug": "mozzarella",
+    "name": "mozzarella",
+    "category": "dairy_eggs",
+    "aliases": [
+      "mozzarella ball"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "12-360",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "80c9fd84-5cc6-5972-92c6-b60962af7d68",
+    "slug": "parmesan",
+    "name": "parmesan",
+    "category": "dairy_eggs",
+    "aliases": [
+      "parmigiano reggiano",
+      "grana padano"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "12-526",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "84afc179-567b-5972-bcdb-77940a88d194",
+    "slug": "feta",
+    "name": "feta",
+    "category": "dairy_eggs",
+    "aliases": [
+      "feta cheese"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "12-525",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "6d4b2fd0-b14f-579a-8aa6-0ec98b3aae50",
+    "slug": "cream-cheese",
+    "name": "cream cheese",
+    "category": "dairy_eggs",
+    "aliases": [
+      "soft cheese",
+      "philadelphia"
+    ],
+    "form": "fresh"
+  },
+  {
+    "id": "27614699-7ac5-5489-bc42-1ab942eeff61",
+    "slug": "cottage-cheese",
+    "name": "cottage cheese",
+    "category": "dairy_eggs",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "12-539",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "6fda3212-3f38-5399-b806-0742912f5f7d",
+    "slug": "halloumi",
+    "name": "halloumi",
+    "category": "dairy_eggs",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "12-496",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "60033451-9c68-513d-814c-8ebf6584d9d3",
+    "slug": "ricotta",
+    "name": "ricotta",
+    "category": "dairy_eggs",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "12-176",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "4ed753d0-79b8-537b-ba89-069bdc76d44a",
+    "slug": "brie",
+    "name": "brie",
+    "category": "dairy_eggs",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "12-344",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "6b71635f-8efe-52d5-a95e-19cd2625136b",
+    "slug": "goats-cheese",
+    "name": "goats cheese",
+    "category": "dairy_eggs",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "12-357",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "92bf23d0-fd85-5520-8f75-02630077d4ed",
+    "slug": "paneer",
+    "name": "paneer",
+    "category": "dairy_eggs",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "12-495",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "9dd02860-a2d8-51bc-a7ae-7dff25afcf4a",
+    "slug": "plain-flour",
+    "name": "plain flour",
+    "category": "baking",
+    "aliases": [
+      "all-purpose flour",
+      "white flour"
+    ],
+    "densityGPerMl": {
+      "value": 0.53,
+      "source": "Typical household cup weight (spooned & levelled), common baking reference charts; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-886",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "d9c5065f-ed9f-5775-bb07-5d64f92efd2c",
+    "slug": "self-raising-flour",
+    "name": "self-raising flour",
+    "category": "baking",
+    "aliases": [
+      "self rising flour"
+    ],
+    "densityGPerMl": {
+      "value": 0.53,
+      "source": "Typical household cup weight (spooned & levelled), common baking reference charts; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-888",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "7e6983da-007d-52ed-a94a-323452be2a45",
+    "slug": "strong-bread-flour",
+    "name": "strong bread flour",
+    "category": "baking",
+    "aliases": [
+      "bread flour",
+      "strong white flour"
+    ],
+    "densityGPerMl": {
+      "value": 0.55,
+      "source": "Typical household cup weight (spooned & levelled), common baking reference charts; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-887",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "7bd3f73a-7fb8-5a01-b671-3cec60eff962",
+    "slug": "wholemeal-flour",
+    "name": "wholemeal flour",
+    "category": "baking",
+    "aliases": [
+      "whole wheat flour",
+      "wholewheat flour"
+    ],
+    "densityGPerMl": {
+      "value": 0.56,
+      "source": "Typical household cup weight (spooned & levelled), common baking reference charts; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-889",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "2da0204d-6700-52dc-b101-66e05066ebbc",
+    "slug": "cornflour",
+    "name": "cornflour",
+    "category": "baking",
+    "aliases": [
+      "cornstarch",
+      "corn starch"
+    ],
+    "densityGPerMl": {
+      "value": 0.54,
+      "source": "Typical household cup weight (spooned & levelled), common baking reference charts; approx."
+    },
+    "form": "other"
+  },
+  {
+    "id": "b41c05c5-9fa0-537f-8072-d461325af84c",
+    "slug": "baking-powder",
+    "name": "baking powder",
+    "category": "baking",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.9,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-355",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "25ea4e39-8a5d-5e87-815c-e1da22ce1144",
+    "slug": "bicarbonate-of-soda",
+    "name": "bicarbonate of soda",
+    "category": "baking",
+    "aliases": [
+      "baking soda",
+      "bicarb"
+    ],
+    "densityGPerMl": {
+      "value": 1.1,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-356",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "7f79ab5f-7fa1-5407-be51-d935a2a84827",
+    "slug": "dried-yeast",
+    "name": "dried yeast",
+    "category": "baking",
+    "aliases": [
+      "fast action yeast",
+      "instant yeast",
+      "active dry yeast"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "17-379",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "716ed706-a38b-5681-a4dd-148e769175b7",
+    "slug": "caster-sugar",
+    "name": "caster sugar",
+    "category": "baking",
+    "aliases": [
+      "superfine sugar"
+    ],
+    "densityGPerMl": {
+      "value": 0.85,
+      "source": "Typical household cup weight, common baking reference charts; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-063",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "6c729608-36e9-535a-ac95-a3d05687c307",
+    "slug": "granulated-sugar",
+    "name": "granulated sugar",
+    "category": "baking",
+    "aliases": [
+      "white sugar",
+      "sugar"
+    ],
+    "densityGPerMl": {
+      "value": 0.85,
+      "source": "Typical household cup weight, common baking reference charts; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-063",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "016960d7-c08f-5d39-a768-5036a8464f58",
+    "slug": "icing-sugar",
+    "name": "icing sugar",
+    "category": "baking",
+    "aliases": [
+      "powdered sugar",
+      "confectioners sugar"
+    ],
+    "densityGPerMl": {
+      "value": 0.56,
+      "source": "Typical household cup weight, common baking reference charts; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-062",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "7318a201-fc1d-5b43-a73a-aeb492c59395",
+    "slug": "light-brown-sugar",
+    "name": "light brown sugar",
+    "category": "baking",
+    "aliases": [
+      "soft brown sugar",
+      "brown sugar"
+    ],
+    "densityGPerMl": {
+      "value": 0.93,
+      "source": "Typical household cup weight, common baking reference charts; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-060",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "a7e6a847-9243-5d45-9052-b1251c3f056e",
+    "slug": "dark-brown-sugar",
+    "name": "dark brown sugar",
+    "category": "baking",
+    "aliases": [
+      "muscovado sugar"
+    ],
+    "densityGPerMl": {
+      "value": 0.93,
+      "source": "Typical household cup weight, common baking reference charts; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-060",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "ddec5b4d-607d-5710-bf8d-60457cb9e258",
+    "slug": "demerara-sugar",
+    "name": "demerara sugar",
+    "category": "baking",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.85,
+      "source": "Typical household cup weight, common baking reference charts; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-061",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "63b4b77a-a35a-5c4a-9bb9-ed2ee8b4aa0d",
+    "slug": "golden-syrup",
+    "name": "golden syrup",
+    "category": "baking",
+    "aliases": [
+      "light corn syrup"
+    ],
+    "densityGPerMl": {
+      "value": 1.42,
+      "source": "Typical specific gravity of syrups/honey; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-065",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "92089f37-c48b-5e28-9ccf-ab711a27502b",
+    "slug": "maple-syrup",
+    "name": "maple syrup",
+    "category": "sweeteners_spreads",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 1.33,
+      "source": "Typical specific gravity of syrups/honey; approx."
+    },
+    "form": "other"
+  },
+  {
+    "id": "7f96f1e9-9ba9-5957-9de0-dcf28b24179f",
+    "slug": "honey",
+    "name": "honey",
+    "category": "sweeteners_spreads",
+    "aliases": [
+      "runny honey"
+    ],
+    "densityGPerMl": {
+      "value": 1.42,
+      "source": "Typical specific gravity of syrups/honey; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-050",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "b9b7e641-3470-53de-9d3a-974cf3db1e69",
+    "slug": "treacle",
+    "name": "treacle",
+    "category": "baking",
+    "aliases": [
+      "black treacle",
+      "molasses"
+    ],
+    "densityGPerMl": {
+      "value": 1.4,
+      "source": "Typical specific gravity of syrups/honey; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-826",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "8a6d67cb-ac13-5fcd-8bd3-51d7b0a64cbf",
+    "slug": "cocoa-powder",
+    "name": "cocoa powder",
+    "category": "baking",
+    "aliases": [
+      "cocoa"
+    ],
+    "densityGPerMl": {
+      "value": 0.42,
+      "source": "Typical household cup weight (spooned & levelled), common baking reference charts; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "12-545",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "eb4b9de6-7182-56dd-a51f-6c5ea39d9e97",
+    "slug": "dark-chocolate",
+    "name": "dark chocolate",
+    "category": "baking",
+    "aliases": [
+      "plain chocolate",
+      "chocolate chips"
+    ],
+    "densityGPerMl": {
+      "value": 0.7,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-491",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "2db23a74-a31a-5626-833f-9ad97dce1f6b",
+    "slug": "milk-chocolate",
+    "name": "milk chocolate",
+    "category": "baking",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "17-648",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "94454d39-ecac-5b92-bb14-4584c3dac03b",
+    "slug": "vanilla-extract",
+    "name": "vanilla extract",
+    "category": "baking",
+    "aliases": [
+      "vanilla essence"
+    ],
+    "form": "other"
+  },
+  {
+    "id": "618e232e-6284-51dd-bac0-83fd1734b2bf",
+    "slug": "ground-almonds",
+    "name": "ground almonds",
+    "category": "baking",
+    "aliases": [
+      "almond flour"
+    ],
+    "densityGPerMl": {
+      "value": 0.4,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
+    "form": "ground",
+    "cofid": {
+      "code": "14-870",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "f366dc96-c461-58bb-8d2a-7ac92bf9664d",
+    "slug": "rolled-oats",
+    "name": "rolled oats",
+    "category": "pasta_rice_grains",
+    "aliases": [
+      "porridge oats",
+      "oats"
+    ],
+    "densityGPerMl": {
+      "value": 0.34,
+      "source": "Typical household cup weight of dry grain/pulse; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-788",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "edcd0761-730b-5c39-b5bd-dc290b428f52",
+    "slug": "breadcrumbs",
+    "name": "breadcrumbs",
+    "category": "bakery",
+    "aliases": [
+      "panko",
+      "dried breadcrumbs"
+    ],
+    "densityGPerMl": {
+      "value": 0.45,
+      "source": "Typical household cup weight (spooned & levelled), common baking reference charts; approx."
+    },
+    "form": "dried"
+  },
+  {
+    "id": "0b000de8-3f31-5603-878e-c6214a38611c",
+    "slug": "bread",
+    "name": "bread",
+    "category": "bakery",
+    "aliases": [
+      "white bread",
+      "sliced bread"
+    ],
+    "unitWeightG": {
+      "value": 36,
+      "source": "One medium slice of sliced loaf (estimate)",
+      "estimate": true
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-980",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "d24dd432-eff5-5bc4-8a76-246bef32b4a2",
+    "slug": "wholemeal-bread",
+    "name": "wholemeal bread",
+    "category": "bakery",
+    "aliases": [
+      "brown bread",
+      "wholewheat bread"
+    ],
+    "unitWeightG": {
+      "value": 38,
+      "source": "One medium slice (estimate)",
+      "estimate": true
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-981",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "69796ccb-84b7-5c1d-ba4d-3681cf5b9090",
+    "slug": "wrap",
+    "name": "wrap",
+    "category": "bakery",
+    "aliases": [
+      "tortilla",
+      "flour tortilla",
+      "tortilla wrap"
+    ],
+    "unitWeightG": {
+      "value": 60,
+      "source": "One standard flour tortilla wrap (estimate)",
+      "estimate": true
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-925",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "0019374e-3d39-5a99-9de2-f36148e0af4a",
+    "slug": "pitta-bread",
+    "name": "pitta bread",
+    "category": "bakery",
+    "aliases": [
+      "pita"
+    ],
+    "unitWeightG": {
+      "value": 60,
+      "source": "One standard white pitta (estimate)",
+      "estimate": true
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-974",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "aa754d53-1233-50d6-bc60-0ae191fae559",
+    "slug": "naan-bread",
+    "name": "naan bread",
+    "category": "bakery",
+    "aliases": [
+      "naan"
+    ],
+    "unitWeightG": {
+      "value": 130,
+      "source": "One standard naan (estimate)",
+      "estimate": true
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-973",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "3cc00ce6-d2a3-5340-a386-09c47ba582f6",
+    "slug": "bread-roll",
+    "name": "bread roll",
+    "category": "bakery",
+    "aliases": [
+      "burger bun",
+      "roll",
+      "bap"
+    ],
+    "unitWeightG": {
+      "value": 60,
+      "source": "One soft white roll (estimate)",
+      "estimate": true
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-1006",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "051601b0-2b29-5660-a092-0367c9ac038b",
+    "slug": "crumpet",
+    "name": "crumpet",
+    "category": "bakery",
+    "aliases": [],
+    "unitWeightG": {
+      "value": 45,
+      "source": "Typical UK supermarket standard item/serving size (estimate)",
+      "estimate": true
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-989",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "4b5c0cc7-1570-52e2-84ad-d8c98c7d8579",
+    "slug": "tortilla-chips",
+    "name": "tortilla chips",
+    "category": "snacks",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "17-644",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "ac6d8d00-cbed-5198-b8a8-9a558f3c0728",
+    "slug": "pasta",
+    "name": "pasta",
+    "category": "pasta_rice_grains",
+    "aliases": [
+      "spaghetti",
+      "penne",
+      "fusilli",
+      "dried pasta",
+      "macaroni"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "11-716",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "c85514b8-c698-5355-85c5-2ec883ac4c45",
+    "slug": "wholewheat-pasta",
+    "name": "wholewheat pasta",
+    "category": "pasta_rice_grains",
+    "aliases": [
+      "wholemeal pasta"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "11-718",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "7ec19634-62a7-5ab1-a6a2-b1408908defc",
+    "slug": "egg-noodles",
+    "name": "egg noodles",
+    "category": "pasta_rice_grains",
+    "aliases": [
+      "noodles"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "11-719",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "28243758-5b4f-5eed-9119-ddf9e8031f24",
+    "slug": "rice-noodles",
+    "name": "rice noodles",
+    "category": "pasta_rice_grains",
+    "aliases": [],
+    "form": "dried"
+  },
+  {
+    "id": "7e4dbb91-1501-50fa-9e5e-15d9dc1b8d11",
+    "slug": "lasagne-sheets",
+    "name": "lasagne sheets",
+    "category": "pasta_rice_grains",
+    "aliases": [
+      "lasagna sheets"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "11-716",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "efbba495-bf97-5d64-b229-40fdc661fa79",
+    "slug": "white-rice",
+    "name": "white rice",
+    "category": "pasta_rice_grains",
+    "aliases": [
+      "long grain rice",
+      "rice"
+    ],
+    "densityGPerMl": {
+      "value": 0.83,
+      "source": "Typical household cup weight of dry grain/pulse; approx."
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "11-861",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "b870f0d0-0ccf-54f1-8625-583529a8c696",
+    "slug": "basmati-rice",
+    "name": "basmati rice",
+    "category": "pasta_rice_grains",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.8,
+      "source": "Typical household cup weight of dry grain/pulse; approx."
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "11-861",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "2ccaf509-6c9a-5a64-9f41-2f0d04364a2e",
+    "slug": "brown-rice",
+    "name": "brown rice",
+    "category": "pasta_rice_grains",
+    "aliases": [
+      "wholegrain rice"
+    ],
+    "densityGPerMl": {
+      "value": 0.8,
+      "source": "Typical household cup weight of dry grain/pulse; approx."
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "11-868",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "69a0ef91-3ac7-5d3a-b8ad-4dc0509e3dca",
+    "slug": "arborio-rice",
+    "name": "arborio rice",
+    "category": "pasta_rice_grains",
+    "aliases": [
+      "risotto rice"
+    ],
+    "densityGPerMl": {
+      "value": 0.82,
+      "source": "Typical household cup weight of dry grain/pulse; approx."
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "11-861",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "d18de275-104c-55b4-a786-88c9d60f2431",
+    "slug": "couscous",
+    "name": "couscous",
+    "category": "pasta_rice_grains",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.67,
+      "source": "Typical household cup weight of dry grain/pulse; approx."
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "11-901",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "11b8d37f-7484-5fea-8c45-c7afb0122070",
+    "slug": "quinoa",
+    "name": "quinoa",
+    "category": "pasta_rice_grains",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.72,
+      "source": "Typical household cup weight of dry grain/pulse; approx."
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "14-843",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "e1ce2f49-0e9a-5c47-8182-90327c269723",
+    "slug": "pearl-barley",
+    "name": "pearl barley",
+    "category": "pasta_rice_grains",
+    "aliases": [
+      "barley"
+    ],
+    "densityGPerMl": {
+      "value": 0.78,
+      "source": "Typical household cup weight of dry grain/pulse; approx."
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "11-002",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "9c8ac735-377c-5fc3-907f-9ad4795491be",
+    "slug": "bulgur-wheat",
+    "name": "bulgur wheat",
+    "category": "pasta_rice_grains",
+    "aliases": [
+      "bulgar wheat"
+    ],
+    "densityGPerMl": {
+      "value": 0.6,
+      "source": "Typical household cup weight of dry grain/pulse; approx."
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "11-904",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "c246541d-6ced-58b6-a542-a40575ff3c7f",
+    "slug": "polenta",
+    "name": "polenta",
+    "category": "pasta_rice_grains",
+    "aliases": [
+      "cornmeal"
+    ],
+    "densityGPerMl": {
+      "value": 0.68,
+      "source": "Typical household cup weight of dry grain/pulse; approx."
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "11-905",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "e427a7fb-3fd6-54c6-81a1-6f61b0ee2463",
+    "slug": "semolina",
+    "name": "semolina",
+    "category": "pasta_rice_grains",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.72,
+      "source": "Typical household cup weight of dry grain/pulse; approx."
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "11-903",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "f3917aa9-77ec-548e-8c2e-c822b72917d5",
+    "slug": "red-lentils",
+    "name": "red lentils",
+    "category": "tinned_jarred",
+    "aliases": [
+      "split red lentils"
+    ],
+    "densityGPerMl": {
+      "value": 0.82,
+      "source": "Typical household cup weight of dry grain/pulse; approx."
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "13-657",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "c7005632-d6c7-5285-8523-5a0066d642a5",
+    "slug": "green-lentils",
+    "name": "green lentils",
+    "category": "tinned_jarred",
+    "aliases": [
+      "brown lentils",
+      "puy lentils"
+    ],
+    "densityGPerMl": {
+      "value": 0.82,
+      "source": "Typical household cup weight of dry grain/pulse; approx."
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "13-089",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "acf02912-059c-57cf-85c9-b568c692b8b9",
+    "slug": "chickpeas",
+    "name": "chickpeas",
+    "category": "tinned_jarred",
+    "aliases": [
+      "garbanzo beans",
+      "tinned chickpeas"
+    ],
+    "form": "canned",
+    "cofid": {
+      "code": "13-670",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "38fab4e0-3717-5134-b04f-17b99f9588f5",
+    "slug": "dried-chickpeas",
+    "name": "dried chickpeas",
+    "category": "tinned_jarred",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.78,
+      "source": "Typical household cup weight of dry grain/pulse; approx."
+    },
+    "form": "dried"
+  },
+  {
+    "id": "dda84f4b-e01d-5d8c-b6cd-49b307d69bc5",
+    "slug": "kidney-beans",
+    "name": "kidney beans",
+    "category": "tinned_jarred",
+    "aliases": [
+      "red kidney beans"
+    ],
+    "form": "canned",
+    "cofid": {
+      "code": "13-660",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "775c075d-b481-5221-9871-8a891ac056d1",
+    "slug": "black-beans",
+    "name": "black beans",
+    "category": "tinned_jarred",
+    "aliases": [],
+    "form": "canned"
+  },
+  {
+    "id": "9b20ecbd-463a-5a61-b891-801439535997",
+    "slug": "cannellini-beans",
+    "name": "cannellini beans",
+    "category": "tinned_jarred",
+    "aliases": [
+      "white beans",
+      "butter beans",
+      "haricot beans"
+    ],
+    "form": "canned",
+    "cofid": {
+      "code": "13-666",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "c58f9ac4-59dc-50f0-8a20-73dd9bbf1273",
+    "slug": "baked-beans",
+    "name": "baked beans",
+    "category": "tinned_jarred",
+    "aliases": [],
+    "form": "canned",
+    "cofid": {
+      "code": "13-532",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "81f5e042-4ecc-5f52-8bf4-22eab3d663a3",
+    "slug": "tinned-tomatoes",
+    "name": "tinned tomatoes",
+    "category": "tinned_jarred",
+    "aliases": [
+      "chopped tomatoes",
+      "canned tomatoes"
+    ],
+    "form": "canned",
+    "cofid": {
+      "code": "13-530",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "8ed96805-577a-5835-b632-8ee6294d77cd",
+    "slug": "tomato-puree",
+    "name": "tomato puree",
+    "category": "tinned_jarred",
+    "aliases": [
+      "tomato paste",
+      "tomato purée"
+    ],
+    "densityGPerMl": {
+      "value": 1.1,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "13-531",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "ea7163c9-53de-5e72-8a11-4cc850e29811",
+    "slug": "passata",
+    "name": "passata",
+    "category": "tinned_jarred",
+    "aliases": [
+      "sieved tomatoes"
+    ],
+    "densityGPerMl": {
+      "value": 1.04,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "13-530",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "2eecbd49-bb70-5ce2-b4b5-9128b8b3e1e7",
+    "slug": "sweetcorn-tinned",
+    "name": "sweetcorn tinned",
+    "category": "tinned_jarred",
+    "aliases": [
+      "tinned sweetcorn",
+      "canned corn"
+    ],
+    "form": "canned",
+    "cofid": {
+      "code": "13-529",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "4bc5cdb7-dcd7-5d80-9d46-9ced1873ee35",
+    "slug": "tinned-peas",
+    "name": "tinned peas",
+    "category": "tinned_jarred",
+    "aliases": [
+      "canned peas"
+    ],
+    "form": "canned",
+    "cofid": {
+      "code": "13-564",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "dbe1443e-4626-5cf1-af71-0e358b2c73a5",
+    "slug": "olive-oil",
+    "name": "olive oil",
+    "category": "oils_vinegars",
+    "aliases": [
+      "extra virgin olive oil",
+      "evoo"
+    ],
+    "densityGPerMl": {
+      "value": 0.91,
+      "source": "Typical specific gravity / household cup weight of fats and oils; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-038",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "fc0b4fd3-d42e-5f23-b6ac-5db9185ce5ad",
+    "slug": "vegetable-oil",
+    "name": "vegetable oil",
+    "category": "oils_vinegars",
+    "aliases": [
+      "sunflower oil",
+      "rapeseed oil",
+      "cooking oil"
+    ],
+    "densityGPerMl": {
+      "value": 0.92,
+      "source": "Typical specific gravity / household cup weight of fats and oils; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-686",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "e73f9933-1ce8-5a36-b847-9ea5c15865bf",
+    "slug": "sesame-oil",
+    "name": "sesame oil",
+    "category": "oils_vinegars",
+    "aliases": [
+      "toasted sesame oil"
+    ],
+    "densityGPerMl": {
+      "value": 0.92,
+      "source": "Typical specific gravity / household cup weight of fats and oils; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-043",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "0b80e7a4-f10b-582b-bf44-2bdc51c6c640",
+    "slug": "coconut-oil",
+    "name": "coconut oil",
+    "category": "oils_vinegars",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.92,
+      "source": "Typical specific gravity / household cup weight of fats and oils; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-031",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "877ba20e-69be-51e9-8ee6-5a3484f9540f",
+    "slug": "white-wine-vinegar",
+    "name": "white wine vinegar",
+    "category": "oils_vinegars",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 1.01,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-339",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "50bafc65-f223-5589-89fb-a729bec87bf6",
+    "slug": "red-wine-vinegar",
+    "name": "red wine vinegar",
+    "category": "oils_vinegars",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 1.01,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-339",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "b246a407-0498-58e9-8ea8-883750b787b0",
+    "slug": "balsamic-vinegar",
+    "name": "balsamic vinegar",
+    "category": "oils_vinegars",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 1.06,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-339",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "59970879-e4db-5534-a03a-06626309d710",
+    "slug": "malt-vinegar",
+    "name": "malt vinegar",
+    "category": "oils_vinegars",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 1.01,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-339",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "5a83a74a-4cfa-5882-90d9-e8cf704433d9",
+    "slug": "cider-vinegar",
+    "name": "cider vinegar",
+    "category": "oils_vinegars",
+    "aliases": [
+      "apple cider vinegar"
+    ],
+    "densityGPerMl": {
+      "value": 1.01,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-339",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "e6039a8f-a5a5-595a-b4f1-52a2afc87f45",
+    "slug": "soy-sauce",
+    "name": "soy sauce",
+    "category": "sauces_condiments",
+    "aliases": [
+      "light soy sauce",
+      "dark soy sauce",
+      "tamari"
+    ],
+    "densityGPerMl": {
+      "value": 1.15,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-721",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "b84bcb43-c20f-574e-9258-e2ec2bbe5007",
+    "slug": "worcestershire-sauce",
+    "name": "worcestershire sauce",
+    "category": "sauces_condiments",
+    "aliases": [
+      "worcester sauce"
+    ],
+    "densityGPerMl": {
+      "value": 1.1,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-723",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "d7511c58-3b4a-577e-ab30-99acb452c2fe",
+    "slug": "tomato-ketchup",
+    "name": "tomato ketchup",
+    "category": "sauces_condiments",
+    "aliases": [
+      "ketchup"
+    ],
+    "densityGPerMl": {
+      "value": 1.15,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-709",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "abdc3fd3-492a-5150-8707-a93126069eb5",
+    "slug": "mayonnaise",
+    "name": "mayonnaise",
+    "category": "sauces_condiments",
+    "aliases": [
+      "mayo"
+    ],
+    "densityGPerMl": {
+      "value": 0.91,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-654",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "5790f786-2668-5327-803b-2aceaf1c9b29",
+    "slug": "english-mustard",
+    "name": "english mustard",
+    "category": "sauces_condiments",
+    "aliases": [
+      "mustard"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "17-364",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "abbe8903-ab1e-5b4c-b23b-d0e250ea5945",
+    "slug": "dijon-mustard",
+    "name": "dijon mustard",
+    "category": "sauces_condiments",
+    "aliases": [
+      "wholegrain mustard"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "17-365",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "9b965318-566e-5768-86df-773b3efb5ab0",
+    "slug": "brown-sauce",
+    "name": "brown sauce",
+    "category": "sauces_condiments",
+    "aliases": [
+      "hp sauce"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "17-678",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "f74a45e3-fff0-5176-af31-1a3e107093b3",
+    "slug": "sweet-chilli-sauce",
+    "name": "sweet chilli sauce",
+    "category": "sauces_condiments",
+    "aliases": [],
+    "form": "other"
+  },
+  {
+    "id": "04fb76aa-dd6f-5539-b59c-b08adc23a786",
+    "slug": "hot-sauce",
+    "name": "hot sauce",
+    "category": "sauces_condiments",
+    "aliases": [
+      "tabasco",
+      "sriracha"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "17-719",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "6262184b-f6a8-53ef-aca5-4e1da0d7beb4",
+    "slug": "fish-sauce",
+    "name": "fish sauce",
+    "category": "sauces_condiments",
+    "aliases": [],
+    "form": "other"
+  },
+  {
+    "id": "0c0df038-f335-53c1-ab08-5e71a43bbeb3",
+    "slug": "oyster-sauce",
+    "name": "oyster sauce",
+    "category": "sauces_condiments",
+    "aliases": [],
+    "form": "other"
+  },
+  {
+    "id": "c36082e0-1b23-59ed-a6f6-d44941697125",
+    "slug": "hoisin-sauce",
+    "name": "hoisin sauce",
+    "category": "sauces_condiments",
+    "aliases": [],
+    "form": "other"
+  },
+  {
+    "id": "7f370dad-d7de-5f4a-b4ed-709ad6ada26e",
+    "slug": "pesto",
+    "name": "pesto",
+    "category": "sauces_condiments",
+    "aliases": [
+      "green pesto"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "17-622",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "01ee17a8-3efa-5360-96da-1a1dace515a2",
+    "slug": "curry-paste",
+    "name": "curry paste",
+    "category": "sauces_condiments",
+    "aliases": [
+      "korma paste",
+      "tikka masala paste",
+      "madras paste"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "17-720",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "3e1dd3d1-03f2-5109-9be5-83d2a6e28f50",
+    "slug": "gravy-granules",
+    "name": "gravy granules",
+    "category": "sauces_condiments",
+    "aliases": [
+      "gravy powder"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "17-724",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "0a8d5e5d-17f1-56c1-9051-479524ff144f",
+    "slug": "stock-cube",
+    "name": "stock cube",
+    "category": "sauces_condiments",
+    "aliases": [
+      "chicken stock cube",
+      "vegetable stock cube",
+      "beef stock cube",
+      "bouillon"
+    ],
+    "unitWeightG": {
+      "value": 10,
+      "source": "One standard stock cube (estimate)",
+      "estimate": true
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "17-726",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "d7c02739-8bc6-5c12-a3a1-7ab20b608da3",
+    "slug": "chicken-stock",
+    "name": "chicken stock",
+    "category": "sauces_condiments",
+    "aliases": [
+      "chicken broth"
+    ],
+    "densityGPerMl": {
+      "value": 1,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-681",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "f19f5e8b-81c1-5ab7-a87a-d2dac914096f",
+    "slug": "vegetable-stock",
+    "name": "vegetable stock",
+    "category": "sauces_condiments",
+    "aliases": [
+      "vegetable broth"
+    ],
+    "densityGPerMl": {
+      "value": 1,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other"
+  },
+  {
+    "id": "dad69ff0-6243-5591-acc1-fa790f867fa1",
+    "slug": "salt",
+    "name": "salt",
+    "category": "herbs_spices",
+    "aliases": [
+      "table salt",
+      "sea salt",
+      "cooking salt"
+    ],
+    "densityGPerMl": {
+      "value": 1.2,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "other"
+  },
+  {
+    "id": "bbdcb460-989a-5d8b-a512-2684980027df",
+    "slug": "black-pepper",
+    "name": "black pepper",
+    "category": "herbs_spices",
+    "aliases": [
+      "ground black pepper",
+      "peppercorns"
+    ],
+    "densityGPerMl": {
+      "value": 0.5,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground",
+    "cofid": {
+      "code": "13-880",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "ef7445a5-a5c9-5580-a453-b71a6b31ffbb",
+    "slug": "white-pepper",
+    "name": "white pepper",
+    "category": "herbs_spices",
+    "aliases": [],
+    "form": "ground",
+    "cofid": {
+      "code": "13-881",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "0fdead5b-9589-5d81-b617-0362f308e1f1",
+    "slug": "paprika",
+    "name": "paprika",
+    "category": "herbs_spices",
+    "aliases": [
+      "sweet paprika"
+    ],
+    "densityGPerMl": {
+      "value": 0.5,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground",
+    "cofid": {
+      "code": "13-879",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "ade01016-63b6-5114-8fb2-242c7bfad47b",
+    "slug": "smoked-paprika",
+    "name": "smoked paprika",
+    "category": "herbs_spices",
+    "aliases": [
+      "pimenton"
+    ],
+    "densityGPerMl": {
+      "value": 0.5,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground",
+    "cofid": {
+      "code": "13-879",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "8b8f54a4-72a9-531a-8704-d8855fe737bb",
+    "slug": "cayenne-pepper",
+    "name": "cayenne pepper",
+    "category": "herbs_spices",
+    "aliases": [
+      "cayenne"
+    ],
+    "densityGPerMl": {
+      "value": 0.45,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground",
+    "cofid": {
+      "code": "13-847",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "98dfce0a-6687-59d7-987e-d15203676337",
+    "slug": "chilli-powder",
+    "name": "chilli powder",
+    "category": "herbs_spices",
+    "aliases": [
+      "chili powder"
+    ],
+    "densityGPerMl": {
+      "value": 0.5,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground",
+    "cofid": {
+      "code": "13-873",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "8d95cdee-ad72-5555-84b7-01b1e0dce417",
+    "slug": "chilli-flakes",
+    "name": "chilli flakes",
+    "category": "herbs_spices",
+    "aliases": [
+      "red pepper flakes",
+      "crushed chillies"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "13-873",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "529f413a-aa8d-5b7e-9bd9-0b6222dbe70c",
+    "slug": "ground-cumin",
+    "name": "ground cumin",
+    "category": "herbs_spices",
+    "aliases": [
+      "cumin"
+    ],
+    "densityGPerMl": {
+      "value": 0.42,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground",
+    "cofid": {
+      "code": "13-889",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "c2954d2e-757b-5559-8880-6d0cde7278f0",
+    "slug": "cumin-seeds",
+    "name": "cumin seeds",
+    "category": "herbs_spices",
+    "aliases": [],
+    "form": "dried",
+    "cofid": {
+      "code": "13-889",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "503398b1-b098-5756-8097-3121a9074c68",
+    "slug": "ground-coriander",
+    "name": "ground coriander",
+    "category": "herbs_spices",
+    "aliases": [
+      "coriander powder"
+    ],
+    "densityGPerMl": {
+      "value": 0.38,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground",
+    "cofid": {
+      "code": "13-875",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "b4579963-1f20-5cd6-a97a-723a4994e191",
+    "slug": "coriander-seeds",
+    "name": "coriander seeds",
+    "category": "herbs_spices",
+    "aliases": [],
+    "form": "dried",
+    "cofid": {
+      "code": "13-875",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "c7ceb00b-e313-5337-9334-533a1104d9dc",
+    "slug": "turmeric",
+    "name": "turmeric",
+    "category": "herbs_spices",
+    "aliases": [
+      "ground turmeric"
+    ],
+    "densityGPerMl": {
+      "value": 0.6,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground",
+    "cofid": {
+      "code": "13-861",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "cba99afc-3564-5631-9579-8569d6cd8678",
+    "slug": "garam-masala",
+    "name": "garam masala",
+    "category": "herbs_spices",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.45,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground",
+    "cofid": {
+      "code": "13-829",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "8536b993-d39c-5803-93c3-c7bc8b799ed1",
+    "slug": "curry-powder",
+    "name": "curry powder",
+    "category": "herbs_spices",
+    "aliases": [
+      "madras curry powder"
+    ],
+    "densityGPerMl": {
+      "value": 0.5,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground",
+    "cofid": {
+      "code": "13-876",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "9b0eaf64-b95c-583a-95db-b00c730663a6",
+    "slug": "ground-ginger",
+    "name": "ground ginger",
+    "category": "herbs_spices",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.4,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground",
+    "cofid": {
+      "code": "13-832",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "c803a7f8-094c-5322-b50f-f5c132815ef7",
+    "slug": "ground-cinnamon",
+    "name": "ground cinnamon",
+    "category": "herbs_spices",
+    "aliases": [
+      "cinnamon"
+    ],
+    "densityGPerMl": {
+      "value": 0.55,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground",
+    "cofid": {
+      "code": "13-874",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "a819daa9-88a3-5a6f-b365-0c450b7cf7ae",
+    "slug": "cinnamon-stick",
+    "name": "cinnamon stick",
+    "category": "herbs_spices",
+    "aliases": [],
+    "form": "dried"
+  },
+  {
+    "id": "98e16a2f-efb6-5e81-a3e6-5a203851607a",
+    "slug": "ground-nutmeg",
+    "name": "ground nutmeg",
+    "category": "herbs_spices",
+    "aliases": [
+      "nutmeg"
+    ],
+    "densityGPerMl": {
+      "value": 0.5,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground",
+    "cofid": {
+      "code": "13-877",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "7a381f0d-d9f6-536b-91bc-3de20238e351",
+    "slug": "ground-cloves",
+    "name": "ground cloves",
+    "category": "herbs_spices",
+    "aliases": [
+      "cloves"
+    ],
+    "form": "ground",
+    "cofid": {
+      "code": "13-816",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "c42ebec4-c90d-5052-917a-0f76d8579790",
+    "slug": "allspice",
+    "name": "allspice",
+    "category": "herbs_spices",
+    "aliases": [
+      "mixed spice",
+      "pimento"
+    ],
+    "form": "ground",
+    "cofid": {
+      "code": "13-801",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "164d2681-e5ea-5d52-9907-328b67cfb9f7",
+    "slug": "cardamom-pods",
+    "name": "cardamom pods",
+    "category": "herbs_spices",
+    "aliases": [
+      "cardamom"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "13-809",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "3c700538-8d4e-5699-92cb-d9e702d97a9a",
+    "slug": "bay-leaf",
+    "name": "bay leaf",
+    "category": "herbs_spices",
+    "aliases": [
+      "bay leaves"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "13-806",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "241930a6-e3b9-5ce7-b0d4-db745ada7a3e",
+    "slug": "dried-oregano",
+    "name": "dried oregano",
+    "category": "herbs_spices",
+    "aliases": [
+      "oregano"
+    ],
+    "densityGPerMl": {
+      "value": 0.15,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "13-878",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "08a17897-45ca-55fb-87f0-c296aa6a2c9a",
+    "slug": "dried-thyme",
+    "name": "dried thyme",
+    "category": "herbs_spices",
+    "aliases": [
+      "thyme (dried)"
+    ],
+    "densityGPerMl": {
+      "value": 0.25,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "13-883",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "ead66abb-9393-5ddd-a06e-77167c6b9781",
+    "slug": "dried-rosemary",
+    "name": "dried rosemary",
+    "category": "herbs_spices",
+    "aliases": [
+      "rosemary (dried)"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "13-882",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "856c8bcc-d2d4-5ad8-8146-9085862e8058",
+    "slug": "dried-basil",
+    "name": "dried basil",
+    "category": "herbs_spices",
+    "aliases": [
+      "basil (dried)"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "13-805",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "9da7bc81-a81c-5329-86b2-6cc1192a201a",
+    "slug": "mixed-herbs",
+    "name": "mixed herbs",
+    "category": "herbs_spices",
+    "aliases": [
+      "italian seasoning"
+    ],
+    "densityGPerMl": {
+      "value": 0.15,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "dried",
+    "cofid": {
+      "code": "13-884",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "108108d7-5352-5131-b427-c8fb8bb4cde3",
+    "slug": "dried-sage",
+    "name": "dried sage",
+    "category": "herbs_spices",
+    "aliases": [
+      "sage (dried)"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "13-854",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "4c8a558c-80c5-57d8-8a62-ee23e4be64b5",
+    "slug": "dried-parsley",
+    "name": "dried parsley",
+    "category": "herbs_spices",
+    "aliases": [
+      "parsley (dried)"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "13-845",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "e60e8b77-7d1f-56f7-b590-1678a0cf8f55",
+    "slug": "garlic-powder",
+    "name": "garlic powder",
+    "category": "herbs_spices",
+    "aliases": [
+      "granulated garlic"
+    ],
+    "densityGPerMl": {
+      "value": 0.6,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground",
+    "cofid": {
+      "code": "13-830",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "e2211720-b119-5aa1-ad3b-55e3e3418dae",
+    "slug": "onion-powder",
+    "name": "onion powder",
+    "category": "herbs_spices",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.5,
+      "source": "Typical teaspoon weight (ground spice, levelled) / 4.93 ml; approx."
+    },
+    "form": "ground"
+  },
+  {
+    "id": "55df03ad-5da1-5bfe-a733-0460a0f21d78",
+    "slug": "fresh-coriander",
+    "name": "fresh coriander",
+    "category": "fruit_veg",
+    "aliases": [
+      "cilantro",
+      "coriander leaves",
+      "fresh cilantro"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-888",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "85369706-e3d8-5f77-bb15-8e4abe5dbd32",
+    "slug": "fresh-parsley",
+    "name": "fresh parsley",
+    "category": "fruit_veg",
+    "aliases": [
+      "flat-leaf parsley",
+      "curly parsley"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-844",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "0b1ca3d8-a6c6-5233-a006-61c8e59bdc33",
+    "slug": "fresh-basil",
+    "name": "fresh basil",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-804",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "61cf7154-70bb-56bd-afcd-ae2326662ffc",
+    "slug": "fresh-mint",
+    "name": "fresh mint",
+    "category": "fruit_veg",
+    "aliases": [
+      "mint leaves"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-836",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "0f943c59-8fc4-58b9-a470-8fb3cabfe5bd",
+    "slug": "fresh-thyme",
+    "name": "fresh thyme",
+    "category": "fruit_veg",
+    "aliases": [
+      "thyme"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-893",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "673fcad9-a29a-5f4a-ba40-11b868923142",
+    "slug": "fresh-rosemary",
+    "name": "fresh rosemary",
+    "category": "fruit_veg",
+    "aliases": [
+      "rosemary"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-892",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "7d1dec5f-f80c-542a-be10-b364bf63d28d",
+    "slug": "fresh-sage",
+    "name": "fresh sage",
+    "category": "fruit_veg",
+    "aliases": [
+      "sage"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-853",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "810bc99e-d851-5477-af37-25d5e60b702d",
+    "slug": "fresh-dill",
+    "name": "fresh dill",
+    "category": "fruit_veg",
+    "aliases": [
+      "dill"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-824",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "7bb8433a-7b37-5058-9e98-fb640b971969",
+    "slug": "chives",
+    "name": "chives",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-887",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "865f15be-2628-50fc-bca4-1676d52978cb",
+    "slug": "lemongrass",
+    "name": "lemongrass",
+    "category": "fruit_veg",
+    "aliases": [
+      "lemon grass"
+    ],
+    "form": "fresh"
+  },
+  {
+    "id": "185fbe02-3c1f-5658-a183-5df64acdb589",
+    "slug": "curry-leaves",
+    "name": "curry leaves",
+    "category": "fruit_veg",
+    "aliases": [],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-821",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "060cb9a4-1f20-55b4-9cee-6a5b675a7990",
+    "slug": "sesame-seeds",
+    "name": "sesame seeds",
+    "category": "nuts_seeds",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.6,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "14-844",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "4010e919-4d4d-5691-9133-db07ab3999ed",
+    "slug": "sunflower-seeds",
+    "name": "sunflower seeds",
+    "category": "nuts_seeds",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.55,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "14-845",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "568f2db1-86ee-5e34-88de-c3ad7549daed",
+    "slug": "pumpkin-seeds",
+    "name": "pumpkin seeds",
+    "category": "nuts_seeds",
+    "aliases": [
+      "pepitas"
+    ],
+    "densityGPerMl": {
+      "value": 0.5,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "14-842",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "c2008a14-1db1-5083-80db-e09e16588e59",
+    "slug": "flaxseed",
+    "name": "flaxseed",
+    "category": "nuts_seeds",
+    "aliases": [
+      "linseed",
+      "flax seeds"
+    ],
+    "form": "other"
+  },
+  {
+    "id": "4e62d532-f6ea-59e3-b339-516744da4945",
+    "slug": "chia-seeds",
+    "name": "chia seeds",
+    "category": "nuts_seeds",
+    "aliases": [],
+    "form": "other"
+  },
+  {
+    "id": "3a2fa2c6-b4cc-54f3-9106-6ca3b52c1813",
+    "slug": "almonds",
+    "name": "almonds",
+    "category": "nuts_seeds",
+    "aliases": [
+      "flaked almonds",
+      "whole almonds"
+    ],
+    "densityGPerMl": {
+      "value": 0.6,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "14-896",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "ea82d6e1-4de2-5657-abfc-42d58c416197",
+    "slug": "walnuts",
+    "name": "walnuts",
+    "category": "nuts_seeds",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.45,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "14-879",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "fe2da7d5-782d-55e3-aeb5-98806d2d3ebe",
+    "slug": "cashew-nuts",
+    "name": "cashew nuts",
+    "category": "nuts_seeds",
+    "aliases": [
+      "cashews"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "14-811",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "b0210597-7dcb-5870-b59b-8ec6d77e24b5",
+    "slug": "peanuts",
+    "name": "peanuts",
+    "category": "nuts_seeds",
+    "aliases": [
+      "roasted peanuts"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "14-877",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "b11d6e90-5eee-5b18-ba75-d967dcde4032",
+    "slug": "hazelnuts",
+    "name": "hazelnuts",
+    "category": "nuts_seeds",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.57,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "14-874",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "37516760-6f59-593a-8e4c-ba7e811a2506",
+    "slug": "pecans",
+    "name": "pecans",
+    "category": "nuts_seeds",
+    "aliases": [
+      "pecan nuts"
+    ],
+    "densityGPerMl": {
+      "value": 0.42,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "14-837",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "219665bc-a607-5acf-afdc-6d40174e634a",
+    "slug": "pine-nuts",
+    "name": "pine nuts",
+    "category": "nuts_seeds",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.57,
+      "source": "Typical household cup weight of nuts/seeds/dried fruit; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "14-839",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "e95f747a-a3a0-59ea-b2c7-1e3e63dc2ed7",
+    "slug": "pistachios",
+    "name": "pistachios",
+    "category": "nuts_seeds",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "14-840",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "f6629606-f5ef-5348-aeec-6bbf4c348b65",
+    "slug": "peanut-butter",
+    "name": "peanut butter",
+    "category": "sweeteners_spreads",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 1.07,
+      "source": "Typical specific gravity / household cup weight of fats and oils; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "14-892",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "3cd4f5f9-1909-5142-86cb-5f789cad9ea3",
+    "slug": "tahini",
+    "name": "tahini",
+    "category": "sweeteners_spreads",
+    "aliases": [
+      "sesame paste"
+    ],
+    "densityGPerMl": {
+      "value": 1,
+      "source": "Typical specific gravity / household cup weight of fats and oils; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "14-847",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "e6af4e4c-8b15-5034-9359-9f8d9c60bc41",
+    "slug": "jam",
+    "name": "jam",
+    "category": "sweeteners_spreads",
+    "aliases": [
+      "strawberry jam",
+      "raspberry jam",
+      "preserve"
+    ],
+    "densityGPerMl": {
+      "value": 1.3,
+      "source": "Typical specific gravity of syrups/honey; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-073",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "34f738b7-83d1-536b-9b35-0c039854b0cc",
+    "slug": "marmalade",
+    "name": "marmalade",
+    "category": "sweeteners_spreads",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 1.3,
+      "source": "Typical specific gravity of syrups/honey; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-078",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "16966414-5040-572f-bb0e-63968ca1a0ed",
+    "slug": "chocolate-spread",
+    "name": "chocolate spread",
+    "category": "sweeteners_spreads",
+    "aliases": [
+      "nutella"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "17-659",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "a0bd1772-0cac-5ccf-8307-5a682ec32b06",
+    "slug": "tofu",
+    "name": "tofu",
+    "category": "meat_alternatives",
+    "aliases": [
+      "bean curd"
+    ],
+    "form": "fresh",
+    "cofid": {
+      "code": "13-570",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "1bf6113c-16e1-51bd-8bb4-e24e98fc7e8b",
+    "slug": "quorn-mince",
+    "name": "quorn mince",
+    "category": "meat_alternatives",
+    "aliases": [
+      "meat-free mince",
+      "soya mince"
+    ],
+    "form": "frozen"
+  },
+  {
+    "id": "7dab00ab-1986-5ad2-b0c8-679d32e5a218",
+    "slug": "vegetarian-sausages",
+    "name": "vegetarian sausages",
+    "category": "meat_alternatives",
+    "aliases": [
+      "veggie sausages"
+    ],
+    "form": "frozen"
+  },
+  {
+    "id": "de16be43-adb0-51fb-8a10-34f7fb1a4628",
+    "slug": "hummus",
+    "name": "hummus",
+    "category": "sauces_condiments",
+    "aliases": [
+      "houmous"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "13-556",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "fce16884-4353-5fe1-a255-b7d2a67bc2f7",
+    "slug": "olives",
+    "name": "olives",
+    "category": "tinned_jarred",
+    "aliases": [
+      "black olives",
+      "green olives"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "14-340",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "4bf10d32-94f8-5860-9117-9cf9f2c582db",
+    "slug": "capers",
+    "name": "capers",
+    "category": "tinned_jarred",
+    "aliases": [],
+    "form": "other"
+  },
+  {
+    "id": "652c4d37-9c59-5f24-b9cc-1575a4de7a4b",
+    "slug": "gherkins",
+    "name": "gherkins",
+    "category": "tinned_jarred",
+    "aliases": [
+      "pickled gherkins",
+      "cornichons"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "13-246",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "f9fddc86-a34e-5bf3-9e80-09dbf73e82eb",
+    "slug": "sun-dried-tomatoes",
+    "name": "sun-dried tomatoes",
+    "category": "tinned_jarred",
+    "aliases": [
+      "sundried tomatoes"
+    ],
+    "form": "dried"
+  },
+  {
+    "id": "6a421cd2-8729-588d-ab96-910112c99ad9",
+    "slug": "coconut-cream",
+    "name": "coconut cream",
+    "category": "tinned_jarred",
+    "aliases": [
+      "creamed coconut"
+    ],
+    "form": "other"
+  },
+  {
+    "id": "ed09017e-dc6d-5c58-87e4-660805d05af3",
+    "slug": "tinned-pineapple",
+    "name": "tinned pineapple",
+    "category": "tinned_jarred",
+    "aliases": [
+      "pineapple chunks"
+    ],
+    "form": "canned",
+    "cofid": {
+      "code": "14-211",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "988893b9-016a-5803-a969-24fe26822c23",
+    "slug": "tinned-peaches",
+    "name": "tinned peaches",
+    "category": "tinned_jarred",
+    "aliases": [],
+    "form": "canned",
+    "cofid": {
+      "code": "14-188",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "a5b8dc9e-9f2c-546b-b55f-048daef21f0a",
+    "slug": "frozen-peas",
+    "name": "frozen peas",
+    "category": "frozen",
+    "aliases": [],
+    "form": "frozen",
+    "cofid": {
+      "code": "13-527",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "2491025d-be99-5c3a-9608-e19f4d3287df",
+    "slug": "frozen-sweetcorn",
+    "name": "frozen sweetcorn",
+    "category": "frozen",
+    "aliases": [],
+    "form": "frozen"
+  },
+  {
+    "id": "d4af1b0e-eed7-522b-a251-68fc6c8ab5f8",
+    "slug": "frozen-spinach",
+    "name": "frozen spinach",
+    "category": "frozen",
+    "aliases": [],
+    "form": "frozen",
+    "cofid": {
+      "code": "13-458",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "fc4e0c73-4d27-5815-ba08-1a2d61ec85c6",
+    "slug": "frozen-mixed-vegetables",
+    "name": "frozen mixed vegetables",
+    "category": "frozen",
+    "aliases": [
+      "mixed veg"
+    ],
+    "form": "frozen"
+  },
+  {
+    "id": "e84dae88-a36e-55e5-8f65-68b6520db722",
+    "slug": "frozen-berries",
+    "name": "frozen berries",
+    "category": "frozen",
+    "aliases": [
+      "mixed berries",
+      "summer fruits"
+    ],
+    "form": "frozen"
+  },
+  {
+    "id": "06895b0d-0ef0-5a12-8a2f-89dd662d1154",
+    "slug": "oven-chips",
+    "name": "oven chips",
+    "category": "frozen",
+    "aliases": [
+      "chips",
+      "french fries"
+    ],
+    "form": "frozen"
+  },
+  {
+    "id": "5c87fc14-1173-5d65-8367-31062a741d50",
+    "slug": "frozen-pizza",
+    "name": "frozen pizza",
+    "category": "frozen",
+    "aliases": [
+      "pizza"
+    ],
+    "form": "frozen"
+  },
+  {
+    "id": "aaa83b93-7442-5df7-90d2-033e0af23fa8",
+    "slug": "ice-cream",
+    "name": "ice cream",
+    "category": "frozen",
+    "aliases": [
+      "vanilla ice cream"
+    ],
+    "form": "frozen",
+    "cofid": {
+      "code": "12-508",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "fb3b802b-5f3f-5c24-99b6-ae55ce6bd889",
+    "slug": "puff-pastry",
+    "name": "puff pastry",
+    "category": "baking",
+    "aliases": [
+      "ready-rolled puff pastry"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "11-852",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "e248afd7-7c7e-5221-852d-d6e6597ca3ca",
+    "slug": "shortcrust-pastry",
+    "name": "shortcrust pastry",
+    "category": "baking",
+    "aliases": [
+      "ready-rolled shortcrust pastry"
+    ],
+    "form": "other"
+  },
+  {
+    "id": "989b1601-7ba1-57c3-95ee-6720d60f9959",
+    "slug": "filo-pastry",
+    "name": "filo pastry",
+    "category": "baking",
+    "aliases": [
+      "phyllo pastry"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "11-855",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "9addad0d-f501-5261-90f1-bfefbb132693",
+    "slug": "gelatine",
+    "name": "gelatine",
+    "category": "baking",
+    "aliases": [
+      "gelatin"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "17-360",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "c22c3ffb-7de1-5c49-b817-dd3e1cf9cdcd",
+    "slug": "cornflakes",
+    "name": "cornflakes",
+    "category": "cereals",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "11-745",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "f2ca3eb4-d46f-5bad-80a6-8aa9e1be112d",
+    "slug": "muesli",
+    "name": "muesli",
+    "category": "cereals",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "11-780",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "7d5f3a22-e30a-5402-aaf5-1b1cd4b9d824",
+    "slug": "weetabix",
+    "name": "weetabix",
+    "category": "cereals",
+    "aliases": [
+      "wheat biscuits"
+    ],
+    "unitWeightG": {
+      "value": 19,
+      "source": "One wheat biscuit (estimate)",
+      "estimate": true
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-774",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "4c0571bc-9fd4-504d-944b-f79c4eec03dc",
+    "slug": "digestive-biscuits",
+    "name": "digestive biscuits",
+    "category": "snacks",
+    "aliases": [
+      "graham crackers"
+    ],
+    "unitWeightG": {
+      "value": 15,
+      "source": "One digestive biscuit (estimate)",
+      "estimate": true
+    },
+    "form": "other",
+    "cofid": {
+      "code": "11-799",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "75e422ab-e618-55aa-a72b-cbd6ff3b5b3d",
+    "slug": "oatcakes",
+    "name": "oatcakes",
+    "category": "snacks",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "11-823",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "a5f1a272-f587-52b9-90fc-a393b081b59f",
+    "slug": "crackers",
+    "name": "crackers",
+    "category": "snacks",
+    "aliases": [
+      "cream crackers",
+      "water biscuits"
+    ],
+    "form": "other"
+  },
+  {
+    "id": "27d1856b-d9c6-5ad9-9822-a29c7aa4a9d7",
+    "slug": "crisps",
+    "name": "crisps",
+    "category": "snacks",
+    "aliases": [
+      "potato chips"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "17-693",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "fad61704-ded6-5146-abc2-86dee26c57ee",
+    "slug": "popcorn",
+    "name": "popcorn",
+    "category": "snacks",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "17-692",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "8059d9da-d138-5edc-89b3-0c3b15c08753",
+    "slug": "tea",
+    "name": "tea",
+    "category": "drinks",
+    "aliases": [
+      "tea bags",
+      "black tea"
+    ],
+    "form": "other"
+  },
+  {
+    "id": "f90266a1-1bea-5c12-9bf7-b0db2eec0b79",
+    "slug": "coffee",
+    "name": "coffee",
+    "category": "drinks",
+    "aliases": [
+      "instant coffee",
+      "ground coffee"
+    ],
+    "form": "other"
+  },
+  {
+    "id": "c5e5fa19-eff9-574a-82eb-305b7151c2db",
+    "slug": "orange-juice",
+    "name": "orange juice",
+    "category": "drinks",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 1.04,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "14-329",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "ee9cb003-7182-5b61-8a2b-f626e730c467",
+    "slug": "apple-juice",
+    "name": "apple juice",
+    "category": "drinks",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 1.05,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "14-331",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "a05a78d4-e208-59f8-961c-2cfcbbeb2316",
+    "slug": "oat-milk",
+    "name": "oat milk",
+    "category": "dairy_alternatives",
+    "aliases": [
+      "oat drink"
+    ],
+    "densityGPerMl": {
+      "value": 1.03,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "fresh"
+  },
+  {
+    "id": "33544209-43ca-5f70-8bbe-9ef60f77290b",
+    "slug": "soya-milk",
+    "name": "soya milk",
+    "category": "dairy_alternatives",
+    "aliases": [
+      "soy milk",
+      "soya drink"
+    ],
+    "densityGPerMl": {
+      "value": 1.03,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "fresh",
+    "cofid": {
+      "code": "12-524",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "3eac0ea4-0064-5c01-87f8-1b05acb62536",
+    "slug": "almond-milk",
+    "name": "almond milk",
+    "category": "dairy_alternatives",
+    "aliases": [
+      "almond drink"
+    ],
+    "densityGPerMl": {
+      "value": 1.01,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "fresh"
+  },
+  {
+    "id": "54cfb2f9-2f7a-5d70-8e22-7c807c1b5e3d",
+    "slug": "dairy-free-spread",
+    "name": "dairy-free spread",
+    "category": "dairy_alternatives",
+    "aliases": [
+      "vegan butter"
+    ],
+    "form": "other"
+  },
+  {
+    "id": "ebf97f98-f95b-5c20-972b-bff7a78ea419",
+    "slug": "red-wine",
+    "name": "red wine",
+    "category": "drinks",
+    "aliases": [
+      "wine (red)"
+    ],
+    "densityGPerMl": {
+      "value": 0.99,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-752",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "504c51a3-696a-5d6c-b8f6-7b3fd4d013ed",
+    "slug": "white-wine",
+    "name": "white wine",
+    "category": "drinks",
+    "aliases": [
+      "wine (white)"
+    ],
+    "densityGPerMl": {
+      "value": 0.99,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-755",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "c8464be9-1bb5-5be6-8129-e4bfdd86d2ae",
+    "slug": "beer",
+    "name": "beer",
+    "category": "drinks",
+    "aliases": [
+      "lager",
+      "ale"
+    ],
+    "form": "other"
+  },
+  {
+    "id": "3ee683b7-192a-5fbb-ad6c-56149acd8a72",
+    "slug": "cider",
+    "name": "cider",
+    "category": "drinks",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "17-222",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "b3dbb108-142c-5eb5-ab3a-60400d431f82",
+    "slug": "water",
+    "name": "water",
+    "category": "drinks",
+    "aliases": [
+      "tap water"
+    ],
+    "densityGPerMl": {
+      "value": 1,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-377",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "92f27b16-558d-5322-98d0-71c5e542e029",
+    "slug": "double-concentrated-tomato-puree",
+    "name": "double concentrated tomato puree",
+    "category": "tinned_jarred",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "13-531",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "28588f96-d8b0-5120-8694-3bef9e340029",
+    "slug": "suet",
+    "name": "suet",
+    "category": "baking",
+    "aliases": [
+      "vegetable suet"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "17-011",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "ac0f1068-3df8-584f-9d6d-cd3511ef1a83",
+    "slug": "mincemeat",
+    "name": "mincemeat",
+    "category": "baking",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "17-765",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "3f0e7152-e5cd-5e32-a88d-cd3a7ad0329b",
+    "slug": "custard-powder",
+    "name": "custard powder",
+    "category": "baking",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "11-1138",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "50f18458-e85c-521d-949a-7cd9527631bc",
+    "slug": "tinned-custard",
+    "name": "tinned custard",
+    "category": "tinned_jarred",
+    "aliases": [
+      "ready-made custard"
+    ],
+    "form": "canned",
+    "cofid": {
+      "code": "12-543",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "dd8f3778-e548-5442-80ef-8e1e01640c0b",
+    "slug": "condensed-milk",
+    "name": "condensed milk",
+    "category": "tinned_jarred",
+    "aliases": [
+      "sweetened condensed milk"
+    ],
+    "form": "canned",
+    "cofid": {
+      "code": "12-520",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "1cf3e4f0-6c3c-5193-8bad-e86453a5c77f",
+    "slug": "evaporated-milk",
+    "name": "evaporated milk",
+    "category": "tinned_jarred",
+    "aliases": [],
+    "form": "canned",
+    "cofid": {
+      "code": "12-522",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "b4cfcf19-d676-5ef5-b9d7-39b910098e04",
+    "slug": "skimmed-milk-powder",
+    "name": "skimmed milk powder",
+    "category": "dairy_eggs",
+    "aliases": [
+      "milk powder"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "12-521",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "f57031c5-4864-5426-aad9-d3c4ec97fc48",
+    "slug": "dried-mushrooms",
+    "name": "dried mushrooms",
+    "category": "tinned_jarred",
+    "aliases": [
+      "porcini"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "13-288",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "bfce27d0-99f3-53dd-97f5-4ae04e5a9c31",
+    "slug": "mixed-peel",
+    "name": "mixed peel",
+    "category": "baking",
+    "aliases": [
+      "candied peel"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "14-338",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "8e6b9f36-adef-5b57-bff6-449238474784",
+    "slug": "glace-cherries",
+    "name": "glace cherries",
+    "category": "baking",
+    "aliases": [
+      "candied cherries"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "14-335",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "7ab61636-b519-51af-9a15-288e141f8193",
+    "slug": "mixed-nuts",
+    "name": "mixed nuts",
+    "category": "nuts_seeds",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "14-880",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "2823bcdf-df0f-55ed-826d-c29f5a6b05e1",
+    "slug": "tinned-salmon",
+    "name": "tinned salmon",
+    "category": "tinned_jarred",
+    "aliases": [
+      "canned salmon"
+    ],
+    "form": "canned",
+    "cofid": {
+      "code": "16-420",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "662057ca-6695-545a-8233-04793ca04214",
+    "slug": "tinned-mackerel",
+    "name": "tinned mackerel",
+    "category": "tinned_jarred",
+    "aliases": [],
+    "form": "canned"
+  },
+  {
+    "id": "884d3d3d-bdb8-5d3b-a435-233ddb1bcf64",
+    "slug": "tinned-tomato-soup",
+    "name": "tinned tomato soup",
+    "category": "tinned_jarred",
+    "aliases": [
+      "tomato soup"
+    ],
+    "form": "canned",
+    "cofid": {
+      "code": "17-636",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "018a703a-569a-5554-8be7-bfff7f8f36b1",
+    "slug": "tinned-mushrooms",
+    "name": "tinned mushrooms",
+    "category": "tinned_jarred",
+    "aliases": [],
+    "form": "canned"
+  },
+  {
+    "id": "decb16f8-c2c2-5367-ba70-12702598f3f4",
+    "slug": "jacket-potato",
+    "name": "jacket potato",
+    "category": "fruit_veg",
+    "aliases": [
+      "baking potato"
+    ],
+    "unitWeightG": {
+      "value": 250,
+      "source": "Typical UK medium item, edible portion (estimate; common cookery references)",
+      "estimate": true
+    },
+    "form": "fresh"
+  },
+  {
+    "id": "c9cfa4bc-4664-50c3-ad78-a14cbf3b1994",
+    "slug": "sauerkraut",
+    "name": "sauerkraut",
+    "category": "tinned_jarred",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "13-336",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "e7924593-fff4-531a-8e1d-8078ce052f39",
+    "slug": "kimchi",
+    "name": "kimchi",
+    "category": "world_foods",
+    "aliases": [],
+    "form": "other"
+  },
+  {
+    "id": "d66031ae-a76c-5816-926f-7d78d8b14686",
+    "slug": "miso-paste",
+    "name": "miso paste",
+    "category": "world_foods",
+    "aliases": [
+      "miso"
+    ]
+  },
+  {
+    "id": "ed26f2de-419b-576e-89b8-521f3fac3990",
+    "slug": "coconut-sugar",
+    "name": "coconut sugar",
+    "category": "baking",
+    "aliases": [
+      "palm sugar"
+    ],
+    "form": "other"
+  },
+  {
+    "id": "06a129d2-5297-562a-aa13-c818ee30d6d0",
+    "slug": "rice-vinegar",
+    "name": "rice vinegar",
+    "category": "oils_vinegars",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "17-339",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "a6ac2ce5-41dc-5fc6-817b-fe2d51b543d8",
+    "slug": "mirin",
+    "name": "mirin",
+    "category": "world_foods",
+    "aliases": [
+      "rice wine"
+    ],
+    "form": "other"
+  },
+  {
+    "id": "942a8d60-dc85-5fbc-92c1-5eac0f9691b7",
+    "slug": "nori",
+    "name": "nori",
+    "category": "world_foods",
+    "aliases": [
+      "seaweed sheets"
+    ],
+    "form": "dried",
+    "cofid": {
+      "code": "13-340",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "ce97a4bb-0343-5f9f-9f58-018f90a9bd63",
+    "slug": "wasabi",
+    "name": "wasabi",
+    "category": "world_foods",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "13-258",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "2cdec017-8273-561e-8b80-b5edf6956a1f",
+    "slug": "horseradish-sauce",
+    "name": "horseradish sauce",
+    "category": "sauces_condiments",
+    "aliases": [
+      "horseradish"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "17-314",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "3a273b07-198b-506b-8a8b-11b239c14ccf",
+    "slug": "mint-sauce",
+    "name": "mint sauce",
+    "category": "sauces_condiments",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "17-707",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "aa9da6a6-4797-5d2e-9bb6-ebb4221918ba",
+    "slug": "cranberry-sauce",
+    "name": "cranberry sauce",
+    "category": "sauces_condiments",
+    "aliases": [],
+    "form": "other"
+  },
+  {
+    "id": "4e2a0aa8-4e39-582d-b873-a35543f918ff",
+    "slug": "apple-sauce",
+    "name": "apple sauce",
+    "category": "sauces_condiments",
+    "aliases": [
+      "apple purée"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "17-851",
+      "match": "proxy"
+    }
+  },
+  {
+    "id": "fd882dc0-74e9-5bd1-a2f0-7205075ac293",
+    "slug": "tartare-sauce",
+    "name": "tartare sauce",
+    "category": "sauces_condiments",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "17-722",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "7fd42819-9c0e-576e-bbc8-b2e6d8a72409",
+    "slug": "salad-cream",
+    "name": "salad cream",
+    "category": "sauces_condiments",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "17-703",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "4ae4037c-6e9b-5148-90a7-5b8156b808a9",
+    "slug": "bbq-sauce",
+    "name": "bbq sauce",
+    "category": "sauces_condiments",
+    "aliases": [
+      "barbecue sauce"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "17-705",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "f30a908d-1406-5a20-a9e0-9dd1b0ad1385",
+    "slug": "pickled-onions",
+    "name": "pickled onions",
+    "category": "tinned_jarred",
+    "aliases": [],
+    "form": "other",
+    "cofid": {
+      "code": "13-309",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "e798cdbe-0b93-5386-aafe-c923cb2f654e",
+    "slug": "beef-stock",
+    "name": "beef stock",
+    "category": "sauces_condiments",
+    "aliases": [
+      "beef broth"
+    ],
+    "densityGPerMl": {
+      "value": 1,
+      "source": "Typical specific gravity of liquid foods; approx."
+    },
+    "form": "other"
+  },
+  {
+    "id": "93984b07-be48-53bc-84d5-0284c90f1a84",
+    "slug": "yeast-extract",
+    "name": "yeast extract",
+    "category": "sauces_condiments",
+    "aliases": [
+      "marmite",
+      "bovril"
+    ],
+    "form": "other",
+    "cofid": {
+      "code": "17-517",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "8e6a2d92-01a1-5079-8708-4ed0d241b664",
+    "slug": "lard",
+    "name": "lard",
+    "category": "oils_vinegars",
+    "aliases": [],
+    "densityGPerMl": {
+      "value": 0.92,
+      "source": "Typical specific gravity / household cup weight of fats and oils; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-010",
+      "match": "exact"
+    }
+  },
+  {
+    "id": "41f3740a-327c-59c6-a447-6d0e2db8d246",
+    "slug": "ghee",
+    "name": "ghee",
+    "category": "oils_vinegars",
+    "aliases": [
+      "clarified butter"
+    ],
+    "densityGPerMl": {
+      "value": 0.91,
+      "source": "Typical specific gravity / household cup weight of fats and oils; approx."
+    },
+    "form": "other",
+    "cofid": {
+      "code": "17-640",
+      "match": "exact"
+    }
+  }
+]

@@ -1,0 +1,49 @@
+{
+  "image": "r3-fish-promo.png",
+  "retailer": "FICTIONAL FOODS",
+  "date": "2026-10-12",
+  "note": "Promo discount, fish, unmatched household item",
+  "totalPence": 1045,
+  "lines": [
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000301",
+      "rawText": "WHT FISH FLLT 500G",
+      "kind": "item",
+      "quantity": 1,
+      "linePricePence": 450,
+      "expectedIngredient": "white fish fillets"
+    },
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000302",
+      "rawText": "SMKD HADDOCK 250G",
+      "kind": "item",
+      "quantity": 1,
+      "linePricePence": 320,
+      "expectedIngredient": "smoked haddock"
+    },
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000303",
+      "rawText": "FLOURY POTS 2.5KG",
+      "kind": "item",
+      "quantity": 1,
+      "linePricePence": 285,
+      "expectedIngredient": "floury potatoes"
+    },
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000304",
+      "rawText": "MEMBER PRICE",
+      "kind": "promo_discount",
+      "quantity": 1,
+      "linePricePence": -100,
+      "expectedIngredient": null
+    },
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000305",
+      "rawText": "WASHING UP LIQ",
+      "kind": "item",
+      "quantity": 1,
+      "linePricePence": 90,
+      "expectedIngredient": null
+    }
+  ]
+}

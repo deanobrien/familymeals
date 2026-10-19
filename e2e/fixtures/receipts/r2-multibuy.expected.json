@@ -1,0 +1,41 @@
+{
+  "image": "r2-multibuy.png",
+  "retailer": "FICTIONAL FOODS",
+  "date": "2026-10-11",
+  "note": "Multi-buy 3 for 2 on chickpeas; discount line must not be treated as an item",
+  "totalPence": 410,
+  "lines": [
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000201",
+      "rawText": "CHICKPEAS 400G",
+      "kind": "item",
+      "quantity": 3,
+      "linePricePence": 270,
+      "expectedIngredient": "chickpeas"
+    },
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000202",
+      "rawText": "MULTIBUY 3 FOR 2",
+      "kind": "multibuy_discount",
+      "quantity": 1,
+      "linePricePence": -90,
+      "expectedIngredient": null
+    },
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000203",
+      "rawText": "COCNUT MLK 400ML",
+      "kind": "item",
+      "quantity": 1,
+      "linePricePence": 120,
+      "expectedIngredient": "coconut milk"
+    },
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000204",
+      "rawText": "BABY SPINACH 200G",
+      "kind": "item",
+      "quantity": 1,
+      "linePricePence": 110,
+      "expectedIngredient": "spinach"
+    }
+  ]
+}

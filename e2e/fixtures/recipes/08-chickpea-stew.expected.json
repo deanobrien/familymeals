@@ -1,0 +1,88 @@
+{
+  "image": "08-chickpea-stew.png",
+  "extraPages": [],
+  "scenario": "Vegan; ground vs fresh form stay separate (ground coriander vs fresh coriander); unparsed line",
+  "expectedConfidence": "high",
+  "diet": "vegan",
+  "expected": {
+    "title": "Smoky Chickpea Stew",
+    "servings": 4,
+    "ingredients": [
+      {
+        "name": "chickpeas",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "can",
+          "originalText": "2 tins"
+        },
+        "optional": false
+      },
+      {
+        "name": "ground coriander",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "tsp",
+          "originalText": "1 tsp"
+        },
+        "optional": false
+      },
+      {
+        "name": "fresh coriander",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "bunch",
+          "originalText": "1 bunch"
+        },
+        "preparation": "chopped",
+        "optional": false
+      },
+      {
+        "name": "smoked paprika",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "tsp",
+          "originalText": "2 tsp"
+        },
+        "optional": false
+      },
+      {
+        "name": "tinned tomatoes",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "can",
+          "originalText": "1 tin"
+        },
+        "optional": false
+      },
+      {
+        "name": "red peppers",
+        "quantity": {
+          "kind": "exact",
+          "value": 2,
+          "unit": "item",
+          "originalText": "2"
+        },
+        "preparation": "sliced",
+        "optional": false
+      },
+      {
+        "name": "whatever greens need using up",
+        "quantity": {
+          "kind": "unparsed",
+          "originalText": "whatever greens need using up"
+        },
+        "optional": false
+      }
+    ],
+    "steps": [
+      "Soften peppers with the spices.",
+      "Add tomatoes and chickpeas; simmer 25 minutes.",
+      "Finish with coriander and greens."
+    ]
+  }
+}

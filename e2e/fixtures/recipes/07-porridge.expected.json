@@ -1,0 +1,55 @@
+{
+  "image": "07-porridge.png",
+  "extraPages": [],
+  "scenario": "Short breakfast card; mixed cups/ml; \"to taste\" honey",
+  "expectedConfidence": "high",
+  "diet": "vegetarian",
+  "expected": {
+    "title": "Overnight Berry Porridge",
+    "servings": 2,
+    "ingredients": [
+      {
+        "name": "porridge oats",
+        "quantity": {
+          "kind": "exact",
+          "value": 1,
+          "unit": "cup",
+          "originalText": "1 cup"
+        },
+        "optional": false
+      },
+      {
+        "name": "milk",
+        "quantity": {
+          "kind": "exact",
+          "value": 300,
+          "unit": "ml",
+          "originalText": "300 ml"
+        },
+        "optional": false
+      },
+      {
+        "name": "mixed berries",
+        "quantity": {
+          "kind": "exact",
+          "value": 150,
+          "unit": "g",
+          "originalText": "150 g"
+        },
+        "optional": false
+      },
+      {
+        "name": "honey",
+        "quantity": {
+          "kind": "to_taste",
+          "originalText": "to taste"
+        },
+        "optional": false
+      }
+    ],
+    "steps": [
+      "Combine oats and milk; chill overnight.",
+      "Top with berries and honey."
+    ]
+  }
+}

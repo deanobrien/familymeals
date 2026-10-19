@@ -1,0 +1,57 @@
+{
+  "image": "r4-baking.png",
+  "retailer": "FICTIONAL FOODS",
+  "date": "2026-10-13",
+  "note": "Heavy abbreviation, qty>1, non-food line",
+  "totalPence": 1499,
+  "lines": [
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000401",
+      "rawText": "SR FLR 1.5KG",
+      "kind": "item",
+      "quantity": 1,
+      "linePricePence": 150,
+      "expectedIngredient": "self-raising flour"
+    },
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000402",
+      "rawText": "CSTR SGR 1KG",
+      "kind": "item",
+      "quantity": 1,
+      "linePricePence": 165,
+      "expectedIngredient": "caster sugar"
+    },
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000403",
+      "rawText": "UNSLT BTR 250G",
+      "kind": "item",
+      "quantity": 2,
+      "linePricePence": 440,
+      "expectedIngredient": "butter"
+    },
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000404",
+      "rawText": "LEMONS 4PK",
+      "kind": "item",
+      "quantity": 1,
+      "linePricePence": 100,
+      "expectedIngredient": "lemons"
+    },
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000405",
+      "rawText": "FR RNG EGGS 12",
+      "kind": "item",
+      "quantity": 1,
+      "linePricePence": 245,
+      "expectedIngredient": "eggs"
+    },
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000406",
+      "rawText": "DISHWSHR TABS",
+      "kind": "item",
+      "quantity": 1,
+      "linePricePence": 399,
+      "expectedIngredient": null
+    }
+  ]
+}

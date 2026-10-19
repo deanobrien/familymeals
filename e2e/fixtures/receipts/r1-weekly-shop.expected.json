@@ -1,0 +1,49 @@
+{
+  "image": "r1-weekly-shop.png",
+  "retailer": "FICTIONAL FOODS",
+  "date": "2026-10-10",
+  "note": "Abbreviations + a non-food line that must not match",
+  "totalPence": 515,
+  "lines": [
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000101",
+      "rawText": "SPAGH 500G",
+      "kind": "item",
+      "quantity": 1,
+      "linePricePence": 95,
+      "expectedIngredient": "spaghetti"
+    },
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000102",
+      "rawText": "CHOP TOM 400G",
+      "kind": "item",
+      "quantity": 2,
+      "linePricePence": 130,
+      "expectedIngredient": "tinned chopped tomatoes"
+    },
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000103",
+      "rawText": "BRWN ONION 1KG",
+      "kind": "item",
+      "quantity": 1,
+      "linePricePence": 110,
+      "expectedIngredient": "onion"
+    },
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000104",
+      "rawText": "SEMI SKIM MLK 2.27L",
+      "kind": "item",
+      "quantity": 1,
+      "linePricePence": 175,
+      "expectedIngredient": "milk"
+    },
+    {
+      "id": "c0c0c0c0-0000-4000-8000-000000000105",
+      "rawText": "CARRIERBAG 5P",
+      "kind": "item",
+      "quantity": 1,
+      "linePricePence": 5,
+      "expectedIngredient": null
+    }
+  ]
+}
