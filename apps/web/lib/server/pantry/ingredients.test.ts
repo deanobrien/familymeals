@@ -1,17 +1,10 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { loadSeed } from '@fr/refdata';
-import ingredientData from './data/ingredients.json';
 import recipeData from './data/recipes.json';
 import { createIngredientLookup, defaultIngredientLookup, type IngredientRecord } from './ingredients';
 
-describe('ingredient snapshot', () => {
-  it('matches @fr/refdata (re-run gen-seed.mjs if this fails)', () => {
-    const seed = loadSeed().ingredients.map((i) => ({ id: i.id, name: i.name, category: i.category, aliases: i.aliases }));
-    expect(ingredientData).toEqual(seed);
-  });
-
+describe('recipe snapshot', () => {
   it('recipe snapshot matches the e2e recipe fixtures', () => {
     const dir = resolve(__dirname, '../../../../../e2e/fixtures/recipes');
     const titles = readdirSync(dir)

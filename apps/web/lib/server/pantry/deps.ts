@@ -1,3 +1,4 @@
+import { getIngredientCatalogue } from '../refdata/catalogue';
 import { defaultIngredientLookup } from './ingredients';
 import { InMemoryPantryRepository } from './repository';
 import {
@@ -20,6 +21,7 @@ export function buildDemoPantryService(now: () => string = nowIso): PantryServic
     purchases: new InMemoryPurchaseEventSource(fixturePurchaseRecords(DEMO_HOUSEHOLD_ID, start, ingredients)),
     leftovers: new InMemoryLeftoverSource(now),
     ingredients,
+    converter: getIngredientCatalogue().converter,
     now,
   });
 }

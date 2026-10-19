@@ -1,47 +1,40 @@
-// Thin interface over the pantry engine's public API (lane L22a).
-// TODO: replace the _vendor import with @fr/engine/pantry after merge batch 2; nothing else in the app
-// imports _vendor directly, so this file is the only swap point.
-import type { Unit, Quantity, Uuid } from './_vendor/contract';
-import { exactQ, fmtQ, isExact, round6, today } from './_vendor/common';
-import type { EngineCtx, StalenessPolicy, UnitConverter } from './_vendor/types';
+// Thin interface over the pantry engine's public API (@fr/engine/pantry, lane L22a).
+// Pure (no server-only imports) so client components can share its types and helpers. Production unit
+// conversion comes from the server catalogue (lib/server/refdata/catalogue.ts) and is injected via makeCtx.
+import { createQuantityConverter } from '@fr/engine/units';
+import type { Uuid } from '@fr/domain';
+import type { EngineCtx, StalenessPolicy, UnitConverter } from '@fr/engine/pantry';
 
-export * from './_vendor';
-export { exactQ, fmtQ, isExact, round6, today };
+export * from '@fr/engine/pantry';
+export type { IsoDate, IsoDateTime, PurchaseEvent, Quantity, Requirement, Unit, Uuid } from '@fr/domain';
 
 export const DEFAULT_STALE_AFTER_DAYS = 14;
 export const EXPIRING_SOON_DAYS = 3;
 export const URGENCY_DAYS = 5;
 
-const MASS_G: Partial<Record<Unit, number>> = { mg: 0.001, g: 1, kg: 1000 };
-const VOLUME_ML: Partial<Record<Unit, number>> = { ml: 1, l: 1000, tsp: 5, tbsp: 15, cup: 240, floz: 28.4131, pint: 568.261 };
-
 /**
- * Same-dimension converter only (mass<->mass, volume<->volume). Mass<->volume and count<->mass need
- * density / unit-weight data, which belongs to the core engine's converter; until it is merged we
- * return null so the pantry stays on the safe side (nothing is deducted across unsafe conversions).
+ * Converter without ingredient data: same-dimension conversions only (mass<->mass, volume<->volume),
+ * via @fr/engine/units (pint 568.26125 ml). Mass<->volume and count<->mass need density / unit weight,
+ * so they return null and nothing is deducted across an unsafe conversion. The server passes the
+ * catalogue-backed converter instead.
  */
-export const basicConverter: UnitConverter = {
-  convert(q: Quantity, to: NonNullable<Quantity['unit']>): Quantity | null {
-    if (!isExact(q) || !q.unit) return null;
-    if (q.unit === to) return q;
-    for (const table of [MASS_G, VOLUME_ML]) {
-      const from = table[q.unit];
-      const target = table[to];
-      if (from !== undefined && target !== undefined) return exactQ((q.value * from) / target, to);
-    }
-    return null;
-  },
-};
+export const basicConverter: UnitConverter = createQuantityConverter();
 
 export function makeCtx(opts: {
   now: string;
   staleAfterDays?: number;
   perIngredient?: Record<Uuid, number>;
   newId?: () => Uuid;
+  converter?: UnitConverter;
 }): EngineCtx {
   const policy: StalenessPolicy = {
     staleAfterDays: opts.staleAfterDays ?? DEFAULT_STALE_AFTER_DAYS,
     ...(opts.perIngredient ? { perIngredient: opts.perIngredient } : {}),
   };
-  return { now: opts.now, converter: basicConverter, newId: opts.newId ?? (() => crypto.randomUUID()), policy };
+  return {
+    now: opts.now,
+    converter: opts.converter ?? basicConverter,
+    newId: opts.newId ?? (() => crypto.randomUUID()),
+    policy,
+  };
 }

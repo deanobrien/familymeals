@@ -1,4 +1,5 @@
-// Regenerates data/ingredients.json and data/recipes.json from @fr/refdata output + e2e fixtures.
+// Regenerates data/recipes.json from e2e fixtures, resolving ingredient ids against @fr/refdata data/out/ingredients.json.
+// (The ingredient catalogue itself is no longer snapshotted: see lib/server/refdata/catalogue.ts.)
 // Run: node apps/web/lib/server/pantry/gen-seed.mjs   (the drift test fails if these are stale)
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -8,7 +9,6 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '../../../../..');
 const ing = JSON.parse(readFileSync(resolve(root, 'packages/refdata/data/out/ingredients.json'), 'utf8'));
 const slim = ing.map((i) => ({ id: i.id, name: i.name, category: i.category, aliases: i.aliases }));
-writeFileSync(resolve(here, 'data/ingredients.json'), JSON.stringify(slim) + '\n');
 
 // Hand-maintained fixes so fixture lines resolve to canonical ingredients.
 const MANUAL = {

@@ -2,7 +2,7 @@ import {
   EXPIRING_SOON_DAYS, URGENCY_DAYS, addStock, applyAdjustments, assessConfidence, confirmStock, correctStock,
   expiringSoon, exactQ, fmtQ, isExact, makeCtx, planLeftovers, planPurchaseAdjustments, rankRecipesByPantry,
   today, daysBetween,
-  type CookedBatch, type EngineCtx, type OpenSlot, type PantryAdjustment, type PantryItem, type Uuid,
+  type CookedBatch, type EngineCtx, type UnitConverter, type OpenSlot, type PantryAdjustment, type PantryItem, type Uuid,
 } from '../../pantry/engine';
 import {
   UNIT_OPTIONS, categoryLabel,
@@ -22,6 +22,8 @@ export interface PantryDeps {
   /** ISO datetime. Injected so tests control the clock. */
   now: () => string;
   newId?: () => Uuid;
+  /** Unit conversion with ingredient density / unit weight; defaults to same-dimension only. */
+  converter?: UnitConverter;
 }
 
 export interface AddItemInput { name?: string; ingredientId?: string; value: number; unit: string; expiry?: string }
@@ -67,7 +69,7 @@ export function createPantryService(deps: PantryDeps) {
   const { repo, ingredients } = deps;
 
   const ctxFor = (settings: PantrySettings): EngineCtx =>
-    makeCtx({ now: deps.now(), staleAfterDays: settings.staleAfterDays, ...(deps.newId ? { newId: deps.newId } : {}) });
+    makeCtx({ now: deps.now(), staleAfterDays: settings.staleAfterDays, ...(deps.newId ? { newId: deps.newId } : {}), ...(deps.converter ? { converter: deps.converter } : {}) });
 
   const categoryOf = (item: PantryItem): string =>
     (item.ingredientId ? ingredients.get(item.ingredientId)?.category : undefined) ?? 'other';
