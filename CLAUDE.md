@@ -33,6 +33,8 @@ Directory ownership per lane: see the parallel plan.
 
 Branch `prj018/w0a-skeleton`, everything committed locally (no remote, never push). **Merged**: batch 1 (L2a ui, L4 ai, L5 refdata, L6 qa, shell), batch 2 (`@fr/engine`: L3/L7/L8/L9/L10/L17a/L22a), batch 3 (L1 domain/schema/RLS + owner decisions, D20-D26), batch 4 (L23 home/settings/privacy, L12 library, L13 photo import, L15/L16 planner, L22 pantry) plus wiring (D27-D31). Green: install, build, typecheck, lint, 1054 unit tests, e2e 35 passed / 86 fixme (fresh, warmed dev server). **Not merged yet**: shopping lane (worktree-agent-a5a258b1b8baf2025), receipts lane (running), auth/household, mobile. The `/receipts` nav link 404s until L21 lands. See `IMPLEMENTATION_PLAN.md`, `DECISIONS.md` and `claude/status-and-next-steps.md`.
 
+**P2 pantry scan (branch `worktree-agent-a3d801fceacac09cf`, D80-D89, not merged to skeleton yet):** `@fr/ai` `scanPantry` (photos / video frames -> de-duplicated items with counts, pack sizes, UK use-by vs best-before, close-up flag), `/pantry/scan` (video turned into 6-10 sharp JPEG frames in the browser; review with engine matcher, editable quantities and dates, close-up re-scan, opt-in labelled shelf-life estimates, merge-with-stock preview; nothing written before confirm). Live-model accuracy is unverified.
+
 ## Links
 
 [README](README.md) | [IMPLEMENTATION_PLAN](IMPLEMENTATION_PLAN.md) | [DECISIONS](DECISIONS.md) | [claude/](claude/)

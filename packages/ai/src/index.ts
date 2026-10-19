@@ -10,6 +10,7 @@ import type { AiProvider } from './provider.js';
 export * from './schemas.js';
 export { SYSTEM, recipePrompt } from './prompts.js';
 export * from './errors.js';
+export * from './pantry-scan.js';
 export * from './usage.js';
 export * from './image.js';
 export * from './provider.js';
