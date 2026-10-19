@@ -2431,7 +2431,7 @@ export type Database = {
         | 'sodium';
       nutrient_unit: 'kcal' | 'kJ' | 'g' | 'mg' | 'ug';
       nutrition_basis: 'total' | 'per_serving';
-      pantry_source: 'manual' | 'purchase' | 'receipt';
+      pantry_source: 'manual' | 'purchase' | 'receipt' | 'correction' | 'leftover';
       planned_meal_kind: 'recipe' | 'leftovers' | 'eating_out' | 'other';
       preferred_units: 'metric' | 'imperial' | 'us';
       price_kind: 'user_confirmed' | 'receipt' | 'retailer_verified' | 'generic_estimate';
@@ -2626,7 +2626,7 @@ export const Constants = {
       ],
       nutrient_unit: ['kcal', 'kJ', 'g', 'mg', 'ug'],
       nutrition_basis: ['total', 'per_serving'],
-      pantry_source: ['manual', 'purchase', 'receipt'],
+      pantry_source: ['manual', 'purchase', 'receipt', 'correction', 'leftover'],
       planned_meal_kind: ['recipe', 'leftovers', 'eating_out', 'other'],
       preferred_units: ['metric', 'imperial', 'us'],
       price_kind: ['user_confirmed', 'receipt', 'retailer_verified', 'generic_estimate'],
