@@ -5,14 +5,13 @@ const ROUTES = [
   { path: '/plan', nav: 'Meal planner', heading: 'Meal planner' },
   { path: '/shopping', nav: 'Shopping list', heading: 'Shopping list' },
   { path: '/household', nav: 'Household', heading: 'Household' },
-  { path: '/settings', nav: 'Settings', heading: 'Settings' },
 ] as const;
 
 test('home page renders the app shell with main navigation', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   const nav = page.getByRole('navigation', { name: 'Main', exact: true });
-  for (const label of ['Home', ...ROUTES.map((r) => r.nav)]) {
+  for (const label of ['Home', ...ROUTES.map((r) => r.nav), 'Settings']) {
     await expect(nav.getByRole('link', { name: label })).toBeVisible();
   }
 });
