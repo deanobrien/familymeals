@@ -16,9 +16,11 @@ Every lane must leave build, test, typecheck and lint green.
 
 pnpm workspace + Turborepo. Scope `@fr/*`. Packages export TS source directly (`main: src/index.ts`); `apps/web` consumes them via `transpilePackages`. Package `build` is a `tsc` type-check only (no emit).
 
-- `apps/web` - Next.js App Router, strict TS
+- `apps/web` - Next.js App Router, strict TS. One `next.config.mjs` (D27). Server-only refdata catalogue `lib/server/refdata/catalogue.ts` (D28). ONE in-memory recipe store (`lib/recipes/factory.ts`) shared by library, import sink, planner and pantry (D30); planner solver = `lib/server/plan/engine-solver.ts` over `@fr/engine/planner` (D29)
 - `packages/domain` - `@fr/domain` zod types/contracts (L1; CONTRACT-SEED conformance test, row schemas, RPC DTOs)
-- `packages/engine` - `@fr/engine`, pure TS, subpath exports `./units ./parse ./normalise ./scale ./aggregate ./cost ./nutrition ./planner ./receipt-match ./shopping ./pantry` (root export = L3 core). One shared `src/contract.ts` (CONTRACT-SEED copy; TODO re-export `@fr/domain`). Production unit conversion goes through `src/units/converter.ts` (`createQuantityConverter`, `createGramsConverter`) over L3 `convertQuantity`; pint = 568.26125 ml. Ranges: cost = max, nutrition = midpoint (estimate). Tests in `packages/engine/test/<module>/`; coverage thresholds (`pnpm --filter @fr/engine coverage`) apply to the L3 core dirs
+- `packages/engine` - `@fr/engine`, pure TS, subpath exports `./units ./parse ./normalise ./scale ./aggregate ./cost ./nutrition ./planner ./receipt-match ./shopping ./pantry` (root export = L3 core). `src/contract.ts` is a type-only re-export of the CONTRACT-SEED shapes from `@fr/domain`. Production unit conversion goes through `src/units/converter.ts` (`createQuantityConverter`, `createGramsConverter`) over L3 `convertQuantity`; pint = 568.26125 ml. Ranges: cost = max, nutrition = midpoint (estimate). Tests in `packages/engine/test/<module>/`; coverage thresholds (`pnpm --filter @fr/engine coverage`) apply to the L3 core dirs
+- `packages/recipe-import` - `@fr/recipe-import` photo-import drafts, corrections, finalise (L13)
+- `packages/plan-orchestrator` - `@fr/plan-orchestrator` prompt -> AI constraints -> solver -> proposal -> approval (L16, server-side)
 - `packages/ai` - AI provider interface, Claude adapter, mock (SERVER-ONLY; `import 'server-only'` guard, ESLint blocks imports from apps/web outside `app/api/**` and `lib/server/**`)
 - `packages/ui` - `@fr/ui` design tokens + components (plain CSS, Radix dialog/tabs); `pnpm --filter @fr/ui demo` runs the Vite demo
 - `packages/db` - PGlite migration + RLS test runner (`pnpm --filter @fr/db test`), `src/database.types.ts` placeholder (migrations live in `supabase/migrations`)
@@ -29,7 +31,7 @@ Directory ownership per lane: see the parallel plan.
 
 ## Current state
 
-**Wave 0a done**; **merge batch 1 done**: L2a `@fr/ui`, L4 `@fr/ai`, L5 `@fr/refdata`, L6 fixtures/specs in `e2e/`, app shell. **Merge batch 2 (engine) done**: L3 core + L7/L8/L9/L10/L17a/L22a in `@fr/engine`. **Merge batch 3 (schema + domain) done**: L1 `@fr/domain` + `packages/db` (PGlite migration/RLS tests) + `supabase/migrations` 0001-0014 (see `supabase/SCHEMA.md`, D20-D26). See `IMPLEMENTATION_PLAN.md`, `DECISIONS.md` and `claude/status-and-next-steps.md`.
+Branch `prj018/w0a-skeleton`, everything committed locally (no remote, never push). **Merged**: batch 1 (L2a ui, L4 ai, L5 refdata, L6 qa, shell), batch 2 (`@fr/engine`: L3/L7/L8/L9/L10/L17a/L22a), batch 3 (L1 domain/schema/RLS + owner decisions, D20-D26), batch 4 (L23 home/settings/privacy, L12 library, L13 photo import, L15/L16 planner, L22 pantry) plus wiring (D27-D31). Green: install, build, typecheck, lint, 1054 unit tests, e2e 35 passed / 86 fixme (fresh, warmed dev server). **Not merged yet**: shopping lane (worktree-agent-a5a258b1b8baf2025), receipts lane (running), auth/household, mobile. The `/receipts` nav link 404s until L21 lands. See `IMPLEMENTATION_PLAN.md`, `DECISIONS.md` and `claude/status-and-next-steps.md`.
 
 ## Links
 
