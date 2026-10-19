@@ -5,6 +5,9 @@ import { MealPlan, PlannedMeal, fromDbRow, type DbRow } from '@fr/domain';
 import { MEAL_TYPES, type MealType, type PlanDoc, type PlanEntry } from '../../plan/types';
 import { toPlanRecipe, type PlanRecipe, type PlanRecipeSource } from '../plan/recipe-source';
 import type { MealPlanRepository } from '../plan/repository';
+import type { NutrientMap } from '@fr/engine/nutrition';
+import type { RecipeView } from '../../recipes/types';
+import type { SummariserFor } from './backend';
 import { SupabaseRecipeRepository } from './recipe-repository';
 import { callRpc, isUuid, toIso, type SupabaseClient } from './rpc';
 
@@ -90,25 +93,38 @@ export class SupabaseMealPlanRepository implements MealPlanRepository {
   }
 }
 
-/** Plannable recipes straight from the household's recipes (cost per serving stays unknown until a cost cache exists). */
+export interface PlanSourceOptions {
+  /** Same summariser the in-memory source uses: planner costs come from the calculator, computed on read (D100). */
+  summariserFor?: SummariserFor | undefined;
+  /** Calculated per-serving nutrition for the planner (D61). */
+  nutritionOf?: ((r: RecipeView) => NutrientMap | null) | undefined;
+}
+
+/** Plannable recipes straight from the household's recipes (cost and nutrition are computed on read, D100). */
 export class SupabasePlanRecipeSource implements PlanRecipeSource {
   constructor(
     private readonly client: SupabaseClient,
     private readonly userId: string | null = null,
+    private readonly opts: PlanSourceOptions = {},
   ) {}
 
   private repo(householdId: string): SupabaseRecipeRepository {
-    return new SupabaseRecipeRepository({ client: this.client, householdId, userId: this.userId });
+    return new SupabaseRecipeRepository({
+      client: this.client,
+      householdId,
+      userId: this.userId,
+      summariser: this.opts.summariserFor?.(householdId),
+    });
   }
 
   async list(householdId: string): Promise<PlanRecipe[]> {
     if (!isUuid(householdId)) return [];
     const all = await this.repo(householdId).list({ q: '', tags: [], sort: 'name', page: 1, pageSize: 10_000 });
-    return all.items.map((r) => toPlanRecipe(r));
+    return all.items.map((r) => toPlanRecipe(r, this.opts.nutritionOf));
   }
 
   async get(householdId: string, ids: string[]): Promise<PlanRecipe[]> {
     if (!isUuid(householdId)) return [];
-    return (await this.repo(householdId).getMany(ids)).map((r) => toPlanRecipe(r));
+    return (await this.repo(householdId).getMany(ids)).map((r) => toPlanRecipe(r, this.opts.nutritionOf));
   }
 }

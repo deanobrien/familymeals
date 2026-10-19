@@ -109,14 +109,27 @@ describe('SupabaseRecipeRepository query shape', () => {
     expect(res.items).toHaveLength(1);
   });
 
-  it('known price bands and the budget collection need a cost cache that does not exist: no query, no results', async () => {
-    const { repo: r, calls } = repo(() => ({ data: { total: 1, items: [recipeDoc()] } }));
+  it('without a summariser cost is unknown: known bands / budget match nothing, "unknown" matches', async () => {
+    const { repo: r } = repo(() => ({ data: { total: 1, items: [recipeDoc()] } }));
     expect((await r.list(query({ priceBand: 'low' }))).items).toEqual([]);
     expect((await r.list(query({ priceBand: 'high' }))).total).toBe(0);
     expect((await r.list(query({ collection: 'budget' }))).total).toBe(0);
-    expect(calls).toHaveLength(0);
     expect((await r.list(query({ priceBand: 'unknown' }))).total).toBe(1);
-    expect(calls).toHaveLength(1);
+  });
+
+  it('cost is computed on read by the summariser: bands, budget and cost sort resolve over the SQL-filtered set (D100)', async () => {
+    const fake = createFakeSupabase((c) => ({ data: c.name === 'get_recipes' ? [recipeDoc()] : { total: 1, items: [recipeDoc()] } }));
+    const summariser = { summarise: () => ({ cost: { totalPence: 400, kind: 'generic_estimate' as const }, nutritionPerServing: [] }) };
+    const r = new SupabaseRecipeRepository({ client: fake.client, householdId: H, userId: U, summariser });
+    const cheap = (await r.list(query({ priceBand: 'low' }))).total; // 400p total / default servings: depends on the doc
+    const got = (await r.get(RID))!;
+    expect(got.cost.totalPence).toBe(400); // every read is costed
+    const band = (await r.list(query({ priceBand: 'high' }))).total + cheap + (await r.list(query({ priceBand: 'mid' }))).total;
+    expect(band).toBe(1); // exactly one band holds the recipe
+    const costed = (await r.list(query({ sort: 'cost' }))).items;
+    expect(costed[0]!.cost.totalPence).toBe(400);
+    // the SQL call never asks for the cost-only filters (they cannot be expressed in SQL)
+    expect(fake.calls.filter((c) => c.name === 'list_recipes').every((c) => c.args!.p_collection === null && c.args!.p_limit === 10_000 || c.args!.p_limit === 12)).toBe(true);
   });
 
   it('get / getMany call get_recipes with valid, de-duplicated ids only', async () => {

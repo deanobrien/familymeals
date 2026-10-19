@@ -6,7 +6,8 @@ import {
 } from '@fr/plan-orchestrator';
 import { getRecipeRepository } from '../../recipes/factory';
 import { getRecipeCalculator } from '../calc';
-import { RepositoryPlanRecipeSource, toRecipeRepo, type PlanRecipeSource } from './recipe-source';
+import { summariserForHousehold } from '../calc/household';
+import { RepositoryPlanRecipeSource, toPlanRecipe, toRecipeRepo, type PlanRecipeSource } from './recipe-source';
 import { getPlanStore, InMemoryMealPlanRepository, resetPlanStore, type MealPlanRepository } from './repository';
 import { createEngineSolver } from './engine-solver';
 import { formatQuantity } from '../../shopping/format';
@@ -84,9 +85,11 @@ export function createPlanServices(opts: {
 } = {}): PlanServices {
   const household = opts.household ?? demoHousehold();
   const supabase = useSupabaseBackend();
+  // Cost and nutrition come from this household's calculator in both backends, computed on read (D100, D101).
+  const nutritionOf = (r: Parameters<typeof toPlanRecipe>[0]) => getRecipeCalculator(household.id).nutritionPerServing(r);
   const recipes = opts.recipes ?? (supabase
-    ? createSupabasePlanRecipeSource()
-    : new RepositoryPlanRecipeSource(getRecipeRepository(), (r) => getRecipeCalculator().nutritionPerServing(r)));
+    ? createSupabasePlanRecipeSource(undefined, { summariserFor: summariserForHousehold, nutritionOf })
+    : new RepositoryPlanRecipeSource(getRecipeRepository(), nutritionOf));
   const households: HouseholdRepo = {
     getHousehold: async (id) => (id === household.id ? structuredClone(household) : null),
     // TODO(Supabase): per-member favourites. Demo: Lauren's favourites are the household favourites.

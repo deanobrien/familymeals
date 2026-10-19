@@ -1,16 +1,22 @@
-// Backend selection + data context for the Supabase repositories (lane S1, DECISIONS D50-D59).
+// Backend selection + data context for the Supabase repositories (lane S1 D50-D59; session wiring D100-D102).
 //
-//   DATA_BACKEND=supabase AND a Supabase URL + key present  -> Supabase repositories
-//   anything else                                           -> in-memory repositories (today's behaviour)
+//   DATA_BACKEND=supabase AND the app's Supabase env (NEXT_PUBLIC_SUPABASE_URL + _ANON_KEY)  -> Supabase repositories
+//   anything else                                                                            -> in-memory repositories
 //
-// Who is the household / user? The auth lane will call `setDataContextProvider()` with a function that reads the session
-// (user-scoped client, so RLS applies). Until then the interim provider uses the service-role key (RLS bypassed - every
-// query is still household-scoped by the repositories) and a household from SUPABASE_DEFAULT_HOUSEHOLD_ID.
+// Who is the household / user? THE SIGNED-IN USER: every repository call resolves `sessionDataContext()`
+// (./session-context.ts), i.e. the L11 session's user-scoped client (RLS applies), active household and member id.
+// There is no service role on this path.
+//
+// Documented dev fallback (never in production): DATA_BACKEND=supabase + SUPABASE_DATA_CONTEXT=service +
+// SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY + SUPABASE_DEFAULT_HOUSEHOLD_ID (+ optional SUPABASE_DEFAULT_USER_ID) runs
+// every request as that one household with the service-role key (RLS bypassed; every query is still household-scoped
+// by the repositories). Meant for scripts and a local stack with no sign-in. SUPABASE_DEFAULT_HOUSEHOLD_ID alone does nothing.
 import 'server-only';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { SupabaseMealPlanRepository, SupabasePlanRecipeSource } from './meal-plan-repository';
+import { SupabaseMealPlanRepository, SupabasePlanRecipeSource, type PlanSourceOptions } from './meal-plan-repository';
 import { SupabasePantryRepository } from './pantry-repository';
 import { SupabaseRecipeRepository } from './recipe-repository';
+import type { RecipeSummariser } from '../../recipes/memory-repository';
 import type { RecipeRepository } from '../../recipes/repository';
 import type { MealPlanRepository } from '../plan/repository';
 import type { PlanRecipeSource } from '../plan/recipe-source';
@@ -24,6 +30,9 @@ export interface DataContext {
 }
 export type DataContextProvider = () => Promise<DataContext> | DataContext;
 
+/** Builds the cost/nutrition summariser for one household (the same one the in-memory repository uses, D100). */
+export type SummariserFor = (householdId: string) => RecipeSummariser;
+
 type Env = Record<string, string | undefined>;
 
 export interface SupabaseConfig {
@@ -31,27 +40,42 @@ export interface SupabaseConfig {
   key: string;
 }
 
-/** Interim server config: service-role key. Returns null when the Supabase env is incomplete. */
+/** Dev-fallback server config: service-role key. Returns null when the Supabase env is incomplete. */
 export function readSupabaseConfig(env: Env = process.env): SupabaseConfig | null {
   const url = env.SUPABASE_URL ?? env.NEXT_PUBLIC_SUPABASE_URL;
   const key = env.SUPABASE_SERVICE_ROLE_KEY;
   return url && key ? { url, key } : null;
 }
 
+/** The app's public Supabase env (what the L11 session uses). */
+export function hasSessionSupabase(env: Env = process.env): boolean {
+  return !!env.NEXT_PUBLIC_SUPABASE_URL?.trim() && !!env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+}
+
+/** The documented dev fallback: explicit opt-in, a household id, a service key, and never production. */
+export function devServiceContextEnabled(env: Env = process.env): boolean {
+  return (
+    env.SUPABASE_DATA_CONTEXT === 'service' &&
+    env.NODE_ENV !== 'production' &&
+    !!env.SUPABASE_DEFAULT_HOUSEHOLD_ID &&
+    readSupabaseConfig(env) !== null
+  );
+}
+
 let warned = false;
-/** True only when DATA_BACKEND=supabase and the env needed to reach it is present (or a provider is registered). */
+/** True only when DATA_BACKEND=supabase and something can supply a data context (session env, dev fallback, or a provider). */
 export function useSupabaseBackend(env: Env = process.env): boolean {
   if (env.DATA_BACKEND !== 'supabase') return false;
-  if (readSupabaseConfig(env) || customProvider) return true;
+  if (customProvider || devServiceContextEnabled(env) || hasSessionSupabase(env)) return true;
   if (!warned) {
     warned = true;
-    console.warn('[data] DATA_BACKEND=supabase but SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are not set: using in-memory repositories.');
+    console.warn('[data] DATA_BACKEND=supabase but NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY are not set: using in-memory repositories.');
   }
   return false;
 }
 
 let customProvider: DataContextProvider | undefined;
-/** Auth lane hook: resolve {client, householdId, userId} from the current request. */
+/** Override hook (tests, scripts): resolve {client, householdId, userId} from anything. Wins over the session. */
 export function setDataContextProvider(p: DataContextProvider | undefined): void {
   customProvider = p;
 }
@@ -68,18 +92,24 @@ function serviceClient(cfg: SupabaseConfig): SupabaseClient {
   return client;
 }
 
+/** Resolution order: registered provider > documented dev service fallback > the signed-in session. */
 export async function getDataContext(env: Env = process.env): Promise<DataContext> {
   if (customProvider) return customProvider();
-  const cfg = readSupabaseConfig(env);
-  if (!cfg) throw new Error('Supabase is not configured (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).');
-  const householdId = env.SUPABASE_DEFAULT_HOUSEHOLD_ID;
-  if (!householdId) throw new Error('No household context: set SUPABASE_DEFAULT_HOUSEHOLD_ID (interim) or register setDataContextProvider().');
-  return { client: serviceClient(cfg), householdId, userId: env.SUPABASE_DEFAULT_USER_ID ?? null };
+  if (devServiceContextEnabled(env)) {
+    const cfg = readSupabaseConfig(env)!;
+    return { client: serviceClient(cfg), householdId: env.SUPABASE_DEFAULT_HOUSEHOLD_ID!, userId: env.SUPABASE_DEFAULT_USER_ID ?? null };
+  }
+  if (!hasSessionSupabase(env)) {
+    throw new Error('Supabase is not configured (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY).');
+  }
+  // Dynamic import keeps next/headers out of module scope (unit tests, scripts).
+  const { sessionDataContext } = await import('./session-context');
+  return sessionDataContext();
 }
 
 /**
  * A repository that resolves its data context (client + household + member) on every call, so the same process-wide
- * instance serves different requests once the auth lane supplies a per-request context.
+ * instance serves different requests with each request's own session client and household.
  */
 function lazy<T extends object>(build: (ctx: DataContext) => T, resolve: () => Promise<DataContext>): T {
   return new Proxy({} as T, {
@@ -95,14 +125,23 @@ function lazy<T extends object>(build: (ctx: DataContext) => T, resolve: () => P
   });
 }
 
-export function createSupabaseRecipeRepository(resolve: () => Promise<DataContext> = getDataContext): RecipeRepository {
-  return lazy((c) => new SupabaseRecipeRepository({ client: c.client, householdId: c.householdId, userId: c.userId }), resolve);
+export function createSupabaseRecipeRepository(
+  resolve: () => Promise<DataContext> = getDataContext,
+  summariserFor?: SummariserFor,
+): RecipeRepository {
+  return lazy(
+    (c) => new SupabaseRecipeRepository({ client: c.client, householdId: c.householdId, userId: c.userId, summariser: summariserFor?.(c.householdId) }),
+    resolve,
+  );
 }
 export function createSupabaseMealPlanRepository(resolve: () => Promise<DataContext> = getDataContext): MealPlanRepository {
   return lazy((c) => new SupabaseMealPlanRepository(c.client, c.userId), resolve);
 }
-export function createSupabasePlanRecipeSource(resolve: () => Promise<DataContext> = getDataContext): PlanRecipeSource {
-  return lazy((c) => new SupabasePlanRecipeSource(c.client, c.userId), resolve);
+export function createSupabasePlanRecipeSource(
+  resolve: () => Promise<DataContext> = getDataContext,
+  opts: PlanSourceOptions = {},
+): PlanRecipeSource {
+  return lazy((c) => new SupabasePlanRecipeSource(c.client, c.userId, opts), resolve);
 }
 export function createSupabasePantryRepository(resolve: () => Promise<DataContext> = getDataContext): PantryRepository {
   return lazy((c) => new SupabasePantryRepository(c.client), resolve);

@@ -2,7 +2,7 @@
 // DATA_BACKEND=supabase (+ Supabase env) selects the DB-backed implementation (lib/server/supabase, DECISIONS D50-D59).
 // This is the ONE recipe store: the library (L12), photo import's RecipeSink (L13), the planner and pantry
 // recipe sources all read/write it (DECISIONS D30).
-import { getRecipeCalculator } from '../server/calc';
+import { sessionRecipeSummariser, summariserForHousehold } from '../server/calc/household';
 import { getIngredientCatalogue } from '../server/refdata/catalogue';
 import { createSupabaseRecipeRepository, useSupabaseBackend } from '../server/supabase/backend';
 import { InMemoryRecipeRepository } from './memory-repository';
@@ -31,12 +31,13 @@ export function getRecipeRepository(): RecipeRepository {
   const g = globalThis as Holder;
   const existing = g[KEY];
   if (existing) return existing;
-  if (useSupabaseBackend()) return (g[KEY] = createSupabaseRecipeRepository());
+  // Both backends cost recipes through the same household-scoped calculator, computed on read (D100, D101).
+  if (useSupabaseBackend()) return (g[KEY] = createSupabaseRecipeRepository(undefined, summariserForHousehold));
   const kind = process.env.RECIPE_REPOSITORY ?? 'memory';
   if (kind !== 'memory') {
     throw new Error(`RECIPE_REPOSITORY=${kind} is not implemented yet (only "memory")`);
   }
-  const repo = new InMemoryRecipeRepository(withCanonicalIngredients(loadSeedRecipes()), getRecipeCalculator());
+  const repo = new InMemoryRecipeRepository(withCanonicalIngredients(loadSeedRecipes()), sessionRecipeSummariser);
   g[KEY] = repo;
   return repo;
 }

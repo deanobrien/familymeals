@@ -16,11 +16,10 @@ export interface PriceStore {
   record(householdId: string, observations: readonly PriceObservation[]): void;
   reset(): void;
   /**
-   * Recorded (non-generic) observations as a `lib/server/calc` PriceSource for the recipe cost calculator.
-   * The calculator and recipe store are process-wide (not household-scoped yet), so this spans every
-   * household: acceptable for the in-memory demo, must become household-scoped with Supabase (D34).
+   * One household's recorded (non-generic) observations as a `lib/server/calc` PriceSource for that household's recipe cost
+   * calculator (D101). Never spans households: a receipt price entered by one household cannot change another's costs.
    */
-  asPriceSource(): { observations(): readonly PriceObservation[]; version(): string };
+  asPriceSource(householdId: string): { observations(): readonly PriceObservation[]; version(): string };
 }
 
 interface RefdataPrice extends PriceObservation {
@@ -33,7 +32,8 @@ function generic(): PriceObservation[] {
 
 export class InMemoryPriceStore implements PriceStore {
   private readonly byHousehold = new Map<string, PriceObservation[]>();
-  private version = 0;
+  private epoch = 0;
+  private readonly versions = new Map<string, number>();
   constructor(private readonly generic: readonly PriceObservation[]) {}
 
   observationsFor(householdId: string, ingredientIds?: Iterable<string>): PriceObservation[] {
@@ -47,18 +47,19 @@ export class InMemoryPriceStore implements PriceStore {
     const list = this.byHousehold.get(householdId) ?? [];
     list.push(...structuredClone(observations as PriceObservation[]));
     this.byHousehold.set(householdId, list);
-    this.version++;
+    this.versions.set(householdId, (this.versions.get(householdId) ?? 0) + 1);
   }
 
   reset(): void {
     this.byHousehold.clear();
-    this.version++;
+    this.versions.clear();
+    this.epoch++;
   }
 
-  asPriceSource() {
+  asPriceSource(householdId: string) {
     return {
-      observations: () => [...this.byHousehold.values()].flat(),
-      version: () => `store:${this.version}`,
+      observations: (): readonly PriceObservation[] => this.byHousehold.get(householdId) ?? [],
+      version: () => `store:${this.epoch}:${this.versions.get(householdId) ?? 0}`,
     };
   }
 }

@@ -2,6 +2,7 @@ import 'server-only';
 import { resetRecipeRepository } from '../../recipes/factory';
 import { resetPantryServices } from '../pantry/deps';
 import { resetPlanServices } from '../plan/services';
+import { resetRecipeCalculators } from '../calc';
 import { getPriceStore } from '../prices/store';
 import { resetMemoryServices } from '../receipts/memory';
 import { getShoppingRepository } from '../shopping/repository';
@@ -20,6 +21,7 @@ export function resetInMemoryStores(): string[] {
   resetPantryServices();
   resetMemoryServices();
   getPriceStore().reset();
+  resetRecipeCalculators();
   resetRecipeRepository();
   return ['shopping', 'plans', 'pantry', 'receipts', 'prices', 'recipes'];
 }

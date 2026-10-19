@@ -2,6 +2,7 @@
 // Reads/writes go through the 0015 RPCs (list_recipes, get_recipes, save_recipe, recipe_facets, find_recipe_duplicates)
 // so search/filter/sort/paging happen in SQL and every recipe write is one transaction
 // (recipes + recipe_ingredients + recipe_steps + tags + a new recipe_versions row).
+import { priceBandOf, sortRecipes, withSummary, type RecipeSummariser } from '../../recipes/memory-repository';
 import type { RecipeListResult, RecipeRepository, TagCount } from '../../recipes/repository';
 import type { RecipeInput, RecipeQuery } from '../../recipes/schema';
 import type { RecipeView } from '../../recipes/types';
@@ -14,17 +15,28 @@ export interface RecipeRepositoryOptions {
   householdId: string;
   /** Signed-in member: drives favourites (per member) and created_by. null = service context, no favourites. */
   userId: string | null;
+  /**
+   * Derived cost + nutrition, computed on every read and never stored (D53, D100). Pass the SAME summariser the
+   * in-memory repository uses so both backends report identical costs. Omitted = cost unknown.
+   */
+  summariser?: RecipeSummariser | undefined;
 }
 
 export class SupabaseRecipeRepository implements RecipeRepository {
   private readonly client: SupabaseClient;
   private readonly householdId: string;
   private readonly userId: string | null;
+  private readonly summariser: RecipeSummariser | undefined;
 
   constructor(opts: RecipeRepositoryOptions) {
     this.client = opts.client;
     this.householdId = opts.householdId;
     this.userId = opts.userId;
+    this.summariser = opts.summariser;
+  }
+
+  private summarise(items: RecipeView[]): Promise<RecipeView[]> {
+    return Promise.all(items.map((r) => withSummary(r, this.summariser)));
   }
 
   private scope() {
@@ -50,9 +62,9 @@ export class SupabaseRecipeRepository implements RecipeRepository {
 
   async list(query: RecipeQuery): Promise<RecipeListResult> {
     const pageSize = Math.max(1, query.pageSize);
-    // No recipe has a persisted cost yet, so every recipe is "unknown" price: known bands match nothing.
-    const needsKnownCost = query.collection === 'budget' || (!!query.priceBand && query.priceBand !== 'unknown');
-    if (needsKnownCost) return { items: [], total: 0, page: 1, pageSize, pageCount: 1 };
+    // Cost is computed on read, not stored (D100), so anything that depends on it (price band, the budget collection,
+    // sort by cost) is resolved here over the SQL-filtered set instead of in SQL.
+    if (query.collection === 'budget' || query.priceBand || query.sort === 'cost') return this.listByComputedCost(query, pageSize);
 
     let page = Math.max(1, query.page);
     let res = await this.fetchPage(query, page, pageSize);
@@ -61,7 +73,19 @@ export class SupabaseRecipeRepository implements RecipeRepository {
       page = pageCount;
       res = await this.fetchPage(query, page, pageSize);
     }
-    return { items: res.items, total: res.total, page, pageSize, pageCount };
+    return { items: await this.summarise(res.items), total: res.total, page, pageSize, pageCount };
+  }
+
+  /** Every recipe matching the non-cost filters (SQL), costed, then band / budget filter, sort and paging as in memory. */
+  private async listByComputedCost(query: RecipeQuery, pageSize: number): Promise<RecipeListResult> {
+    const { priceBand, collection, ...rest } = query;
+    const sql: RecipeQuery = { ...rest, sort: 'name', ...(collection && collection !== 'budget' ? { collection } : {}) };
+    const all = await this.summarise((await this.fetchPage(sql, 1, 10_000)).items);
+    const wanted = all.filter((r) => (collection !== 'budget' || priceBandOf(r) === 'low') && (!priceBand || priceBandOf(r) === priceBand));
+    const sorted = sortRecipes(wanted, query.sort);
+    const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize));
+    const page = Math.min(Math.max(1, query.page), pageCount);
+    return { items: sorted.slice((page - 1) * pageSize, page * pageSize), total: sorted.length, page, pageSize, pageCount };
   }
 
   async get(id: string): Promise<RecipeView | null> {
@@ -74,7 +98,7 @@ export class SupabaseRecipeRepository implements RecipeRepository {
     const valid = [...new Set(ids.filter(isUuid))];
     if (valid.length === 0) return [];
     const docs = await callRpc<DbRow[]>(this.client, 'get_recipes', { ...this.scope(), p_ids: valid });
-    return (docs ?? []).map(recipeViewFromDoc);
+    return this.summarise((docs ?? []).map(recipeViewFromDoc));
   }
 
   async create(input: RecipeInput, opts: { id?: string } = {}): Promise<RecipeView> {
@@ -87,7 +111,7 @@ export class SupabaseRecipeRepository implements RecipeRepository {
         p_mode: 'create',
       });
       if (!doc) throw new SupabaseRepositoryError('rpc save_recipe', 'no recipe returned');
-      return recipeViewFromDoc(doc);
+      return (await this.summarise([recipeViewFromDoc(doc)]))[0]!;
     } catch (e) {
       if (e instanceof SupabaseRepositoryError && e.code === '23505' && opts.id) throw new Error(`Recipe ${opts.id} already exists`);
       throw e;
@@ -97,7 +121,7 @@ export class SupabaseRecipeRepository implements RecipeRepository {
   async update(id: string, input: RecipeInput): Promise<RecipeView | null> {
     if (!isUuid(id)) return null;
     const doc = await callRpc<DbRow>(this.client, 'save_recipe', { ...this.scope(), p_id: id, p_input: input, p_mode: 'update' });
-    return doc ? recipeViewFromDoc(doc) : null;
+    return doc ? (await this.summarise([recipeViewFromDoc(doc)]))[0]! : null;
   }
 
   /**
@@ -162,6 +186,6 @@ export class SupabaseRecipeRepository implements RecipeRepository {
       p_names: candidate.ingredientNames ?? [],
       p_exclude: excludeId && isUuid(excludeId) ? excludeId : null,
     });
-    return (docs ?? []).map(recipeViewFromDoc);
+    return this.summarise((docs ?? []).map(recipeViewFromDoc));
   }
 }

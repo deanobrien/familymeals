@@ -228,14 +228,33 @@ export function createRecipeCalculator(opts: CalculatorOptions = {}): RecipeCalc
   };
 }
 
-const KEY = Symbol.for('fr.recipes.calculator');
-type G = typeof globalThis & { [KEY]?: RecipeCalculator };
+const KEY = Symbol.for('fr.recipes.calculators');
+type G = typeof globalThis & { [KEY]?: Map<string, RecipeCalculator> };
+const GENERIC = '';
+
+const calculators = (): Map<string, RecipeCalculator> => ((globalThis as G)[KEY] ??= new Map<string, RecipeCalculator>());
 
 /**
- * Process-wide calculator: generic refdata prices plus the shared price store's recorded observations
- * (receipt prices), which the engine ranks above generic estimates (D34).
+ * Process-wide calculators, ONE PER HOUSEHOLD (D101): generic refdata prices plus that household's recorded
+ * price observations (receipt prices), which the engine ranks above generic estimates (D34). A receipt price
+ * from one household never changes another household's recipe costs.
  */
-export function getRecipeCalculator(): RecipeCalculator {
-  const g = globalThis as G;
-  return (g[KEY] ??= createRecipeCalculator({ priceSource: getPriceStore().asPriceSource() }));
+export function getRecipeCalculator(householdId: string): RecipeCalculator {
+  const map = calculators();
+  let calc = map.get(householdId);
+  if (!calc) map.set(householdId, (calc = createRecipeCalculator({ priceSource: getPriceStore().asPriceSource(householdId) })));
+  return calc;
+}
+
+/** Generic refdata prices only (no household observations): the fallback when no household is known. */
+export function getGenericRecipeCalculator(): RecipeCalculator {
+  const map = calculators();
+  let calc = map.get(GENERIC);
+  if (!calc) map.set(GENERIC, (calc = createRecipeCalculator()));
+  return calc;
+}
+
+/** Dev/e2e reset: drop every cached calculator. */
+export function resetRecipeCalculators(): void {
+  (globalThis as G)[KEY] = undefined;
 }
