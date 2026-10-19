@@ -99,7 +99,7 @@ Everything else runs beside it. Biggest risk to the path: **L1 schema quality** 
 - Each lane ends with the brief's §18 milestone report.
 
 ## Decisions needed from owner (block W0a)
-1. **Repo location & Git host** — e.g. `C:\TFS\FamilyRecipes` on personal GitHub? (Not ADO/Northumbria.)
+1. **Repo location & Git host** — e.g. a personal GitHub repo (resolved: `deanobrien/familymeals`) (Not ADO/Northumbria.)
 2. **Supabase** — cloud project in London (needs account) and/or local stack (needs Supabase CLI + newer Docker).
 3. **AI key** — Anthropic API key for the server env (mock provider used until supplied).
 4. ~~Owner-machine tracking database firewall~~ (not relevant to this repo).

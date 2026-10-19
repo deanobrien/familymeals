@@ -1,5 +1,5 @@
 -- PRJ-018 schema v1 — 0012 privacy lifecycle (requested by L24 security/privacy; see
--- FamilyRecipes-lanes/L24-security-docs/DATA-EXPORT-DELETION.md and PRIVACY.md):
+-- docs/security/DATA-EXPORT-DELETION.md and docs/security/PRIVACY.md):
 --   consent_records          explicit consent for special-category data (allergies / dietary restrictions)
 --   storage_cleanup_queue    objects to delete from Storage after row deletion (Storage never cascades)
 --   deletion_ledger          purge requests/completions; replayed after any backup restore
