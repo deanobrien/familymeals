@@ -44,7 +44,7 @@ export class SupabaseRecipeRepository implements RecipeRepository {
   }
 
   private async fetchPage(query: RecipeQuery, page: number, pageSize: number): Promise<{ items: RecipeView[]; total: number }> {
-    const doc = await callRpc<{ total: number; items: DbRow[] }>(this.client, 'list_recipes', {
+    const doc = await callRpc<{ total: number; items: DbRow[] }>(this.client)('list_recipes', {
       ...this.scope(),
       p_query: query.q,
       p_cuisine: query.cuisine ?? null,
@@ -97,14 +97,14 @@ export class SupabaseRecipeRepository implements RecipeRepository {
   async getMany(ids: string[]): Promise<RecipeView[]> {
     const valid = [...new Set(ids.filter(isUuid))];
     if (valid.length === 0) return [];
-    const docs = await callRpc<DbRow[]>(this.client, 'get_recipes', { ...this.scope(), p_ids: valid });
+    const docs = await callRpc<DbRow[]>(this.client)('get_recipes', { ...this.scope(), p_ids: valid });
     return this.summarise((docs ?? []).map(recipeViewFromDoc));
   }
 
   async create(input: RecipeInput, opts: { id?: string } = {}): Promise<RecipeView> {
     if (opts.id !== undefined && !isUuid(opts.id)) throw new Error(`Recipe id must be a UUID (got "${opts.id}")`);
     try {
-      const doc = await callRpc<DbRow>(this.client, 'save_recipe', {
+      const doc = await callRpc<DbRow>(this.client)('save_recipe', {
         ...this.scope(),
         p_id: opts.id ?? null,
         p_input: input,
@@ -120,7 +120,7 @@ export class SupabaseRecipeRepository implements RecipeRepository {
 
   async update(id: string, input: RecipeInput): Promise<RecipeView | null> {
     if (!isUuid(id)) return null;
-    const doc = await callRpc<DbRow>(this.client, 'save_recipe', { ...this.scope(), p_id: id, p_input: input, p_mode: 'update' });
+    const doc = await callRpc<DbRow>(this.client)('save_recipe', { ...this.scope(), p_id: id, p_input: input, p_mode: 'update' });
     return doc ? (await this.summarise([recipeViewFromDoc(doc)]))[0]! : null;
   }
 
@@ -164,7 +164,7 @@ export class SupabaseRecipeRepository implements RecipeRepository {
   }
 
   private async facets(): Promise<{ tags: TagCount[]; cuisines: string[] }> {
-    const doc = await callRpc<{ tags?: TagCount[]; cuisines?: string[] }>(this.client, 'recipe_facets', { p_household_id: this.householdId });
+    const doc = await callRpc<{ tags?: TagCount[]; cuisines?: string[] }>(this.client)('recipe_facets', { p_household_id: this.householdId });
     return {
       tags: (doc?.tags ?? []).map((t) => ({ tag: t.tag, count: Number(t.count) })),
       cuisines: doc?.cuisines ?? [],
@@ -180,7 +180,7 @@ export class SupabaseRecipeRepository implements RecipeRepository {
   }
 
   async findDuplicates(candidate: { title: string; ingredientNames?: string[] }, excludeId?: string): Promise<RecipeView[]> {
-    const docs = await callRpc<DbRow[]>(this.client, 'find_recipe_duplicates', {
+    const docs = await callRpc<DbRow[]>(this.client)('find_recipe_duplicates', {
       ...this.scope(),
       p_title: candidate.title,
       p_names: candidate.ingredientNames ?? [],

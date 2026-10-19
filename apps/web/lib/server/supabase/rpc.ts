@@ -1,5 +1,6 @@
 // Thin helpers over @supabase/supabase-js shared by the Supabase repositories (lane S1, DECISIONS D50-D59).
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@fr/db';
 
 export type { SupabaseClient };
 
@@ -26,10 +27,21 @@ export function unwrap<T>(operation: string, res: PgResult<T>): T | null {
   return res.data;
 }
 
-/** Calls a SQL function (all multi-table reads/writes go through RPC; see migration 0015). */
-export async function callRpc<T>(client: SupabaseClient, fn: string, args: Record<string, unknown>): Promise<T | null> {
-  const res = (await client.rpc(fn, args)) as PgResult<T>;
-  return unwrap(`rpc ${fn}`, res);
+type PublicFunctions = Database['public']['Functions'];
+/** A SQL function in `public`, checked against the generated types (`supabase gen types`, D141). */
+export type RpcName = keyof PublicFunctions & string;
+/** The function's argument names (values stay `unknown`: jsonb args take domain objects). */
+export type RpcArgs<F extends RpcName> = { [K in keyof PublicFunctions[F]['Args']]: unknown };
+
+/**
+ * Calls a SQL function (all multi-table reads/writes go through RPC; see migration 0015). The function name and
+ * argument names are type-checked against the generated `Database` types; the result shape is the caller's `T`.
+ */
+export function callRpc<T>(client: SupabaseClient) {
+  return async <F extends RpcName>(fn: F, args: RpcArgs<F>): Promise<T | null> => {
+    const res = (await client.rpc(fn, args as Record<string, unknown>)) as PgResult<T>;
+    return unwrap(`rpc ${fn}`, res);
+  };
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
