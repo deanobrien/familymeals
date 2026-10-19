@@ -16,6 +16,7 @@ Verified by running (2026-10-19, integration worktree): `pnpm install`; `pnpm bu
 
 Known caveats:
 - All data is in memory (lost on restart). The recipe store is global, not household-scoped; pantry seeds every household with the demo stock; planner member names / exclusions are demo values for every household.
+- Receipt prices feed the recipe cost calculator through a process-wide PriceSource spanning all households (recipes are global too); household-scope both with Supabase.
 - Pantry adds from receipt "extra" lines are recorded only in the receipts in-memory sink (not in the pantry service yet).
 - The client-side shopping converter has no ingredient densities / unit weights (the server is authoritative); optimistic UI can briefly differ for cross-dimension purchases.
 - Receipt `PurchaseEvent.createdBy` = session user; mock mode has one user, so "another shopper" in e2e is a second browser of the same user.
@@ -25,7 +26,7 @@ Known caveats:
 1. Supabase adapters behind the in-memory interfaces (recipes, plans, pantry, shopping command log + `record_purchase`, receipts, price observations); generate `database.types.ts`.
 2. Live-Supabase e2e flows (auth.spec fixmes) once a local or cloud stack exists (Docker 20.10 may be too old; cloud London is the fallback).
 3. D29 TODO: `@fr/ai` PlanConstraints should emit the engine planner schema; pass canonical ingredient ids so `allowUnverifiedIngredients` can go back to false.
-4. L18: library/planner costs and nutrition from `@fr/engine/cost` / `/nutrition` with the shared price store (shopping basket already does).
+4. Library/planner cost + nutrition are real since C1 (D60-D64) and read the shared price store; remaining L18 work is UI polish (partial flag on cards, D62).
 5. Receipt pantry adds -> pantry service; household-scoped recipes; real member profiles for the planner.
 6. Owner decisions still open: Git host/remote (then run the CI workflow), Supabase cloud project, Anthropic/OpenAI keys, product name.
 

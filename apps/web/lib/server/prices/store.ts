@@ -15,6 +15,12 @@ export interface PriceStore {
   observationsFor(householdId: string, ingredientIds?: Iterable<string>): PriceObservation[];
   record(householdId: string, observations: readonly PriceObservation[]): void;
   reset(): void;
+  /**
+   * Recorded (non-generic) observations as a `lib/server/calc` PriceSource for the recipe cost calculator.
+   * The calculator and recipe store are process-wide (not household-scoped yet), so this spans every
+   * household: acceptable for the in-memory demo, must become household-scoped with Supabase (D34).
+   */
+  asPriceSource(): { observations(): readonly PriceObservation[]; version(): string };
 }
 
 interface RefdataPrice extends PriceObservation {
@@ -27,6 +33,7 @@ function generic(): PriceObservation[] {
 
 export class InMemoryPriceStore implements PriceStore {
   private readonly byHousehold = new Map<string, PriceObservation[]>();
+  private version = 0;
   constructor(private readonly generic: readonly PriceObservation[]) {}
 
   observationsFor(householdId: string, ingredientIds?: Iterable<string>): PriceObservation[] {
@@ -40,10 +47,19 @@ export class InMemoryPriceStore implements PriceStore {
     const list = this.byHousehold.get(householdId) ?? [];
     list.push(...structuredClone(observations as PriceObservation[]));
     this.byHousehold.set(householdId, list);
+    this.version++;
   }
 
   reset(): void {
     this.byHousehold.clear();
+    this.version++;
+  }
+
+  asPriceSource() {
+    return {
+      observations: () => [...this.byHousehold.values()].flat(),
+      version: () => `store:${this.version}`,
+    };
   }
 }
 

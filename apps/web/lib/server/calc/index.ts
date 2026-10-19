@@ -1,4 +1,5 @@
 import 'server-only';
+import { getPriceStore } from '../prices/store';
 import {
   PRICE_KIND_RANK,
   costRecipe as engineCostRecipe,
@@ -230,8 +231,11 @@ export function createRecipeCalculator(opts: CalculatorOptions = {}): RecipeCalc
 const KEY = Symbol.for('fr.recipes.calculator');
 type G = typeof globalThis & { [KEY]?: RecipeCalculator };
 
-/** Process-wide calculator (generic refdata prices; swap in a household PriceSource when receipts land). */
+/**
+ * Process-wide calculator: generic refdata prices plus the shared price store's recorded observations
+ * (receipt prices), which the engine ranks above generic estimates (D34).
+ */
 export function getRecipeCalculator(): RecipeCalculator {
   const g = globalThis as G;
-  return (g[KEY] ??= createRecipeCalculator());
+  return (g[KEY] ??= createRecipeCalculator({ priceSource: getPriceStore().asPriceSource() }));
 }
