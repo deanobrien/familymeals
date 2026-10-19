@@ -15,7 +15,7 @@ test('home page renders the app shell with main navigation', async ({ page }) =>
     await expect(nav.getByRole('link', { name: label })).toBeVisible();
   }
   await expect(nav.getByRole('link', { name: 'Pantry' })).toHaveAttribute('href', '/pantry');
-  // /receipts is a placeholder link until the receipts lane merges
+  // /receipts is the receipts flow (L21)
   await expect(nav.getByRole('link', { name: 'Receipts' })).toHaveAttribute('href', '/receipts');
 });
 

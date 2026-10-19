@@ -10,12 +10,12 @@ Merge order within a wave: contracts/packages before apps.
 - [x] W0b L3 Engine core (units, parse, normalise, scale, aggregate; merged, merge batch 2, 350 tests)
 - [x] W0b L4 AI gateway (merged, merge batch 1)
 - [x] W0b L5 Reference data (merged, merge batch 1)
-- [~] W0b L6 QA harness: fixtures + e2e specs merged (merge batch 1); RLS tests + CI wiring pending
+- [~] W0b L6 QA harness: fixtures + e2e specs merged (batch 1); RLS tests in `packages/db`; e2e rerunnable (dev reset/seed endpoints, D36); CI workflow file added but not run (no remote, D38)
 - [ ] **Gate G0**: Brief M0 acceptance + schema merged + engine core green
 
 ## Wave 1 - Core features (needs G0)
 
-- [ ] L11 Auth & household
+- [x] L11 Auth & household (merged batch 5: `@supabase/ssr`, middleware, mock-auth demo mode, households, invitations, `transfer_ownership` RPC; all lanes use `getAppContext()`, D35/D37). Live-Supabase e2e flows still fixme
 - [x] L12 Recipe library (merged batch 4; its in-memory repository is the shared recipe store, D30)
 - [x] L13 Recipe extraction (merged batch 4; parse/match via `@fr/engine` + refdata catalogue, saves into the library store)
 - [x] L7 Cost engine (engine code merged, merge batch 2; UI/wiring pending)
@@ -28,18 +28,18 @@ Merge order within a wave: contracts/packages before apps.
 
 - [x] L15 Meal planner UI (merged batch 4; recipes from the shared store)
 - [x] L16 Prompt planning (merged batch 4; `@fr/plan-orchestrator`, solver = `@fr/engine/planner` via engine-solver.ts, D29)
-- [ ] L17 Shopping list (lane finished on branch worktree-agent-a5a258b1b8baf2025, not merged yet)
-- [ ] L18 Cost & nutrition UI
+- [x] L17 Shopping list (merged batch 5; `@fr/engine/shopping`, generated from the approved plan via `@fr/engine/aggregate`, basket estimate via `@fr/engine/cost` + refdata prices, D33/D34)
+- [ ] L18 Cost & nutrition UI (shopping basket uses `@fr/engine/cost`; library/planner costs are still seed placeholders)
 - [ ] L19 Price management
 - [ ] **Gate G2**: M4 + M5 + M6 acceptance (MVP-ready internally)
 
 ## Wave 3 - Sharing, receipts, pantry (needs G2)
 
 - [ ] L20 Realtime & invitations
-- [ ] L21 Receipt flow (lane running; nav link /receipts already present)
+- [x] L21 Receipt flow (merged batch 5; `@fr/engine/receipt-match` against the shopping list, confirmed lines tick items, receipt prices into the shared price store, D34)
 - [x] L22 Pantry (merged batch 4; `@fr/engine/pantry` + catalogue converter)
 - [x] L23 Home dashboard (merged batch 4, with settings + privacy pages)
-- [ ] L14 Expo (optional start)
+- [x] L14 Expo (merged batch 5 as `apps/mobile`, mock DataSource, D32)
 - [ ] **Gate G3**: M7 + M8 acceptance (first release scope complete)
 
 ## Wave 4 - Hardening

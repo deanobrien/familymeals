@@ -2,20 +2,29 @@
 
 **Date:** 2026-10-19. Branch `prj018/w0a-skeleton`, all merges committed locally (no remote, never push).
 
-Merged: batch 1 (L2a ui, L4 ai, L5 refdata, L6 qa fixtures/specs, app shell), batch 2 (`@fr/engine`: L3, L7, L8, L9, L10, L17a, L22a), batch 3 (L1 `@fr/domain` + schema/RLS + owner decisions), batch 4 (L23 home/settings/privacy, L12 recipe library, L13 photo import + `@fr/recipe-import`, L15/L16 planner + `@fr/plan-orchestrator`, L22 pantry UI).
+Merged: batch 1 (L2a ui, L4 ai, L5 refdata, L6 qa fixtures/specs, app shell), batch 2 (`@fr/engine`: L3, L7, L8, L9, L10, L17a, L22a), batch 3 (L1 `@fr/domain` + schema/RLS + owner decisions), batch 4 (L23 home/settings/privacy, L12 recipe library, L13 photo import, L15/L16 planner, L22 pantry), batch 5 (L17 shopping UI, L21 receipts UI, L11 auth/households/invitations, L14 Expo `apps/mobile`), plus the AI-provider settings lane from the main checkout.
 
-Batch 4 wiring: engine `contract.ts` re-exports `@fr/domain` types; pantry uses `@fr/engine/pantry` (vendor copy deleted); import parses/matches with `@fr/engine` over the server-only refdata catalogue (D28); planner solves with `@fr/engine/planner` (D29); one in-memory recipe store for library, import, planner and pantry (D30); Pantry + Receipts nav (D31).
+Batch 5 wiring (D32-D38):
+- Shopping on `@fr/engine/shopping`; `/shopping?plan=<id>` and the planner's "Generate shopping list" build the list from the household's APPROVED plan with `@fr/engine/aggregate` over the recipe store (D33).
+- Receipts on `@fr/engine/receipt-match`; outstanding items = the shopping list; confirmed lines tick shopping items; receipt prices go into the shared in-memory price store, which the `@fr/engine/cost` basket estimate ranks above refdata generic estimates (D34).
+- `getAppContext()` (household + user) in shopping, planner, pantry, receipts; mock-auth demo mode = Alice Smith / household A with a banner on every page; `fr_household=e2e-*` sandbox households for e2e; auth routes render without app nav; invite sign-up keeps `next` (D35).
+- Dev-only `/api/dev/reset` + `/api/dev/seed` (404 in production), Playwright globalSetup reset + browser warm-up, 4 workers, longer timeouts, dev watcher/onDemandEntries tuning (D36).
+- `transfer_ownership` RPC + PGlite test; household transfer action uses it (D37).
+- `.gitattributes` (LF) and `.github/workflows/ci.yml` (D38).
 
-Verified by running (2026-10-19): `pnpm install`; `pnpm build` (9 tasks); `pnpm typecheck` (10); `pnpm lint`; `pnpm turbo run test --force` (17 tasks, 1054 tests: engine 743, web 115, domain 38, ai 35, refdata 29, ui 26, e2e fixtures 26, recipe-import 20, db 12, plan-orchestrator 10); `pnpm test:e2e` 35 passed / 86 fixme-skipped against a freshly started, warmed dev server on 3100. Dev server curl: `/ /recipes /recipes/import /plan /pantry /settings` all 200; `/receipts` 404 (placeholder until L21).
+Verified by running (2026-10-19, integration worktree): `pnpm install`; `pnpm build` (9 tasks); `pnpm typecheck` (11); `pnpm lint`; `pnpm turbo run test --force` (18 tasks, 1225 tests: engine 743, web 232, ai 66, domain 38, recipe-import 31, refdata 29, ui 26, e2e fixtures 26, db 13, mobile 11, plan-orchestrator 10); `pnpm test:e2e` twice in a row against one freshly started dev server: 51 passed / 100 skipped (fixme) both times; curl `/ /recipes /plan /shopping /receipts /pantry /household /settings` -> 200 (mock-auth mode).
 
-Known e2e caveats: on a cold dev server the first visit to an uncompiled route can exceed Playwright's 5s expect timeout (random single failures across runs); specs mutate the in-memory store, so a second run against the same server fails (pantry stale-confirm, planner week already saved). Start a fresh server and warm routes before running.
+Known caveats:
+- All data is in memory (lost on restart). The recipe store is global, not household-scoped; pantry seeds every household with the demo stock; planner member names / exclusions are demo values for every household.
+- Pantry adds from receipt "extra" lines are recorded only in the receipts in-memory sink (not in the pantry service yet).
+- The client-side shopping converter has no ingredient densities / unit weights (the server is authoritative); optimistic UI can briefly differ for cross-dimension purchases.
+- Receipt `PurchaseEvent.createdBy` = session user; mock mode has one user, so "another shopper" in e2e is a second browser of the same user.
 
 ## Next
 
-1. Merge the shopping lane (worktree-agent-a5a258b1b8baf2025, 24d94a2) and the receipts lane when done (they own `apps/web/app/shopping/**` and `apps/web/app/receipts/**`). Shopping should consume the planner's `onShoppingRequirements` and `@fr/engine/shopping`.
-2. Supabase adapters for the recipe store, planner and pantry (interfaces in D30); auth/household lanes.
-3. D29 TODO: `@fr/ai` PlanConstraints should emit the engine planner schema; pass canonical ingredient ids and unmatched lines to the solver so `allowUnverifiedIngredients` can go back to false.
-4. Library cost/nutrition and planner costs are still placeholder seed values: wire `@fr/engine/cost` and `/nutrition` with refdata prices.
-5. e2e: isolate or reset in-memory state per run; add a warm-up step or larger expect timeout for cold dev compiles.
-6. Open owner decisions: Git host/remote, Supabase cloud project (London), Anthropic key, product name.
-7. Supabase local stack not verified (Docker 20.10 may be too old). No CI pipeline yet.
+1. Supabase adapters behind the in-memory interfaces (recipes, plans, pantry, shopping command log + `record_purchase`, receipts, price observations); generate `database.types.ts`.
+2. Live-Supabase e2e flows (auth.spec fixmes) once a local or cloud stack exists (Docker 20.10 may be too old; cloud London is the fallback).
+3. D29 TODO: `@fr/ai` PlanConstraints should emit the engine planner schema; pass canonical ingredient ids so `allowUnverifiedIngredients` can go back to false.
+4. L18: library/planner costs and nutrition from `@fr/engine/cost` / `/nutrition` with the shared price store (shopping basket already does).
+5. Receipt pantry adds -> pantry service; household-scoped recipes; real member profiles for the planner.
+6. Owner decisions still open: Git host/remote (then run the CI workflow), Supabase cloud project, Anthropic/OpenAI keys, product name.

@@ -17,6 +17,11 @@ Modes (`lib/supabase/env.ts`): `supabase` (env present), `mock` (env missing, NO
 open as a fixed mock user, `ctx.supabase` throws on use), `unconfigured` (env missing in production: mock REFUSED, protected
 routes 503).
 
+Mock mode is the local demo (D35): user Alice Smith (`MOCK_USER_ID`) in household A `The Smiths (A)` (`MOCK_HOUSEHOLD_ID`, the QA
+fixture household), bannered on every page by the root layout. Dev/test only: an `fr_household=e2e-<id>` cookie selects an
+isolated, empty sandbox household (e2e isolation); other values are ignored. App lanes should normally use
+`getAppContext()` from `lib/server/context.ts` (household id, user id, readOnly) rather than this module directly.
+
 ## API for other lanes (server only)
 
 ```ts
