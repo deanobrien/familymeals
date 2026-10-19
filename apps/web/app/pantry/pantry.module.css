@@ -1,0 +1,22 @@
+.page { display: flex; flex-direction: column; gap: var(--fr-space-6); max-width: 960px; }
+.lead { color: var(--fr-text-muted); margin: 0; }
+.section { display: flex; flex-direction: column; gap: var(--fr-space-3); }
+.section h2 { margin: 0; font-size: var(--fr-text-xl); }
+.cardBody { display: flex; flex-direction: column; gap: var(--fr-space-3); }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--fr-space-3); justify-content: space-between; }
+.rowMain { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.name { font-weight: 600; }
+.muted { color: var(--fr-text-muted); font-size: var(--fr-text-sm); }
+.badges { display: flex; flex-wrap: wrap; gap: var(--fr-space-2); align-items: center; }
+.actions { display: flex; flex-wrap: wrap; gap: var(--fr-space-2); align-items: center; }
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.list > li { padding: var(--fr-space-3) 0; border-bottom: 1px solid var(--fr-border); }
+.list > li:last-child { border-bottom: 0; }
+.formGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--fr-space-3); align-items: flex-end; }
+.matches { list-style: none; margin: 0; padding: 0; border: 1px solid var(--fr-border); border-radius: var(--fr-radius-md); overflow: hidden; }
+.matches button { width: 100%; text-align: left; background: var(--fr-surface); border: 0; padding: var(--fr-space-3); cursor: pointer; font: inherit; color: inherit; min-height: var(--fr-target); }
+.matches button:hover, .matches button:focus-visible { background: var(--fr-accent-soft); }
+.stale { background: var(--fr-warning-soft); border-radius: var(--fr-radius-md); padding: var(--fr-space-3); }
+.inlineForm { display: flex; flex-wrap: wrap; gap: var(--fr-space-3); align-items: flex-end; padding-top: var(--fr-space-3); }
+.explain { margin: var(--fr-space-2) 0 0; padding-left: var(--fr-space-5); color: var(--fr-text-muted); font-size: var(--fr-text-sm); }
+.error { color: var(--fr-danger); font-size: var(--fr-text-sm); }
