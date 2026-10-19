@@ -38,6 +38,14 @@ export const STATES: State[] = [
   },
   { name: 'plan', path: '/plan?week=2026-11-09' },
   {
+    name: 'plan constraint chips',
+    path: '/plan?week=2026-11-09',
+    prepare: async (page) => {
+      await page.getByRole('button', { name: 'Understand my request' }).click();
+      await page.getByTestId('constraint-chips').waitFor({ timeout: 60_000 });
+    },
+  },
+  {
     name: 'plan proposal',
     path: '/plan?week=2026-11-09',
     prepare: async (page) => {

@@ -14,6 +14,10 @@ Scope: every route and review/proposal state (home, recipes list/detail/new/edit
 | 6 | shopping (375) | "From plan" popover trigger 28 px high | moderate | `.popoverTrigger` min-height `var(--fr-target)` | fixed |
 | 7 | receipts (375) | "View/Review" link 37x25 px | moderate | styled as `fr-btn fr-btn--ghost fr-btn--sm` (44 px) | fixed |
 
+| 8 | plan constraint chips (375, after merge of 87cb35f) | Number inputs, selects and day toggles 25-42 px (< 44 px) | moderate | `plan.css`: `.plan__chips` inputs/selects min-height `var(--fr-target)`, day toggle min-width 44 | fixed |
+
+Note (minor, not fixed): on the chips, several inputs carry an `aria-label` that differs from the visible label text (e.g. "Budget (£)" vs "Budget in pounds"); fine for axe, but WCAG 2.5.3 prefers the accessible name to contain the visible text. Existing e2e selectors depend on those names, so left alone.
+
 ## Checked, no change needed
 
 - axe: zero serious/critical on every app route and state at both widths and themes once 1 is fixed (app shell tokens already meet 4.5:1 in both themes).

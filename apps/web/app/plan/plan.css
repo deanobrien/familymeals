@@ -42,5 +42,6 @@
 .plan__chip { display: inline-flex; align-items: center; gap: var(--fr-space-2); padding: 2px var(--fr-space-3); border: 1px solid var(--fr-border); border-radius: 999px; background: var(--fr-surface); }
 .plan__chip--locked { border-style: dashed; }
 .plan__chip-x { background: none; border: 0; cursor: pointer; font-size: 1.1rem; line-height: 1; padding: 0 4px; min-width: var(--fr-target, 24px); min-height: var(--fr-target, 24px); color: inherit; }
-.plan__day-toggle { border: 1px solid var(--fr-border); background: transparent; border-radius: var(--fr-radius-md); padding: var(--fr-space-1) var(--fr-space-3); min-height: var(--fr-target, 24px); cursor: pointer; color: inherit; }
+.plan__chips input:not([type='checkbox']), .plan__chips select { min-height: var(--fr-target); box-sizing: border-box; padding: var(--fr-space-1) var(--fr-space-2); }
+.plan__day-toggle { border: 1px solid var(--fr-border); background: transparent; border-radius: var(--fr-radius-md); padding: var(--fr-space-1) var(--fr-space-3); min-height: var(--fr-target, 24px); min-width: var(--fr-target, 24px); cursor: pointer; color: inherit; }
 .plan__day-toggle.is-on { background: var(--fr-surface); font-weight: 700; outline: 2px solid var(--fr-accent, currentColor); }
