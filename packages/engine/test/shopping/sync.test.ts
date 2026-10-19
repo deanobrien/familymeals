@@ -185,3 +185,23 @@ describe('randomised interleaving (2 clients, offline replay, duplicates, gaps)'
     });
   }
 });
+
+describe('applyLogEntry: logged rejections are authoritative (D121)', () => {
+  it('a rejected entry records the logged result and never changes state, even if this replica would apply it', () => {
+    const server = seedServer();
+    const snap = serverSnapshot(server);
+    const tick: Command = { type: 'tick', commandId: 't-db', actor: B, at: T, itemId: 'i-flour' };
+    // The database rejected this tick (e.g. under its row lock); locally the engine would have applied it.
+    const entry = {
+      seq: snap.cursor + 1, command: tick,
+      result: { commandId: 't-db', type: 'tick' as const, status: 'rejected' as const, reason: 'already_complete' as const, itemId: 'i-flour', completedBy: [A] },
+    };
+    let client = clientEnqueue(createClient(snap), tick);
+    client = clientIngest(client, [entry], ctx);
+    expect(client.confirmed.events['t-db']).toBeUndefined();
+    expect(client.confirmed.outcomes['t-db']).toEqual(entry.result);
+    expect(client.pending).toEqual([]);
+    expect(client.conflicts).toEqual([entry.result]);
+    expect(replay(snap, [entry], ctx).state.events).toEqual(snap.state.events);
+  });
+});
