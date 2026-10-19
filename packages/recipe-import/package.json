@@ -1,0 +1,13 @@
+{
+  "name": "@fr/recipe-import",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Extraction -> reviewable draft -> finalised recipe payloads. Pure TS, client-safe (no node imports), dependencies injected.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "build": "tsc --noEmit", "typecheck": "tsc --noEmit", "test": "vitest run" },
+  "dependencies": { "zod": "^4.6.7" },
+  "devDependencies": { "@types/node": "^22.10.2", "typescript": "^5.7.2", "vitest": "^2.1.8" }
+}

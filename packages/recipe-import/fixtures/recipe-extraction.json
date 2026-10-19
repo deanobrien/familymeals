@@ -1,0 +1,24 @@
+{
+  "title": "Nana's Lentil Soup",
+  "description": "A hearty red lentil soup from a handwritten family card.",
+  "ingredients": [
+    { "originalText": "200g red lentils", "name": "red lentils", "quantity": { "kind": "exact", "value": 200, "unit": "g", "originalText": "200g" }, "optional": false, "confidence": 0.97 },
+    { "originalText": "1 onion, finely chopped", "name": "onion", "quantity": { "kind": "exact", "value": 1, "unit": "item", "originalText": "1" }, "preparation": "finely chopped", "optional": false, "confidence": 0.95 },
+    { "originalText": "2 cloves garlic", "name": "garlic", "quantity": { "kind": "exact", "value": 2, "unit": "clove", "originalText": "2 cloves" }, "optional": false, "confidence": 0.95 },
+    { "originalText": "1 litre vegetable stock", "name": "vegetable stock", "quantity": { "kind": "exact", "value": 1, "unit": "l", "originalText": "1 litre" }, "optional": false, "confidence": 0.9 },
+    { "originalText": "a pinch of salt", "name": "salt", "quantity": { "kind": "approximate", "approxLabel": "pinch", "originalText": "a pinch" }, "optional": false, "confidence": 0.9 },
+    { "originalText": "lemon juice to taste (optional)", "name": "lemon juice", "quantity": { "kind": "to_taste", "originalText": "to taste" }, "optional": true, "confidence": 0.8 }
+  ],
+  "steps": [
+    "Soften the onion and garlic in a little oil.",
+    "Add lentils and stock; simmer for 25 minutes.",
+    "Blend if desired and season."
+  ],
+  "servings": 4,
+  "prepMinutes": 10,
+  "cookMinutes": 30,
+  "tags": ["soup", "vegan", "budget"],
+  "cuisine": "british",
+  "warnings": ["Oven/hob temperature not stated on the card."],
+  "confidence": { "title": 0.99, "ingredients": 0.93, "steps": 0.9, "servings": 0.85, "times": 0.7 }
+}
