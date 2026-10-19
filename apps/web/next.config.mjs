@@ -18,13 +18,25 @@ const nextConfig = {
     '@fr/ui',
   ],
   serverExternalPackages: ['sharp'],
+  // Dev only: keep compiled routes for an hour instead of disposing them after 60s idle, so e2e runs (and
+  // demos) do not pay repeated cold compiles of pages and server actions (D36).
+  onDemandEntries: { maxInactiveAge: 60 * 60 * 1000, pagesBufferLength: 50 },
   experimental: { serverActions: { bodySizeLimit: '16mb' } },
-  webpack(config) {
+  webpack(config, { dev }) {
     config.resolve.extensionAlias = {
       ...config.resolve.extensionAlias,
       '.js': ['.ts', '.tsx', '.js'],
       '.mjs': ['.mts', '.mjs'],
     };
+    if (dev) {
+      // Runtime data (apps/web/.data) and Playwright output must not trigger dev rebuilds mid-test (D36).
+      const base = config.watchOptions?.ignored;
+      const extra = /[\\/](\.data|test-results|playwright-report|node_modules|\.git|\.next)([\\/]|$)/;
+      config.watchOptions = {
+        ...config.watchOptions,
+        ignored: base instanceof RegExp ? new RegExp(`${base.source}|${extra.source}`) : extra,
+      };
+    }
     return config;
   },
 };

@@ -51,6 +51,7 @@ test.describe('shopping list', () => {
     await expect(page.getByRole('button', { name: 'Plan your week first' })).toBeVisible(); // no approved plan yet
     await seedPlan(page);
     await page.reload();
+    await expect(page.getByTestId('shopping-root')).toHaveAttribute('data-hydrated', 'true');
     await page.getByRole('button', { name: 'Generate from plan' }).click();
     await expect(tickBox(page, 'Onion')).toBeVisible();
   });

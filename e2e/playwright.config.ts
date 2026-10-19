@@ -9,6 +9,8 @@ export default defineConfig({
   reporter: [['list']],
   // Resets the in-memory stores and warms the routes (cold Next dev compiles are slow).
   globalSetup: './support/global-setup.ts',
+  // A cold Next dev server compiles each route/server action on first use; 16+ parallel workers starve it.
+  workers: Number(process.env.E2E_WORKERS ?? 4),
   timeout: 90_000,
   expect: { timeout: 15_000 },
   use: {
