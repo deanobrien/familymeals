@@ -17,6 +17,7 @@
     "test": "vitest run",
     "import:cofid": "tsx scripts/import-cofid.ts",
     "build:seed": "tsx scripts/build-seed.ts",
+    "build:sql-seed": "tsx scripts/build-sql-seed.ts",
     "coverage": "tsx scripts/coverage.ts --kits"
   },
   "dependencies": {

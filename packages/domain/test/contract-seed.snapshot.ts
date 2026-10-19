@@ -1,4 +1,4 @@
-// Verbatim snapshot of C:\TFS\FamilyRecipes-lanes\CONTRACT-SEED.ts (2026-10-19) used for type-compat tests. Do not edit.
+// Verbatim snapshot of docs/history/CONTRACT-SEED.ts (2026-10-19) used for type-compat tests. Do not edit.
 // PRJ-018 shared contract seed. ALL lanes import/copy these shapes verbatim.
 // Lane L1 (schema/domain) owns the final zod versions; do not diverge from these names.
 

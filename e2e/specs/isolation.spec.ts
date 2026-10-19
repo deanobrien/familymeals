@@ -1,6 +1,6 @@
 // Household isolation (UI level) in mock-auth mode: two sandbox households (`fr_household=e2e-*` cookies) must never
 // see each other's shopping list, plan, receipts or pantry. DB-level RLS lives in packages/db (PGlite) and is the
-// primary control; cross-household checks that need real memberships are `fixme(true, 'needs live Supabase')`.
+// primary control; cross-household checks that need real memberships run in e2e/live/ (pnpm test:e2e:live).
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 import { fileURLToPath } from 'node:url';
 import { SEED, enterHousehold, newHouseholdId, seedApprovedPlan } from '../support/helpers.js';
@@ -130,19 +130,6 @@ test.describe('Household isolation', () => {
     } finally { await a.context.close(); await b.context.close(); }
   });
 
-  test('B cannot see A recipes in library or search', async () => {
-    test.fixme(true, 'needs live Supabase: the in-memory recipe store is one shared library, not scoped per household (RLS covers this in packages/db)');
-  });
-
-  test('B realtime channel receives no A events', async () => {
-    test.fixme(true, 'needs live Supabase (no Realtime channel in mock mode; polling isolation is covered above)');
-  });
-
-  test('removed member loses access immediately (session + realtime)', async () => {
-    test.fixme(true, 'needs live Supabase');
-  });
-
-  test('expired / revoked invite link cannot be used', async () => {
-    test.fixme(true, 'needs live Supabase (partly covered by auth.spec route-protection tests)');
-  });
+  // Cross-household checks that need real memberships (recipes library/search, Realtime, removed member, expired /
+  // revoked invites) run against a local Supabase stack in e2e/live/ (`pnpm test:e2e:live`, D143).
 });
