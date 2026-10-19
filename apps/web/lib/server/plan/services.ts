@@ -7,13 +7,16 @@ import { getRecipeRepository } from '../../recipes/factory';
 import { RepositoryPlanRecipeSource, toRecipeRepo, type PlanRecipeSource } from './recipe-source';
 import { InMemoryMealPlanRepository, type MealPlanRepository } from './repository';
 import { createEngineSolver } from './engine-solver';
+import { createSupabaseMealPlanRepository, createSupabasePlanRecipeSource, useSupabaseBackend } from '../supabase/backend';
 
 export const DEMO_HOUSEHOLD_ID = 'demo-household';
+/** Supabase mode needs a real household uuid: interim SUPABASE_DEFAULT_HOUSEHOLD_ID until the auth lane supplies the session's. */
+const planHouseholdId = (): string => (useSupabaseBackend() ? (process.env.SUPABASE_DEFAULT_HOUSEHOLD_ID ?? DEMO_HOUSEHOLD_ID) : DEMO_HOUSEHOLD_ID);
 
 /** TODO(Supabase): resolve the signed-in user's household; exclusions from member dietary profiles. */
 export function demoHousehold(): Household {
   return {
-    id: DEMO_HOUSEHOLD_ID,
+    id: planHouseholdId(),
     defaultServings: 4,
     weeklyBudgetPence: 10000,
     hardExclusions: [{ ingredientName: 'peanuts', kind: 'allergy' }],
@@ -67,7 +70,8 @@ export function createCostService(recipes: PlanRecipeSource): CostService {
 
 export function createPlanServices(opts: { ai?: AiProvider; recipes?: PlanRecipeSource; plans?: MealPlanRepository; household?: Household } = {}): PlanServices {
   const household = opts.household ?? demoHousehold();
-  const recipes = opts.recipes ?? new RepositoryPlanRecipeSource(getRecipeRepository());
+  const supabase = useSupabaseBackend();
+  const recipes = opts.recipes ?? (supabase ? createSupabasePlanRecipeSource() : new RepositoryPlanRecipeSource(getRecipeRepository()));
   const households: HouseholdRepo = {
     getHousehold: async (id) => (id === household.id ? structuredClone(household) : null),
     // TODO(Supabase): per-member favourites. Demo: Lauren's favourites are the household favourites.
@@ -84,7 +88,7 @@ export function createPlanServices(opts: { ai?: AiProvider; recipes?: PlanRecipe
     costs: createCostService(recipes),
     proposals: new InMemoryProposalStore(),
   });
-  return { household, households, recipes, plans: opts.plans ?? new InMemoryMealPlanRepository(), orchestrator, newId: () => crypto.randomUUID(), now: () => new Date() };
+  return { household, households, recipes, plans: opts.plans ?? (supabase ? createSupabaseMealPlanRepository() : new InMemoryMealPlanRepository()), orchestrator, newId: () => crypto.randomUUID(), now: () => new Date() };
 }
 
 const g = globalThis as { __frPlanServices?: PlanServices };

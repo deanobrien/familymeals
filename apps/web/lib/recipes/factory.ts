@@ -1,8 +1,9 @@
 // Server-side repository factory. Import ONLY from server components, server actions and route handlers.
-// TODO(L1): when RECIPE_REPOSITORY=supabase, return the DB-backed implementation.
+// DATA_BACKEND=supabase (+ Supabase env) selects the DB-backed implementation (lib/server/supabase, DECISIONS D50-D59).
 // This is the ONE recipe store: the library (L12), photo import's RecipeSink (L13), the planner and pantry
 // recipe sources all read/write it (DECISIONS D30).
 import { getIngredientCatalogue } from '../server/refdata/catalogue';
+import { createSupabaseRecipeRepository, useSupabaseBackend } from '../server/supabase/backend';
 import { InMemoryRecipeRepository } from './memory-repository';
 import type { RecipeRepository } from './repository';
 import { loadSeedRecipes } from './seed';
@@ -29,6 +30,7 @@ export function getRecipeRepository(): RecipeRepository {
   const g = globalThis as Holder;
   const existing = g[KEY];
   if (existing) return existing;
+  if (useSupabaseBackend()) return (g[KEY] = createSupabaseRecipeRepository());
   const kind = process.env.RECIPE_REPOSITORY ?? 'memory';
   if (kind !== 'memory') {
     throw new Error(`RECIPE_REPOSITORY=${kind} is not implemented yet (only "memory")`);
