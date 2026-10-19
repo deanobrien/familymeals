@@ -26,6 +26,15 @@ test.describe('mock auth mode (no Supabase env)', () => {
     await expect(page.getByText('Local mock auth')).toBeVisible();
   });
 
+  test('every page carries the demo banner; auth pages hide the app navigation', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByTestId('mock-auth-banner')).toContainText('Alice Smith');
+    await expect(page.getByRole('navigation', { name: 'Main', exact: true })).toBeVisible();
+    await page.goto('/sign-in');
+    await expect(page.getByTestId('mock-auth-banner')).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Main', exact: true })).toHaveCount(0);
+  });
+
   test('submitting sign-in in mock mode reports it is unavailable', async ({ page }) => {
     await page.goto('/sign-in');
     await page.getByLabel('Email').fill('someone@example.test');
@@ -52,6 +61,17 @@ test.describe('route protection (Supabase env present, no session)', () => {
     }
     await page.goto(`/invite/${'a'.repeat(64)}`);
     await expect(page.getByRole('heading', { level: 1, name: 'Join a household' })).toBeVisible();
+  });
+
+  test('invite sign-up link keeps the pending invite as next', async ({ page }) => {
+    const token = 'b'.repeat(64);
+    await page.goto(`/invite/${token}`);
+    await expect(page.getByRole('link', { name: 'create an account' })).toHaveAttribute(
+      'href',
+      `/sign-up?next=${encodeURIComponent(`/invite/${token}`)}`,
+    );
+    await page.getByRole('link', { name: 'create an account' }).click();
+    await expect(page.locator('input[name="next"]')).toHaveValue(`/invite/${token}`);
   });
 
   test('malformed invite token shows the invalid state', async ({ page }) => {

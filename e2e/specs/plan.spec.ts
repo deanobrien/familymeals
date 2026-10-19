@@ -1,8 +1,14 @@
 import { expect, test } from '@playwright/test';
 import { MealPlanPage } from '../support/pages.js';
 
-// Plans live in the dev server's in-memory store, so each test uses its own week.
+// Plans live in the dev server's in-memory store, so each test uses its own week. The spec runs in a sandbox
+// household (mock auth, `fr_household=e2e-*`): generating a list from an approved plan writes that household's
+// shopping list, and household A's list must stay empty for the smoke spec.
 test.describe.configure({ mode: 'serial' });
+const SANDBOX = `e2e-plan-${Date.now().toString(36)}`;
+test.beforeEach(async ({ context }) => {
+  await context.addCookies([{ name: 'fr_household', value: SANDBOX, domain: 'localhost', path: '/' }]);
+});
 test.setTimeout(90_000);
 
 async function pick(page: import('@playwright/test').Page, title: string) {

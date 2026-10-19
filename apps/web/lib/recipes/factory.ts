@@ -37,3 +37,9 @@ export function getRecipeRepository(): RecipeRepository {
   g[KEY] = repo;
   return repo;
 }
+
+/** Dev/e2e reset back to the seed, in place, so every holder of the shared store sees it (D30, D36). */
+export function resetRecipeRepository(): void {
+  const repo = (globalThis as Holder)[KEY];
+  if (repo instanceof InMemoryRecipeRepository) repo.resetTo(withCanonicalIngredients(loadSeedRecipes()));
+}

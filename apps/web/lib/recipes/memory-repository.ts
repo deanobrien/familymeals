@@ -156,6 +156,12 @@ export class InMemoryRecipeRepository implements RecipeRepository {
     for (const r of seed) this.store.set(r.id, clone(r));
   }
 
+  /** Dev/e2e: replace the contents IN PLACE (holders such as the import sink keep this same instance). */
+  resetTo(seed: RecipeView[]): void {
+    this.store.clear();
+    for (const r of seed) this.store.set(r.id, clone(r));
+  }
+
   async list(query: RecipeQuery): Promise<RecipeListResult> {
     const matched = sortRecipes(applyFilters([...this.store.values()], query), query.sort);
     const pageSize = Math.max(1, query.pageSize);
