@@ -1,12 +1,18 @@
-import { EmptyState } from '@fr/ui';
+import { getShoppingRepository } from '../../lib/server/shopping/repository';
+import { currentHouseholdId } from '../../lib/server/shopping/session';
+import { ShoppingClient } from './shopping-client';
 
 export const metadata = { title: 'Shopping list' };
+export const dynamic = 'force-dynamic';
 
-export default function Page() {
+export default async function Page({ searchParams }: { searchParams: Promise<{ plan?: string | string[] }> }) {
+  const sp = await searchParams;
+  const plan = Array.isArray(sp.plan) ? sp.plan[0] : sp.plan;
+  const initial = await getShoppingRepository().snapshot(await currentHouseholdId());
   return (
     <>
       <h1>Shopping list</h1>
-      <EmptyState icon="cart" title="Your list is empty" description="A combined shopping list will be built from your plan." />
+      <ShoppingClient initial={initial} {...(plan ? { planId: plan } : {})} />
     </>
   );
 }
