@@ -55,7 +55,8 @@ test.describe('recipe photo import', () => {
     await page.getByRole('textbox', { name: 'Step 3' }).fill('Blend and season well.');
 
     await page.getByRole('button', { name: 'Save recipe' }).click();
-    await expect(page).toHaveURL(/\/recipes\/[0-9a-f-]{36}$/);
+    // first visit compiles /recipes/[id] in the dev server, so allow longer than the default 5s
+    await expect(page).toHaveURL(/\/recipes\/[0-9a-f-]{36}$/, { timeout: 30_000 });
     // shared recipe store: the imported recipe is a real library recipe
     await expect(page.getByRole('heading', { level: 1, name: 'Nana soup (corrected)' })).toBeVisible();
     await expect(page.getByText('split red lentils')).toBeVisible();

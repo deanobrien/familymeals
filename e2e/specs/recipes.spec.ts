@@ -57,8 +57,13 @@ test.describe('browse and search', () => {
 
     await page.goto('/recipes?sort=cost');
     await expect(page.getByRole('combobox', { name: 'Sort by' })).toHaveValue('cost');
-    // Recipes with unknown cost sort last.
-    await expect(recipeLinks(page).last()).toContainText('Fiddly Flapjacks');
+    // Recipes with unknown cost sort last (after every costed recipe, incl. the priciest seed, Family Fish Pie).
+    // Not asserted as the very last card: the shared store may also hold uncosted recipes saved by the import spec.
+    await expect(recipeLinks(page).first()).toBeVisible();
+    const titles = await recipeLinks(page).allTextContents();
+    const flapjacks = titles.findIndex((t) => t.includes('Fiddly Flapjacks'));
+    expect(flapjacks).toBeGreaterThan(titles.findIndex((t) => t.includes('Family Fish Pie')));
+    expect(flapjacks).toBeGreaterThan(-1);
   });
 
   test('favourites can be toggled from a card', async ({ page }) => {
