@@ -62,7 +62,7 @@ export class SupabasePantryRepository implements PantryRepository {
     if (!isUuid(householdId)) throw new Error(`Household id must be a UUID (got "${householdId}")`);
     const bad = items.find((i) => !isUuid(i.id));
     if (bad) throw new Error(`Pantry item id must be a UUID (got "${bad.id}")`);
-    await callRpc<null>(this.client)('replace_pantry_items', { p_household_id: householdId, p_items: items.map(pantryItemToRpcRow) });
+    await callRpc<null>(this.client, 'replace_pantry_items', { p_household_id: householdId, p_items: items.map(pantryItemToRpcRow) });
   }
 
   async getSettings(householdId: Uuid): Promise<PantrySettings> {

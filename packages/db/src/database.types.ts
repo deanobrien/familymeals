@@ -162,6 +162,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      household_ai_settings: {
+        Row: {
+          config: NonNullable<Json>;
+          household_id: string;
+          keys: NonNullable<Json>;
+          provider: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          config?: NonNullable<Json>;
+          household_id: string;
+          keys?: NonNullable<Json>;
+          provider: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          config?: NonNullable<Json>;
+          household_id?: string;
+          keys?: NonNullable<Json>;
+          provider?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'household_ai_settings_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: true;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       household_exclusions: {
         Row: {
           allergen_group: Database['public']['Enums']['allergen_group'] | null;
@@ -1283,6 +1319,7 @@ export type Database = {
           match_status: Database['public']['Enums']['receipt_line_match_status'];
           matched_shopping_list_item_id: string | null;
           original_text: string;
+          parsed: Json | null;
           quantity_kind: Database['public']['Enums']['quantity_kind'];
           quantity_max: number | null;
           quantity_min: number | null;
@@ -1306,6 +1343,7 @@ export type Database = {
           match_status?: Database['public']['Enums']['receipt_line_match_status'];
           matched_shopping_list_item_id?: string | null;
           original_text?: string;
+          parsed?: Json | null;
           quantity_kind?: Database['public']['Enums']['quantity_kind'];
           quantity_max?: number | null;
           quantity_min?: number | null;
@@ -1328,6 +1366,7 @@ export type Database = {
           match_status?: Database['public']['Enums']['receipt_line_match_status'];
           matched_shopping_list_item_id?: string | null;
           original_text?: string;
+          parsed?: Json | null;
           quantity_kind?: Database['public']['Enums']['quantity_kind'];
           quantity_max?: number | null;
           quantity_min?: number | null;
@@ -1373,6 +1412,7 @@ export type Database = {
           purchased_on: string | null;
           reconciled_at: string | null;
           retailer: string | null;
+          review_state: Json | null;
           status: Database['public']['Enums']['receipt_status'];
           total_pence: number | null;
           updated_at: string;
@@ -1389,6 +1429,7 @@ export type Database = {
           purchased_on?: string | null;
           reconciled_at?: string | null;
           retailer?: string | null;
+          review_state?: Json | null;
           status?: Database['public']['Enums']['receipt_status'];
           total_pence?: number | null;
           updated_at?: string;
@@ -1404,6 +1445,7 @@ export type Database = {
           purchased_on?: string | null;
           reconciled_at?: string | null;
           retailer?: string | null;
+          review_state?: Json | null;
           status?: Database['public']['Enums']['receipt_status'];
           total_pence?: number | null;
           updated_at?: string;
@@ -1863,6 +1905,7 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           household_id: string;
+          list_seq: number;
           reason: string | null;
           result: NonNullable<Json>;
           seq: number;
@@ -1877,6 +1920,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           household_id: string;
+          list_seq: number;
           reason?: string | null;
           result?: NonNullable<Json>;
           seq?: never;
@@ -1890,6 +1934,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           household_id?: string;
+          list_seq?: number;
           reason?: string | null;
           result?: NonNullable<Json>;
           seq?: never;
@@ -2020,15 +2065,23 @@ export type Database = {
           household_id: string;
           id: string;
           ingredient_id: string | null;
+          ingredient_ref: string | null;
           is_manual: boolean;
+          item_key: string | null;
+          manual_quantity: Json | null;
           notes: string | null;
           original_text: string;
+          plan_linked: boolean;
           position: number;
           product_pack_id: string | null;
           quantity_kind: Database['public']['Enums']['quantity_kind'];
           quantity_max: number | null;
           quantity_min: number | null;
           quantity_value: number | null;
+          removed_at: string | null;
+          removed_by: string | null;
+          removed_reason: string | null;
+          requirement: Json | null;
           shopping_list_id: string;
           status: Database['public']['Enums']['shopping_item_status'];
           unit: Database['public']['Enums']['unit'] | null;
@@ -2048,15 +2101,23 @@ export type Database = {
           household_id: string;
           id?: string;
           ingredient_id?: string | null;
+          ingredient_ref?: string | null;
           is_manual?: boolean;
+          item_key?: string | null;
+          manual_quantity?: Json | null;
           notes?: string | null;
           original_text?: string;
+          plan_linked?: boolean;
           position?: number;
           product_pack_id?: string | null;
           quantity_kind: Database['public']['Enums']['quantity_kind'];
           quantity_max?: number | null;
           quantity_min?: number | null;
           quantity_value?: number | null;
+          removed_at?: string | null;
+          removed_by?: string | null;
+          removed_reason?: string | null;
+          requirement?: Json | null;
           shopping_list_id: string;
           status?: Database['public']['Enums']['shopping_item_status'];
           unit?: Database['public']['Enums']['unit'] | null;
@@ -2075,15 +2136,23 @@ export type Database = {
           household_id?: string;
           id?: string;
           ingredient_id?: string | null;
+          ingredient_ref?: string | null;
           is_manual?: boolean;
+          item_key?: string | null;
+          manual_quantity?: Json | null;
           notes?: string | null;
           original_text?: string;
+          plan_linked?: boolean;
           position?: number;
           product_pack_id?: string | null;
           quantity_kind?: Database['public']['Enums']['quantity_kind'];
           quantity_max?: number | null;
           quantity_min?: number | null;
           quantity_value?: number | null;
+          removed_at?: string | null;
+          removed_by?: string | null;
+          removed_reason?: string | null;
+          requirement?: Json | null;
           shopping_list_id?: string;
           status?: Database['public']['Enums']['shopping_item_status'];
           unit?: Database['public']['Enums']['unit'] | null;
@@ -2107,6 +2176,33 @@ export type Database = {
           },
           {
             foreignKeyName: 'shopping_list_items_shopping_list_id_household_id_fkey';
+            columns: ['shopping_list_id', 'household_id'];
+            isOneToOne: false;
+            referencedRelation: 'shopping_lists';
+            referencedColumns: ['id', 'household_id'];
+          },
+        ];
+      };
+      shopping_list_log_heads: {
+        Row: {
+          head: number;
+          household_id: string;
+          shopping_list_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          head: number;
+          household_id: string;
+          shopping_list_id: string;
+        };
+        Update: {
+          head?: number;
+          household_id?: string;
+          shopping_list_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'shopping_list_log_heads_shopping_list_id_household_id_fkey';
             columns: ['shopping_list_id', 'household_id'];
             isOneToOne: false;
             referencedRelation: 'shopping_lists';
@@ -2232,6 +2328,18 @@ export type Database = {
     };
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string };
+      apply_shopping_command: {
+        Args: {
+          p_command: Json;
+          p_command_id: string;
+          p_command_type: string;
+          p_expected_head?: number;
+          p_items?: Json;
+          p_list_id: string;
+          p_result: Json;
+        };
+        Returns: Json;
+      };
       backfill_pantry_purchase_mode: { Args: Record<PropertyKey, never>; Returns: number };
       cancel_household_deletion: { Args: { p_household_id: string }; Returns: undefined };
       create_invitation: {
@@ -2251,6 +2359,7 @@ export type Database = {
         Args: { p_bucket: string; p_household_id: string; p_path: string; p_reason: string };
         Returns: undefined;
       };
+      ensure_shopping_list: { Args: { p_household_id: string }; Returns: string };
       find_recipe_duplicates: {
         Args: {
           p_exclude?: string;
@@ -2263,14 +2372,19 @@ export type Database = {
       };
       fr_norm_ingredient: { Args: { p: string }; Returns: string };
       fr_norm_title: { Args: { p: string }; Returns: string };
+      get_household_ai_settings: { Args: { p_household_id: string }; Returns: Json };
+      get_receipt: { Args: { p_household_id: string; p_receipt_id: string }; Returns: Json };
       get_recipes: {
         Args: { p_household_id: string; p_ids: string[]; p_user_id: string };
         Returns: Json;
       };
       household_is_active: { Args: { hid: string }; Returns: boolean };
+      household_price_observations: { Args: { p_household_id: string }; Returns: Json };
+      household_purchase_records: { Args: { p_household_id: string }; Returns: Json };
       is_household_member: { Args: { hid: string }; Returns: boolean };
       is_household_owner: { Args: { hid: string }; Returns: boolean };
       is_household_writable: { Args: { hid: string }; Returns: boolean };
+      list_receipts: { Args: { p_household_id: string }; Returns: Json };
       list_recipes: {
         Args: {
           p_collection?: string;
@@ -2290,6 +2404,7 @@ export type Database = {
       };
       member_leave: { Args: { p_household_id: string }; Returns: undefined };
       metric_base_factor: { Args: { u: Database['public']['Enums']['unit'] }; Returns: number };
+      planner_household_profile: { Args: { p_household_id: string }; Returns: Json };
       purge_household: { Args: { p_household_id: string }; Returns: undefined };
       quantity_is_valid: {
         Args: {
@@ -2303,6 +2418,10 @@ export type Database = {
       };
       recipe_facets: { Args: { p_household_id: string }; Returns: Json };
       recipe_view_json: { Args: { p_recipe_id: string; p_user_id: string }; Returns: Json };
+      record_price_observations: {
+        Args: { p_household_id: string; p_items: Json };
+        Returns: number;
+      };
       record_purchase: {
         Args: {
           p_event_id: string;
@@ -2322,9 +2441,17 @@ export type Database = {
         Args: { p_grace?: string; p_household_id: string };
         Returns: string;
       };
+      save_household_ai_settings: {
+        Args: { p_config: Json; p_household_id: string; p_keys: Json; p_provider: string };
+        Returns: undefined;
+      };
       save_meal_plan: {
         Args: { p_doc: Json; p_household_id: string; p_user_id: string };
         Returns: undefined;
+      };
+      save_receipt: {
+        Args: { p_household_id: string; p_lines: Json; p_receipt: Json };
+        Returns: string;
       };
       save_recipe: {
         Args: {
@@ -2372,6 +2499,7 @@ export type Database = {
         Returns: Json;
       };
       shopping_item_outstanding: { Args: { p_item_id: string }; Returns: number };
+      shopping_list_snapshot: { Args: { p_household_id: string }; Returns: Json };
       transfer_ownership: {
         Args: { p_household_id: string; p_new_owner_member_id: string };
         Returns: undefined;

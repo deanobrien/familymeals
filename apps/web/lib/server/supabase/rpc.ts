@@ -28,21 +28,20 @@ export function unwrap<T>(operation: string, res: PgResult<T>): T | null {
 }
 
 type PublicFunctions = Database['public']['Functions'];
-/** A SQL function in `public`, checked against the generated types (`supabase gen types`, D141). */
+/** A SQL function in `public`, from the generated types (`supabase gen types`, D141). */
 export type RpcName = keyof PublicFunctions & string;
-/** The function's argument names (values stay `unknown`: jsonb args take domain objects). */
+/** The function's argument names, required/optional as in SQL (values stay `unknown`: jsonb args take domain objects). */
 export type RpcArgs<F extends RpcName> = { [K in keyof PublicFunctions[F]['Args']]: unknown };
+type Sig<F extends RpcName> = <T = unknown>(client: SupabaseClient, fn: F, args: RpcArgs<F>) => Promise<T | null>;
+type UnionToIntersection<U> = (U extends unknown ? (x: U) => void : never) extends (x: infer I) => void ? I : never;
+/** One overload per SQL function, so `callRpc<Row>(client, 'fn', {...})` checks the name AND the argument names. */
+type CallRpc = UnionToIntersection<{ [F in RpcName]: Sig<F> }[RpcName]>;
 
-/**
- * Calls a SQL function (all multi-table reads/writes go through RPC; see migration 0015). The function name and
- * argument names are type-checked against the generated `Database` types; the result shape is the caller's `T`.
- */
-export function callRpc<T>(client: SupabaseClient) {
-  return async <F extends RpcName>(fn: F, args: RpcArgs<F>): Promise<T | null> => {
-    const res = (await client.rpc(fn, args as Record<string, unknown>)) as PgResult<T>;
-    return unwrap(`rpc ${fn}`, res);
-  };
-}
+/** Calls a SQL function (all multi-table reads/writes go through RPC; see migration 0015). */
+export const callRpc = (async (client: SupabaseClient, fn: string, args: Record<string, unknown>) => {
+  const res = (await client.rpc(fn, args)) as PgResult<unknown>;
+  return unwrap(`rpc ${fn}`, res);
+}) as unknown as CallRpc;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (v: unknown): v is string => typeof v === 'string' && UUID_RE.test(v);

@@ -58,7 +58,7 @@ export class SupabaseMealPlanRepository implements MealPlanRepository {
   ) {}
 
   private async select(householdId: string, filters: { id?: string; weekStart?: string }): Promise<PlanDoc[]> {
-    const rows = await callRpc<PlanDocRow[]>(this.client)('select_meal_plans', {
+    const rows = await callRpc<PlanDocRow[]>(this.client, 'select_meal_plans', {
       p_household_id: householdId,
       p_id: filters.id ?? null,
       p_start_date: filters.weekStart ?? null,
@@ -89,7 +89,7 @@ export class SupabaseMealPlanRepository implements MealPlanRepository {
     for (const [key, e] of Object.entries(doc.entries)) {
       if (e.kind === 'recipe' && !isUuid(e.recipeId)) throw new Error(`Plan entry ${key}: recipe id must be a UUID (got "${e.recipeId}")`);
     }
-    await callRpc<null>(this.client)('save_meal_plan', { p_household_id: doc.householdId, p_user_id: this.userId, p_doc: doc });
+    await callRpc<null>(this.client, 'save_meal_plan', { p_household_id: doc.householdId, p_user_id: this.userId, p_doc: doc });
   }
 }
 
