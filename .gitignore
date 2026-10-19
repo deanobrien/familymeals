@@ -10,6 +10,7 @@ next-env.d.ts
 supabase/.branches/
 supabase/.temp/
 e2e/test-results/
+e2e/test-results-live/
 e2e/playwright-report/
 .DS_Store
 packages/refdata/data/raw/
