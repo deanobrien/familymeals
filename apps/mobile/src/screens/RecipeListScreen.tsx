@@ -1,41 +1,63 @@
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { FlatList, Pressable, RefreshControl, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import type { Recipe } from '@/viewModels';
 import { useApp } from '@/data/AppContext';
-import { ErrorText, styles } from './ui';
+import { EmptyState, ErrorState, Loading, Muted, Text, useStyles } from './ui';
 
 export default function RecipeListScreen() {
   const { ds, householdId } = useApp();
   const router = useRouter();
+  const styles = useStyles();
   const [recipes, setRecipes] = useState<Recipe[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     if (!householdId) return;
-    ds.listRecipes(householdId).then(setRecipes, (e: unknown) =>
-      setError(e instanceof Error ? e.message : 'Could not load recipes'),
-    );
+    setError(null);
+    try {
+      setRecipes(await ds.listRecipes(householdId));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not load recipes');
+    }
   }, [ds, householdId]);
 
-  if (!householdId) return <Text style={styles.muted}>Pick a household first.</Text>;
-  if (error) return <ErrorText message={error} />;
-  if (!recipes) return <ActivityIndicator accessibilityLabel="Loading" />;
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  if (!householdId) return <EmptyState title="Pick a household first." />;
+  if (error && !recipes) return <ErrorState message={error} onRetry={load} />;
+  if (!recipes) return <Loading label="Loading recipes" />;
 
   return (
     <View style={styles.screen}>
       <FlatList
         data={recipes}
         keyExtractor={(r) => r.id}
-        ListEmptyComponent={<Text style={styles.muted}>No recipes yet. Capture one from the Capture tab.</Text>}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={async () => {
+              setRefreshing(true);
+              await load();
+              setRefreshing(false);
+            }}
+          />
+        }
+        ListEmptyComponent={
+          <EmptyState title="No recipes yet." hint="Capture one from the Capture tab." />
+        }
         renderItem={({ item }) => (
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel={`${item.title}, serves ${item.servings}`}
             style={styles.row}
             onPress={() => router.push({ pathname: '/recipe/[id]', params: { id: item.id } })}
           >
-            <Text>{item.title}</Text>
-            <Text style={styles.muted}>Serves {item.servings}</Text>
+            <Text style={{ flex: 1, paddingRight: 8 }}>{item.title}</Text>
+            <Muted>Serves {item.servings}</Muted>
           </Pressable>
         )}
       />

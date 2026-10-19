@@ -65,7 +65,7 @@ describe('ShoppingListScreen', () => {
   it('ticks with one tap and shows pending while offline, then syncs', async () => {
     const ds = new MockDataSource({ online: false });
     await renderWith(ds, <ShoppingListScreen />);
-    await fireEvent.press(await screen.findByLabelText('Minced beef'));
+    await fireEvent.press(await screen.findByLabelText(/Minced beef/));
     expect(await screen.findByTestId('pending-s-1')).toBeTruthy();
     expect(screen.getByTestId('pending-banner')).toHaveTextContent('1 change waiting to sync');
 
