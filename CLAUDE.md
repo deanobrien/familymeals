@@ -1,43 +1,43 @@
 # CLAUDE.md - Family Recipes (PRJ-018)
 
-Family recipe / meal planning / nutrition / cost / shared shopping platform for UK households. Responsive web first (Next.js), Android (Expo) later. Brief and plans: `C:\TFS\Projects\PRJ-018-FamilyRecipePlatform\docs\` (BRIEF.md, BRIEF-REVIEW.md, PARALLEL-DELIVERY-PLAN.md).
+Family recipe library, AI photo import, meal planner (prompt -> constraints -> solver), nutrition and cost calculator, shared real-time shopping list, receipts and pantry for UK households. Responsive web first (Next.js, deployed to Azure App Service), Android (Expo) second. Backend: Supabase (Postgres + RLS + Auth + Realtime + Storage), London region.
 
-This repo is local-only: no remote, nothing pushed. Never commit secrets.
+**Start here if you are a new agent or on a new machine: [docs/HANDOVER.md](docs/HANDOVER.md).** This repo is self-contained: everything needed to continue is in it (no other machine, shared drive or chat history is required). Remote: https://github.com/deanobrien/familymeals (branch `main`).
 
-## Commands
+## Quick start (mock mode, no keys, no Docker)
 
-- `pnpm install`, `pnpm dev` (port 3100), `pnpm build`, `pnpm typecheck`, `pnpm lint`, `pnpm test`
-- E2E: `pnpm e2e:install` once, then `pnpm test:e2e` (globalSetup resets the in-memory stores via the dev-only `POST /api/dev/reset` and warms routes, so it can rerun on the same server; `E2E_PORT` / `E2E_WORKERS` override port 3100 / 4 workers)
-- Mobile: `pnpm --filter @fr/mobile test` (jest-expo), `pnpm mobile:export` (bundle check)
-- Supabase: `pnpm exec supabase <cmd>` (local stack needs Docker)
-- Azure App Service package: `scripts/package-appservice.ps1` -> `dist/appservice.zip` (D150-D154; steps in `docs/DEPLOY-APP-SERVICE.md`; start `node apps/web/server.js`, health `/api/health`)
+```
+pnpm install
+pnpm dev                       # http://localhost:3100 , mock AI + in-memory demo data + mock auth (Alice / household A, bannered)
+pnpm typecheck && pnpm lint && pnpm test && pnpm build
+pnpm e2e:install && pnpm test:e2e   # Playwright (Chromium); see docs/TESTING.md for isolation rules
+```
 
-Every lane must leave build, test, typecheck and lint green.
+Other commands: `pnpm --filter @fr/mobile test`, `pnpm mobile:export` (Android bundle check), `pnpm --filter @fr/db test` (all migrations + RLS on in-process PGlite), `pnpm exec supabase <cmd>` (CLI; the local stack needs Docker), `scripts/package-appservice.ps1` (builds `dist/appservice.zip` for Azure; PowerShell, Windows). Every change must leave build, test, typecheck and lint green.
 
-## Architecture
+## Architecture map (detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md))
 
-pnpm workspace + Turborepo. Scope `@fr/*`. Packages export TS source directly (`main: src/index.ts`); `apps/web` consumes them via `transpilePackages`. Package `build` is a `tsc` type-check only (no emit).
+pnpm workspace + Turborepo, scope `@fr/*`, packages export TS source (no emit; D3).
 
-- `apps/web` - Next.js App Router, strict TS. One `next.config.mjs` (D27). Server-only refdata catalogue `lib/server/refdata/catalogue.ts` (D28). ONE recipe-store factory (`lib/recipes/factory.ts`) used by library, import sink, planner, pantry and shopping (D30); in memory mode each household has its own library (private seed copy, D160); planner solver = `lib/server/plan/engine-solver.ts` over `@fr/engine/planner`; ONE `PlanConstraints` schema in `@fr/domain` (D130), the AI emits its `PlanRequest` subset (D131), exclusions resolve to ingredient ids / UK-14 groups (`lib/server/plan/exclusions.ts`, D132), prompt flow is parse -> editable chips -> solve (D133), quick meals soft-strong or strict-hard (D134). Every lane scopes data by `getAppContext()` (`lib/server/context.ts`, D35) over the L11 Supabase auth (`@supabase/ssr`, middleware; mock-auth demo mode without Supabase env: Alice / household A, bannered, `fr_household=e2e-*` sandbox cookie in dev). Shopping = `@fr/engine/shopping`, lists generated from the APPROVED plan via `@fr/engine/aggregate` (D33); receipts = `@fr/engine/receipt-match` against the shopping list; one in-memory price store (`lib/server/prices/store.ts`, refdata estimates + receipt prices) feeds the `@fr/engine/cost` basket estimate (D34)
-- `apps/mobile` - `@fr/mobile`, Expo SDK 58 + expo-router Android app (L14; mock DataSource, jest-expo tests, no `build`; `pnpm mobile:export` bundles; never import `@fr/ai`/`@fr/ui`; D32)
-- `packages/domain` - `@fr/domain` zod types/contracts (L1; CONTRACT-SEED conformance test, row schemas, RPC DTOs)
-- `packages/engine` - `@fr/engine`, pure TS, subpath exports `./units ./parse ./normalise ./scale ./aggregate ./cost ./nutrition ./planner ./receipt-match ./shopping ./pantry` (root export = L3 core). `src/contract.ts` is a type-only re-export of the CONTRACT-SEED shapes from `@fr/domain`. Production unit conversion goes through `src/units/converter.ts` (`createQuantityConverter`, `createGramsConverter`) over L3 `convertQuantity`; pint = 568.26125 ml. Ranges: cost = max, nutrition = midpoint (estimate). Tests in `packages/engine/test/<module>/`; coverage thresholds (`pnpm --filter @fr/engine coverage`) apply to the L3 core dirs
-- `packages/recipe-import` - `@fr/recipe-import` photo-import drafts, corrections, finalise (L13)
-- `packages/plan-orchestrator` - `@fr/plan-orchestrator` prompt -> AI constraints -> solver -> proposal -> approval (L16, server-side)
-- `packages/ai` - AI provider interface, Claude adapter, mock (SERVER-ONLY; `import 'server-only'` guard, ESLint blocks imports from apps/web outside `app/api/**` and `lib/server/**`)
-- `packages/ui` - `@fr/ui` design tokens + components (plain CSS, Radix dialog/tabs); `pnpm --filter @fr/ui demo` runs the Vite demo
-- `packages/db` - PGlite migration + RLS test runner (`pnpm --filter @fr/db test`, incl. `transfer_ownership` RPC, D37), `src/database.types.ts` placeholder (migrations live in `supabase/migrations`)
-- `packages/refdata` - CoFID, ingredient/alias/density/price seeds
-- `e2e/` - Playwright `specs/` (many still `test.fixme`), `support/` helpers+pages+`global-setup.ts`, `fixtures/` (recipes/receipts/households, generated by `fixtures-src/`), vitest fixture validation (`pnpm --filter @fr/e2e test`); `supabase/` - config + migrations; `.github/workflows/ci.yml` (not run yet, D38). `.gitattributes` forces LF
-
-Directory ownership per lane: see the parallel plan.
+- `apps/web` Next.js 15 App Router (strict TS). Server-only code in `lib/server/**`; routes under `app/`. Data backend is chosen by `DATA_BACKEND` (`supabase` = repositories as the signed-in user under RLS; otherwise in-memory demo). `getAppContext()` (`lib/server/context.ts`) scopes everything by household.
+- `apps/mobile` Expo SDK 58 Android app (mock or Supabase DataSource, offline queue).
+- `packages/domain` zod types and contracts; `engine` pure TS (units, parse, normalise, scale, aggregate, cost, nutrition, planner, receipt-match, shopping, pantry); `ai` provider interface + Anthropic/OpenAI-Azure/mock adapters (SERVER-ONLY); `recipe-import`; `plan-orchestrator`; `refdata` (CoFID, ingredients, densities, prices); `db` (PGlite migration + RLS tests); `ui` design system.
+- `supabase/` config + timestamped migrations (`20261019000000`..) and [SCHEMA.md](supabase/SCHEMA.md); `e2e/` Playwright specs, fixtures, support.
 
 ## Current state
 
-Branch `prj018/w0a-skeleton`, everything committed locally (no remote, never push). **Merged**: batch 1 (L2a ui, L4 ai, L5 refdata, L6 qa, shell), batch 2 (`@fr/engine`: L3/L7/L8/L9/L10/L17a/L22a), batch 3 (L1 domain/schema/RLS + owner decisions, D20-D26), batch 4 (L23 home/settings/privacy, L12 library, L13 photo import, L15/L16 planner, L22 pantry) plus wiring (D27-D31), batch 5 (L17 shopping, L21 receipts, L11 auth/households/invitations, L14 Expo) plus wiring (D32-D38), and the main-checkout lanes: AI provider settings + photo import (D40-D42), C1 real cost/nutrition (D60-D66), P2 pantry scan (D80-D89), R2 refdata coverage (D90-D92). Green: see claude/status-and-next-steps.md for the latest verified counts. Integrator pass 3 merged S1 (Supabase recipe/plan/pantry repositories, D50-D58) and M2 (Android SupabaseDataSource, offline queue, camera import, D70-D76) and wired them (D100-D105): `DATA_BACKEND=supabase` + the public Supabase env runs the repositories as the signed-in user (RLS, no service role), costs/nutrition are computed on read by per-household calculators, `/api/extract(/save)` accept a Supabase bearer token, receipt extras reach the pantry service, `pantry_settings.purchase_mode` is the single source of truth. The default (no env) is still the in-memory demo; nothing was run against a live Supabase. **S2 (D120-D129)**: with `DATA_BACKEND=supabase` the remaining stores are Supabase too: shopping (`SupabaseShoppingRepository`: engine decides over a consistent snapshot, `record_purchase`/`void_purchase` apply purchases, `apply_shopping_command` persists the rest under a head check; per-list `list_seq` cursor), Realtime hint feed replacing the 4 s poll (poll only while the channel is down; mock mode still polls), receipts (`save_receipt`...), household price observations (`ingredient_prices`), pantry purchase feed + plan-based open slots, the planner profile (consent-gated exclusions), and per-household AI settings (ciphertext row, owner-only write). Migrations `001600`/`001610`/`001620`; untested live: PostgREST, the Realtime server, true concurrency (D128). See `IMPLEMENTATION_PLAN.md`, `DECISIONS.md` and `claude/status-and-next-steps.md`.
+See [docs/HANDOVER.md](docs/HANDOVER.md) section "Current state" (kept up to date) and [claude/status-and-next-steps.md](claude/status-and-next-steps.md) (verified test counts per integration pass). In one line: all feature lanes through S2 are merged and green in mock mode; Supabase-backed stores exist but have only been tested against PGlite and fakes, **not yet against a live Supabase**; first Azure App Service deploy is staged and awaiting a smoke test.
 
-**P2 pantry scan (D80-D89, merged):** `@fr/ai` `scanPantry` (photos / video frames -> de-duplicated items with counts, pack sizes, UK use-by vs best-before, close-up flag), `/pantry/scan` (video turned into 6-10 sharp JPEG frames in the browser; review with engine matcher, editable quantities and dates, close-up re-scan, opt-in labelled shelf-life estimates, merge-with-stock preview; nothing written before confirm). Live-model accuracy is unverified.
+## Conventions
+
+- **Decisions**: every non-obvious choice is logged in [DECISIONS.md](DECISIONS.md) as `## D<n> title`. Each lane/agent reserves a block of ten (e.g. D120-D129) so parallel lanes never collide; before adding decisions read the file's headings and pick an unused block (D1-D15 foundation, D20-D26 owner decisions, D27-D38 integration, D40-D42 AI settings, D50-D58 S1, D60-D66 C1, D70-D76 M2, D80-D92 P2/R2, D100-D105 integrator pass 3, D120-D129 S2, D130-D134 PL2, D150-D154 deploy prep). Newer lanes continue from D155 / D160+.
+- **Git**: lanes work on branches `prj018/<lane>` in worktrees and are merged by an integrator; main branch is `main` on GitHub. Agents make LOCAL commits only; **never push** unless the owner says so. Merge the integration branch into yours before reporting. LF line endings (`.gitattributes`); on Windows git may warn about CRLF, ignore.
+- **Secrets**: never commit secrets or write secret values into docs, comments, tests or chat. Names and locations of every secret are in HANDOVER section 5. `.env*` is git-ignored except `.env.example`; `apps/web/.data/`, `.data-e2e/`, `dist/` are git-ignored.
+- **Ports**: web dev 3100; parallel dev servers / e2e runs pick another port via `E2E_PORT` (3101-3199); local Supabase uses 54321-54329.
+- **E2E isolation**: run e2e with your own `APP_DATA_DIR` (a temp folder) and `NEXT_DIST_DIR` (e.g. `.next-e2e`) so the owner's encrypted AI key in `apps/web/.data` is never read and `pnpm dev` is never clobbered. Tests must never use a real AI key; e2e uses the mock provider and mock auth.
+- **Server-only boundaries**: `@fr/ai` is never imported from client code (ESLint enforces); the service-role key is never used on the user request path (D100); AI keys are encrypted with `APP_SECRET`.
+- **Windows gotchas** (symlink EPERM -> hoisted build copy, locked libvips DLL, PowerShell 5.1 has no `&&`, restart dev server after merges that add dependencies): [claude/memories/](claude/memories/).
 
 ## Links
 
-[README](README.md) | [IMPLEMENTATION_PLAN](IMPLEMENTATION_PLAN.md) | [DECISIONS](DECISIONS.md) | [claude/](claude/)
+[README](README.md) | [docs/HANDOVER.md](docs/HANDOVER.md) | [ARCHITECTURE](docs/ARCHITECTURE.md) | [TESTING](docs/TESTING.md) | [SUPABASE](docs/SUPABASE.md) | [DEPLOY-APP-SERVICE](docs/DEPLOY-APP-SERVICE.md) | [ROADMAP](docs/ROADMAP.md) | [IMPLEMENTATION_PLAN](IMPLEMENTATION_PLAN.md) | [DECISIONS](DECISIONS.md) | [claude/](claude/) | product docs [docs/product/](docs/product/BRIEF.md) | security docs [docs/security/](docs/security/THREAT-MODEL.md) | history [docs/history/](docs/history/INTEGRATION-NOTES.md)

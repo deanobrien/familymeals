@@ -1,4 +1,4 @@
-// View models for the recipe library. Shapes mirror CONTRACT-SEED (C:\TFS\FamilyRecipes-lanes\CONTRACT-SEED.ts).
+// View models for the recipe library. Shapes mirror CONTRACT-SEED (docs/history/CONTRACT-SEED.ts).
 // TODO(@fr/domain): replace these local copies with imports from @fr/domain once lane L1 merges.
 
 export type Uuid = string;

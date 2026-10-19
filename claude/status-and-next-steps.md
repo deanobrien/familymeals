@@ -1,6 +1,6 @@
 # Status and next steps
 
-**Date:** 2026-10-19. Branch `prj018/w0a-skeleton`, all merges committed locally (no remote, never push).
+**Date:** 2026-10-19. Branch `prj018/w0a-skeleton`, all merges committed locally (agents never push; the owner pushes to https://github.com/deanobrien/familymeals). This file is the append-only log of verified test counts per integration pass; the current-state summary and next steps for a newcomer are in `docs/HANDOVER.md` (sections 6-8) and the milestone view is `docs/ROADMAP.md`.
 
 Merged: batch 1 (L2a ui, L4 ai, L5 refdata, L6 qa fixtures/specs, app shell), batch 2 (`@fr/engine`: L3, L7, L8, L9, L10, L17a, L22a), batch 3 (L1 `@fr/domain` + schema/RLS + owner decisions), batch 4 (L23 home/settings/privacy, L12 recipe library, L13 photo import, L15/L16 planner, L22 pantry), batch 5 (L17 shopping UI, L21 receipts UI, L11 auth/households/invitations, L14 Expo `apps/mobile`), plus the AI-provider settings lane from the main checkout.
 

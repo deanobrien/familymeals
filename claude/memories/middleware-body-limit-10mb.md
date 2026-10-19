@@ -1,0 +1,3 @@
+Next buffers request bodies in middleware up to 10 MB, then truncates; we raise it to 40 MB.
+
+The Supabase auth middleware makes Next buffer request bodies. Over the default 10 MB the multipart body is cut off and parsing fails ("That upload could not be read"; regression spec `e2e/specs/large-upload.spec.ts`). `next.config.mjs` sets `experimental.middlewareClientMaxBodySize: '40mb'` and `serverActions.bodySizeLimit: '16mb'`; `/api/extract` and `/api/pantry/scan` have constants that must equal the middleware limit. Browsers also downscale photos before upload. Keep all three numbers consistent if you change one.
