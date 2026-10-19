@@ -96,6 +96,11 @@ describe('auth mode and mock guard', () => {
     expect(() => assertMockAllowed('production')).toThrow(MockAuthForbiddenError);
     expect(() => getMockIdentity('production')).toThrow(MockAuthForbiddenError);
     expect(getMockIdentity('development').household.role).toBe('owner');
+    // demo identity = household A; an e2e-* cookie selects an isolated sandbox household, anything else is ignored
+    expect(getMockIdentity('development').household).toMatchObject({ id: 'a1a1a101-0000-4000-8000-000000000001', name: 'The Smiths (A)' });
+    expect(getMockIdentity('development', 'e2e-abc-1').household.id).toBe('e2e-abc-1');
+    expect(getMockIdentity('development', 'someone-elses-household').household.id).toBe('a1a1a101-0000-4000-8000-000000000001');
+    expect(getMockIdentity('development', 'e2e-x; drop').household.id).toBe('a1a1a101-0000-4000-8000-000000000001');
   });
 });
 

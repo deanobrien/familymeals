@@ -8,7 +8,7 @@ import { Shell } from './shell';
 import { MOCK_HOUSEHOLD_NAME, MOCK_USER_NAME } from '../lib/server/auth/mock';
 import { resolveAuthMode } from '../lib/supabase/env';
 
-const MOCK_LABEL = `Demo mode (local mock auth, Supabase not configured): signed in as ${MOCK_USER_NAME}, household ${MOCK_HOUSEHOLD_NAME}. Data is in memory and resets when the server restarts.`;
+const MOCK_LABEL = `Demo mode (mock sign-in, Supabase not configured): signed in as ${MOCK_USER_NAME}, household ${MOCK_HOUSEHOLD_NAME}. Data is in memory and resets when the server restarts.`;
 
 const display = Fraunces({ subsets: ['latin'], variable: '--font-display', display: 'swap' });
 const body = Inter({ subsets: ['latin'], variable: '--font-body', display: 'swap' });

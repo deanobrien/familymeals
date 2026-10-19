@@ -15,13 +15,17 @@ export function buildPriceBook(
   const observations = store.observationsFor(householdId).filter((o) => o.ingredientId !== undefined);
   const ingredients: CanonicalIngredient[] = [];
   const nameIndex: Record<string, string> = {};
+  const priced: CanonicalIngredient[] = [];
   for (const id of new Set(observations.map((o) => o.ingredientId!))) {
     const ing = catalogue.get(id);
     if (!ing) continue;
+    priced.push(ing);
     ingredients.push({ ...ing, aliases: [] });
-    for (const n of [ing.name, ...ing.aliases]) {
-      for (const v of [n, `${n}s`, `${n}es`]) nameIndex[nameKey(v)] ??= id;
-    }
+  }
+  // Exact names and aliases win over plural guesses ("bananas" -> banana, never a "banana chips" alias).
+  for (const ing of priced) for (const n of [ing.name, ...ing.aliases]) nameIndex[nameKey(n)] ??= ing.id;
+  for (const ing of priced) {
+    for (const n of [ing.name, ...ing.aliases]) for (const v of [`${n}s`, `${n}es`]) nameIndex[nameKey(v)] ??= ing.id;
   }
   return { observations, ingredients, nameIndex };
 }

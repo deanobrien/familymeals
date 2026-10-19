@@ -15,7 +15,7 @@ export const MOCK_HOUSEHOLD_NAME = 'The Smiths (A)';
  * Mock mode only: an `fr_household` cookie of the form `e2e-<id>` selects an isolated, empty sandbox household
  * so parallel Playwright tests do not share state. Anything else falls back to household A.
  */
-export const MOCK_SANDBOX_PATTERN = /^e2e-[w-]{1,60}$/;
+export const MOCK_SANDBOX_PATTERN = /^e2e-[\w-]{1,60}$/;
 
 export class MockAuthForbiddenError extends Error {
   constructor() {
