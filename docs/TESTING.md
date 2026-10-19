@@ -13,7 +13,7 @@ Every change must leave `pnpm build`, `pnpm typecheck`, `pnpm lint` and `pnpm te
 | End-to-end (Playwright, Chromium) | `pnpm e2e:install` once, then `pnpm test:e2e` | mock-auth/mock-AI full journeys: recipes, import, plan, shopping, receipts, pantry, pantry scan, home/settings, household isolation (UI level), large upload, journey | Chromium; a dev server (Playwright starts one) |
 | Accessibility + responsive | part of e2e: `e2e/specs/a11y-audit.spec.ts`, `a11y-responsive.spec.ts` | every route at 375 and 1280 px, light and dark, zero serious/critical axe violations (WCAG 2.1 AA), no horizontal overflow at 375, 44 px touch targets; findings in [../e2e/A11Y-AUDIT.md](../e2e/A11Y-AUDIT.md) | |
 | Acceptance matrix | [../e2e/ACCEPTANCE.md](../e2e/ACCEPTANCE.md) maps the brief's milestone acceptance to specs; 17 flows are `test.fixme` because they need live Supabase | | |
-| Live Supabase | **not built yet**: lane LV1 (HANDOVER section 7) is running the app and a live-ish suite against the local Docker stack; when it lands this section should name the command | Docker + local Supabase | |
+| Live Supabase | `pnpm test:e2e:live` (D143): opt-in `live-supabase` Playwright project in `e2e/live/` (auth, data, isolation, realtime, RLS, shopping); starts its own dev server on 3133 against the stack; **20/20 pass** | `pnpm exec supabase start` (Docker, ports 554xx) | real Auth (confirmation via Mailpit), PostgREST, RLS, Realtime; not covered yet: receipts, price observations, AI settings |
 
 Static checks: `pnpm typecheck` (11 tasks; engine uses `tsconfig.test.json`), `pnpm lint` (ESLint 9 flat config; also enforces the `@fr/ai` server-only import boundary), `pnpm format:check` (Prettier).
 
@@ -41,7 +41,8 @@ Static checks: `pnpm typecheck` (11 tasks; engine uses `tsconfig.test.json`), `p
 - A **cold** dev server compiles each route and server action on first use; 16+ workers starve it. Keep `E2E_WORKERS` at 4 (or fewer on a small machine). `next.config.mjs` keeps compiled routes for an hour and ignores `.data`, `test-results` and `playwright-report` in the watcher; without that, files written during a run trigger rebuilds and 10-30 s server actions.
 - Observed once (S2 verification): the first run after a very long a11y suite saw two `shopping.spec.ts` timeouts while the server was still compiling; `shopping.spec.ts --repeat-each 3` then passed 30/30 and a second full run was clean. Re-run before concluding a regression: `pnpm --filter @fr/e2e exec playwright test specs/shopping.spec.ts --repeat-each 3`.
 - After merging branches that add dependencies, **restart the dev server** (and run `pnpm install`), otherwise e2e fails with unresolved imports from a stale server.
-- PGlite is a single-connection embedded Postgres: it cannot exercise concurrent transactions, lock-order or Realtime. Those are exactly the things the live suite (LV1) must cover (D128).
+- PGlite is a single-connection embedded Postgres: it cannot exercise concurrent transactions, lock-order or Realtime. The live suite (LV1, `pnpm test:e2e:live`) now covers Realtime and multi-session flows against real Postgres; heavy concurrency stress is still not covered (D128).
+- The mock `pnpm test:e2e` suite has 2-3 load-related flaky shopping/journey failures per full run (they pass in isolation); tracked, so re-run the failing spec on its own before assuming a regression.
 - Windows: a leftover node process can lock native files (sharp/libvips) and fail the next `pnpm install`/package; close node processes or use a fresh path.
 - Playwright traces/screenshots land in `e2e/test-results` (git-ignored).
 

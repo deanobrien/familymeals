@@ -14,6 +14,7 @@ create schema if not exists auth;
 create table if not exists auth.users (
   id         uuid primary key,
   email      text unique,
+  email_confirmed_at timestamptz default now(), -- real column; tests insert confirmed users
   created_at timestamptz not null default now()
 );
 

@@ -267,6 +267,13 @@ describe('SupabasePantryRepository against the real schema', () => {
     expect(await pantry().listItems('demo-household')).toEqual([]);
   });
 
+  it('stores every engine source, including correction and leftover (D147, found live)', async () => {
+    await pantry().replaceItems(HA, [item(1, { source: 'correction' }), item(2, { source: 'leftover', name: 'stew' })]);
+    const back = await pantry().listItems(HA);
+    expect(back.map((i) => i.source).sort()).toEqual(['correction', 'leftover']);
+    await pantry().replaceItems(HA, [item(1, { quantity: exact(2, 'item', '2') })]); // restore for the tests below
+  });
+
   it('settings default, save and read back; handled events are idempotent', async () => {
     expect(await pantry().getSettings(HA)).toEqual({ purchaseMode: 'suggest', staleAfterDays: 14 });
     await pantry().saveSettings(HA, { purchaseMode: 'auto', staleAfterDays: 21 });

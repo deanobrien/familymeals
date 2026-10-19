@@ -5,7 +5,7 @@
 //    hint becomes the title) and the receipt scan always returns RED LENTILS 500G / BRITISH ONIONS 1KG / 2 x MILK.
 //  - A second browser context in the same household stands in for the second household member; it sees updates by
 //    polling (there is no Supabase Realtime in mock mode).
-// Steps that need a real auth server (sign-up, invitations, a two-member list) are `test.fixme(true, 'needs live Supabase')`.
+// Steps that need a real auth server (sign-up, invitations, a two-member list) run in e2e/live/ (pnpm test:e2e:live, D143).
 import { expect, test } from '@playwright/test';
 import { join } from 'node:path';
 import sharp from 'sharp';
@@ -217,9 +217,7 @@ test.describe.serial('Main journey (BRIEF s15)', () => {
     await expect(list.progress()).toContainText(/^4 of \d+ items done/);
   });
 
-  test('12. the member list shows both members', async () => {
-    test.fixme(true, 'needs live Supabase');
-  });
+  // 12. the member list shows both members: e2e/live/auth.live.spec.ts (invite test, `pnpm test:e2e:live`, D143).
 });
 
 test.describe('Pantry scan photo path (in the journey household)', () => {

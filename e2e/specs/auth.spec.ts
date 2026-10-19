@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test';
  *  - unset (default): dev server WITHOUT Supabase env -> local mock auth mode (banner, pages open).
  *  - set: dev server with a dummy NEXT_PUBLIC_SUPABASE_URL/ANON_KEY pointing at nothing -> middleware gates routes
  *    (the auth server is unreachable, which fails closed to "signed out"). No live Supabase is needed.
- * Flows that need a live Supabase stack are test.fixme.
+ * Flows that need a live Supabase stack live in e2e/live/ (pnpm test:e2e:live).
  */
 const configured = !!process.env.E2E_AUTH_CONFIGURED;
 
@@ -91,29 +91,5 @@ test.describe('route protection (Supabase env present, no session)', () => {
   });
 });
 
-test.describe('live Supabase flows', () => {
-  test('sign up -> confirm -> onboarding creates a household', async () => {
-    test.fixme(true, 'needs live Supabase');
-  });
-  test('sign in with wrong password shows a generic error', async () => {
-    test.fixme(true, 'needs live Supabase');
-  });
-  test('owner invites by link; invitee signs up and accepts; sees shared household', async () => {
-    test.fixme(true, 'needs live Supabase');
-  });
-  test('used, expired and revoked invites show the same invalid state', async () => {
-    test.fixme(true, 'needs live Supabase');
-  });
-  test('owner removes a member; removed member is redirected and sees no data', async () => {
-    test.fixme(true, 'needs live Supabase');
-  });
-  test('transfer ownership then former owner can leave', async () => {
-    test.fixme(true, 'needs live Supabase');
-  });
-  test('household pending deletion shows the read-only banner and hides write controls', async () => {
-    test.fixme(true, 'needs live Supabase');
-  });
-  test('household switcher changes the active household and persists across reload', async () => {
-    test.fixme(true, 'needs live Supabase');
-  });
-});
+// Flows that need a live Supabase stack (sign-up + email confirm, invites, removal, transfer, grace period,
+// switcher) run in the opt-in live suite: e2e/live/auth.live.spec.ts (`pnpm test:e2e:live`, D143).

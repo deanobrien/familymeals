@@ -151,7 +151,8 @@ export const ReceiptStatus = z.enum(['uploaded', 'parsed', 'reconciling', 'recon
 export type ReceiptStatus = z.infer<typeof ReceiptStatus>;
 export const ReceiptLineMatchStatus = z.enum(['unmatched', 'suggested', 'confirmed', 'extra', 'ignored']);
 export type ReceiptLineMatchStatus = z.infer<typeof ReceiptLineMatchStatus>;
-export const PantrySource = z.enum(['manual', 'purchase', 'receipt']);
+/** 'correction' and 'leftover' are written by the pantry engine (D147). */
+export const PantrySource = z.enum(['manual', 'purchase', 'receipt', 'correction', 'leftover']);
 export type PantrySource = z.infer<typeof PantrySource>;
 export const NutritionBasis = z.enum(['total', 'per_serving']);
 export type NutritionBasis = z.infer<typeof NutritionBasis>;

@@ -4,7 +4,7 @@ AI-assisted family recipe library, meal planner, nutrition/cost calculator, shar
 
 **New here, or on a new machine? Read [docs/HANDOVER.md](docs/HANDOVER.md).** Product intent: [docs/product/BRIEF.md](docs/product/BRIEF.md). Repo: https://github.com/deanobrien/familymeals.
 
-Status: all feature lanes are merged and green in mock mode; the Supabase-backed stores are implemented but not yet verified against a live Supabase; first Azure deploy is staged. Details and next steps in the handover doc and [docs/ROADMAP.md](docs/ROADMAP.md).
+Status: all feature lanes are merged and green in mock mode; the Supabase-backed stores are verified against a local Supabase (LV1; hosted push pending); first Azure deploy is staged. Details and next steps in the handover doc and [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Prerequisites
 
@@ -39,6 +39,8 @@ Config lives in `supabase/` (see DECISIONS.md D4); use the CLI via `pnpm exec su
 ## Deploy
 
 Azure App Service (Linux, Node 22): `scripts/package-appservice.ps1` builds `dist/appservice.zip`; the runbook is [docs/DEPLOY-APP-SERVICE.md](docs/DEPLOY-APP-SERVICE.md).
+
+Local Supabase (Docker; works on 20.10.7, D140): `pnpm exec supabase start` (applies every migration plus `supabase/seed.sql`; ports 554xx: API :55421, Studio :55423, Mailpit :55424 for confirmation emails). `pnpm dev:live` runs the app on http://localhost:3131 against it (D142); `pnpm test:e2e:live` runs the live suite (D143). Cloud: `pnpm exec supabase link --project-ref <ref>` then `pnpm exec supabase db push --include-seed`. Details: [docs/SUPABASE.md](docs/SUPABASE.md).
 
 ## Layout
 
