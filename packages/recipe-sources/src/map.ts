@@ -5,8 +5,8 @@ import type { SourceRecipe } from './types.js';
 const BARE_STAPLES = new Set(['salt', 'black pepper', 'pepper', 'white pepper', 'water', 'ice', 'oil', 'olive oil', 'vegetable oil', 'sunflower oil']);
 
 /** "STEP 1" / "1." / "Step 2:" style markers published on their own line or as a prefix. */
-const MARKER_ONLY = /^(?:step\s*\d+|\d+)\s*[.:)\-]?$/i;
-const MARKER_PREFIX = /^(?:step\s*\d+\s*[.:)\-]?\s*|\d+\s*[.)]\s+)/i;
+const MARKER_ONLY = /^(?:step\s*\d+|\d+)\s*[.:)-]?$/i;
+const MARKER_PREFIX = /^(?:step\s*\d+\s*[.:)-]?\s*|\d+\s*[.)]\s+)/i;
 
 /** Instructions text -> reviewable steps (one per paragraph; a single wall of text is split into sentence groups). */
 export function splitInstructions(text: string): string[] {

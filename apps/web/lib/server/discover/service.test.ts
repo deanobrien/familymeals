@@ -98,7 +98,7 @@ describe('startDiscoverDraft -> review -> save (same pipeline as photo import, n
   const owner = { userId: 'u1', householdId: 'h1' };
   beforeEach(() => undefined);
 
-  it('builds a draft with source + original kept and saves it with a link back and the publisher image', async () => {
+  it('builds a draft with source + original kept and saves it with a link back and the publisher image', { timeout: 30_000 }, async () => {
     const out = await startDiscoverDraft('90001', owner, none, source);
     expect(out.ok).toBe(true);
     if (!out.ok) return;

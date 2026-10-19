@@ -8,6 +8,14 @@ test.beforeEach(async ({ context }) => {
 });
 test.setTimeout(120_000);
 
+// The recipe store is shared across specs, so saved recipes are removed again (recipes.spec relies on page 1 of the seed).
+async function deleteThisRecipe(page: import('@playwright/test').Page, url: string) {
+  await page.goto(url);
+  await page.getByRole('button', { name: 'Delete', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete recipe' }).click();
+  await expect(page).toHaveURL(/\/recipes\?deleted=1/);
+}
+
 test('discover: search, attribution, preview, save through the shared review screen into my library', async ({ page }) => {
   await page.goto('/recipes');
   await page.getByRole('link', { name: 'Discover' }).click();
@@ -46,9 +54,11 @@ test('discover: search, attribution, preview, save through the shared review scr
   await expect(page).toHaveURL(/\/recipes\/[0-9a-f-]{36}$/, { timeout: 30_000 });
   await expect(page.getByRole('heading', { level: 1, name: 'Lemon Grilled Salmon' })).toBeVisible();
   await expect(page.getByText(/TheMealDB/).first()).toBeVisible();
+  const savedUrl = page.url();
 
   await page.goto('/recipes');
   await expect(page.getByText('Lemon Grilled Salmon').first()).toBeVisible();
+  await deleteThisRecipe(page, savedUrl);
 });
 
 test('discover never shows a recipe containing a household exclusion (peanut allergy), and says why', async ({ page }) => {
@@ -106,8 +116,11 @@ test('planner shortfall: "Find ideas" suggests safe recipes, saving goes to the 
   await page.getByRole('button', { name: 'Save recipe' }).click();
   await expect(page).toHaveURL(/\/recipes\/[0-9a-f-]{36}$/, { timeout: 30_000 });
 
+  const savedUrl = page.url();
+
   await page.goto(`/plan?week=${W}`);
   await expect(page.getByTestId('week-cost')).toContainText('No meals planned yet');
+  await deleteThisRecipe(page, savedUrl);
 });
 
 test('settings shows the recipe source status without a key', async ({ page }) => {
