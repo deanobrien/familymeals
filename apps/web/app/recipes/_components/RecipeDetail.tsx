@@ -174,6 +174,29 @@ export function RecipeDetail({ recipe, justDuplicated = false }: { recipe: Recip
             ]}
           />
           <p className="fr-muted" style={{ fontSize: 'var(--fr-text-xs)' }}>Estimates for information only, not medical advice.</p>
+          {recipe.printedNutrition && (
+            <div data-testid="printed-nutrition" style={{ marginTop: 'var(--fr-space-4)' }}>
+              <h3 style={{ fontSize: 'var(--fr-text-md, 1rem)' }}>Printed on the recipe card</h3>
+              <p className="fr-muted" style={{ fontSize: 'var(--fr-text-xs)' }}>
+                Supplied by the recipe card ({recipe.printedNutrition.basis}), not calculated by this app.
+                {recipe.printedNutrition.note ? ` ${recipe.printedNutrition.note}.` : ''}
+              </p>
+              <table>
+                <caption className="fr-visually-hidden">Nutrition printed on the recipe card, {recipe.printedNutrition.basis}</caption>
+                <tbody>
+                  {recipe.printedNutrition.values.map((v) => (
+                    <tr key={v.nutrient}><th scope="row" style={{ textAlign: 'left', fontWeight: 'normal' }}>{v.nutrient}</th><td>{v.amount}{v.unit === 'kcal' || v.unit === 'kJ' ? ` ${v.unit}` : v.unit}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {recipe.printedAllergens && recipe.printedAllergens.length > 0 && (
+            <p data-testid="printed-allergens">
+              <strong>Allergens printed on the card:</strong> {recipe.printedAllergens.join(', ')}
+              <span className="fr-muted" style={{ fontSize: 'var(--fr-text-xs)' }}> (as printed; check the packaging)</span>
+            </p>
+          )}
         </section>
       </div>
 

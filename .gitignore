@@ -14,3 +14,9 @@ e2e/playwright-report/
 .DS_Store
 packages/refdata/data/raw/
 .claude/
+# Local dev data: uploaded recipe photos, encrypted AI provider settings, dev APP_SECRET (never commit)
+apps/web/.data/
+.data/
+.data-e2e/
+apps/web/.next-e2e/
+

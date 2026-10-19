@@ -19,3 +19,7 @@ Known e2e caveats: on a cold dev server the first visit to an uncompiled route c
 5. e2e: isolate or reset in-memory state per run; add a warm-up step or larger expect timeout for cold dev compiles.
 6. Open owner decisions: Git host/remote, Supabase cloud project (London), Anthropic key, product name.
 7. Supabase local stack not verified (Docker 20.10 may be too old). No CI pipeline yet.
+
+## AI photo import lane (D40-D42)
+
+Done: OpenAI/Azure adapter, Settings > AI provider (encrypted key), richer extraction (multi-page, rotation, bracket quantities, printed nutrition/allergens, staples, source), cover images, review/detail display. Untested: live extraction against the real OpenAI API (needs the owner's key). Configure: Settings > AI provider > OpenAI, paste key, Save, Test connection, then Recipes > Import.

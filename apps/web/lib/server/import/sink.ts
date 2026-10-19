@@ -56,7 +56,8 @@ export function toRecipeInput(f: FinalisedRecipe): RecipeInput {
   const input: RecipeInput = {
     title: r.title,
     description: r.description ?? '',
-    imageUrl: null,
+    // Cover = front of the card, stored by the import pipeline in the local dev upload store (TODO Supabase Storage).
+    imageUrl: r.imageRef ?? null,
     sourceAttribution: r.source ?? 'Imported from photo',
     sourceUrl: '',
     // Verbatim photo text (ingredient lines as written, then steps); write-once in the library.
@@ -76,6 +77,9 @@ export function toRecipeInput(f: FinalisedRecipe): RecipeInput {
       optional: i.optional,
     })),
     steps,
+    // Printed on the card: carried across labelled as source-provided, never presented as our calculation.
+    ...(r.printedNutrition ? { printedNutrition: { ...r.printedNutrition } } : {}),
+    ...(r.printedAllergens?.length ? { printedAllergens: [...r.printedAllergens] } : {}),
   };
   return recipeInputSchema.parse(input) as RecipeInput;
 }

@@ -1,4 +1,5 @@
-import { createAiProvider, type AiProvider } from '@fr/ai';
+import type { AiProvider } from '@fr/ai';
+import { settingsAiProvider } from '../ai/provider';
 import {
   InMemoryProposalStore, PlanOrchestrator,
   type CostService, type Household, type HouseholdRepo, type MealRef, type ShoppingRequirement,
@@ -78,7 +79,8 @@ export function createPlanServices(opts: { ai?: AiProvider; recipes?: PlanRecipe
     getFavouriteRecipeIds: async (h, memberId) =>
       memberId === 'm-lauren' ? (await recipes.list(h)).filter((r) => r.favourite).map((r) => r.id) : [],
   };
-  const ai = opts.ai ?? createAiProvider({ ...process.env, AI_PROVIDER: process.env.AI_PROVIDER ?? 'mock' });
+  // Resolved per call from Settings > AI provider, else env, else the dev mock (D41).
+  const ai = opts.ai ?? settingsAiProvider;
   const recipeRepo = toRecipeRepo(recipes);
   const orchestrator = new PlanOrchestrator({
     ai,
