@@ -12,7 +12,7 @@ Batch 5 wiring (D32-D38):
 - `transfer_ownership` RPC + PGlite test; household transfer action uses it (D37).
 - `.gitattributes` (LF) and `.github/workflows/ci.yml` (D38).
 
-Verified by running (2026-10-19, integration worktree): `pnpm install`; `pnpm build` (9 tasks); `pnpm typecheck` (11); `pnpm lint`; `pnpm turbo run test --force` (18 tasks, 1225 tests: engine 743, web 232, ai 66, domain 38, recipe-import 31, refdata 29, ui 26, e2e fixtures 26, db 13, mobile 11, plan-orchestrator 10); `pnpm test:e2e` twice in a row against one freshly started dev server: 51 passed / 100 skipped (fixme) both times; curl `/ /recipes /plan /shopping /receipts /pantry /household /settings` -> 200 (mock-auth mode).
+Verified by running (2026-10-19, integration worktree, after merging the main-checkout lanes C1/P2/R2): `pnpm install --frozen-lockfile`; `pnpm build` (9 tasks); `pnpm typecheck` (11); `pnpm lint`; `pnpm turbo run test --force` (18 tasks, 1352 tests: engine 748, web 306, ai 84, refdata 59, domain 38, recipe-import 31, ui 26, e2e fixtures 26, db 13, mobile 11, plan-orchestrator 10); `pnpm test:e2e` twice in a row against one freshly started dev server: 63 passed / 100 skipped (fixme) both times; curl `/ /recipes /plan /shopping /receipts /pantry /household /settings` -> 200 (mock-auth mode).
 
 Known caveats:
 - All data is in memory (lost on restart). The recipe store is global, not household-scoped; pantry seeds every household with the demo stock; planner member names / exclusions are demo values for every household.

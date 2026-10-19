@@ -41,6 +41,7 @@ export function getRecipeRepository(): RecipeRepository {
 
 /** Dev/e2e reset back to the seed, in place, so every holder of the shared store sees it (D30, D36). */
 export function resetRecipeRepository(): void {
-  const repo = (globalThis as Holder)[KEY];
-  if (repo instanceof InMemoryRecipeRepository) repo.resetTo(withCanonicalIngredients(loadSeedRecipes()));
+  // Duck-typed: after a dev HMR reload the stored instance's class is not this module's class object.
+  const repo = (globalThis as Holder)[KEY] as Partial<Pick<InMemoryRecipeRepository, 'resetTo'>> | undefined;
+  if (typeof repo?.resetTo === 'function') repo.resetTo(withCanonicalIngredients(loadSeedRecipes()));
 }

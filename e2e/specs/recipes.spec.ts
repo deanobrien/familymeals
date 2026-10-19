@@ -186,7 +186,8 @@ test.describe('create, edit, duplicate and delete', () => {
     await expect(page).toHaveURL(/\/recipes\/[0-9a-f-]{36}$/);
     await expect(page.getByRole('heading', { level: 1, name: TITLE })).toBeVisible();
     await expect(page.getByTestId('ingredient-qty').first()).toHaveText('1 kg');
-    await expect(page.getByTestId('cost-unknown')).toBeVisible();
+    // pumpkin is priced in refdata (R2), so the cost is a real (estimated) figure, never 0
+    await expect(page.getByTestId('cost-per-serving')).toContainText('per serving');
     const steps = page.getByRole('list').filter({ hasText: 'Roast the pumpkin.' }).getByRole('listitem');
     await expect(steps.first()).toHaveText('Blend and season.');
 
