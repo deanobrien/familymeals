@@ -26,7 +26,7 @@ export function ErrorNote({ code }: { code?: string | string[] }) {
 
 export function AuthCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <main style={{ maxWidth: 420, margin: '2rem auto', display: 'grid', gap: '1rem' }}>
+    <main id="main" className="fr-auth__card">
       <h1>{title}</h1>
       {children}
     </main>

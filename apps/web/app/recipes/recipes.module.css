@@ -4,7 +4,7 @@
 .toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--fr-space-3); margin-bottom: var(--fr-space-3); }
 .toolbar > :first-child { flex: 1 1 260px; min-width: 0; }
 .chips { display: flex; flex-wrap: wrap; gap: var(--fr-space-2); margin: 0 0 var(--fr-space-3); padding: 0; list-style: none; }
-.chip { min-height: 36px; padding: 0 var(--fr-space-3); border-radius: var(--fr-radius-full); border: 1px solid var(--fr-border); background: var(--fr-surface); color: var(--fr-text); font: inherit; font-size: var(--fr-text-sm); cursor: pointer; }
+.chip { min-height: var(--fr-target); padding: 0 var(--fr-space-3); border-radius: var(--fr-radius-full); border: 1px solid var(--fr-border); background: var(--fr-surface); color: var(--fr-text); font: inherit; font-size: var(--fr-text-sm); cursor: pointer; }
 .chip[aria-pressed='true'] { background: var(--fr-accent-soft); border-color: var(--fr-accent); color: var(--fr-accent-hover); font-weight: 600; }
 .chip:focus-visible { outline: 3px solid var(--fr-focus); outline-offset: 2px; }
 .filters { border: 1px solid var(--fr-border); border-radius: var(--fr-radius-md); background: var(--fr-surface); padding: var(--fr-space-2) var(--fr-space-4); margin-bottom: var(--fr-space-4); }

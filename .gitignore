@@ -20,3 +20,4 @@ apps/web/.data/
 .data-e2e/
 apps/web/.next-e2e/
 
+apps/web/.next-*/

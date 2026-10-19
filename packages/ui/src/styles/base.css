@@ -13,6 +13,18 @@
 .fr-root :focus-visible, .fr-focusable:focus-visible { outline: 3px solid var(--fr-focus); outline-offset: 2px; }
 .fr-skip-link { position: absolute; left: var(--fr-space-3); top: -100px; z-index: 100; background: var(--fr-surface); color: var(--fr-text); padding: var(--fr-space-2) var(--fr-space-4); border-radius: var(--fr-radius-md); box-shadow: var(--fr-shadow-md); }
 .fr-skip-link:focus { top: var(--fr-space-3); }
+/* A1: plain links take the accent colour (readable in both themes), never the browser's default blue. */
+.fr-root a:not([class]) { color: var(--fr-accent); text-underline-offset: 0.18em; }
+.fr-root a:not([class]):hover { color: var(--fr-accent-hover); }
+/* A1: auth pages (no AppShell) get the themed page chrome. */
+.fr-auth { min-height: 100vh; padding: var(--fr-space-5) var(--fr-space-4); }
+.fr-auth__card { width: 100%; max-width: 420px; margin: var(--fr-space-5) auto; display: grid; gap: var(--fr-space-4); }
+.fr-auth__card p { margin: 0; overflow-wrap: anywhere; }
+/* A1: 44px touch targets on small screens for plain links and disclosure summaries in page content. */
+@media (max-width: 899px) {
+  .fr-root main a:not([class*='fr-']):not(.fr-skip-link) { padding-block: 0.65rem; }
+  .fr-root main summary { padding-block: 0.65rem; cursor: pointer; }
+}
 @media (prefers-reduced-motion: reduce) {
   .fr-root *, .fr-root *::before, .fr-root *::after, .fr-overlay, .fr-dialog, .fr-sheet { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
 }

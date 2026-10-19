@@ -19,7 +19,7 @@
 .actions { display: flex; align-items: center; gap: var(--fr-space-1); flex-shrink: 0; }
 
 .popover { position: relative; display: inline-block; }
-.popoverTrigger { font: inherit; font-size: var(--fr-text-xs); font-weight: 600; color: var(--fr-accent); background: transparent; border: 1px solid var(--fr-border); border-radius: var(--fr-radius-full); padding: 2px var(--fr-space-2); cursor: pointer; min-height: 28px; }
+.popoverTrigger { font: inherit; font-size: var(--fr-text-xs); font-weight: 600; color: var(--fr-accent); background: transparent; border: 1px solid var(--fr-border); border-radius: var(--fr-radius-full); padding: 2px var(--fr-space-2); cursor: pointer; min-height: var(--fr-target); }
 .popoverTrigger:focus-visible { outline: 2px solid var(--fr-focus); outline-offset: 2px; }
 .popoverBody { position: absolute; z-index: 20; left: 0; top: calc(100% + 4px); min-width: 14rem; max-width: 20rem; background: var(--fr-surface); border: 1px solid var(--fr-border); border-radius: var(--fr-radius-md); box-shadow: var(--fr-shadow-md); padding: var(--fr-space-3); font-size: var(--fr-text-sm); }
 .popoverBody h4 { margin: 0 0 var(--fr-space-2); font-size: var(--fr-text-sm); }
