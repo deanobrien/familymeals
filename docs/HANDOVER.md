@@ -106,7 +106,7 @@ NEXT_PUBLIC_SITE_URL=https://family-recipes-dean-cph4g5cuh9fmhhfy.ukwest-01.azur
 
 | Lane | What | Notes for whoever continues |
 |---|---|---|
-| B1 | Bug fixes found while testing | check `git log` on the branch / DECISIONS for the list |
+| B1 | Bug fixes found while testing | **done and merged** (D160-D164): sandbox import save (resolveRequestAuth accepts dev sandbox ids), per-household in-memory recipe libraries, 44px tap targets, 900px nav breakpoint kept, "offline shopper loses the race" flake was a spec race (not an app bug) |
 | LV1 | Live verification against a **local Supabase** (Docker) | **done and merged** (D140-D149): live suite 20/20, three bugs fixed; open items in section 9 |
 | D2 | Deploy-zip "no rebuild" fix | **done and merged** (commit "Package: stop App Service Oryx/Kudu server-side builds"): the packaging script now emits start-only `package.json` files, no lockfiles and a `.deployment` file; see DEPLOY-APP-SERVICE.md section 6. Needs a real redeploy to confirm |
 | X1 | Recipe discovery from TheMealDB | new recipe-source provider; see ROADMAP idea backlog |

@@ -32,5 +32,5 @@ Owner ideas first; others are maintainers' notes. Nothing here is committed scop
 - Sharing: recipe export/import between households, public share links (needs privacy review).
 - Platform: iOS via Expo, PWA install/offline for the web app, push notifications for list changes.
 - Ops: staging App Service slot, Application Insights, scheduled DB backups, Playwright against the deployed app.
-- LV1 follow-ups: live tests for receipts, price observations and per-household AI settings; confirm-then-mark-live in `lib/shopping/live.ts`; ingredient links for form-created recipes; fix the 2-3 load-related flaky mock e2e shopping/journey tests (pass in isolation).
+- LV1 follow-ups: live tests for receipts, price observations and per-household AI settings; confirm-then-mark-live in `lib/shopping/live.ts`; ingredient links for form-created recipes. (B1, D160-D164, fixed the sandbox import save, per-household in-memory recipes, 44px tap targets and the offline-race flake, which was a spec race.)
 - Name and branding (owner decision pending; scope `@fr/*` is deliberately neutral).
