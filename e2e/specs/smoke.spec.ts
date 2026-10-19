@@ -11,9 +11,12 @@ test('home page renders the app shell with main navigation', async ({ page }) =>
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   const nav = page.getByRole('navigation', { name: 'Main', exact: true });
-  for (const label of ['Home', ...ROUTES.map((r) => r.nav), 'Settings']) {
+  for (const label of ['Home', ...ROUTES.map((r) => r.nav), 'Pantry', 'Receipts', 'Settings']) {
     await expect(nav.getByRole('link', { name: label })).toBeVisible();
   }
+  await expect(nav.getByRole('link', { name: 'Pantry' })).toHaveAttribute('href', '/pantry');
+  // /receipts is a placeholder link until the receipts lane merges
+  await expect(nav.getByRole('link', { name: 'Receipts' })).toHaveAttribute('href', '/receipts');
 });
 
 for (const r of ROUTES) {
@@ -39,4 +42,6 @@ test('mobile viewport shows the bottom navigation', async ({ page }) => {
   const bottom = page.getByRole('navigation', { name: 'Main (mobile)' });
   await expect(bottom).toBeVisible();
   await expect(bottom.getByRole('link', { name: 'Recipes' })).toBeVisible();
+  await expect(bottom.getByRole('link', { name: 'Pantry' })).toBeVisible();
+  await expect(bottom.getByRole('link', { name: 'Receipts' })).toHaveCount(0); // sidebar only
 });

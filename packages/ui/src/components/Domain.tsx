@@ -89,14 +89,17 @@ export function RecipeGrid({ view = 'grid', label = 'Recipes', children }: { vie
 }
 
 /* ---------- AppShell ---------- */
-export type NavKey = 'home' | 'recipes' | 'planner' | 'shopping' | 'household' | 'settings';
-export interface NavItem { key: NavKey; label: string; href: string; icon: IconName }
+export type NavKey = 'home' | 'recipes' | 'planner' | 'shopping' | 'pantry' | 'receipts' | 'household' | 'settings';
+/** `mobile: false` keeps an item out of the bottom nav (sidebar only) so the phone bar stays usable. */
+export interface NavItem { key: NavKey; label: string; href: string; icon: IconName; mobile?: boolean }
 
 export const DEFAULT_NAV: NavItem[] = [
   { key: 'home', label: 'Home', href: '/', icon: 'home' },
   { key: 'recipes', label: 'Recipes', href: '/recipes', icon: 'book' },
   { key: 'planner', label: 'Meal planner', href: '/plan', icon: 'calendar' },
   { key: 'shopping', label: 'Shopping list', href: '/shopping', icon: 'cart' },
+  { key: 'pantry', label: 'Pantry', href: '/pantry', icon: 'box' },
+  { key: 'receipts', label: 'Receipts', href: '/receipts', icon: 'receipt', mobile: false },
   { key: 'household', label: 'Household', href: '/household', icon: 'users' },
   { key: 'settings', label: 'Settings', href: '/settings', icon: 'settings' },
 ];
@@ -124,7 +127,7 @@ export function AppShell({ children, active, nav = DEFAULT_NAV, appName = 'Famil
       </nav>
       <main id="main" className="fr-shell__main" tabIndex={-1}>{children}</main>
       <nav className="fr-bottomnav" aria-label="Main (mobile)">
-        <ul>{nav.map((n) => <li key={n.key}>{renderLink(n, true)}</li>)}</ul>
+        <ul>{nav.filter((n) => n.mobile !== false).map((n) => <li key={n.key}>{renderLink(n, true)}</li>)}</ul>
       </nav>
     </div>
   );

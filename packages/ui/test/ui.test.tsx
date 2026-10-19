@@ -178,16 +178,18 @@ describe('RecipeCard / grid / toggle', () => {
 });
 
 describe('AppShell', () => {
-  it('has main landmark, skip link and all six nav items with current page', async () => {
+  it('has main landmark, skip link and all eight nav items with current page', async () => {
     const { container } = render(<AppShell active="recipes"><h1>Recipes</h1></AppShell>);
     expect(await axe(container)).toHaveNoViolations();
     expect(screen.getByRole('link', { name: 'Skip to content' })).toBeInTheDocument();
     const side = screen.getByRole('navigation', { name: 'Main' });
-    for (const n of ['Home', 'Recipes', 'Meal planner', 'Shopping list', 'Household', 'Settings']) {
+    for (const n of ['Home', 'Recipes', 'Meal planner', 'Shopping list', 'Pantry', 'Receipts', 'Household', 'Settings']) {
       expect(within(side).getByRole('link', { name: n })).toBeInTheDocument();
     }
     expect(within(side).getByRole('link', { name: 'Recipes' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('navigation', { name: 'Main (mobile)' })).toBeInTheDocument();
+    const bottom = screen.getByRole('navigation', { name: 'Main (mobile)' });
+    expect(within(bottom).getByRole('link', { name: 'Pantry' })).toBeInTheDocument();
+    expect(within(bottom).queryByRole('link', { name: 'Receipts' })).toBeNull();
     expect(screen.getByRole('main')).toBeInTheDocument();
   });
 });

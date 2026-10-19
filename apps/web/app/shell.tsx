@@ -9,6 +9,8 @@ const ROUTE_KEYS: ReadonlyArray<readonly [string, NavKey]> = [
   ['/recipes', 'recipes'],
   ['/plan', 'planner'],
   ['/shopping', 'shopping'],
+  ['/pantry', 'pantry'],
+  ['/receipts', 'receipts'],
   ['/household', 'household'],
   ['/settings', 'settings'],
 ];
