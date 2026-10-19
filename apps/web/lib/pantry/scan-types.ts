@@ -67,6 +67,8 @@ export interface ScanCommitRow {
   unit: string;
   /** use by, else best before, else (opt-in) an estimate: the single pantry expiry date. */
   expiry?: string;
+  /** The barcode this row was scanned from (X2): on confirm the product is linked to `ingredientId`. */
+  barcode?: string;
 }
 
 export interface ScanPreviewLine {

@@ -45,3 +45,9 @@ Done: OpenAI/Azure adapter, Settings > AI provider (encrypted key), richer extra
 ## D1 Azure App Service deploy prep (2026-10-19, branch `prj018/d1-appservice`)
 
 Standalone build + `scripts/package-appservice.ps1` (symlink-free hoisted build copy, linux-x64 sharp, forward-slash zip), `/api/health`, production config guard (`ALLOW_LOCAL_FILE_STORE` escape hatch until S2 moves AI settings/uploads to Supabase), security headers/CSP, `docs/DEPLOY-APP-SERVICE.md` (D150-D154). The CSP and the deployed app were not exercised against a live Supabase / Azure: the owner's smoke checklist is the first real test.
+
+## X2 Products / Open Food Facts (2026-10-20, branch `worktree-agent-a85a75c8dde09312d`, D180-D189)
+
+New `@fr/product-sources` (`ProductSource`, Open Food Facts adapter with User-Agent / limiter / cache / zod, offline mock + UK fixtures), barcode scanning in /pantry/scan (BarcodeDetector + manual EAN), `GET /api/products/[barcode]` (cookie or bearer), per-household product snapshots (migration `20261019002000`, RLS test 009, in-memory + Supabase stores), product-label nutrition preferred over CoFID with provenance (D186), Expo capture-screen barcode lookup, attribution on `/about/sources`, the privacy notice, review rows, the nutrition panel and the mobile card.
+
+Default is the offline mock (`PRODUCT_PROVIDER=mock`); the live provider (`PRODUCT_PROVIDER=off` + `OFF_CONTACT`) was verified against the real API with ONE read-only GET during development, but the legacy search query shape and the whole flow with live data have not been exercised. Not done: receipts (no barcode data on receipt lines), a name-search screen, unlink/list UI for linked products, privacy-export of snapshots, a per-recipe-line product pin (D186, D187, D189). The ODbL share-alike reading in D182 needs the owner's confirmation before any pooling of product data across households.

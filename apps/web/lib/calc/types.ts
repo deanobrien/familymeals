@@ -2,6 +2,7 @@
 import type { NutrientMap } from '@fr/engine/nutrition';
 import type { UncostedReason } from '@fr/engine/cost';
 import type { PriceKind } from '../recipes/types';
+import type { ProductSourceUsed } from '../products/types';
 
 export interface CostLineResult {
   lineId: string;
@@ -60,6 +61,8 @@ export interface NutritionResult {
   /** true when any figure depends on an estimate (unit weights, ranges, CoFID proxies / bracketed values). */
   hasEstimates: boolean;
   attribution: string;
+  /** Ingredients whose nutrition came from a linked product label (Open Food Facts) instead of CoFID. */
+  productSources?: ProductSourceUsed[];
   disclaimer: string;
   calculatedAt: string;
 }

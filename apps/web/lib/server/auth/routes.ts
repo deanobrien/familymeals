@@ -10,6 +10,7 @@ export const SIGN_IN_PATH = '/sign-in';
 /** Exact public paths. */
 export const PUBLIC_PATHS: readonly string[] = [
   '/privacy',
+  '/about/sources',
   '/sign-in',
   '/sign-up',
   '/forgot-password',
@@ -27,8 +28,12 @@ export const PUBLIC_API_PREFIXES: readonly string[] = ['/api/health'];
  */
 export const BEARER_API_PATHS: readonly string[] = ['/api/extract', '/api/extract/save'];
 
+/** Bearer-capable route families (dynamic segments), e.g. GET /api/products/<barcode> (X2, D188). */
+export const BEARER_API_PREFIXES: readonly string[] = ['/api/products/'];
+
 export function acceptsBearer(pathname: string, authorization: string | null | undefined): boolean {
-  return BEARER_API_PATHS.includes(pathname) && /^Bearer\s+\S+$/i.test(authorization?.trim() ?? '');
+  const known = BEARER_API_PATHS.includes(pathname) || BEARER_API_PREFIXES.some((p) => pathname.startsWith(p));
+  return known && /^Bearer\s+\S+$/i.test(authorization?.trim() ?? '');
 }
 
 /** Auth pages a signed-in user is bounced away from. */

@@ -46,3 +46,10 @@ See `COVERAGE.md` (before/after cost and nutrition coverage over the fixture rec
 
 ## 5. Re-downloading the raw CoFID workbook
 `data/raw/*.xlsx` (4.5 MB) is git-ignored to keep the repo small. To restore it, download the file URL in section 1 and save it as `packages/refdata/data/raw/cofid2021.xlsx` (verify the sha256 above), then `pnpm --filter @fr/refdata import:cofid` regenerates `data/out/cofid.json`. The generated `data/out/*.json` ARE committed, so tests and consumers never need the xlsx.
+
+## 6. Open Food Facts (packaged products; NOT bundled, fetched per barcode by `@fr/product-sources`)
+- Source: Open Food Facts, https://world.openfoodfacts.org/ (volunteer-built food products database). API: `GET /api/v2/product/{code}.json?fields=...` (verified 2026-10-20; see DECISIONS D180).
+- Licences: database ODbL 1.0, entries DbCL 1.0, photos CC BY-SA (terms: https://world.openfoodfacts.org/terms-of-use). Attribution used everywhere product data appears: "Product data (c) Open Food Facts contributors, ODbL" + a link to the product page. Share-alike: we keep only small per-household snapshots (never pooled, published or exported) and never copy images; pooling products across households or shipping a bulk import would make the derived database subject to ODbL share-alike (D182).
+- API etiquette: User-Agent `FamilyRecipes/0.1 (<OFF_CONTACT>)`; limits 15 product reads/min and 10 searches/min per IP (we use 10 and 5); no search-as-you-type; bulk needs => data dumps.
+- Quality: crowd-sourced; any field may be missing or wrong. A missing nutrient is unknown, never 0; implausible nutrition blocks are withheld; no allergen data is "unknown" (never allergen free); allergens always say "check the pack" (D183).
+- Role vs CoFID: a product label linked to an ingredient replaces CoFID for that household's nutrition, labelled "from product label via Open Food Facts" (D186). CoFID remains the default for every ingredient with no linked product.

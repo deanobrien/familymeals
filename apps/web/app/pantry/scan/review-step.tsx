@@ -10,6 +10,7 @@ import {
 } from '../../../lib/pantry/scan-rows';
 import type { ScanPreviewLine } from '../../../lib/pantry/scan-types';
 import { confirmScanAction, previewScanAction, searchIngredientsAction } from '../../../lib/server/pantry/actions';
+import { ProductInfo } from './product-info';
 import s from './scan.module.css';
 
 const unitOptions = UNIT_OPTIONS.map((u) => ({ value: u, label: u }));
@@ -110,7 +111,7 @@ export function ReviewStep({ rows, setRows, warnings, imageCount, onBack, onAdde
 
       {rows.length === 0 ? (
         <p role="status" data-testid="scan-empty" className={s.info}>
-          No food items were found in {imageCount === 1 ? 'that image' : 'those images'}. Try again with a clearer, closer photo.
+          No food items were found{imageCount > 0 ? <> in {imageCount === 1 ? 'that image' : 'those images'}</> : null}. Try again with a clearer, closer photo, or scan a barcode.
         </p>
       ) : (
         <ul className={s.rows} aria-label="Scanned items">
@@ -193,11 +194,16 @@ function ScanRowCard({ row, error, onChange, onCloseUp }: { row: ScanRow; error?
                 onChange={(e) => onChange({ ...row, include: e.target.checked })}
               />
               <div className={s.badges}>
-                <Badge tone={conf.tone} data-testid="confidence">{conf.label} ({Math.round(row.confidence * 100)}%)</Badge>
-                <span className={s.muted}>seen in {row.frameRefs.length === 1 ? 'image' : 'images'} {row.frameRefs.join(', ')}</span>
+                {row.barcode ? <Badge tone="accent" data-testid="barcode-badge">From barcode {row.barcode}</Badge> : (
+                  <>
+                    <Badge tone={conf.tone} data-testid="confidence">{conf.label} ({Math.round(row.confidence * 100)}%)</Badge>
+                    <span className={s.muted}>seen in {row.frameRefs.length === 1 ? 'image' : 'images'} {row.frameRefs.join(', ')}</span>
+                  </>
+                )}
               </div>
             </div>
             {row.notes && <p className={s.muted}>{row.notes}</p>}
+            {row.product && <ProductInfo product={row.product} />}
 
             <MatchPicker row={row} onChange={onChange} />
 

@@ -24,7 +24,8 @@ function securityHeaders() {
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline'",
-    `img-src 'self' blob: data: ${supa}`.trim(),
+    // images.openfoodfacts.org: product photos on barcode rows are hotlinked for display only (X2, D185); never stored.
+    `img-src 'self' blob: data: https://images.openfoodfacts.org ${supa}`.trim(),
     "media-src 'self' blob:",
     `connect-src 'self' ${supa} ${supaWs}`.replace(/ +/g, ' ').trim(),
     "font-src 'self' data:",
@@ -82,6 +83,7 @@ const nextConfig = {
     '@fr/domain',
     '@fr/engine',
     '@fr/plan-orchestrator',
+    '@fr/product-sources',
     '@fr/recipe-import',
     '@fr/refdata',
     '@fr/ui',
