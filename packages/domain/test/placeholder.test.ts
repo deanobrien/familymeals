@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PACKAGE_NAME } from './index';
+import { PACKAGE_NAME } from '../src/index';
 
 describe('@fr/domain', () => {
   it('exports its package name', () => {
