@@ -6,7 +6,8 @@ import { createSupabasePantryRepository, useSupabaseBackend } from '../supabase/
 import { defaultIngredientLookup } from './ingredients';
 import { InMemoryPantryRepository } from './repository';
 import {
-  InMemoryLeftoverSource, InMemoryPurchaseEventSource, RepositoryRecipeSummarySource, fixturePurchaseRecords, seedPantryItems,
+  InMemoryLeftoverSource, InMemoryPurchaseEventSource, NoLeftoverSource, RepositoryRecipeSummarySource, fixturePurchaseRecords,
+  seedPantryItems,
 } from './sources';
 import { createPantryService, type PantryService } from './service';
 
@@ -22,13 +23,15 @@ const nowIso = (): string => new Date().toISOString();
 export function buildDemoPantryService(now: () => string = nowIso, householdId: string = DEMO_HOUSEHOLD_ID): PantryService {
   const ingredients = defaultIngredientLookup();
   const start = now();
+  const supabase = useSupabaseBackend();
   return createPantryService({
-    repo: useSupabaseBackend()
+    repo: supabase
       ? createSupabasePantryRepository()
       : new InMemoryPantryRepository({ householdId, items: seedPantryItems(householdId, start, ingredients) }),
     recipes: new RepositoryRecipeSummarySource(getRecipeRepository()),
-    purchases: new InMemoryPurchaseEventSource(fixturePurchaseRecords(householdId, start, ingredients)),
-    leftovers: new InMemoryLeftoverSource(now),
+    // A real (Supabase) household never sees the demo purchases or leftovers (D146); neither is persisted here yet.
+    purchases: new InMemoryPurchaseEventSource(supabase ? [] : fixturePurchaseRecords(householdId, start, ingredients)),
+    leftovers: supabase ? new NoLeftoverSource() : new InMemoryLeftoverSource(now),
     ingredients,
     converter: getIngredientCatalogue().converter,
     now,
