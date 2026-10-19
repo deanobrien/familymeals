@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Badge, Button, Card, CardBody } from '@fr/ui';
 import { extractVideoFrames } from '../../../lib/pantry/video-frames';
+import { downscaleAll } from '../../../lib/images/downscale';
 import s from './scan.module.css';
 
 export const MAX_SCAN_IMAGES = 10;
@@ -30,7 +31,7 @@ export function CaptureStep({ images, onChange, nextId, disabled, onScan }: Prop
   const [notice, setNotice] = useState<string | null>(null);
   const [working, setWorking] = useState<string | null>(null);
 
-  function addPhotos(list: FileList | null) {
+  async function addPhotos(list: FileList | null) {
     if (!list || list.length === 0) return;
     const incoming = [...list].filter((f) => f.type === '' || f.type.startsWith('image/'));
     const room = MAX_SCAN_IMAGES - images.length;
@@ -42,9 +43,13 @@ export function CaptureStep({ images, onChange, nextId, disabled, onScan }: Prop
           ? `You can scan up to ${MAX_SCAN_IMAGES} photos or frames at a time; extra photos were ignored.`
           : null,
     );
+    if (accepted.length === 0) return;
+    setWorking('Preparing photos...');
+    const files = await downscaleAll(accepted);
+    setWorking(null);
     onChange((cur) => [
       ...cur,
-      ...accepted.map((file): ScanImage => ({ id: nextId(), file, url: URL.createObjectURL(file), source: 'photo' })),
+      ...files.map((file): ScanImage => ({ id: nextId(), file, url: URL.createObjectURL(file), source: 'photo' })),
     ]);
   }
 

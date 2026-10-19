@@ -5,6 +5,8 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const MAX_FILES = 10;
+/** Must equal experimental.middlewareClientMaxBodySize in next.config.mjs: bigger bodies are truncated before parsing. */
+const MAX_UPLOAD_BYTES = 40 * 1024 * 1024;
 
 const bad = (message: string, status = 400) =>
   NextResponse.json({ error: { code: 'BAD_REQUEST', message, retryable: false } }, { status });
@@ -26,6 +28,10 @@ export async function POST(req: Request) {
     const f = form.get('focus');
     if (typeof f === 'string' && f.trim()) focus = f;
   } catch {
+    // No image content is logged: only the size, so an over-limit upload is diagnosable.
+    const length = Number(req.headers.get('content-length') ?? 0);
+    console.warn('/api/pantry/scan: upload could not be parsed (content-length ' + length + ')');
+    if (length > MAX_UPLOAD_BYTES) return bad('Those photos are too large to upload. Try fewer pages or smaller photos.', 413);
     return bad('That upload could not be read. Please try again.');
   }
 

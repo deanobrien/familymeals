@@ -23,7 +23,9 @@ const nextConfig = {
   // Dev only: keep compiled routes for an hour instead of disposing them after 60s idle, so e2e runs (and
   // demos) do not pay repeated cold compiles of pages and server actions (D36).
   onDemandEntries: { maxInactiveAge: 60 * 60 * 1000, pagesBufferLength: 50 },
-  experimental: { serverActions: { bodySizeLimit: '16mb' } },
+  // middlewareClientMaxBodySize: the Supabase auth middleware makes Next buffer request bodies (default 10MB, then
+  // truncates); a truncated multipart upload fails to parse. Keep it above the route/server-action limits.
+  experimental: { serverActions: { bodySizeLimit: '16mb' }, middlewareClientMaxBodySize: '40mb' },
   webpack(config, { dev }) {
     config.resolve.extensionAlias = {
       ...config.resolve.extensionAlias,
