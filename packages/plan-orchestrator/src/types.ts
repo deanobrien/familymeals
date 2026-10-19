@@ -1,0 +1,131 @@
+import type { PlanConstraints } from '@fr/ai';
+
+export type { PlanConstraints };
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
+export type IsoDate = string;
+export type Pence = number;
+
+// ---------- data access (injected) ----------
+export interface HardExclusion { ingredientName: string; kind: 'allergy' | 'dietary' | 'dislike'; }
+export interface Member { id: string; displayName: string; }
+export interface Household {
+  id: string;
+  defaultServings?: number;
+  weeklyBudgetPence?: number;
+  /** Household-level hard exclusions (health data: never sent to the AI). */
+  hardExclusions: HardExclusion[];
+  members: Member[];
+}
+export interface HouseholdRepo {
+  getHousehold(householdId: string): Promise<Household | null>;
+  /** Recipe ids marked favourite by this member. */
+  getFavouriteRecipeIds(householdId: string, memberId: string): Promise<string[]>;
+}
+
+export interface Candidate {
+  id: string;
+  title: string;
+  ingredientNames: string[];
+  tags: string[];
+  mealTypes: MealType[];
+  dietCategory?: 'meat' | 'fish' | 'vegetarian' | 'vegan';
+  totalMinutes?: number;
+  /** Display names of members who favourite this recipe (set by orchestrator). */
+  favouriteOf?: string[];
+  /** Cost at the plan servings; null/undefined = unknown (never 0). */
+  costPence?: Pence | null;
+}
+export interface CandidateFilter {
+  excludeIngredients: string[];
+  mealTypes: MealType[];
+  includeTags: string[];
+}
+export interface RecipeRepo {
+  tagVocabulary(householdId: string): Promise<string[]>;
+  /** Must apply excludeIngredients as a hard filter in the query. Orchestrator re-filters defensively. */
+  searchCandidates(householdId: string, filter: CandidateFilter): Promise<Candidate[]>;
+  getRecipes(householdId: string, ids: string[]): Promise<Candidate[]>;
+}
+
+export interface MealRef { recipeId: string; servings: number; date: IsoDate; mealType: MealType; plannedMealId: string; }
+export interface ShoppingRequirement { displayName: string; ingredientId?: string; quantityText: string; contributions: { recipeId: string; plannedMealId: string }[]; }
+export interface CostService {
+  /** Cost of cooking each recipe at `servings`; null = unknown. */
+  costRecipes(householdId: string, recipeIds: string[], servings: number): Promise<Record<string, Pence | null>>;
+  /** Only called from confirmShopping. */
+  buildRequirements(householdId: string, meals: MealRef[]): Promise<ShoppingRequirement[]>;
+}
+
+// ---------- solver (injected; implemented by L9) ----------
+export interface PlanSlot {
+  date: IsoDate;
+  mealType: MealType;
+  /** null = unfilled (eating out / no viable recipe / needs new suggestion). */
+  recipeId: string | null;
+  servings: number;
+  note?: string;
+}
+export interface ConstraintReportItem { constraint: string; met: boolean; detail: string; }
+export interface SolveOptions { weekStart: IsoDate; servings: number; }
+export interface SolveResult {
+  slots: PlanSlot[];
+  report: ConstraintReportItem[];
+  explanations: string[];
+  totalCostPence: Pence | null;
+  uncostedMeals: string[];
+}
+export interface ValidationResult { ok: boolean; violations: string[]; }
+export interface PlanSolver {
+  solve(constraints: PlanConstraints, candidates: Candidate[], opts: SolveOptions): SolveResult | Promise<SolveResult>;
+  validate(plan: { slots: PlanSlot[] }, constraints: PlanConstraints): ValidationResult | Promise<ValidationResult>;
+}
+
+// ---------- proposals ----------
+export interface UnmetConstraint { kind: 'solver' | 'member_unknown' | 'member_ambiguous' | 'no_favourites'; detail: string; }
+export interface RecipeGap { date: IsoDate; mealType: MealType; reason: string; suggestionBrief: { tags: string[]; excludeIngredients: string[] }; }
+
+export interface PlanProposal {
+  id: string;
+  status: 'proposed';
+  householdId: string;
+  weekStart: IsoDate;
+  prompt: string;
+  constraints: PlanConstraints;
+  /** Hard exclusions the AI omitted that the server re-imposed (transparency). */
+  reimposedExclusions: string[];
+  slots: PlanSlot[];
+  explanations: string[];
+  unmet: UnmetConstraint[];
+  report: ConstraintReportItem[];
+  gaps: RecipeGap[];
+  totalCostPence: Pence | null;
+  uncostedMeals: string[];
+  createdAt: string;
+}
+export interface ProposalStore {
+  save(p: PlanProposal): Promise<void>;
+  get(id: string): Promise<PlanProposal | null>;
+  markApproved(id: string): Promise<void>;
+}
+
+export interface MealPlan {
+  id: string; householdId: string; startDate: IsoDate; endDate: IsoDate;
+  budgetPence?: Pence; prompt: string; status: 'approved';
+}
+export interface PlannedMeal {
+  id: string; mealPlanId: string; date: IsoDate; mealType: MealType;
+  recipeId: string; servings: number; costPence: Pence | null;
+}
+
+export type OrchestratorError =
+  | { code: 'AI_UNAVAILABLE'; userMessage: string; prompt: string }
+  | { code: 'HOUSEHOLD_NOT_FOUND'; userMessage: string }
+  | { code: 'NO_VIABLE_CANDIDATES'; userMessage: string; constraints: PlanConstraints; unmet: UnmetConstraint[]; gaps: RecipeGap[] }
+  | { code: 'PROPOSAL_NOT_FOUND'; userMessage: string }
+  | { code: 'VALIDATION_FAILED'; userMessage: string; violations: string[] };
+
+export type Result<T> = { ok: true; value: T } | { ok: false; error: OrchestratorError };
+
+export interface SlotEdit { date: IsoDate; mealType: MealType; recipeId: string | null; servings?: number; }
+export interface PlanEdits { slotEdits?: SlotEdit[]; }
