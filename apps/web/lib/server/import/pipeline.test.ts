@@ -11,18 +11,23 @@ const PNG = new Uint8Array(
 );
 const mock = () => createMockProvider({ env: { NODE_ENV: 'test' } });
 
-describe('engine adapter (temporary)', () => {
+describe('engine adapter (@fr/engine parse + catalogue matcher)', () => {
   it('parses common line shapes', () => {
     expect(ingredientParser.parse('200g red lentils').quantity).toMatchObject({ kind: 'exact', value: 200, unit: 'g' });
     expect(ingredientParser.parse('1 onion, finely chopped')).toMatchObject({ name: 'onion', preparation: 'finely chopped' });
     expect(ingredientParser.parse('1/2 tsp salt').quantity).toMatchObject({ value: 0.5, unit: 'tsp' });
     expect(ingredientParser.parse('2-3 cloves garlic').quantity).toMatchObject({ kind: 'range', min: 2, max: 3, unit: 'clove' });
     expect(ingredientParser.parse('salt to taste').quantity.kind).toBe('to_taste');
-    expect(ingredientParser.parse('some thing').quantity.kind).toBe('unparsed');
+    expect(ingredientParser.parse('see the card').quantity.kind).toBe('unparsed');
+    // loose amounts stay approximate with no unit (never converted to a weight)
+    expect(ingredientParser.parse('a pinch of salt').quantity).toMatchObject({ kind: 'approximate', approxLabel: 'pinch' });
+    expect(ingredientParser.parse('a pinch of salt').quantity.unit).toBeUndefined();
   });
   it('matches known ingredients', () => {
     expect(ingredientMatcher.match('onions').ingredientId).toBeDefined();
     expect(ingredientMatcher.match('dragon fruit').ingredientId).toBeUndefined();
+    // ids are canonical @fr/refdata uuids
+    expect(ingredientMatcher.match('red lentils').ingredientId).toMatch(/^[0-9a-f-]{36}$/);
   });
 });
 
