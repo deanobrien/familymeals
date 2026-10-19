@@ -4,7 +4,7 @@ import {
   InMemoryProposalStore, PlanOrchestrator,
   type CostService, type Household, type HouseholdRepo, type MealRef, type ShoppingRequirement,
 } from '@fr/plan-orchestrator';
-import { getRecipeRepository } from '../../recipes/factory';
+import { getRecipeRepositoryFor } from '../../recipes/factory';
 import { getRecipeCalculator } from '../calc';
 import { summariserForHousehold } from '../calc/household';
 import { RepositoryPlanRecipeSource, toPlanRecipe, toRecipeRepo, type PlanRecipeSource } from './recipe-source';
@@ -101,7 +101,7 @@ export function createPlanServices(opts: {
   const nutritionOf = (r: Parameters<typeof toPlanRecipe>[0]) => getRecipeCalculator(household.id).nutritionPerServing(r);
   const recipes = opts.recipes ?? (supabase
     ? createSupabasePlanRecipeSource(undefined, { summariserFor: summariserForHousehold, nutritionOf })
-    : new RepositoryPlanRecipeSource(getRecipeRepository(), nutritionOf));
+    : new RepositoryPlanRecipeSource(getRecipeRepositoryFor(household.id), nutritionOf));
   // eslint-disable-next-line prefer-const
   let services: PlanServices;
   const households: HouseholdRepo = {
@@ -141,8 +141,8 @@ export function getPlanServicesFor(householdId: string): PlanServices {
     svc = createPlanServices({
       household: demoHousehold(householdId),
       ...(useSupabaseBackend() ? { profile: createSupabaseHouseholdProfile() } : { plans: getPlanStore() }),
-      buildRequirements: async (_h, meals) => {
-        const built = await buildRequirementsForMeals(meals, getRecipeRepository(), getIngredientCatalogue());
+      buildRequirements: async (h, meals) => {
+        const built = await buildRequirementsForMeals(meals, getRecipeRepositoryFor(h), getIngredientCatalogue());
         return built.requirements.map((r) => ({
           displayName: r.displayName,
           ...(r.ingredientId ? { ingredientId: r.ingredientId } : {}),

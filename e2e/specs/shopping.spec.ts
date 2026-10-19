@@ -193,7 +193,7 @@ test.describe('shopping list', () => {
       await expect.poll(async () => (await conflicts(a).count()) + (await conflicts(b).count()), { timeout: 15_000 }).toBe(1);
       for (const p of [a, b]) {
         await expect(p.getByTestId('purchase-row').filter({ hasText: 'Onion' })).toHaveCount(1);
-        await expect(p.getByTestId('pending-badge')).toHaveCount(0);
+        await expect(p.getByTestId('sync-status')).toHaveText('All changes saved'); // confirmed by the server, not just optimistic
       }
     } finally {
       await ctxA.close();
@@ -217,7 +217,9 @@ test.describe('shopping list', () => {
 
       await tickBox(a, 'Carrot').click();
       await expect(a.getByTestId('purchase-row').filter({ hasText: 'Carrot' })).toHaveCount(1);
-      await expect(a.getByTestId('pending-badge')).toHaveCount(0);
+      // The tick must be CONFIRMED by the server before B reconnects (the purchase row is optimistic and the pending badge
+      // only decorates list rows, so neither proves it): otherwise B's replay can reach the server first and win (D164).
+      await expect(a.getByTestId('sync-status')).toHaveText('All changes saved');
 
       await ctxB.setOffline(false);
       await expect(b.getByRole('alert').filter({ hasText: 'Another shopper already bought Carrot' })).toBeVisible({ timeout: 15_000 });

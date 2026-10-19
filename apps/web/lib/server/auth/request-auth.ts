@@ -7,6 +7,7 @@ import { readPublicEnv, resolveAuthMode } from '../../supabase/env';
 import type { DataContext } from '../supabase/backend';
 import { getHouseholdContext } from './household-context';
 import { loadMemberships } from './household-service';
+import { MOCK_SANDBOX_PATTERN } from './mock';
 import { isReadOnly, isUuid, type HouseholdSummary } from './memberships';
 
 export interface RequestAuth {
@@ -48,7 +49,9 @@ function defaultDeps(): BearerDeps {
 
 function pick(memberships: readonly HouseholdSummary[], requested: string | undefined): HouseholdSummary | AuthOutcome {
   if (requested !== undefined && requested !== '') {
-    if (!isUuid(requested)) return fail(400, 'Invalid household.');
+    // Dev-only e2e sandbox ids (`e2e-*`) are accepted in mock auth mode exactly as getMockIdentity() does; never in production.
+    const sandbox = resolveAuthMode() === 'mock' && MOCK_SANDBOX_PATTERN.test(requested);
+    if (!isUuid(requested) && !sandbox) return fail(400, 'Invalid household.');
     return memberships.find((m) => m.id === requested) ?? fail(403, 'You are not a member of that household.');
   }
   if (memberships.length === 1) return memberships[0]!;

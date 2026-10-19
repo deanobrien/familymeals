@@ -1,6 +1,6 @@
 // Household isolation (UI level) in mock-auth mode: two sandbox households (`fr_household=e2e-*` cookies) must never
 // see each other's shopping list, plan, receipts or pantry. DB-level RLS lives in packages/db (PGlite) and is the
-// primary control; cross-household checks that need real memberships are `fixme(true, 'needs live Supabase')`.
+// primary control; cross-household checks that need real memberships run in e2e/live/ (pnpm test:e2e:live).
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 import { fileURLToPath } from 'node:url';
 import { SEED, enterHousehold, newHouseholdId, seedApprovedPlan } from '../support/helpers.js';
@@ -130,19 +130,30 @@ test.describe('Household isolation', () => {
     } finally { await a.context.close(); await b.context.close(); }
   });
 
-  test('B cannot see A recipes in library or search', async () => {
-    test.fixme(true, 'needs live Supabase: the in-memory recipe store is one shared library, not scoped per household (RLS covers this in packages/db)');
+  test('B cannot see A recipes in library or search', async ({ browser }) => {
+    const a = await household(browser, 'a');
+    const b = await household(browser, 'b');
+    try {
+      await a.page.goto('/recipes/' + SEED.pasta);
+      await a.page.getByRole('button', { name: 'Duplicate' }).click();
+      await expect(a.page.getByRole('heading', { level: 1, name: /\(copy\)$/ })).toBeVisible();
+      const copyPath = new URL(a.page.url()).pathname;
+      const copies = (p: Page) => p.getByRole('list', { name: 'Recipes', exact: true }).getByRole('link').filter({ hasText: '(copy)' });
+      await a.page.goto('/recipes?q=copy');
+      await expect(copies(a.page)).toHaveCount(1);
+
+      await b.page.goto('/recipes?q=copy');
+      await expect(b.page.getByRole('heading', { level: 1, name: 'Recipes' })).toBeVisible();
+      await expect(copies(b.page)).toHaveCount(0);
+      await b.page.goto(copyPath); // not-found renders inside a streamed (200) shell, so assert on content
+      await expect(b.page.getByRole('heading', { level: 1, name: /\(copy\)$/ })).toHaveCount(0);
+      await expect(b.page.getByRole('button', { name: 'Duplicate' })).toHaveCount(0);
+      // B still has its own copy of the seed library
+      await b.page.goto('/recipes/' + SEED.pasta);
+      await expect(b.page.getByRole('heading', { level: 1, name: 'Sunday Tomato Pasta' })).toBeVisible();
+    } finally { await a.context.close(); await b.context.close(); }
   });
 
-  test('B realtime channel receives no A events', async () => {
-    test.fixme(true, 'needs live Supabase (no Realtime channel in mock mode; polling isolation is covered above)');
-  });
-
-  test('removed member loses access immediately (session + realtime)', async () => {
-    test.fixme(true, 'needs live Supabase');
-  });
-
-  test('expired / revoked invite link cannot be used', async () => {
-    test.fixme(true, 'needs live Supabase (partly covered by auth.spec route-protection tests)');
-  });
+  // Cross-household checks that need real memberships (Realtime, removed member, expired /
+  // revoked invites) run against a local Supabase stack in e2e/live/ (`pnpm test:e2e:live`, D143).
 });

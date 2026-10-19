@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@fr/ui';
-import { rowFromDto, type ScanRow } from '../../../lib/pantry/scan-rows';
+import { fmtNum, rowFromDto, rowFromProduct, withCount, type ScanRow } from '../../../lib/pantry/scan-rows';
+import type { ProductLookupDto } from '../../../lib/products/types';
 import { postScan, type ScanApiFailure } from '../../../lib/pantry/scan-client';
 import type { ScanProviderInfo } from '../../../lib/pantry/scan-types';
 import { SETTINGS_ERROR_CODES } from '../../recipes/import/upload-step';
+import { BarcodeStep } from './barcode-step';
 import { CaptureStep, type ScanImage } from './capture-step';
 import { ReviewStep } from './review-step';
 import s from './scan.module.css';
@@ -37,9 +39,19 @@ export function ScanFlow({ provider }: { provider: ScanProviderInfo }) {
       return;
     }
     if (out.data.provider) setActive(out.data.provider);
-    setRows(out.data.rows.map(rowFromDto));
+    // Barcode rows already chosen stay (first); the photo scan adds its own.
+    setRows((cur) => [...cur.filter((r) => r.barcode), ...out.data.rows.map(rowFromDto)]);
     setWarnings(out.data.warnings);
     setStage('review');
+  }
+
+  /** A barcode lookup became a review row; the same product scanned again adds one to the count. */
+  function addProduct(lookup: ProductLookupDto) {
+    setRows((cur) => {
+      const same = cur.find((r) => r.barcode === lookup.product.barcode);
+      if (same) return cur.map((r) => (r === same ? withCount(r, fmtNum((Number(r.count) || 1) + 1)) : r));
+      return [...cur, rowFromProduct(lookup, `bc-${lookup.product.barcode}-${counter.current++}`)];
+    });
   }
 
   function startOver() {
@@ -81,7 +93,18 @@ export function ScanFlow({ provider }: { provider: ScanProviderInfo }) {
       )}
 
       {stage === 'capture' && (
-        <CaptureStep images={images} onChange={setImages} nextId={() => counter.current++} onScan={() => void scan()} />
+        <>
+          <BarcodeStep onProduct={addProduct} />
+          {rows.some((r) => r.barcode) && (
+            <div className={s.actions} data-testid="barcode-ready">
+              <Button onClick={() => { setWarnings([]); setStage('review'); }} data-testid="review-barcodes">
+                Review {rows.filter((r) => r.barcode).length} scanned {rows.filter((r) => r.barcode).length === 1 ? 'product' : 'products'}
+              </Button>
+              <span className={s.muted}>Or add photos below to scan those too.</span>
+            </div>
+          )}
+          <CaptureStep images={images} onChange={setImages} nextId={() => counter.current++} onScan={() => void scan()} />
+        </>
       )}
 
       {stage === 'scanning' && (

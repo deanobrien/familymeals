@@ -142,6 +142,9 @@ importers:
       '@fr/plan-orchestrator':
         specifier: workspace:*
         version: link:../../packages/plan-orchestrator
+      '@fr/product-sources':
+        specifier: workspace:*
+        version: link:../../packages/product-sources
       '@fr/recipe-import':
         specifier: workspace:*
         version: link:../../packages/recipe-import
@@ -179,6 +182,9 @@ importers:
       '@electric-sql/pglite':
         specifier: ^0.3.0
         version: 0.3.16
+      '@fr/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@types/node':
         specifier: ^22.10.2
         version: 22.20.5
@@ -210,6 +216,9 @@ importers:
       '@playwright/test':
         specifier: ^1.49.1
         version: 1.64.1
+      '@supabase/supabase-js':
+        specifier: ^2.118.0
+        version: 2.118.0(@opentelemetry/api@1.9.1)
       '@types/node':
         specifier: ^22.10.2
         version: 22.20.5
@@ -325,6 +334,31 @@ importers:
         specifier: workspace:*
         version: link:../domain
     devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.5
+      typescript:
+        specifier: ~5.7.2
+        version: 5.7.3
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@22.20.5)(jsdom@26.1.0)(lightningcss@1.33.0)(terser@5.51.2)
+
+  packages/product-sources:
+    dependencies:
+      '@fr/domain':
+        specifier: workspace:*
+        version: link:../domain
+      '@fr/engine':
+        specifier: workspace:*
+        version: link:../engine
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
+    devDependencies:
+      '@fr/refdata':
+        specifier: workspace:*
+        version: link:../refdata
       '@types/node':
         specifier: ^22.10.2
         version: 22.20.5

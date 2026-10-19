@@ -5,6 +5,7 @@ import type { ActionResult, IngredientHit, LeftoverView, PantrySettings } from '
 import { getAppContext } from '../context';
 import type { ScanCommitRow, ScanPreviewLine } from '../../pantry/scan-types';
 import { getCurrentHouseholdId, getPantryService } from './deps';
+import { linkScannedProducts } from '../products/link';
 import type { AddItemInput, CorrectItemInput, LeftoverInput } from './service';
 
 async function mutate(run: (hh: string) => Promise<ActionResult>): Promise<ActionResult> {
@@ -54,7 +55,12 @@ export async function previewScanAction(
 }
 /** Scan confirm: the ONLY point where a scan writes to the pantry. */
 export async function confirmScanAction(rows: ScanCommitRow[]): Promise<ActionResult> {
-  return mutate((hh) => getPantryService(hh).applyScan(hh, rows));
+  return mutate(async (hh) => {
+    const res = await getPantryService(hh).applyScan(hh, rows);
+    // Barcode rows also remember the product against the chosen ingredient (D187). Never fails the add itself.
+    if (res.ok) await linkScannedProducts(hh, Array.isArray(rows) ? rows : []).catch(() => console.warn('pantry scan: product link failed'));
+    return res;
+  });
 }
 
 export async function searchIngredientsAction(query: string): Promise<IngredientHit[]> {

@@ -10,7 +10,7 @@
 .muted { color: var(--fr-text-muted); margin: 0; font-size: 0.9rem; }
 .row { display: flex; gap: var(--fr-space-2); flex-wrap: wrap; align-items: center; }
 .list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--fr-space-2); }
-.link { color: var(--fr-accent); text-decoration: underline; }
+.link { color: var(--fr-accent); text-decoration: underline; display: inline-flex; align-items: center; min-height: var(--fr-target); }
 .strip { display: flex; gap: var(--fr-space-1); }
 .dot { flex: 1; height: 0.5rem; border-radius: 999px; background: var(--fr-surface-2); border: 1px solid var(--fr-border); }
 .dotOn { background: var(--fr-accent); border-color: var(--fr-accent); }

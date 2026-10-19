@@ -1,3 +1,1 @@
-Docker 20.10 was too old for the current local Supabase stack; use current Docker Desktop, or the cloud project.
-
-`supabase start` needs a reasonably recent Docker. The original development machine had Docker 20.10.7 and never ran the local stack; local Supabase verification is lane LV1 on a machine with current Docker Desktop.
+Docker 20.10.7 on the TFS box DOES run the local Supabase stack (verified LV1, 2026-10-19) with edge_runtime and analytics disabled in config.toml (the edge container exits 255); newer Docker is not required. Ports are 554xx because another local Supabase project (golfbook) owns 543xx; never stop that project's containers.

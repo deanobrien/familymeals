@@ -24,7 +24,9 @@ function securityHeaders() {
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline'",
-    `img-src 'self' blob: data: https://www.themealdb.com ${supa}`.trim(),
+    // images.openfoodfacts.org: product photos on barcode rows are hotlinked for display only (X2, D185); never stored.
+    // www.themealdb.com: discovered-recipe photos are hotlinked for display, never copied (X1, D170).
+    `img-src 'self' blob: data: https://images.openfoodfacts.org https://www.themealdb.com ${supa}`.trim(),
     "media-src 'self' blob:",
     `connect-src 'self' ${supa} ${supaWs}`.replace(/ +/g, ' ').trim(),
     "font-src 'self' data:",
@@ -82,6 +84,7 @@ const nextConfig = {
     '@fr/domain',
     '@fr/engine',
     '@fr/plan-orchestrator',
+    '@fr/product-sources',
     '@fr/recipe-import',
     '@fr/recipe-sources',
     '@fr/refdata',

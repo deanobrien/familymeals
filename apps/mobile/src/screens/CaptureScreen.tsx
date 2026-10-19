@@ -12,6 +12,8 @@ import {
   type Rotator,
 } from '@/lib/extraction';
 import { createImportClient, type ExtractionOutcome, type ImportClient } from '@/lib/importApi';
+import { createProductClient, type ProductClient } from '@/lib/productApi';
+import BarcodeLookup from './BarcodeLookup';
 import ImportReviewScreen from './ImportReviewScreen';
 import { Button, EmptyState, ErrorText, Loading, Muted, Text, useStyles } from './ui';
 
@@ -19,10 +21,12 @@ export default function CaptureScreen({
   resizer,
   rotator = defaultRotator,
   importClient,
+  productClient,
 }: {
   resizer?: Resizer;
   rotator?: Rotator;
   importClient?: ImportClient;
+  productClient?: ProductClient;
 }) {
   const { ds, householdId } = useApp();
   const styles = useStyles();
@@ -32,6 +36,13 @@ export default function CaptureScreen({
       createImportClient({ baseUrl: process.env.EXPO_PUBLIC_API_BASE_URL, getToken: () => ds.getAccessToken() }),
     [importClient, ds],
   );
+  const products = useMemo(
+    () =>
+      productClient ??
+      createProductClient({ baseUrl: process.env.EXPO_PUBLIC_API_BASE_URL, getToken: () => ds.getAccessToken() }),
+    [productClient, ds],
+  );
+  const [barcodeMode, setBarcodeMode] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const camera = useRef<CameraView>(null);
   const [cameraOn, setCameraOn] = useState(false);
@@ -90,6 +101,8 @@ export default function CaptureScreen({
 
   if (busy) return <Loading label="Reading your recipe. This can take a moment" />;
 
+  if (barcodeMode) return <BarcodeLookup client={products} householdId={householdId} onClose={() => setBarcodeMode(false)} />;
+
   if (outcome) {
     return (
       <ImportReviewScreen
@@ -133,6 +146,7 @@ export default function CaptureScreen({
           }}
         />
       )}
+      <Button title="Scan a product barcode" onPress={() => setBarcodeMode(true)} testID="open-barcode" variant="secondary" />
       <Button title="Choose from library" onPress={pick} disabled={full} testID="pick-image" variant="secondary" />
 
       {images.map((img, i) => (

@@ -13,6 +13,16 @@ pnpm typecheck && pnpm lint && pnpm test && pnpm build
 pnpm e2e:install && pnpm test:e2e   # Playwright (Chromium); see docs/TESTING.md for isolation rules
 ```
 
+Local Supabase (verified by LV1, D140-D149; needs Docker, works on 20.10.7 with edge runtime off):
+
+```
+pnpm exec supabase start          # ports 554xx (API :55421, Studio :55423, Mailpit :55424); applies all migrations + supabase/seed.sql
+pnpm dev:live                     # app on http://localhost:3131 against the local stack (DATA_BACKEND=supabase, mock AI)
+pnpm test:e2e:live                # opt-in live-supabase Playwright project (e2e/live/, own dev server on 3133); 20/20 pass
+```
+
+Regenerate `packages/db/src/database.types.ts` after each migration (D141). `supabase/seed.sql` is generated: `pnpm --filter @fr/refdata build:sql-seed` (D145). Auth locally: email confirmation on (read the link in Mailpit), minimum password 10. Another local Supabase project (golfbook) owns 543xx, hence 554xx; never stop its containers. Deploy: `scripts/package-appservice.ps1` -> `dist/appservice.zip` (D150-D154; start `node apps/web/server.js`, health `/api/health`).
+
 Other commands: `pnpm --filter @fr/mobile test`, `pnpm mobile:export` (Android bundle check), `pnpm --filter @fr/db test` (all migrations + RLS on in-process PGlite), `pnpm exec supabase <cmd>` (CLI; the local stack needs Docker), `scripts/package-appservice.ps1` (builds `dist/appservice.zip` for Azure; PowerShell, Windows). Every change must leave build, test, typecheck and lint green.
 
 ## Architecture map (detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md))
@@ -26,7 +36,7 @@ pnpm workspace + Turborepo, scope `@fr/*`, packages export TS source (no emit; D
 
 ## Current state
 
-See [docs/HANDOVER.md](docs/HANDOVER.md) section "Current state" (kept up to date) and [claude/status-and-next-steps.md](claude/status-and-next-steps.md) (verified test counts per integration pass). In one line: all feature lanes through S2 are merged and green in mock mode; Supabase-backed stores exist but have only been tested against PGlite and fakes, **not yet against a live Supabase**; first Azure App Service deploy is staged and awaiting a smoke test.
+See [docs/HANDOVER.md](docs/HANDOVER.md) section "Current state" (kept up to date) and [claude/status-and-next-steps.md](claude/status-and-next-steps.md) (verified test counts per integration pass). In one line: all feature lanes through S2 are merged and green in mock mode; LV1 verified the Supabase-backed stores against a LOCAL Supabase (all 23 migrations + seed apply on Postgres 17.11, live suite 20/20, three bugs fixed: email-locked invites, empty reference ingredients, pantry_source enum). The hosted project has not been pushed to yet (owner: `supabase link` + `db push --include-seed`); first Azure App Service deploy is staged awaiting a smoke test.
 
 ## Conventions
 

@@ -2,7 +2,7 @@
 
 Written for an agent (or developer) on a **different machine** who has only a fresh `git clone` of https://github.com/deanobrien/familymeals (branch `main`). Nothing outside the repo is needed: no shared drive, chat history or agent memory. Anything that lives only on the owner's machine or in a cloud dashboard is listed in section 5 (names only, never values).
 
-Last refreshed: 2026-10-19 (branch `prj018/w0a-skeleton`, integration state after S2 + D1 + PL2 + Q2/S2 verification). When you change state (merge a lane, deploy, run something live), update sections 6-8 here and `claude/status-and-next-steps.md`.
+Last refreshed: 2026-10-20 (branch `prj018/w0a-skeleton`, integration state after S2 + D1 + PL2 + Q2/S2 verification + LV1 live local Supabase verification). When you change state (merge a lane, deploy, run something live), update sections 6-8 here and `claude/status-and-next-steps.md`.
 
 ## 1. What this is
 
@@ -15,7 +15,7 @@ Family Recipes (working name; PRJ-018): UK household recipe library with AI phot
 | Node.js | 22 or newer (24 works; the Azure runtime is 22) | `engines` says >=20 |
 | pnpm | 9.4.x (`corepack enable` then `corepack prepare pnpm@9.4.0 --activate`) | pinned in `packageManager` |
 | Git | any recent | LF line endings are enforced by `.gitattributes` |
-| Docker Desktop | current | **Only** for the local Supabase stack (`supabase start`). Docker 20.10 was too old for current Supabase images |
+| Docker | 20.10.7 or newer | **Only** for the local Supabase stack (`supabase start`). 20.10.7 works (LV1) with `edge_runtime` and analytics disabled in `supabase/config.toml` (the edge container exits 255 there) |
 | Supabase CLI | installed by `pnpm install` (devDependency); always run as `pnpm exec supabase ...` | needs Docker for `start`/`db reset` |
 | Playwright Chromium | `pnpm e2e:install` once | e2e only |
 | PowerShell | Windows PowerShell 5.1 or pwsh | the packaging script is PowerShell. 5.1 has **no `&&`**; chain with `;` |
@@ -44,19 +44,15 @@ pnpm build           # 9 tasks, includes the Next production build
 pnpm e2e:install && pnpm test:e2e   # Playwright; read docs/TESTING.md first (isolation)
 ```
 
-Run against the **local Supabase stack** (needs Docker running): follow [SUPABASE.md](SUPABASE.md) section 1. Short version:
+Run against the **local Supabase stack** (needs Docker running): follow [SUPABASE.md](SUPABASE.md) section 1. Short version (verified by LV1, D140-D149):
 
 ```
-pnpm exec supabase start                   # prints API URL, anon key, service_role key (local only)
-pnpm exec supabase db reset                # applies supabase/migrations/*
-# create apps/web/.env.local (git-ignored):
-#   DATA_BACKEND=supabase
-#   NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-#   NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key printed by supabase start>
-pnpm dev
+pnpm exec supabase start                   # ports 554xx; applies all 23 migrations + supabase/seed.sql
+pnpm dev:live                              # app on http://localhost:3131, DATA_BACKEND=supabase, mock AI, temp data dir (scripts/dev-live.mjs reads the stack's keys; no .env.local needed)
+pnpm test:e2e:live                         # live suite (e2e/live/), own dev server on 3133; 20/20 pass
 ```
 
-(Next.js reads `.env*` from `apps/web/`, not the repo root. Local sign-up works without email confirmation; mail is caught by Inbucket at http://127.0.0.1:54324.) **This path has not yet been verified end to end**; lane LV1 (section 7) is doing it.
+Email confirmation is ON locally and minimum password is 10: sign up, then open the confirmation link in Mailpit at http://127.0.0.1:55424. The stack uses ports 554xx (API 55421, DB 55422, Studio 55423, Mailpit 55424) because another local Supabase project (golfbook) owns 543xx: never stop its containers. Regenerate `packages/db/src/database.types.ts` after each migration.
 
 Deploy to Azure App Service: [DEPLOY-APP-SERVICE.md](DEPLOY-APP-SERVICE.md).
 
@@ -65,7 +61,7 @@ Deploy to Azure App Service: [DEPLOY-APP-SERVICE.md](DEPLOY-APP-SERVICE.md).
 | Environment | Web | Data | Auth | AI | Used for |
 |---|---|---|---|---|---|
 | Local mock | `pnpm dev` (3100) | in-memory, resets on restart | mock auth (Alice / household A) | mock (or key pasted in Settings) | day-to-day UI work, all unit + e2e tests |
-| Local Supabase | `pnpm dev` with `DATA_BACKEND=supabase` + local URL/anon key | Docker Supabase (ports 54321-54329) | real Supabase Auth (Inbucket mail) | mock or Settings key | verifying repositories, RLS, Realtime (LV1) |
+| Local Supabase | `pnpm dev:live` (3131) | Docker Supabase (ports 554xx) | real Supabase Auth (Mailpit :55424, confirmations on) | mock or Settings key | verifying repositories, RLS, Realtime (LV1, done); `pnpm test:e2e:live` |
 | Supabase cloud | n/a | project ref `guzsjqoosjqxfuqrjhxu`, URL https://guzsjqoosjqxfuqrjhxu.supabase.co, region London (eu-west-2) | Supabase Auth | n/a | the production-like database. **Migrations are NOT yet pushed** (section 8) |
 | Azure App Service | https://family-recipes-dean-cph4g5cuh9fmhhfy.ukwest-01.azurewebsites.net (resource group `rg-family-recipes`, app `family-recipes-dean`, UK West, owner's personal Azure subscription, not the employer's) | Supabase cloud (once pushed) + `/home/data` files for uploaded photos | Supabase Auth | per-household key in Settings, or `AI_PROVIDER` + key app settings | first real deploy (test, not production) |
 
@@ -100,8 +96,9 @@ NEXT_PUBLIC_SITE_URL=https://family-recipes-dean-cph4g5cuh9fmhhfy.ukwest-01.azur
 
 - **Merged and green (mock mode)**: all foundation lanes (ui, ai, refdata, qa, engine L3/L7/L8/L9/L10/L17a/L22a, domain/schema/RLS), app lanes (home/settings/privacy, library, photo import, planner + prompt planning, pantry + pantry scan, shopping, receipts, auth/households/invitations, Android app), real cost and nutrition (C1), refdata coverage (R2), Supabase repositories for every store (S1, S2) with Realtime hints replacing polling, AI provider settings (OpenAI/Azure/Anthropic), planner hardening (PL2: single `PlanConstraints`, editable chips), Azure App Service deploy prep (D1: standalone build, health endpoint, security headers/CSP, production config guard).
 - **Tests**: see the newest counts in `claude/status-and-next-steps.md` (latest recorded: web 441, engine 749, ai 92, refdata 59, mobile 42, domain 38, recipe-import 31, ui 26, e2e fixtures 26, db 16, plan-orchestrator 14; Playwright 172 passed / 100 skipped (`fixme`)).
-- **Not verified live** (the single biggest risk): PostgREST access as the signed-in user, RLS through the real client, the Realtime server, true concurrent sessions, Supabase Auth redirect flows, the CSP against a real Supabase, sharp on Linux, live AI model accuracy (photo extraction, plan parsing, pantry scan).
-- **Supabase cloud project exists but is empty**: no migrations pushed yet.
+- **Verified live against a LOCAL Supabase (LV1, D140-D149)**: all 23 migrations plus `supabase/seed.sql` apply cleanly on Postgres 17.11; PostgREST as the signed-in user, RLS through the real client, Auth sign-up/confirm and the Realtime hint feed run in the live suite (`pnpm test:e2e:live`, 20/20). LV1 fixed three bugs (invitation email lock, empty reference ingredients in the DB, `pantry_source` enum values; migrations `001910`, `001920`, and the seed).
+- **Still not verified**: the hosted Supabase project and its Auth redirect flows, the CSP against the hosted Supabase, sharp on Linux, heavy multi-connection concurrency, live AI model accuracy (photo extraction, plan parsing, pantry scan).
+- **Supabase cloud project exists but is empty**: nothing pushed yet; the LV1 gate is clear, so the owner can run `pnpm exec supabase link --project-ref guzsjqoosjqxfuqrjhxu` then `pnpm exec supabase db push --include-seed`.
 - **Azure App Service resources exist** (see section 4); a zip has been built and the portal/Kudu upload path worked out, but the app is not yet confirmed healthy with the real Supabase project (smoke checklist in DEPLOY-APP-SERVICE.md section 7 is the first real test).
 - **Product name** still undecided (working name "Family Recipes"; scope `@fr/*`).
 
@@ -109,8 +106,8 @@ NEXT_PUBLIC_SITE_URL=https://family-recipes-dean-cph4g5cuh9fmhhfy.ukwest-01.azur
 
 | Lane | What | Notes for whoever continues |
 |---|---|---|
-| B1 | Bug fixes found while testing | check `git log` on the branch / DECISIONS for the list |
-| LV1 | Live verification against a **local Supabase** (Docker) | the gate for pushing migrations to the cloud project; expect findings about RLS, RPCs, Realtime, list_seq |
+| B1 | Bug fixes found while testing | **done and merged** (D160-D164): sandbox import save (resolveRequestAuth accepts dev sandbox ids), per-household in-memory recipe libraries, 44px tap targets, 900px nav breakpoint kept, "offline shopper loses the race" flake was a spec race (not an app bug) |
+| LV1 | Live verification against a **local Supabase** (Docker) | **done and merged** (D140-D149): live suite 20/20, three bugs fixed; open items in section 9 |
 | D2 | Deploy-zip "no rebuild" fix | **done and merged** (commit "Package: stop App Service Oryx/Kudu server-side builds"): the packaging script now emits start-only `package.json` files, no lockfiles and a `.deployment` file; see DEPLOY-APP-SERVICE.md section 6. Needs a real redeploy to confirm |
 | X1 | Recipe discovery from TheMealDB | new recipe-source provider; see ROADMAP idea backlog |
 | X2 | Open Food Facts product source | new product-source provider (barcodes/pack data) |
@@ -119,13 +116,13 @@ If a lane's branch is merged into your checkout, its decisions are in `DECISIONS
 
 ## 8. Exact next steps
 
-1. **Finish LV1** (local Supabase run of the full app and the live-ish test suite). Fix what it finds.
-2. **Push the schema**: `pnpm exec supabase link --project-ref guzsjqoosjqxfuqrjhxu` then `pnpm exec supabase db push` (database password from the password manager). Gated on LV1 being clean. Then enable Realtime for the tables in migration `20261019001100_realtime.sql` if the dashboard shows the publication empty ([SUPABASE.md](SUPABASE.md) section 4), and configure Auth URLs (section 5 there).
+1. LV1 is done; the schema is cleared for the cloud.
+2. **Push the schema** (owner): `pnpm exec supabase link --project-ref guzsjqoosjqxfuqrjhxu` then `pnpm exec supabase db push --include-seed` (database password from the password manager; `--include-seed` is required so the reference ingredient list is loaded). Then set the hosted Auth settings to set in the dashboard (Authentication): email confirmations ON, minimum password length 10, leaked-password protection ON, Site URL `https://family-recipes-dean-cph4g5cuh9fmhhfy.ukwest-01.azurewebsites.net`, redirect URLs `https://family-recipes-dean-cph4g5cuh9fmhhfy.ukwest-01.azurewebsites.net/auth/callback` and `http://localhost:3100/auth/callback`. Then enable Realtime for the tables in migration `20261019001100_realtime.sql` if the dashboard shows the publication empty ([SUPABASE.md](SUPABASE.md) section 4), and configure Auth URLs (section 5 there).
 3. **Rebuild and redeploy the zip** (it now includes the D2 no-rebuild fix): `scripts/package-appservice.ps1`, then Kudu upload; rebuild whenever `NEXT_PUBLIC_*` values change (they are baked in).
 4. **Smoke test** on the Azure hostname with the checklist in DEPLOY-APP-SERVICE.md section 7 (sign-up email, household, recipe, photo import, planner, restart).
 5. **Mobile `list_seq`**: the Android shopping sync still uses the global `seq` cursor and resnapshots on gaps; move it to the per-list `list_seq` (D121, D129).
 6. Replace the remaining local-file store (uploaded photos under `/home/data`) with Supabase Storage, then drop `ALLOW_LOCAL_FILE_STORE`.
-7. Generate `packages/db/src/database.types.ts` from the live schema (`pnpm exec supabase gen types typescript --project-id guzsjqoosjqxfuqrjhxu`), replacing the placeholder.
+7. `packages/db/src/database.types.ts` is generated from the local stack (D141); regenerate after every migration (`pnpm exec supabase gen types typescript --local`, then prettier), or against the cloud project with `--project-id guzsjqoosjqxfuqrjhxu` once pushed.
 8. Run the GitHub Actions workflow (`.github/workflows/ci.yml`) once the repo has it enabled; fix anything Linux-specific.
 9. Security checklist items before inviting real users: [security/SECURITY-CHECKLIST.md](security/SECURITY-CHECKLIST.md) (custom SMTP, leaked-password protection, rate limits, AI budget caps, export/deletion UI, backups).
 10. Remaining roadmap: [ROADMAP.md](ROADMAP.md).
@@ -134,7 +131,9 @@ If a lane's branch is merged into your checkout, its decisions are in `DECISIONS
 
 - `DATA_BACKEND=supabase` cannot be combined with mock-auth demo mode (needs real Supabase env).
 - With Supabase, recipe lists with price filters / cost sort load up to 10,000 recipes and cost them in the app (D58).
-- Many e2e specs are `test.fixme` (live-Supabase flows); 100 skipped is expected.
+- Many mock-suite e2e specs are `test.fixme` (live-Supabase flows, now covered by `e2e/live/`); 100 skipped is expected in the mock run.
+- The mock e2e suite has 2-3 load-related flaky shopping/journey failures per full run; they pass in isolation (tracked, not yet fixed).
+- LV1 open items: `apps/web/lib/shopping/live.ts` marks the channel live before the server confirms the subscription; receipts, price observations and per-household AI settings have no live tests; recipes created through the form have no ingredient links.
 - Dev-only service-role fallback (`SUPABASE_DATA_CONTEXT=service`, D100) exists for scripts; production startup refuses it.
 - Photo uploads >10 MB are downscaled in the browser; Next buffers request bodies in middleware up to 10 MB by default, raised to 40 MB in `next.config.mjs` (see `claude/memories/middleware-body-limit-10mb.md`).
 - B1 App Service quota is not always available in a region; see DEPLOY-APP-SERVICE.md section 8.

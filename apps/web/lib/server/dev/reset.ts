@@ -4,6 +4,7 @@ import { resetPantryServices } from '../pantry/deps';
 import { resetPlanServices } from '../plan/services';
 import { resetRecipeCalculators } from '../calc';
 import { getPriceStore } from '../prices/store';
+import { getProductSnapshotStore } from '../products/store';
 import { resetMemoryServices } from '../receipts/memory';
 import { getShoppingRepository } from '../shopping/repository';
 
@@ -22,6 +23,7 @@ export function resetInMemoryStores(): string[] {
   resetMemoryServices();
   getPriceStore().reset();
   resetRecipeCalculators();
+  getProductSnapshotStore().reset();
   resetRecipeRepository();
-  return ['shopping', 'plans', 'pantry', 'receipts', 'prices', 'recipes'];
+  return ['shopping', 'plans', 'pantry', 'receipts', 'prices', 'products', 'recipes'];
 }
