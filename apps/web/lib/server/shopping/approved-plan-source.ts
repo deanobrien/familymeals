@@ -2,7 +2,7 @@ import 'server-only';
 import { getRecipeRepository } from '../../recipes/factory';
 import type { RecipeRepository } from '../../recipes/repository';
 import type { PlanRequirements } from '../../shopping/types';
-import { getPlanStore, type MealPlanRepository } from '../plan/repository';
+import { getMealPlanStore, type MealPlanRepository } from '../plan/repository';
 import { getIngredientCatalogue } from '../refdata/catalogue';
 import { requirementsForPlan } from './plan-requirements';
 import type { RequirementSource } from './requirement-source';
@@ -24,5 +24,5 @@ export class ApprovedPlanRequirementSource implements RequirementSource {
 }
 
 export function getRequirementSource(): RequirementSource {
-  return new ApprovedPlanRequirementSource(getPlanStore(), getRecipeRepository());
+  return new ApprovedPlanRequirementSource(getMealPlanStore(), getRecipeRepository());
 }

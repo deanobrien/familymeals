@@ -22,6 +22,10 @@ adjustments, plus requests from L24 (privacy lifecycle) and L17a (shopping concu
 | `0013_shopping_commands.sql` | shopping_command_log; `shopping_item_outstanding()`, `record_purchase()`, `void_purchase()` |
 | `0014_owner_decisions.sql` | purchase_events nullable actors + `created_by_display_name` snapshot; `is_household_writable()`, `household_is_active()`; grace-period read-only policies + guard triggers |
 | `0015_transfer_ownership.sql` | `transfer_ownership(p_household_id, p_new_owner_member_id)` - atomic owner swap RPC |
+| `001520` / `001540` | S1 repository RPCs (D51); `pantry_settings.purchase_mode` source of truth (D104) |
+| `001600_shopping_repository.sql` | S2 (D120-D122): engine item state on `shopping_list_items`, shopping quantities `numeric(18,6)`, `shopping_command_log.list_seq` per-list commit-ordered cursor (`shopping_list_log_heads` counter), `ensure_shopping_list`, `shopping_list_snapshot`, `apply_shopping_command` |
+| `001610_receipts_prices.sql` | S2 (D123, D124, D127): `receipts.review_state`, `receipt_lines.parsed`, `save_receipt` / `get_receipt` / `list_receipts`, `record_price_observations` / `household_price_observations` (idempotent per source), `household_purchase_records` |
+| `001620_household_profile_ai_settings.sql` | S2 (D125, D126): `planner_household_profile` (consent-gated allergy exclusions), `household_ai_settings` (no grants; ciphertext keys) + member-read / owner-write RPCs |
 | `packages/domain/src/` | `@fr/domain`: primitives, CONTRACT-SEED shapes, one row schema per table/view, RPC DTOs, row mapping |
 | `packages/db/tests/rls/*.sql` | plain-SQL assert scripts (BEGIN…ROLLBACK); `000_helpers.sql` defines `tests.act_as()` etc. |
 | `packages/db/tests/support/supabase-stub.sql` | stand-in for `auth`/`storage`/roles — **CI only, never on Supabase** |
@@ -69,7 +73,7 @@ The four concepts the brief insists stay separate are separate tables: **recipe 
 - **Exclusions (L17a/L9)**: `household_exclusions` matchable by `ingredient_id`, `allergen_group` (UK 14, joined via `ingredient_allergens`) or free-text `term`; at least one required. Allergy/intolerance rows need `consent_recorded_at` **and** an active `consent_records` row for the recording user (trigger).
 - **Search**: `recipes.search_tsv` (generated, weighted title > ingredients/tags > description) + trigram GIN on title, ingredient text and tag text; denormalised `search_ingredients`/`search_tags` maintained by triggers. `search_recipes(household, query)` is SECURITY INVOKER (RLS applies).
 - **Recipe history**: `recipe_versions` (jsonb `original` AI extraction / `corrected` user content, source image paths, model) — insert/select only.
-- **Realtime**: lists, items, purchase events, command log, plans, pantry are published; clients still resync from tables/log on reconnect.
+- **Realtime**: lists, items, purchase events, command log, plans, pantry are published; clients still resync from tables/log on reconnect. The web client subscribes to command-log INSERTs as a hint and catches up by `list_seq` (D122).
 
 ## RLS model
 

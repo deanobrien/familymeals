@@ -2,7 +2,9 @@ import 'server-only';
 import { getRecipeRepository } from '../../recipes/factory';
 import { getAppContext } from '../context';
 import { getIngredientCatalogue } from '../refdata/catalogue';
-import { createSupabasePantryRepository, useSupabaseBackend } from '../supabase/backend';
+import { createSupabasePantryRepository, createSupabasePurchaseEventSource, useSupabaseBackend } from '../supabase/backend';
+import { PlanLeftoverSource } from '../supabase/household-sources';
+import { getMealPlanStore } from '../plan/repository';
 import { defaultIngredientLookup } from './ingredients';
 import { InMemoryPantryRepository } from './repository';
 import {
@@ -22,13 +24,17 @@ const nowIso = (): string => new Date().toISOString();
 export function buildDemoPantryService(now: () => string = nowIso, householdId: string = DEMO_HOUSEHOLD_ID): PantryService {
   const ingredients = defaultIngredientLookup();
   const start = now();
+  const supabase = useSupabaseBackend();
+  // Supabase (D127): stock, purchases (purchase_events) and open slots (saved plans) are the household's real data.
   return createPantryService({
-    repo: useSupabaseBackend()
+    repo: supabase
       ? createSupabasePantryRepository()
       : new InMemoryPantryRepository({ householdId, items: seedPantryItems(householdId, start, ingredients) }),
     recipes: new RepositoryRecipeSummarySource(getRecipeRepository()),
-    purchases: new InMemoryPurchaseEventSource(fixturePurchaseRecords(householdId, start, ingredients)),
-    leftovers: new InMemoryLeftoverSource(now),
+    purchases: supabase
+      ? createSupabasePurchaseEventSource()
+      : new InMemoryPurchaseEventSource(fixturePurchaseRecords(householdId, start, ingredients)),
+    leftovers: supabase ? new PlanLeftoverSource(getMealPlanStore(), now) : new InMemoryLeftoverSource(now),
     ingredients,
     converter: getIngredientCatalogue().converter,
     now,

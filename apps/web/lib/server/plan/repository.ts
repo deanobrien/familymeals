@@ -1,6 +1,7 @@
 import type { PlanDoc } from '../../plan/types';
+import { createSupabaseMealPlanRepository, useSupabaseBackend } from '../supabase/backend';
 
-/** Persistence for plans. One plan per household per week. TODO(Supabase): meal_plans + planned_meals with RLS. */
+/** Persistence for plans. One plan per household per week. Supabase: SupabaseMealPlanRepository (D50, D54). */
 export interface MealPlanRepository {
   getByWeek(householdId: string, weekStart: string): Promise<PlanDoc | null>;
   get(householdId: string, id: string): Promise<PlanDoc | null>;
@@ -42,4 +43,15 @@ export function getPlanStore(): MealPlanRepository {
 
 export function resetPlanStore(): void {
   g.__frPlanStore = undefined;
+}
+
+const gs = globalThis as { __frPlanStoreSupabase?: MealPlanRepository };
+
+/**
+ * The plan repository every reader should use (planner, shopping requirement source, shopping page): Supabase when
+ * DATA_BACKEND=supabase is usable, else the one in-memory plan store.
+ */
+export function getMealPlanStore(): MealPlanRepository {
+  if (!useSupabaseBackend()) return getPlanStore();
+  return (gs.__frPlanStoreSupabase ??= createSupabaseMealPlanRepository());
 }

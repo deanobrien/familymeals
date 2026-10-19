@@ -3,3 +3,8 @@ export { SupabaseRecipeRepository } from './recipe-repository';
 export { SupabaseMealPlanRepository, SupabasePlanRecipeSource, planDocFromRows } from './meal-plan-repository';
 export { SupabasePantryRepository } from './pantry-repository';
 export { SupabaseRepositoryError } from './rpc';
+export { SupabaseShoppingRepository } from './shopping-repository';
+export { SupabaseReceiptRepository } from './receipt-repository';
+export { SupabasePriceStore } from './price-store';
+export { SupabaseHouseholdProfile, SupabasePurchaseEventSource, PlanLeftoverSource } from './household-sources';
+export { SupabaseSettingsBackend } from './ai-settings-backend';

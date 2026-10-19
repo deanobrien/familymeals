@@ -246,6 +246,15 @@ export function getRecipeCalculator(householdId: string): RecipeCalculator {
   return calc;
 }
 
+/**
+ * The household calculator after loading that household's current price observations (async price stores, i.e.
+ * Supabase: D124; a no-op in memory). Use this from request code; the cached calculator re-costs when the version moves.
+ */
+export async function getFreshRecipeCalculator(householdId: string): Promise<RecipeCalculator> {
+  await getPriceStore().refresh?.(householdId);
+  return getRecipeCalculator(householdId);
+}
+
 /** Generic refdata prices only (no household observations): the fallback when no household is known. */
 export function getGenericRecipeCalculator(): RecipeCalculator {
   const map = calculators();

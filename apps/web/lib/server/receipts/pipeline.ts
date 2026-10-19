@@ -63,10 +63,12 @@ export async function processReceiptUpload(
   const items = await deps.outstanding.list(deps.householdId);
   const matches = receiptMatcher.match(parsed.items, items);
 
+  // Line ids become UUIDs (the contract's receiptLineId; receipt_lines.id in Supabase, D123).
   const lines: ReceiptLineRecord[] = parsed.items.map((l, i) => {
     const m = matches[i]!;
     return {
       ...l,
+      id: deps.newId(),
       match: { classification: m.classification, suggestedItemId: m.suggestion?.shoppingListItemId, candidates: m.candidates },
     };
   });

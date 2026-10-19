@@ -1,7 +1,7 @@
 import type { OutstandingItem, PriceObservation, PurchaseEvent, Quantity } from '../../receipts/matcher';
 import type { ReceiptListEntry, ReceiptRecord } from '../../receipts/types';
 
-/** Where the receipt record and its history live. TODO(L1): Supabase receipts / receipt_lines tables. */
+/** Where the receipt record and its history live (memory, or Supabase receipts / receipt_lines: D123). */
 export interface ReceiptRepository {
   list(householdId: string): Promise<ReceiptListEntry[]>;
   get(householdId: string, id: string): Promise<ReceiptRecord | undefined>;

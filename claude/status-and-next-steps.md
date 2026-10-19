@@ -25,6 +25,8 @@ Known caveats (before pass 3; the recipe-store/receipt-price/pantry-extras items
 - The client-side shopping converter has no ingredient densities / unit weights (the server is authoritative); optimistic UI can briefly differ for cross-dimension purchases.
 - Receipt `PurchaseEvent.createdBy` = session user; mock mode has one user, so "another shopper" in e2e is a second browser of the same user.
 
+**S2 Supabase stores + Realtime (2026-10-19, D120-D129):** with `DATA_BACKEND=supabase` shopping (engine-decided, `record_purchase`/`void_purchase` + `apply_shopping_command`, per-list `list_seq` cursor), Realtime hint feed (poll only while the channel is down; mock mode polls), receipts, household price observations, pantry purchase feed + plan open slots, planner profile (consent-gated exclusions) and per-household AI settings (ciphertext row, owner-only write) are Supabase-backed; migrations `001600`, `001610`, `001620`; engine `applyLogEntry` (logged rejections authoritative). Verified in the S2 worktree AFTER merging main 120d3cc (D1 deploy prep): `pnpm build` (9 tasks), `pnpm typecheck` (11), `pnpm lint`, `pnpm turbo run test --force` (18 tasks: engine 749, web 441, ai 92, refdata 59, mobile 42, domain 38, recipe-import 31, ui 26, e2e fixtures 26, db 16, plan-orchestrator 14); `pnpm test:e2e` twice on one fresh dev server (E2E_PORT=3129, own APP_DATA_DIR, NEXT_DIST_DIR=.next-e2e): run 1 170 passed / 2 failed (shopping specs timing out while the cold server compiled during the long a11y suite; `shopping.spec.ts --repeat-each 3` then 30/30), run 2 172 passed / 100 skipped. NOT verified live: PostgREST, the Realtime server, true concurrent sessions (D128). Open: D129.
+
 ## Next
 
 1. Supabase adapters behind the in-memory interfaces (recipes, plans, pantry, shopping command log + `record_purchase`, receipts, price observations); generate `database.types.ts`.
@@ -37,3 +39,7 @@ Known caveats (before pass 3; the recipe-store/receipt-price/pantry-extras items
 ## AI photo import lane (D40-D42)
 
 Done: OpenAI/Azure adapter, Settings > AI provider (encrypted key), richer extraction (multi-page, rotation, bracket quantities, printed nutrition/allergens, staples, source), cover images, review/detail display. Untested: live extraction against the real OpenAI API (needs the owner's key). Configure: Settings > AI provider > OpenAI, paste key, Save, Test connection, then Recipes > Import.
+
+## D1 Azure App Service deploy prep (2026-10-19, branch `prj018/d1-appservice`)
+
+Standalone build + `scripts/package-appservice.ps1` (symlink-free hoisted build copy, linux-x64 sharp, forward-slash zip), `/api/health`, production config guard (`ALLOW_LOCAL_FILE_STORE` escape hatch until S2 moves AI settings/uploads to Supabase), security headers/CSP, `docs/DEPLOY-APP-SERVICE.md` (D150-D154). The CSP and the deployed app were not exercised against a live Supabase / Azure: the owner's smoke checklist is the first real test.

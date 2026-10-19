@@ -5,8 +5,8 @@ import s from './scan.module.css';
 export const metadata = { title: 'Scan groceries' };
 export const dynamic = 'force-dynamic';
 
-export default function ScanPage() {
-  const info = describeActiveProvider();
+export default async function ScanPage() {
+  const info = await describeActiveProvider();
   return (
     <div className={s.page}>
       <header className={s.stack}>
