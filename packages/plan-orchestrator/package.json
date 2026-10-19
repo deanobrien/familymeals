@@ -13,7 +13,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@fr/ai": "workspace:*"
+    "@fr/ai": "workspace:*",
+    "@fr/domain": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

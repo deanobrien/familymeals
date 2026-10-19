@@ -1,8 +1,8 @@
 // Framework-free plan operations used by the server actions (app/plan/actions.ts). Testable with injected services.
-import { violatesExclusions, type PlannedMeal, type SlotEdit } from '@fr/plan-orchestrator';
+import { violatesExclusions, type OrchestratorError, type PlannedMeal, type SlotEdit } from '@fr/plan-orchestrator';
 import { isIsoDate, mondayOf, weekDates } from '../../plan/dates';
 import { emptyDoc, parseKey } from '../../plan/ops';
-import { MEAL_TYPES, type ActionResult, type MealType, type PlanDoc, type PlanPageData, type ProposeResult, type RecipeLite } from '../../plan/types';
+import { MEAL_TYPES, type ActionResult, type MealType, type PlanDoc, type PlanPageData, type ParseResult, type ProposeResult, type RecipeLite } from '../../plan/types';
 import type { PlanRecipe } from './recipe-source';
 import type { PlanServices } from './services';
 
@@ -35,6 +35,7 @@ export async function getPlanPageData(svc: PlanServices, weekParam?: string): Pr
     householdExclusions: exclusions,
     defaultServings: hh.defaultServings ?? 4,
     examplePrompt: EXAMPLE_PROMPT,
+    memberNames: hh.members.map((m) => m.displayName),
   };
 }
 
@@ -102,20 +103,48 @@ export async function approvePlan(svc: PlanServices, doc: PlanDoc): Promise<Acti
   return { ok: true, value: approved };
 }
 
-export async function proposePlan(svc: PlanServices, prompt: string, weekStart: string): Promise<ProposeResult> {
+const MAX_PROMPT = 1500;
+
+function checkPrompt(prompt: string, weekStart: string): { ok: true; text: string } | { ok: false; code: string; message: string } {
   const text = prompt.trim();
   if (!text) return { ok: false, code: 'EMPTY_PROMPT', message: 'Describe the week you want and we will propose a plan.' };
-  if (text.length > 1500) return { ok: false, code: 'PROMPT_TOO_LONG', message: 'Please keep the request under 1,500 characters.' };
+  if (text.length > MAX_PROMPT) return { ok: false, code: 'PROMPT_TOO_LONG', message: 'Please keep the request under 1,500 characters.' };
   if (!isIsoDate(weekStart)) return { ok: false, code: 'BAD_WEEK', message: 'That week is not valid.' };
-  const res = await svc.orchestrator.proposePlan(svc.household.id, text, mondayOf(weekStart));
-  if (res.ok) return { ok: true, proposal: res.value };
-  const e = res.error;
+  return { ok: true, text };
+}
+
+function failure(e: OrchestratorError) {
   return {
-    ok: false,
+    ok: false as const,
     code: e.code,
     message: e.userMessage,
     ...(e.code === 'NO_VIABLE_CANDIDATES' ? { gaps: e.gaps.map((g) => ({ date: g.date, mealType: g.mealType as MealType, reason: g.reason })), unmet: e.unmet } : {}),
+    ...(e.code === 'INVALID_REQUEST' ? { unmet: e.issues.map((detail) => ({ kind: 'invalid', detail })) } : {}),
   };
+}
+
+/** Step 1 (the only AI call): read the prompt into editable constraints. Nothing is solved or saved. */
+export async function parsePlanRequest(svc: PlanServices, prompt: string, weekStart: string): Promise<ParseResult> {
+  const c = checkPrompt(prompt, weekStart);
+  if (!c.ok) return c;
+  const res = await svc.orchestrator.parseRequest(svc.household.id, c.text, mondayOf(weekStart));
+  return res.ok ? { ok: true, parsed: res.value } : failure(res.error);
+}
+
+/** Step 2 (no AI): solve the constraints the user reviewed or edited. The request is untrusted and re-validated. */
+export async function solvePlanRequest(svc: PlanServices, prompt: string, weekStart: string, request: unknown): Promise<ProposeResult> {
+  const c = checkPrompt(prompt, weekStart);
+  if (!c.ok) return c;
+  const res = await svc.orchestrator.solveRequest(svc.household.id, { prompt: c.text, weekStart: mondayOf(weekStart), request });
+  return res.ok ? { ok: true, proposal: res.value } : failure(res.error);
+}
+
+/** Prompt -> proposal in one call (parse then solve). The UI uses the two steps so the user can review the chips. */
+export async function proposePlan(svc: PlanServices, prompt: string, weekStart: string): Promise<ProposeResult> {
+  const c = checkPrompt(prompt, weekStart);
+  if (!c.ok) return c;
+  const res = await svc.orchestrator.proposePlan(svc.household.id, c.text, mondayOf(weekStart));
+  return res.ok ? { ok: true, proposal: res.value } : failure(res.error);
 }
 
 export interface ShoppingHandoff {

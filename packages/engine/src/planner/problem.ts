@@ -39,6 +39,8 @@ export interface PreparedSlot {
   skipReason?: SkipReason;
   skipNote?: string;
   quickMaxMinutes?: number;
+  /** HARD quick slot (`quickMeals.strict`): only recipes within `quickMaxMinutes` may fill it. */
+  quickStrict?: boolean;
   /** Candidate indices passing the hard filter AND suitable for this meal type, in id order. */
   eligible: number[];
   eligibleSet: Set<number>;
@@ -75,6 +77,9 @@ export interface Problem {
   tagHits: number[];
   isRecent: boolean[];
 }
+
+/** A recipe with unknown time is never 'quick' (honest: unknown is not fast). */
+export const isQuickEnough = (c: RecipeCandidate, maxMinutes: number): boolean => c.totalMinutes !== null && c.totalMinutes <= maxMinutes;
 
 export const slotKey = (date: IsoDate, mealType: MealType): string => `${date}|${mealType}`;
 
@@ -239,6 +244,12 @@ export function prepareProblem(
       }
       if (k.quickMeals && (quickDates.has(date) || quickWeekdays.has(weekday))) {
         slot.quickMaxMinutes = k.quickMeals.maxTotalMinutes;
+        if (k.quickMeals.strict) {
+          slot.quickStrict = true;
+          const max = k.quickMeals.maxTotalMinutes;
+          slot.eligible = slot.eligible.filter((i) => isQuickEnough(candidates[i]!, max));
+          slot.eligibleSet = new Set(slot.eligible);
+        }
       }
       slots.push(slot);
       slotIndex.set(key, index);
@@ -274,6 +285,10 @@ export function prepareProblem(
       lockIssues.push(
         `Pinned recipe "${title}" on ${l.date} was removed: ${reasons.map((r) => r.message).join('; ')}.`,
       );
+      continue;
+    }
+    if (slot.quickStrict && !isQuickEnough(candidates[ci]!, slot.quickMaxMinutes!)) {
+      lockIssues.push(`Pinned recipe "${candidates[ci]!.title ?? l.recipeId}" on ${l.date} was removed: only quick meals (${slot.quickMaxMinutes} min or less) are allowed that day.`);
       continue;
     }
     if (!slot.eligibleSet.has(ci)) {

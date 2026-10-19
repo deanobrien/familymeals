@@ -439,7 +439,7 @@ export function buildEvaluation(
         });
       }
     }
-    report.push({ id: 'quick_meals', kind: 'quick_meals', hard: false, status, target: `${quickSlots.length}`, actual: `${quickSlots.length - missed.length}`, explanation });
+    report.push({ id: 'quick_meals', kind: 'quick_meals', hard: k.quickMeals?.strict === true, status, target: `${quickSlots.length}`, actual: `${quickSlots.length - missed.length}`, explanation });
   }
 
   // ---------- include tags ----------

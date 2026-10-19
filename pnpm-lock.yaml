@@ -231,6 +231,9 @@ importers:
       '@anthropic-ai/sdk':
         specifier: ^0.135.0
         version: 0.135.0(zod@4.6.7)
+      '@fr/domain':
+        specifier: workspace:*
+        version: link:../domain
       server-only:
         specifier: ^0.0.1
         version: 0.0.1
@@ -315,6 +318,9 @@ importers:
       '@fr/ai':
         specifier: workspace:*
         version: link:../ai
+      '@fr/domain':
+        specifier: workspace:*
+        version: link:../domain
     devDependencies:
       '@types/node':
         specifier: ^22.10.2

@@ -13,6 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@fr/domain": "workspace:*",
     "@anthropic-ai/sdk": "^0.135.0",
     "server-only": "^0.0.1",
     "sharp": "^0.35.5",
