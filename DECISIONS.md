@@ -378,3 +378,22 @@ PGlite SQL asserts `packages/db/tests/rls/008_s2_shopping_receipts_profile_ai.sq
 ## D129 S2 open items
 
 Not done in S2: a UI notice for withheld allergy exclusions (D125); a cooked-batch table (D127); populating `shopping_list_item_sources`; log compaction (the snapshot returns the whole list log as the idempotency table); the mobile app moving its cursor to `list_seq`; generated `database.types.ts`; dev `/api/dev/seed` and `/api/dev/reset` still target the in-memory stores only.
+## D150 Production config is checked at start; local file stores need an explicit escape hatch (D1 deploy prep)
+
+`lib/server/config/production.ts` (`productionConfigProblems`, pure) runs from `instrumentation.ts` on server start and throws a readable list in production when: the public Supabase env is missing (mock auth refused), `DATA_BACKEND` is not `supabase`, `APP_SECRET` is missing or under 16 chars, `AI_PROVIDER=mock` / `AI_ALLOW_MOCK_IN_PRODUCTION=true`, `SUPABASE_DATA_CONTEXT=service`, or `ALLOW_LOCAL_FILE_STORE` is not `true`. The last one exists because AI provider settings (`settings-store.ts`) and uploaded photos (`uploads/dev-store.ts`) still write local files until S2 moves them to Supabase (S2 is not in this base: this is the documented dependency). With `ALLOW_LOCAL_FILE_STORE=true` in production `dataDir()` defaults to `/home/data` (App Service persists `/home`; wwwroot is replaced on each deploy), overridable by `APP_DATA_DIR`. Remove the flag, and the check, once S2 lands. (After S2: AI provider settings are a household Supabase row, D126; uploaded photos are still local files, so the flag and check stay until uploads move to Supabase Storage.) The in-memory shopping/receipt/price stores (D105) are unchanged and lose data on restart: the first deploy is a test deploy, not production.
+
+## D151 `/api/health`
+
+Public, read-only, no secrets: `{status: 'ok'|'degraded', version, commit}` (200 / 503 when the production config check fails). Added to `PUBLIC_API_PREFIXES` so middleware never gates it. Used as the App Service Health check path.
+
+## D152 Security headers (SECURITY-CHECKLIST section 2)
+
+`next.config.mjs` `headers()`, production builds only: enforced CSP (default-src self; scripts `'self' 'unsafe-inline'` because Next's inline bootstrap needs it without a nonce; blob: for images/media/workers for the camera and photo flows; Supabase https/wss origin taken from `NEXT_PUBLIC_SUPABASE_URL` at build; frame-ancestors none; upgrade-insecure-requests), HSTS (no `preload`: the host is `*.azurewebsites.net`), nosniff, Referrer-Policy, X-Frame-Options DENY, Permissions-Policy `camera=(self)`. `poweredByHeader: false`. Follow-up: nonce + strict-dynamic via middleware. `CSP_REPORT_ONLY=true` at build time ships it as Report-Only. The CSP was not exercised in a real browser against Supabase in this lane: check the browser console on first deploy (smoke checklist).
+
+## D153 Standalone output is opt-in; packaged from a symlink-free copy
+
+`output: 'standalone'` only when `NEXT_STANDALONE=1`, because Next's standalone copy creates symlinks and fails with EPERM on Windows without Developer Mode/admin (this machine), which would break plain `pnpm build`. `scripts/package-appservice.ps1` copies the tree to a short temp root, installs with `node-linker=hoisted` (real folders) and `--ignore-scripts`, builds with `NEXT_STANDALONE=1`, adds `.next/static` + `public`, and zips with `tar.exe` (forward-slash entries; `Compress-Archive` on Windows PowerShell 5.1 writes backslashes that break on Linux). `outputFileTracingRoot` is the repo root so workspace code (bundled by `transpilePackages`) and node_modules are traced. Entry point in the zip: `apps/web/server.js` (start command `node apps/web/server.js`; `PORT` and `HOSTNAME` honoured by the generated server).
+
+## D154 Linux sharp from a Windows build
+
+Root `package.json` `pnpm.supportedArchitectures` (os current+linux, cpu current+x64, libc glibc) makes pnpm install the `@img/sharp-linux-x64` and `@img/sharp-libvips-linux-x64` optional packages next to the Windows ones. Sharp chooses its binary with a dynamic require the file tracer cannot see, so `outputFileTracingIncludes` names them, and the package script verifies they are in the zip and removes win32/musl/other-arch binaries. Target runtime is Node 22 LTS glibc x64 (Azure Linux App Service).
