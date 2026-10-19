@@ -1,4 +1,6 @@
+import 'server-only';
 import { getRecipeRepository } from '../../recipes/factory';
+import { getAppContext } from '../context';
 import { getIngredientCatalogue } from '../refdata/catalogue';
 import { defaultIngredientLookup } from './ingredients';
 import { InMemoryPantryRepository } from './repository';
@@ -7,19 +9,22 @@ import {
 } from './sources';
 import { createPantryService, type PantryService } from './service';
 
-/** household-a from e2e/fixtures/households. TODO: derive from the signed-in session once auth/households merge. */
+/** household-a from e2e/fixtures/households (= the mock-auth demo household). */
 export const DEMO_HOUSEHOLD_ID = 'a1a1a101-0000-4000-8000-000000000001';
-export const getCurrentHouseholdId = (): string => DEMO_HOUSEHOLD_ID;
+
+/** The signed-in household (D35). */
+export const getCurrentHouseholdId = async (): Promise<string> => (await getAppContext()).householdId;
 
 const nowIso = (): string => new Date().toISOString();
 
-export function buildDemoPantryService(now: () => string = nowIso): PantryService {
+/** In-memory pantry for one household, seeded with the demo stock (every household gets the demo seed). */
+export function buildDemoPantryService(now: () => string = nowIso, householdId: string = DEMO_HOUSEHOLD_ID): PantryService {
   const ingredients = defaultIngredientLookup();
   const start = now();
   return createPantryService({
-    repo: new InMemoryPantryRepository({ householdId: DEMO_HOUSEHOLD_ID, items: seedPantryItems(DEMO_HOUSEHOLD_ID, start, ingredients) }),
+    repo: new InMemoryPantryRepository({ householdId, items: seedPantryItems(householdId, start, ingredients) }),
     recipes: new RepositoryRecipeSummarySource(getRecipeRepository()),
-    purchases: new InMemoryPurchaseEventSource(fixturePurchaseRecords(DEMO_HOUSEHOLD_ID, start, ingredients)),
+    purchases: new InMemoryPurchaseEventSource(fixturePurchaseRecords(householdId, start, ingredients)),
     leftovers: new InMemoryLeftoverSource(now),
     ingredients,
     converter: getIngredientCatalogue().converter,
@@ -27,11 +32,18 @@ export function buildDemoPantryService(now: () => string = nowIso): PantryServic
   });
 }
 
-const KEY = Symbol.for('fr.pantry.service');
-type G = typeof globalThis & { [KEY]?: PantryService };
+const KEY = Symbol.for('fr.pantry.services');
+type G = typeof globalThis & { [KEY]?: Map<string, PantryService> };
 
-/** Process-wide singleton (survives dev HMR). In-memory only: state resets when the server restarts. */
-export function getPantryService(): PantryService {
+/** Per-household process-wide services (survive dev HMR). In-memory only: state resets when the server restarts. */
+export function getPantryService(householdId: string): PantryService {
   const g = globalThis as G;
-  return (g[KEY] ??= buildDemoPantryService());
+  const map = (g[KEY] ??= new Map<string, PantryService>());
+  let svc = map.get(householdId);
+  if (!svc) map.set(householdId, (svc = buildDemoPantryService(nowIso, householdId)));
+  return svc;
+}
+
+export function resetPantryServices(): void {
+  (globalThis as G)[KEY] = undefined;
 }

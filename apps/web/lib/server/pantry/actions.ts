@@ -2,12 +2,15 @@
 
 import { revalidatePath } from 'next/cache';
 import type { ActionResult, IngredientHit, LeftoverView, PantrySettings } from '../../pantry/types';
+import { getAppContext } from '../context';
 import { getCurrentHouseholdId, getPantryService } from './deps';
 import type { AddItemInput, CorrectItemInput, LeftoverInput } from './service';
 
 async function mutate(run: (hh: string) => Promise<ActionResult>): Promise<ActionResult> {
+  const ctx = await getAppContext(); // outside try: lets the auth redirect through
+  if (ctx.readOnly) return { ok: false, error: 'This household is read-only while it is pending deletion.' };
   try {
-    const res = await run(getCurrentHouseholdId());
+    const res = await run(ctx.householdId);
     if (res.ok) revalidatePath('/pantry');
     return res;
   } catch {
@@ -16,36 +19,37 @@ async function mutate(run: (hh: string) => Promise<ActionResult>): Promise<Actio
 }
 
 export async function addItemAction(input: AddItemInput): Promise<ActionResult> {
-  return mutate((hh) => getPantryService().addItem(hh, input));
+  return mutate((hh) => getPantryService(hh).addItem(hh, input));
 }
 export async function correctItemAction(input: CorrectItemInput): Promise<ActionResult> {
-  return mutate((hh) => getPantryService().correctItem(hh, input));
+  return mutate((hh) => getPantryService(hh).correctItem(hh, input));
 }
 export async function confirmItemAction(id: string): Promise<ActionResult> {
-  return mutate((hh) => getPantryService().confirmItem(hh, id));
+  return mutate((hh) => getPantryService(hh).confirmItem(hh, id));
 }
 export async function removeItemAction(id: string): Promise<ActionResult> {
-  return mutate((hh) => getPantryService().removeItem(hh, id));
+  return mutate((hh) => getPantryService(hh).removeItem(hh, id));
 }
 export async function updateSettingsAction(settings: PantrySettings): Promise<ActionResult> {
-  return mutate((hh) => getPantryService().updateSettings(hh, settings));
+  return mutate((hh) => getPantryService(hh).updateSettings(hh, settings));
 }
 export async function acceptAdjustmentAction(eventId: string, expiry?: string): Promise<ActionResult> {
-  return mutate((hh) => getPantryService().acceptAdjustment(hh, eventId, expiry));
+  return mutate((hh) => getPantryService(hh).acceptAdjustment(hh, eventId, expiry));
 }
 export async function dismissAdjustmentAction(eventId: string): Promise<ActionResult> {
-  return mutate((hh) => getPantryService().dismissAdjustment(hh, eventId));
+  return mutate((hh) => getPantryService(hh).dismissAdjustment(hh, eventId));
 }
 
 export async function searchIngredientsAction(query: string): Promise<IngredientHit[]> {
-  return getPantryService().searchIngredients(String(query).slice(0, 60));
+  return getPantryService(await getCurrentHouseholdId()).searchIngredients(String(query).slice(0, 60));
 }
 
 export async function planLeftoversAction(
   input: LeftoverInput,
 ): Promise<{ ok: true; plan: LeftoverView } | { ok: false; error: string }> {
   try {
-    return await getPantryService().planLeftovers(getCurrentHouseholdId(), input);
+    const hh = await getCurrentHouseholdId();
+    return await getPantryService(hh).planLeftovers(hh, input);
   } catch {
     return { ok: false, error: 'Something went wrong. Please try again.' };
   }

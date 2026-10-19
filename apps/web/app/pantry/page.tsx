@@ -8,7 +8,8 @@ export const metadata = { title: 'Pantry' };
 export const dynamic = 'force-dynamic';
 
 export default async function PantryPage() {
-  const view = await getPantryService().getView(getCurrentHouseholdId());
+  const hh = await getCurrentHouseholdId();
+  const view = await getPantryService(hh).getView(hh);
   return (
     <div className={s.page}>
       <header className={s.section}>
