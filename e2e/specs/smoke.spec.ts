@@ -26,7 +26,8 @@ for (const r of ROUTES) {
       .click();
     await expect(page).toHaveURL(new RegExp(`${r.path}$`));
     await expect(page.getByRole('heading', { level: 1, name: r.heading })).toBeVisible();
-    await expect(page.locator('.fr-state')).toBeVisible();
+    // /recipes is a real library now (L12); only the remaining placeholders show an empty state.
+    if (r.path !== '/recipes') await expect(page.locator('.fr-state')).toBeVisible();
     await expect(
       page.getByRole('navigation', { name: 'Main', exact: true }).getByRole('link', { name: r.nav }),
     ).toHaveAttribute('aria-current', 'page');
