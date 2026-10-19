@@ -1,0 +1,3 @@
+Kudu/Oryx can rebuild or clobber the pre-built zip: disable builds and clear wwwroot first.
+
+The zip is a finished Next standalone server; Kudu must only unpack it. App settings `SCM_DO_BUILD_DURING_DEPLOYMENT=false` and `ENABLE_ORYX_BUILD=false`; clear `/home/site/wwwroot` before uploading (stale files from a previous deploy mix builds); upload via the Kudu file browser area "Drag here to upload and unzip". `az webapp deploy --type zip` goes through the build pipeline and may run Oryx. First start can exceed the container start limit: `WEBSITES_CONTAINER_START_TIME_LIMIT=600`. Lane D2 is hardening the zip against rebuilds; see docs/DEPLOY-APP-SERVICE.md.

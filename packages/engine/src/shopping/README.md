@@ -1,7 +1,7 @@
 # @fr/engine/shopping — shopping state engine (lane L17a)
 
-Pure, deterministic TS. Untracked lane folder; merged into `C:\TFS\FamilyRecipes` (`packages/engine/src/shopping`)
-by the integrator. `src/contract.ts` is a verbatim copy of `../CONTRACT-SEED.ts`.
+Pure, deterministic TS (originally lane L17a, merged into `packages/engine/src/shopping`).
+`src/contract.ts` re-exports the shared contract shapes from `@fr/domain` (historical seed: `docs/history/CONTRACT-SEED.ts`).
 
 Validate: `pnpm install && pnpm exec tsc --noEmit && pnpm exec vitest run`
 
