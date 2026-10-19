@@ -46,6 +46,7 @@ Add each as an App setting (name, value). **Secret** = mark as a secret / do not
 | `NODE_ENV` | `production` | fixed | no |
 | `HOSTNAME` | `0.0.0.0` | fixed (makes the Next server listen on all interfaces; App Service sets `PORT` itself and the server honours it) | no |
 | `SCM_DO_BUILD_DURING_DEPLOYMENT` | `false` | fixed (the zip is pre-built; stops Kudu running npm) | no |
+| `ENABLE_ORYX_BUILD` | `false` | fixed (set together with the row above; the zip is pre-built and also carries a `.deployment` file and a build-script-free root package.json, so Oryx never runs `npm install` / `npm run build`) | no |
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://<project-ref>.supabase.co` | Supabase, Project settings, API | no (public) |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon / publishable key | Supabase, Project settings, API | no (public, RLS protects data) |
 | `SUPABASE_SERVICE_ROLE_KEY` | service role key | Supabase, Project settings, API. Server-only, bypasses RLS | **yes** |
@@ -94,6 +95,9 @@ az webapp deploy --resource-group rg-family-recipes --name <unique-name> --src-p
 
 or in the portal: Deployment Center, **Zip Deploy / Publish** (Kudu: `https://<unique-name>.scm.azurewebsites.net/ZipDeployUI`, drag `dist\appservice.zip` onto the `/home/site/wwwroot` area), or Advanced Tools (Kudu), Tools, Zip Push Deploy.
 
+**Kudu drag-and-drop path:** open Kudu (`https://<hostname>.scm.<region>-01.azurewebsites.net/`), Debug console, CMD or Bash, go to `/home/site/wwwroot`, **delete everything in it first**, then drag `dist\appservice.zip` onto the "Drag here to upload and unzip" area at the top of the file listing (it unzips into the current folder, `/home/site/wwwroot`). Confirm `apps/web/server.js` sits directly under wwwroot.
+
+**Unique default hostname:** new Web Apps get `<name>-<hash>.<region>-01.azurewebsites.net` (not `<name>.azurewebsites.net`); use that exact hostname (and the matching `.scm.` host) everywhere, including `NEXT_PUBLIC_SITE_URL` and the Supabase URLs. Old `az` CLI versions fail `az webapp deploy` with `WSAECONNRESET` because they target `<name>.scm.azurewebsites.net`, which does not resolve for these apps; upgrade the CLI or use the Kudu upload above.
 The first start takes a minute or two (the container extracts the zip, starts Node). Watch Monitoring, Log stream. Redeploying replaces wwwroot but **not** `/home/data`.
 
 ## 6. Post-deploy smoke checklist

@@ -103,11 +103,31 @@ Get-ChildItem $img -Directory -ErrorAction SilentlyContinue |
 if (-not (Get-ChildItem (Join-Path $img 'sharp-linux-x64') -Recurse -Filter '*.node')) { throw 'sharp linux-x64 .node binary missing' }
 if (-not (Get-ChildItem (Join-Path $img 'sharp-libvips-linux-x64') -Recurse -Filter 'libvips*')) { throw 'libvips linux-x64 missing' }
 
+# --- 3b. make it impossible for App Service (Kudu/Oryx) to run a server-side build ----------------------------------------
+# Oryx detects a root package.json with a build script and runs `npm install` + `npm run build` (-> turbo: not found).
+Step 'Sanitising package.json, lockfiles, .deployment'
+$rootPkgPath = Join-Path $standalone 'package.json'
+$ver = '0.0.0'
+try { $ver = (Get-Content (Join-Path $BuildRoot 'package.json') -Raw | ConvertFrom-Json).version } catch {}
+if (-not $ver) { $ver = '0.0.0' }
+$rootPkg = [ordered]@{ name = 'family-recipes-appservice'; version = $ver; private = $true; scripts = [ordered]@{ start = 'node apps/web/server.js' } }
+[IO.File]::WriteAllText($rootPkgPath, ($rootPkg | ConvertTo-Json -Depth 5), (New-Object Text.UTF8Encoding($false)))
+$webPkgPath = Join-Path $standalone 'apps\web\package.json'
+if (Test-Path $webPkgPath) {
+  $w = Get-Content $webPkgPath -Raw | ConvertFrom-Json
+  $min = [ordered]@{ name = $w.name; version = $w.version; private = $true; scripts = [ordered]@{ start = 'node server.js' } }
+  [IO.File]::WriteAllText($webPkgPath, ($min | ConvertTo-Json -Depth 5), (New-Object Text.UTF8Encoding($false)))
+}
+foreach ($lock in 'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock', 'pnpm-workspace.yaml', 'turbo.json', '.npmrc') {
+  Remove-Item -Force (Join-Path $standalone $lock) -ErrorAction SilentlyContinue
+}
+[IO.File]::WriteAllText((Join-Path $standalone '.deployment'), "[config]`nSCM_DO_BUILD_DURING_DEPLOYMENT=false`n", (New-Object Text.UTF8Encoding($false)))
+
 # --- 4. zip (forward-slash entries) -------------------------------------------------------------------------------------
 Step "Zipping to $zip"
 New-Item -ItemType Directory -Force $dist | Out-Null
 if (Test-Path $zip) { Remove-Item -Force $zip }
-Run 'tar.exe' @('-a', '-c', '-f', $zip, '-C', $standalone, '.')
+Run (Join-Path $env:SystemRoot 'System32\tar.exe') @('-a', '-c', '-f', $zip, '-C', $standalone, '.')
 $mb = [math]::Round((Get-Item $zip).Length / 1MB, 1)
 Write-Host ''
 Write-Host "Package:  $zip  ($mb MB)" -ForegroundColor Green
