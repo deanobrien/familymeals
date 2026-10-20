@@ -21,6 +21,6 @@ export default async function Page({ params, searchParams }: Props) {
   const sp = await searchParams;
   const recipe = UUID.test(id) ? await getRecipeRepository().get(id) : null;
   if (!recipe) notFound();
-  const { householdId } = await getAppContext();
-  return <RecipeDetail recipe={recipe} calc={(await getFreshRecipeCalculator(householdId)).forRecipe(recipe)} justDuplicated={sp.duplicated === '1'} />;
+  const { householdId, userId, defaultServings } = await getAppContext();
+  return <RecipeDetail recipe={recipe} calc={(await getFreshRecipeCalculator(householdId)).forRecipe(recipe)} justDuplicated={sp.duplicated === '1'} householdId={householdId} userId={userId} householdServings={defaultServings} />;
 }

@@ -25,7 +25,7 @@ async function scanPhotos(page: Page, n = 2) {
 
 test('the Pantry page and Home link to the scanner', async ({ page }) => {
   await page.goto('/pantry');
-  await page.getByRole('link', { name: 'Scan groceries' }).click();
+  await page.getByTestId('scan-groceries').click();
   await expect(page).toHaveURL(/\/pantry\/scan$/);
   await expect(page.getByRole('heading', { level: 1, name: 'Scan groceries' })).toBeVisible();
   await page.goto('/');
