@@ -3,10 +3,13 @@
 import { useState, type FormEvent } from 'react';
 import { Badge, Button, Card, CardBody, ConfirmDialog, EmptyState, Input, Select } from '@fr/ui';
 import type { ExpiringView, ItemView, PantryView } from '../../lib/pantry/types';
+import { parKey } from '../../lib/pantry/engine';
+import type { ParView } from '../../lib/restock/types';
 import {
   confirmItemAction, correctItemAction, removeItemAction, updateSettingsAction,
 } from '../../lib/server/pantry/actions';
 import { unitOptions } from './add-item';
+import { MinimumButton, MinimumEditor } from './restock';
 import { usePantryAction } from './use-pantry-action';
 import s from './pantry.module.css';
 
@@ -36,7 +39,8 @@ export function StalePrompts({ items }: { items: ItemView[] }) {
 }
 
 /* ---------- Stock list ---------- */
-function ItemRow({ item, onRemove }: { item: ItemView; onRemove: (i: ItemView) => void }) {
+function ItemRow({ item, onRemove, par }: { item: ItemView; onRemove: (i: ItemView) => void; par?: ParView }) {
+  const [minOpen, setMinOpen] = useState(false);
   const { pending, run } = usePantryAction();
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(String(item.value ?? ''));
@@ -61,6 +65,7 @@ function ItemRow({ item, onRemove }: { item: ItemView; onRemove: (i: ItemView) =
           {item.status === 'approximate' && <Badge>Approximate</Badge>}
         </div>
         <div className={s.actions}>
+          <MinimumButton name={item.name} {...(par ? { par } : {})} open={minOpen} onToggle={() => setMinOpen((v) => !v)} />
           <Button size="sm" variant="secondary" aria-expanded={editing} aria-label={`Correct ${item.name}`} onClick={() => setEditing((v) => !v)}>
             Correct
           </Button>
@@ -69,6 +74,9 @@ function ItemRow({ item, onRemove }: { item: ItemView; onRemove: (i: ItemView) =
           </Button>
         </div>
       </div>
+      {minOpen && (
+        <MinimumEditor name={item.name} unit={item.unit ?? 'item'} {...(item.ingredientId ? { ingredientId: item.ingredientId } : {})} {...(par ? { par } : {})} onDone={() => setMinOpen(false)} />
+      )}
       {editing && (
         <form className={s.inlineForm} onSubmit={save} aria-label={`Correct ${item.name}`}>
           <Input label="Actual quantity" inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} hint="Set to 0 to remove it." />
@@ -82,7 +90,14 @@ function ItemRow({ item, onRemove }: { item: ItemView; onRemove: (i: ItemView) =
   );
 }
 
-export function StockList({ view }: { view: PantryView }) {
+/** The minimum (if any) for a pantry row: by canonical ingredient, else by normalised name. */
+function parFor(item: ItemView, pars?: ParView[]): { par?: ParView } {
+  const keys = [parKey({ ...(item.ingredientId ? { ingredientId: item.ingredientId } : {}), name: item.name }), parKey({ name: item.name })];
+  const par = pars?.find((p) => keys.includes(p.key));
+  return par ? { par } : {};
+}
+
+export function StockList({ view, pars }: { view: PantryView; pars?: ParView[] }) {
   const { pending, run } = usePantryAction();
   const [removing, setRemoving] = useState<ItemView | null>(null);
 
@@ -97,7 +112,7 @@ export function StockList({ view }: { view: PantryView }) {
             <CardBody>
               <h3 style={{ margin: 0 }}>{c.label}</h3>
               <ul className={s.list} aria-label={c.label}>
-                {c.items.map((i) => <ItemRow key={i.id} item={i} onRemove={setRemoving} />)}
+                {c.items.map((i) => <ItemRow key={i.id} item={i} onRemove={setRemoving} {...parFor(i, pars)} />)}
               </ul>
             </CardBody>
           </Card>

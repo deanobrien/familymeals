@@ -1,0 +1,5 @@
+.banner { display: flex; flex-direction: column; gap: var(--fr-space-2); padding: var(--fr-space-4); border: 1px solid var(--fr-border); border-left: 4px solid var(--fr-accent); border-radius: var(--fr-radius-lg); background: var(--fr-accent-soft); margin-bottom: var(--fr-space-4); }
+.title { margin: 0; font-size: 1.05rem; font-weight: 600; }
+.text { margin: 0; }
+.muted { margin: 0; color: var(--fr-text-muted); font-size: var(--fr-text-sm); }
+.actions { display: flex; flex-wrap: wrap; gap: var(--fr-space-2); align-items: center; }

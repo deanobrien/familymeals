@@ -6,3 +6,4 @@ export * from './deduct';
 export * from './purchases';
 export * from './expiry';
 export * from './suggest';
+export * from './restock';

@@ -2,7 +2,7 @@ import {
   EXPIRING_SOON_DAYS, URGENCY_DAYS, addStock, applyAdjustments, assessConfidence, confirmStock, correctStock,
   expiringSoon, exactQ, fmtQ, isExact, makeCtx, planLeftovers, planPurchaseAdjustments, rankRecipesByPantry,
   today, daysBetween,
-  type CookedBatch, type EngineCtx, type UnitConverter, type OpenSlot, type PantryAdjustment, type PantryItem, type Uuid,
+  type CookedBatch, type EngineCtx, type UnitConverter, type OpenSlot, type OutstandingItem, type PantryAdjustment, type PantryItem, type Uuid,
 } from '../../pantry/engine';
 import {
   UNIT_OPTIONS, categoryLabel,
@@ -203,6 +203,25 @@ export function createPantryService(deps: PantryDeps) {
         staleItems: views.filter((v) => v.view.stale).map((v) => v.view),
         expiring, suggestions, pending, leftovers,
       };
+    },
+
+    /**
+     * PR1 restock: raw stock plus purchases recorded but not yet confirmed into the pantry ("incoming"), so a restock
+     * suggestion does not reappear between ticking the item off and adding it to the pantry. Read-only apart from the
+     * same auto-purchase sync getView() already does.
+     */
+    async stockSnapshot(householdId: Uuid): Promise<{ items: PantryItem[]; staleAfterDays: number; now: string; incoming: OutstandingItem[] }> {
+      const settings = await repo.getSettings(householdId);
+      await syncAutoPurchases(householdId, settings);
+      const items = await repo.listItems(householdId);
+      let incoming: OutstandingItem[] = [];
+      if (settings.purchaseMode !== 'off') {
+        const plan = await planPurchases(householdId, items, settings.purchaseMode);
+        incoming = plan.adjustments
+          .filter((a) => a.requiresConfirmation)
+          .map((a) => ({ name: a.name, quantity: a.quantity, source: 'incoming' as const, ...(a.ingredientId ? { ingredientId: a.ingredientId } : {}) }));
+      }
+      return { items, staleAfterDays: settings.staleAfterDays, now: deps.now(), incoming };
     },
 
     async addItem(householdId: Uuid, input: AddItemInput): Promise<ActionResult> {
