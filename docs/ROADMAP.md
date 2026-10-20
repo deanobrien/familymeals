@@ -37,6 +37,10 @@ Standing rule (D310): every web feature also ships on Android unless a reason is
 | Shopping list live / offline / aisles | ✅ | ✅ | none |
 | Multi-list + handwritten list scan | ✅ | ✅ | P0-C (D346) |
 | Minimum stock + restock suggestions | ✅ | ✅ | PR1 (D280-D287): set minimum, Running low (Add all / choose / snooze), banner on shopping, auto-add setting; jest with a fake server, not run on a device |
+| Recipe from a web link (JSON-LD first, AI fallback) | ✅ | ✅ | P1-B (D370-D374): one server route `/api/import/url`; Android adds a link screen and the "Share to Family Recipes" intent (expo-share-intent, needs a new build + device check) |
+| What can I make now? | ✅ Home + Pantry | ✅ Pantry + Recipes tab | P1-B (D375): same `/api/pantry/make-now`; no Android Home yet, so the compact card sits on the Recipes tab |
+| 5 a day + variety score (planner week) | ✅ | ✅ | P1-B (D376-D377): engine `summariseVariety`, per-recipe profile from the server; Planned/Cooked toggle appears only when P1-A cooked data is sent |
+| Per-person soft dislikes | ✅ Settings, planner chips, Discover | ✅ Settings, planner chips | P1-B (D378-D379): table `member_dislikes`, own list or owner edits anyone's; solver penalty, never a filter |
 | Pantry stock / expiry / use-what-I-have / photo-video scan | ✅ | ⚠️ | P0-C (D342-D343): all but video frames (web-only, native module) and min stock (PR1 not merged) |
 | Barcode scanning | ✅ continuous | ✅ | P0-C (D344): review + confirm on the phone, haptics, keep-awake; P0-D (D354): short beep per counted read on both (Settings "Scan sound", default on; silent mode respected); device check |
 | Receipts | ✅ | ✅ | P0-C (D345) |
@@ -63,9 +67,9 @@ All durations are **estimates**, not commitments.
 ### Phase 1 - Everyday wins (~2 wks)
 
 - **A Cooking**: cook mode (steps, timers, read-aloud, keep-awake); ratings and notes after cooking; substitutions (AI, allergy-checked).
-- **B Import and pantry**: recipe from a web link (JSON-LD first, then AI); "what can I make now?"; 5-a-day and variety score.
+- **B Import and pantry**: **built by P1-B (D370-D379), web + Android:** recipe from a web link (SSRF-guarded server fetch, schema.org JSON-LD/microdata first, AI text reading only when there is none, same review screen, source link kept; Android also accepts "Share to Family Recipes"); "What can I make now?" (Home, Pantry, Android Recipes tab + Pantry; allergy exclusions with consent; add missing to the shopping list, idempotent); "5 a day" + variety on the planner week (estimate, 80 g portions, no health claims); per-person soft dislikes (Settings, planner chips, solver penalty, Discover sorts lower). Owner steps: push migration `20261021001100`; device check of the share intent (expo-share-intent 8.0.1 declares peer `expo ^57`, the app is on SDK 58: needs a new EAS build and a phone). Not verified: the share intent on a device, fetching real recipe sites, live-model text extraction.
 - **C Notifications**: **built by P1-C (D380-D389), web + Android:** notification platform (in-app centre + bell on both; Expo push for Android, Web Push for browsers; per-member per-type preferences, quiet hours, time zone; `/api/jobs/notify` delivery job), daily expiry alerts (use by / best before wording, deep link to "Use what I have"), household activity feed (Home on web, notification screen on Android), opt-in restock nudges (PR1). Owner steps: push the migration, VAPID keys, Firebase/FCM in EAS + a new build, second Logic App action (DEPLOY-APP-SERVICE.md 3e). Not verified: real push delivery (browser push services, FCM on a phone), the job against the hosted project.
-- Plus per-person soft dislikes.
+- Per-person soft dislikes: done with P1-B (above).
 
 ### Phase 2 - Smarter shopping and planning (~3 wks)
 

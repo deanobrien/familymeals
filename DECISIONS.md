@@ -979,3 +979,43 @@ POST only, `JOBS_SECRET` in `x-jobs-secret` (unset = 503), service role only in 
 ## D389 Permission prompts only after a user action; parity (P1-C)
 
 Web: `public/sw.js` (push + notificationclick only, no caching) is registered, and `Notification.requestPermission()` called, only from "Turn on in this browser". Android: `expo-notifications` permission + token only from "Turn on notifications on this phone"; tapping a push opens the mapped screen (`linkToRoute`). Parity: bell with unread count (web top bar via the new `AppShell.topBar`; Android tab headers), centre + household activity (web `/notifications`, Home feed; Android `/notifications`, More), settings (web `/settings/notifications`; Android `/notification-settings` from Settings), test button on both. Documented gap: Android has no Home dashboard yet (ROADMAP parity matrix), so its activity feed lives in the notification screen. `app.config.js` adds `android.googleServicesFile` only when the owner supplies `google-services.json` (EAS file variable `GOOGLE_SERVICES_JSON`); without it the app builds and the in-app list works.
+
+## D370 Recipe from a web link: one server route, structured data first (P1-B)
+
+`POST /api/import/url` (bearer or cookie, `lib/server/import/url/service.ts`) fetches ONE page on the server, reads schema.org Recipe JSON-LD (including `@graph`, `@id` references, HowToSection, sloppy JSON repaired) then microdata with a dependency-free HTML reader (`packages/recipe-import/src/web/**`), builds the same `RecipeDraft` as a photo import (quantities from the deterministic engine parser, original lines kept verbatim) and saves through the unchanged `/api/extract/save`. Only when the page has no usable recipe data does `AiProvider.extractRecipeFromText` read the page text (untrusted-data prompt, forced tool output, zod-validated, warning shown to the reviewer). Web and Android call the same route; Android adds only a screen. The page's own picture is downloaded through the same guard and kept as the cover (the CSP forbids hotlinking). The dietary label is ours (`inferDiet`, always unverified); page keywords such as "vegan" are dropped.
+
+## D371 SSRF guard (P1-B)
+
+http/https only, no credentials, ports 80/443/8080/8443, no internal-looking names (`localhost`, `.local`, `.internal`, single labels...), every resolved address must be a public unicast address (IPv4 private/loopback/link-local incl. 169.254.169.254/CGNAT/reserved, IPv6 loopback/ULA/link-local/mapped/NAT64/6to4/Teredo checked via their embedded v4), refused when ANY answer is internal. Each redirect hop (max 4) is re-validated and re-resolved. The connection is pinned to the validated address (custom `lookup`, TLS verified against the host name), so DNS rebinding between check and connect is not possible. 2 MB (decompressed) and 10 s limits, gzip/deflate/br bomb-safe, HTML only (images only for the cover, 6 MB), no cookie/authorization/referer sent. Unit tests use an injected transport/lookup plus a real local server for the pinned connect.
+
+## D372 Copyright and bulk fetching (P1-B)
+
+The recipe is the household's own copy for personal use: attribution (author on site) and the original link are stored (`source`, `sourceReference` = cleaned URL) and shown prominently ("Open the original page", recipe detail source link). One page per request, an identifying User-Agent, no crawling, robots.txt is not consulted (a user-initiated single fetch, like a browser), and a limit of 20 imports per household and 8 per site per hour (in memory, per process).
+
+## D373 Offline fixtures for tests (P1-B)
+
+`URL_IMPORT_SOURCE=mock` replaces only the transport and DNS lookup with built-in fixture pages for `fixtures.recipes.test`; parsing, SSRF checks, redirects and limits still run. No network in e2e. The e2e config sets it; production never does.
+
+## D374 Android share intent (P1-B)
+
+`expo-share-intent` (config plugin: Android `text/*`, iOS off) delivers the shared text; `ShareIntentHandler` extracts the first http(s) address (never other schemes) and opens `/import-link?url=...&auto=1`, which reads it straight away. Documented risk: the library declares peer `expo ^57` while the app is on SDK 58; it needs a new EAS build and a device check. Manual paste in Capture > "Import from a web link" always works.
+
+## D375 What can I make now? (P1-B)
+
+Engine `rankRecipesByPantry` with coverage weight 0.55 (expiring stock counts for more than in the plain pantry list), fully makeable recipes first. The household's allergy exclusions (consent-gated profile) are applied before anything is shown, fail-safe like Discover (a line that cannot be checked is withheld while an exclusion is active); only a count of hidden recipes and the consent-withheld count are returned. "Add missing to shopping list" submits deterministic-id `add_item` commands, skips lines already outstanding on the list and merges repeats, so a double tap or retry adds nothing; the note says "For <recipe>". Full line quantities are added (not net of partial stock). `/api/pantry/make-now`; web Home (3) + Pantry (6); Android Pantry + a compact card on the Recipes tab (no Android Home yet). The older "Use what I have" list (with the P1-C deep-link anchor) is unchanged.
+
+## D376 5 a day and variety are estimates, never advice (P1-B)
+
+`summariseVariety` (engine, pure): fruit and veg portions at 80 g (dried fruit 30 g) from ingredient category + weight; white potato, juice, garlic, ginger, chilli and herbs do not count; pulses count at most once a day; one serving of each planned meal per person. Protein variety = meals with fish/meat/plant and distinct protein ingredients; plant diversity = distinct simplified plant names (herbs and spices included). Score 0-100 = 40% fruit and veg (avg/5) + 35% plants (vs 4 per day, max 30) + 25% protein sources (vs up to 6), diet-neutral, labelled "rough estimate, not a health score". Meals without ingredient data or with unweighed lines are reported as lower bounds. No targets are judged and the words "recommended/healthy/deficient" are not used (tested on web).
+
+## D377 Variety data path and the cooking log hook (P1-B)
+
+The server computes a small `RecipeVarietyProfile` per recipe (in `toPlanRecipe`, from the catalogue and gram converter) and ships it in `RecipeLite.variety`; web and Android aggregate it with the same engine function. The "cooked" view is feature-detected: `PlanPageData.cooked` (absent until the cooking lane records meals) adds a Planned/Cooked toggle; with none there is no toggle.
+
+## D378 Soft dislikes: own table, never confused with allergies (P1-B)
+
+`member_dislikes` (household, member user id via composite FK to `household_members`, lower-case term) with RLS: any member reads; a member writes their own list, the owner anyone's; read-only while the household is pending deletion; replaced atomically by `set_member_dislikes()` (security invoker, max 30). Not health data: no consent, never in `household_exclusions`, never sent to the AI (the AI household context is an allow-list; tested). Included in the data export (member scope: own rows). Settings section on web and Android; people without an account cannot have their own list yet (members are accounts).
+
+## D379 How dislikes act (P1-B)
+
+Planner: `Member.dislikes` -> orchestrator `dislikedByMembers` (name, canonical name or unmatched line contains a term, plural-stemmed) -> engine `dislikedBy`; the solver adds weight 20 per member who dislikes something in a planned meal, so they are avoided when other constraints allow and still used when nothing else fits; the report gains a non-hard "Dislikes" item and a per-slot reason. Chips show them read-only ("Sam: mushrooms", linked to Settings). Discover sorts recipes with a disliked ingredient lower (stable) and marks them; nothing is hidden. Hard exclusions always win.
