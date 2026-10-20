@@ -28,7 +28,8 @@ export async function POST(req: Request) {
       },
     );
     if (!out.ok) return apiError(out.status, out.error.code, out.error.message, {}, out.error.retryable);
-    const { ok: _ok, ...rest } = out;
+    const rest: Record<string, unknown> = { ...out };
+    delete rest.ok;
     return NextResponse.json(rest);
   });
 }

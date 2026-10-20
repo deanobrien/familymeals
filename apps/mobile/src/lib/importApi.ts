@@ -196,7 +196,8 @@ export function createImportClient(opts: {
       const via = isObj(body) && body.via === 'ai' ? 'ai' : 'structured';
       const sourceUrl = isObj(body) && typeof body.sourceUrl === 'string' ? body.sourceUrl : url;
       // A recipe read from a page is not "read by" a photo AI provider: the provider line is for photo imports only.
-      const { provider: _provider, ...rest } = outcome;
+      const { provider, ...rest } = outcome;
+      void provider;
       return { ...rest, link: { via, sourceUrl } };
     },
     async save(outcome) {

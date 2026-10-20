@@ -8,10 +8,9 @@ import { ImportApiError, createImportClient, summariseDraft, type ExtractionOutc
 import { extractUrlFromSharedText, sharedUrlOf } from '@/lib/shareUrl';
 import { cleanDraft } from './helpers/draft';
 import { mountScreen } from './helpers/mount';
-import { params, resetRouter, router } from './helpers/router';
+import { resetRouter, router } from './helpers/router';
 
 jest.mock('expo-router', () => require('./helpers/router').routerModule());
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const shareState = (require('expo-share-intent') as { __state: { hasShareIntent: boolean; shareIntent: { text: string | null; webUrl: string | null; type: string | null }; resetShareIntent: jest.Mock } }).__state;
 
 const has = (s: string) => new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));

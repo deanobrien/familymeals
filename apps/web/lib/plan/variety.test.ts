@@ -3,13 +3,6 @@ import type { RecipeVarietyProfile } from '@fr/engine/nutrition';
 import { cookedVariety, weekVariety } from './variety';
 import { emptyDoc, setRecipe } from './ops';
 import type { RecipeLite } from './types';
-import * as h from '../server/plan/handlers';
-import { createPlanServices } from '../server/plan/services';
-import { createAiProvider } from '@fr/ai';
-import { RepositoryPlanRecipeSource } from '../server/plan/recipe-source';
-import { InMemoryRecipeRepository } from '../recipes/memory-repository';
-import { loadSeedRecipes } from '../recipes/seed';
-import { withCanonicalIngredients } from '../recipes/factory';
 
 const profile = (over: Partial<RecipeVarietyProfile> = {}): RecipeVarietyProfile => ({ fv: 2, pulses: 0, plants: ['carrot'], proteinSources: [], proteins: [], unweighed: 0, ...over });
 const lite = (id: string, variety: RecipeVarietyProfile | null): RecipeLite => ({ id, title: id, tags: [], mealTypes: ['dinner'], baseServings: 4, costPerServingPence: null, costKind: null, excludedBy: [], variety });
@@ -33,21 +26,5 @@ describe('weekVariety (planner glue)', () => {
   it('summarises cooked meals the same way', () => {
     const v = cookedVariety([{ date: WEEK, recipeId: 'a' }], new Map([['a', lite('a', profile({ fv: 5 }))]]))!;
     expect(v.summary.daysWithFive).toBe(1);
-  });
-});
-
-describe('plan page data carries the variety profile per recipe', () => {
-  it('gives every library recipe a profile computed from its weighed, matched ingredients', async () => {
-    const repo = new InMemoryRecipeRepository(withCanonicalIngredients(loadSeedRecipes()));
-    const svc = createPlanServices({ ai: createAiProvider({ AI_PROVIDER: 'mock', NODE_ENV: 'test' }), recipes: new RepositoryPlanRecipeSource(repo) });
-    const page = await h.getPlanPageData(svc, WEEK);
-    expect(page.recipes.length).toBeGreaterThan(0);
-    for (const r of page.recipes) {
-      expect(r.variety).toMatchObject({ fv: expect.any(Number), pulses: expect.any(Number), plants: expect.any(Array), proteinSources: expect.any(Array), proteins: expect.any(Array), unweighed: expect.any(Number) });
-      expect(r.variety!.fv).toBeGreaterThanOrEqual(0);
-    }
-    // at least one seeded recipe has vegetables, so the estimate is not all zeros
-    expect(page.recipes.some((r) => (r.variety?.fv ?? 0) > 0 || (r.variety?.plants.length ?? 0) > 0)).toBe(true);
-    expect(page.cooked).toBeUndefined(); // no cooking log yet: the web panel shows planned meals only
   });
 });

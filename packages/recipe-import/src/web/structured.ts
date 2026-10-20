@@ -40,7 +40,7 @@ const clip = (s: string, n: number): string => (s.length > n ? s.slice(0, n) : s
 export function cleanText(v: string, keepNewlines = false): string {
   const withBreaks = v.replace(/<\s*br\s*\/?>/gi, '\n').replace(/<\/\s*(?:p|li|div|h[1-6])\s*>/gi, '\n');
   const noTags = withBreaks.replace(/<[^>]*>/g, ' ');
-  const dec = decodeEntities(noTags).replace(/ /g, ' ');
+  const dec = decodeEntities(noTags).replace(new RegExp(String.fromCharCode(160), 'g'), ' ');
   return keepNewlines
     ? dec.split(/\r?\n/).map((l) => l.replace(/[ \t]+/g, ' ').trim()).filter(Boolean).join('\n')
     : dec.replace(/\s+/g, ' ').trim();
@@ -96,7 +96,9 @@ export function parseJsonLd(raw: string): Json | undefined {
   const attempts = [
     base,
     // Raw newlines / tabs inside string values are the commonest publisher bug.
+    // eslint-disable-next-line no-control-regex
     base.replace(/[\u0000-\u001f]+/g, ' '),
+    // eslint-disable-next-line no-control-regex
     base.replace(/[\u0000-\u001f]+/g, ' ').replace(/,\s*([}\]])/g, '$1'),
   ];
   for (const a of attempts) {

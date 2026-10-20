@@ -57,7 +57,6 @@ export default function ImportLinkScreen({ importClient }: { importClient?: Impo
       setText(shared);
       void read(shared);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.url, params.auto, householdId]);
 
   if (!householdId) return <EmptyState title="Pick a household first." />;
