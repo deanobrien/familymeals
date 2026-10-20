@@ -9,6 +9,7 @@ export const NOTIFICATION_TYPES = [
   'plan_approved',
   'recipe_added',
   'member_joined',
+  'restock',
   'test',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
@@ -49,6 +50,11 @@ export const TYPE_META: Record<ConfigurableType, { label: string; hint: string; 
   plan_approved: { label: 'Meal plan approved', hint: 'The week’s plan is approved.', defaults: { inApp: false, push: false } },
   recipe_added: { label: 'New recipes', hint: 'Another member adds a recipe.', defaults: { inApp: false, push: false } },
   member_joined: { label: 'New members', hint: 'Someone joins the household.', defaults: { inApp: false, push: false } },
+  restock: {
+    label: 'Below minimum stock',
+    hint: 'A morning nudge when items you keep a minimum of run low (not sent when auto-add to the list is on).',
+    defaults: { inApp: false, push: false },
+  },
 };
 
 export interface NotificationSettings {

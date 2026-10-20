@@ -280,6 +280,36 @@ export function planExpiryAlerts(candidates: readonly ExpiryCandidate[], recipie
   return out;
 }
 
+/* ---------------------------------------------------------------- restock (PR1 minimum stock) */
+
+/** Households that have at least one recipient opted in to restock alerts (only those are computed: it is not free). */
+export function restockHouseholds(recipients: readonly Recipient[]): string[] {
+  return [...new Set(recipients.filter((r) => r.settings.types.restock.inApp).map((r) => r.householdId))];
+}
+
+/** One "N items below minimum" per opted-in member per local day, from their morning hour (dedupe `restock:<date>`). */
+export function planRestockAlerts(belowMin: ReadonlyMap<string, number>, recipients: readonly Recipient[], now: Date): NewNotification[] {
+  const out: NewNotification[] = [];
+  for (const r of recipients) {
+    if (!r.settings.types.restock.inApp) continue;
+    const n = belowMin.get(r.householdId) ?? 0;
+    if (n <= 0) continue;
+    const local = localParts(now, r.settings.timeZone);
+    if (local.hour < r.settings.morningHour) continue;
+    const what = n === 1 ? '1 item is' : `${n} items are`;
+    out.push(make(r, 'restock', now, {
+      title: `${what} below your minimum stock`,
+      body: 'Add them to the shopping list from the pantry or shopping page.',
+      pushTitle: 'Running low',
+      pushBody: `${what} below your minimum stock.`,
+      link: '/pantry',
+      dedupeKey: `restock:${local.date}`,
+      data: { count: String(n) },
+    }));
+  }
+  return out;
+}
+
 /* ---------------------------------------------------------------- activity */
 
 /** Row shape of activity_events(). */

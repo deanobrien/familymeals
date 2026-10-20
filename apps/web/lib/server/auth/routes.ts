@@ -45,6 +45,8 @@ export const BEARER_API_PREFIXES: readonly string[] = [
   '/api/pantry',
   '/api/receipts',
   '/api/shopping/',
+  // P1-C notifications (D380): centre, activity feed, settings, device registration, test.
+  '/api/notifications',
 ];
 
 export function acceptsBearer(pathname: string, authorization: string | null | undefined): boolean {

@@ -22,7 +22,7 @@ language sql immutable
 set search_path = ''
 as $$
   select p_type in ('expiry', 'list_changed_while_shopping', 'purchase_by_other', 'item_added', 'plan_approved',
-                    'recipe_added', 'member_joined', 'test')
+                    'recipe_added', 'member_joined', 'restock', 'test')
 $$;
 grant execute on function public.notification_type_is_valid(text) to authenticated, service_role;
 
