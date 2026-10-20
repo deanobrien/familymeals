@@ -49,9 +49,12 @@ auth.users ─┬─< household_members >── households ──< invitations
                                        │  ├──< receipts ──< receipt_lines ─? shopping_list_items
                                        │  ├──< pantry_items, ai_usage
                                        │  └──< product_packs / ingredient_prices (household_id NULL = reference row)
+                                       │  └──< stores ──< store_aisles ──< store_placements   (AS1, D290; target = ingredient id | item name | category label, text)
 ingredients ──< ingredient_aliases, ingredient_densities, ingredient_unit_weights, ingredient_nutrients, ingredient_allergens
 storage_cleanup_queue, deletion_ledger   (no FKs; service role only)
 ```
+
+**Stores and aisles (AS1, migration `20261020002900`).** `stores` (unique name per household, case-insensitive), `store_aisles` (label, `sort_order`), `store_placements` (unique per `(store_id, target_type, target_key)`; `target_type` in `ingredient | item | category`). Composite FKs `(store_id, household_id)` and `(aisle_id, store_id)` keep rows in one household and one store; deleting an aisle or store cascades. RLS: members select, writable-household members write (read-only in the deletion grace period). Functions: `household_store_book(p_household_id)` (jsonb, security invoker) and `copy_store_layout(p_household_id, p_from_store, p_to_store)` (replaces the target's aisles and placements atomically). RLS tests: `packages/db/tests/rls/010_as1_store_aisles.sql`.
 
 The four concepts the brief insists stay separate are separate tables: **recipe requirement**
 (`recipe_ingredients`), **shopping requirement** (`shopping_list_items` + provenance in `shopping_list_item_sources`),

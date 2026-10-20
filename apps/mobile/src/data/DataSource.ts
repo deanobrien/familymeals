@@ -1,4 +1,5 @@
 import type { PurchaseEvent, Uuid } from '@fr/domain';
+import type { PlacementTargetType, StoreBook } from '@fr/engine/shopping';
 import type { Household, Recipe, ShoppingConflict, ShoppingListItem, UserSession } from '@/viewModels';
 
 export interface ShoppingListState {
@@ -36,6 +37,13 @@ export interface DataSource {
   pendingCount(): number;
   /** Drain server rejections of this device's own commands (for toasts). */
   takeConflicts(): ShoppingConflict[];
+  /** Stores, aisles and placements (AS1). Falls back to the on-device cache when the server cannot be reached. */
+  getStoreBook?(householdId: Uuid): Promise<StoreBook>;
+  /** Place an item's ingredient (or name) in a store aisle; `aisleId = null` clears it. Needs a connection. */
+  setPlacement?(householdId: Uuid, storeId: Uuid, target: { targetType: PlacementTargetType; targetKey: string }, aisleId: Uuid | null): Promise<void>;
+  /** The store this phone last shopped at (null = group by category). */
+  getSelectedStoreId?(householdId: Uuid): Promise<string | null>;
+  setSelectedStoreId?(householdId: Uuid, storeId: string | null): Promise<void>;
   /** Connectivity hint from NetInfo; when false the data source does not attempt to deliver. */
   setOnline?(online: boolean): void;
 }

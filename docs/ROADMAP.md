@@ -22,6 +22,7 @@ Milestones are the brief's M0-M10 ([product/BRIEF.md](product/BRIEF.md) section 
 
 Owner ideas first; others are maintainers' notes. Nothing here is committed scope.
 
+- **Store aisles and in-store ordering** (owner idea, lane AS1): done on web and Android (D290-D299). Households define stores and aisles, place ingredients (or whole categories) per store, pick the shop on `/shopping` to see the list in aisle order; optional "learn from my route" (suggest only). Next: offline placement queue on Android, store maps/photos.
 - **Pantry video scan** (owner idea): done (P2); next is measuring accuracy and adding barcode lookup.
 - **TheMealDB recipe discovery** (owner idea, lane X1 in progress): browse/search an open recipe API, import selected recipes as drafts through the same review step; attribute the source; do not store without review; respect the API terms.
 - **Open Food Facts** (owner idea, lane X2 in progress): barcode/product lookup to fill pack sizes, brand and nutrition for pantry items and price packs; ODbL attribution; cache results per household.

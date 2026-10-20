@@ -525,3 +525,43 @@ Screenshots at 768 and 820 show the bottom bar with the 4-column plan grid fitti
 ## D164 "Offline shopper loses the race" flake was a test race, not an app bug (B1)
 
 Instrumenting the controller showed that in failing runs B's replay reached the server BEFORE A's tick (A's tick was still queued behind an in-flight poll sync; the spec's "A confirmed" check, `pending-badge` count 0, is vacuous because the badge only decorates list rows, not Purchased rows). B legitimately won and A got the "Another shopper already bought" toast; the spec only looked at B. Server idempotency and conflict reporting behaved correctly (the first command to reach the server wins and the loser is always told). Fix: both race specs now wait for the first shopper's `sync-status` to read "All changes saved" (server-confirmed) before the other reconnects / is checked. Was failing about 1 run in 10; 30/30 stable after.
+
+## D290 Stores, aisles and placements are household data (AS1)
+
+Owner idea: "ALDI Aisle 1, LIDL Aisle 2 for tomatoes; in store, select the shop and get the list ordered by aisle." Model per household, shared by every member: `stores` {name, chain free text, notes}, `store_aisles` {label like "1" or "Frozen", sort_order}, `store_placements` {store, target_type, target_key, aisle}. Migration `20261020002900_store_aisles.sql`: plain tables under RLS (any member reads; any member of a writable household writes, so the grace period is read-only), composite FKs keep store, aisle and placement in one household, `household_store_book` returns the whole book in one round trip, `copy_store_layout` copies aisles and placements atomically. No FK from placements to ingredients: the key also holds free-text names and category labels, and a retired reference ingredient must not delete a household's placements.
+
+## D291 Resolution order and ordering rules (AS1)
+
+`orderForStore` (`@fr/engine/shopping`, pure, tested): ingredient placement beats item-name placement beats category placement; an item with none (or one pointing at a deleted aisle) goes to a final "Not placed yet" section ordered by list category then name. Aisles sort by sort_order, label, id; items inside an aisle by name then id so nothing jumps when ticked. Ticked-item behaviour is unchanged: the caller passes the already filtered list. Item-name keys are normalised (lower case, punctuation stripped) so "Baked-Beans" and "baked beans" match.
+
+## D292 Starting templates are labelled guesses (AS1)
+
+Per-chain starting aisles (`store-templates.ts`: generic supermarket, discounter for ALDI/LIDL, frozen-first for Iceland) are generic guesses of a typical layout, expressed as list categories mapped to aisles. They are labelled "a starting guess, not real shop data" everywhere; nothing is scraped and no chain data is shipped. Applying one reuses aisles with the same label and never overwrites an existing placement.
+
+## D293 Direct table access under RLS, shared behaviour suite (AS1)
+
+Writes use PostgREST table operations (RLS is the guard), reads use one RPC. One contract suite (`lib/server/stores/contract.ts`) runs against the in-memory repository and the real Supabase repository on PGlite so mock mode and Supabase cannot drift. Server actions identify `StoreBookError` by name as well as `instanceof` (Next can load the module in two layers).
+
+## D294 Shopping UI: store selector, in-store mode, quick placement (AS1)
+
+`/shopping` gets "Shopping at" (default "No store: group by category"), remembered per member per device in localStorage. With a store: aisle headers in walking order, larger rows, an "Aisle X / Set aisle" button on every item (and a 600 ms long-press on the row as a touch shortcut) opening a sheet of aisle chips; the choice is saved for that store at ingredient scope (item-name scope when there is no ingredient link) or, if chosen, for the whole category. Optimistic and applied at once. Page edits are kept small: `use-store-mode.ts` and `store-ui.tsx` hold the logic.
+
+## D295 Offline (AS1)
+
+The store book is cached in localStorage and ordering is client-side, so selecting a store and reading the order need no server. Placement edits made while the server is unreachable are queued on the device (last write wins per target) and replayed on the next load, tab focus or `online` event; a refused edit is reverted with a message. Creating an aisle needs a connection.
+
+## D296 "Learn from my route" suggests only (AS1)
+
+An opt-in toggle records the aisle of each item ticked in store; after ticks in at least three aisles, if the walked order differs, a banner offers "Update aisle order". Visited aisles take the slots visited aisles already occupy, re-sorted by first visit; nothing is reordered without the confirm button.
+
+## D297 Settings > Stores (AS1)
+
+`/settings/stores`: create/edit/delete stores (delete confirms), aisles (add, rename on blur, reorder by drag or Up/Down buttons so it works with a keyboard), placements per store (change aisle, remove), starting layouts, copy a layout from another store (same-chain stores listed first; confirms because it replaces). Errors show inline as well as in a toast.
+
+## D298 Android (AS1)
+
+The shopping screen reads the book via `household_store_book` (cached in AsyncStorage so the order works offline), shows a store chip row, orders by aisle with headers, remembers the store, and offers quick placement (online only: it writes `store_placements` directly). Placement offline queueing is web only for now.
+
+## D299 AS1 open items
+
+Mobile placement has no offline queue; no store map/photo; no per-store price book. The migration was applied to the shared local Supabase by hand (psql plus a schema_migrations row) because other lanes had applied newer ones, and `database.types.ts` entries were added by hand in the generator's format.

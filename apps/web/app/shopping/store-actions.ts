@@ -20,7 +20,8 @@ async function run(write: boolean, fn: (repo: StoreBookRepository, householdId: 
     const book = await repo.book(ctx.householdId);
     return { ok: true, book, ...(typeof id === 'string' ? { id } : {}) };
   } catch (e) {
-    if (e instanceof StoreBookError) return { ok: false, error: e.message };
+    // by name, not instanceof: Next can load this module twice (action layer and RSC layer), giving two classes
+    if (e instanceof StoreBookError || (e instanceof Error && e.name === 'StoreBookError')) return { ok: false, error: e.message };
     console.error('[stores] action failed', e instanceof Error ? e.message : e);
     return { ok: false, error: 'That could not be saved. Please try again.' };
   }

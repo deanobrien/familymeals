@@ -112,6 +112,8 @@ NEXT_PUBLIC_SITE_URL=https://family-recipes-dean-cph4g5cuh9fmhhfy.ukwest-01.azur
 | X1 | Recipe discovery from TheMealDB | new recipe-source provider; see ROADMAP idea backlog |
 | X2 | Open Food Facts product source | new product-source provider (barcodes/pack data) |
 
+| AS1 | Store aisles + in-store ordering | **done on branch `prj018/as1-store-aisles`** (D290-D299, migration `20261020002900`): stores/aisles/placements per household, `/settings/stores`, "Shopping at" on `/shopping`, Android store chips. Owner action: push the migration with the others (`db push`); nothing else |
+
 If a lane's branch is merged into your checkout, its decisions are in `DECISIONS.md` (new blocks above D155) and this table can be deleted.
 
 ## 8. Exact next steps

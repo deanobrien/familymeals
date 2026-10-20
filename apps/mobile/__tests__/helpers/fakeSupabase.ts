@@ -50,8 +50,33 @@ class Query implements PromiseLike<Result> {
     this.single = true;
     return this;
   }
+  private write: { op: 'upsert'; row: Row } | { op: 'delete' } | null = null;
+  /** store_placements only (AS1): upsert keyed by store + target. */
+  upsert(row: Row, _opts?: unknown) {
+    this.write = { op: 'upsert', row };
+    return this;
+  }
+  delete() {
+    this.write = { op: 'delete' };
+    return this;
+  }
   private run(): Result {
     if (this.backend.offline) return { data: null, error: NETWORK_ERROR };
+    if (this.write) {
+      const list = this.backend.storeBook.placements as Row[];
+      const same = (p: Row, r: Row) => p.storeId === r.store_id && p.targetType === r.target_type && p.targetKey === r.target_key;
+      const asKey = (r: Row) => ({ store_id: r.store_id, target_type: r.target_type, target_key: r.target_key });
+      const match = (p: Row) => this.filters.every((f) => f({ store_id: p.storeId, target_type: p.targetType, target_key: p.targetKey, household_id: HH }));
+      if (this.write.op === 'delete') {
+        this.backend.storeBook.placements = list.filter((p) => !match(p));
+      } else {
+        const r = this.write.row;
+        const rest = list.filter((p) => !same(p, asKey(r)));
+        rest.push({ storeId: r.store_id, targetType: r.target_type, targetKey: r.target_key, aisleId: r.aisle_id });
+        this.backend.storeBook.placements = rest;
+      }
+      return { data: null, error: null };
+    }
     let rows = (this.backend.tables[this.table] ?? []).filter((r) => this.filters.every((f) => f(r)));
     rows = [...rows].sort((a, b) => {
       for (const { col, asc } of this.orders) {
@@ -83,6 +108,8 @@ export class FakeBackend {
   rpcCalls: Array<{ fn: string; args: Record<string, unknown> }> = [];
   userId = USER_ME;
   tables: Record<string, Row[]> = {};
+  /** household_store_book payload (AS1): empty unless a test fills it. */
+  storeBook: { stores: Row[]; aisles: Row[]; placements: Row[] } = { stores: [], aisles: [], placements: [] };
   private seq = 0;
   private clock = 0;
 
@@ -275,6 +302,7 @@ export class FakeBackend {
         this.rpcCalls.push({ fn, args });
         if (this.offline) return { data: null, error: NETWORK_ERROR };
         if (this.rpcError) return { data: null, error: this.rpcError };
+        if (fn === 'household_store_book') return { data: this.storeBook, error: null };
         let data: Row;
         try {
           data = fn === 'record_purchase' ? this.recordPurchase(args, this.userId) : this.voidPurchase(args, this.userId);
