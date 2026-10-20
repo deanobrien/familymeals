@@ -44,6 +44,10 @@ export interface Candidate {
   allergens?: string[];
   /** Cost at the plan servings; null/undefined = unknown (never 0). */
   costPence?: Pence | null;
+  /** Household mean rating 1-5 (P1-A); a soft preference in the solver. Unrated = null/undefined. */
+  rating?: number | null;
+  /** A member asked not to be offered this recipe again: the orchestrator never proposes it (a manual pick still works). */
+  dontSuggest?: boolean;
 }
 export interface CandidateFilter {
   excludeIngredients: string[];

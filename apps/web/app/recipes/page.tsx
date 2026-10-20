@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { ErrorState } from '@fr/ui';
+import { withCooking } from '../../lib/server/cooking/service';
+import { webCookingCaller } from '../../lib/server/cooking/web-caller';
 import { getRecipeRepository } from '../../lib/recipes/factory';
 import { parseRecipeQuery } from '../../lib/recipes/schema';
 import { RecipeFilters } from './_components/RecipeFilters';
@@ -28,7 +30,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
       repo.listTags(),
       repo.list({ q: '', tags: [], sort: 'name', page: 1, pageSize: 1 }),
     ]);
-    data = { list, cuisines, tags, hasAny: all.total > 0 };
+    // Rating mean and last cooked ride along on each card (a failure here never blocks the list).
+    const items = await withCooking(await webCookingCaller(), list.items);
+    data = { list: { ...list, items }, cuisines, tags, hasAny: all.total > 0 };
   } catch (err) {
     console.error('Failed to load recipes', err);
     return (

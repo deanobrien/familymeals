@@ -33,11 +33,13 @@ export interface RecipeCardProps {
   favourite?: boolean;
   onToggleFavourite?: () => void;
   variant?: 'card' | 'row';
+  /** One quiet line under the meta row, e.g. rating and last cooked. */
+  note?: string;
   /** Swap in next/link etc. */
   linkComponent?: ComponentType<{ href: string; className?: string; children?: ReactNode }>;
 }
 
-export function RecipeCard({ title, href, imageUrl, imageAlt = '', totalMinutes, costPerServingPence, tags = [], favourite = false, onToggleFavourite, variant = 'card', linkComponent: LinkC }: RecipeCardProps) {
+export function RecipeCard({ title, href, imageUrl, imageAlt = '', totalMinutes, costPerServingPence, tags = [], favourite = false, onToggleFavourite, variant = 'card', note, linkComponent: LinkC }: RecipeCardProps) {
   const link = LinkC
     ? <LinkC href={href} className="fr-recipecard__link">{title}</LinkC>
     : <a href={href} className="fr-recipecard__link">{title}</a>;
@@ -55,6 +57,7 @@ export function RecipeCard({ title, href, imageUrl, imageAlt = '', totalMinutes,
             {costPerServingPence != null && <> <Badge tone="warning">estimate</Badge></>}
           </span>
         </div>
+        {note && <p className="fr-recipecard__note fr-muted" data-testid="recipe-card-note" style={{ margin: 'var(--fr-space-1) 0 0', fontSize: 'var(--fr-text-sm)' }}>{note}</p>}
         {tags.length > 0 && (
           <ul className="fr-recipecard__tags" style={{ listStyle: 'none', margin: 0, padding: 0 }} aria-label="Tags">
             {tags.map((t) => <li key={t}><Badge>{t}</Badge></li>)}

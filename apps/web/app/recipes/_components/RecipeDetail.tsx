@@ -19,12 +19,17 @@ import { scaleQuantityLabel, servingsFactor } from '../../../lib/recipes/scale';
 import { totalMinutes, type RecipeView } from '../../../lib/recipes/types';
 import { deleteRecipeAction, duplicateRecipeAction, toggleFavouriteAction } from '../actions';
 import styles from '../recipes.module.css';
+import type { RecipeCookingView } from '../../../lib/server/cooking/service';
+import { CookingPanel } from './cooking/CookingPanel';
+import { SubstitutionPanel } from './cooking/SubstitutionPanel';
 import { CostPanel } from './CostPanel';
 import { NutritionPanel } from './NutritionPanel';
 import { UnlinkedNotice } from './RematchButtons';
 
 interface DetailProps {
   recipe: RecipeView;
+  /** Cooking history, the member's rating and flags (P1-A). */
+  cooking?: RecipeCookingView | null;
   calc: RecipeCalculation;
   justDuplicated?: boolean;
   householdId?: string;
@@ -33,7 +38,7 @@ interface DetailProps {
   householdServings?: number;
 }
 
-export function RecipeDetail({ recipe, calc, justDuplicated = false, householdId = '', userId = '', householdServings }: DetailProps) {
+export function RecipeDetail({ recipe, cooking = null, calc, justDuplicated = false, householdId = '', userId = '', householdServings }: DetailProps) {
   const householdDefault = resolveInitialServings(householdServings);
   const overrideKey = servingsOverrideKey(householdId, userId, recipe.id);
   const router = useRouter();
@@ -65,6 +70,7 @@ export function RecipeDetail({ recipe, calc, justDuplicated = false, householdId
     setStored(remember);
   };
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [subFor, setSubFor] = useState<{ id: string; name: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const factor = servingsFactor(recipe.servings, servings);
   const total = totalMinutes(recipe);
@@ -123,6 +129,9 @@ export function RecipeDetail({ recipe, calc, justDuplicated = false, householdId
             <Button variant={recipe.favourite ? 'primary' : 'secondary'} aria-pressed={recipe.favourite} onClick={fav} disabled={pending}>
               <Icon name="heart" /> {recipe.favourite ? 'Favourited' : 'Favourite'}
             </Button>
+            <Link href={`/recipes/${recipe.id}/cook?servings=${servings}`} className="fr-btn fr-btn--primary" data-testid="cook-mode-link">
+              Cook mode
+            </Link>
             <Link href={`/plan?add=${recipe.id}`} className="fr-btn fr-btn--secondary">
               <Icon name="calendar" /> Add to plan
             </Link>
@@ -163,9 +172,18 @@ export function RecipeDetail({ recipe, calc, justDuplicated = false, householdId
                   {i.preparation ? `, ${i.preparation}` : ''}
                   {i.optional && <span className={styles.optional}> (optional)</span>}
                 </span>
+                <Button variant="ghost" size="sm" onClick={() => setSubFor({ id: i.id, name: i.name })} aria-label={`Out of ${i.name}?`}>Out of it?</Button>
               </li>
             ))}
           </ul>
+          {subFor && (
+            <SubstitutionPanel
+              recipeId={recipe.id}
+              line={subFor}
+              onClose={() => setSubFor(null)}
+              cookHref={(sw) => `/recipes/${recipe.id}/cook?servings=${servings}&swap=${encodeURIComponent(`${sw.lineId}|${sw.name}|${sw.guidance}`)}`}
+            />
+          )}
           <UnlinkedNotice recipeId={recipe.id} unlinked={recipe.ingredients.filter((i) => !i.ingredientId).length} total={recipe.ingredients.length} />
         </section>
 
@@ -176,6 +194,8 @@ export function RecipeDetail({ recipe, calc, justDuplicated = false, householdId
           </ol>
         </section>
       </div>
+
+      <CookingPanel recipeId={recipe.id} recipeTitle={recipe.title} servings={servings} averageRating={recipe.rating} cooking={cooking} />
 
       <div className={styles.cols} style={{ marginTop: 'var(--fr-space-6)' }}>
         <CostPanel cost={calc.cost} servings={servings} factor={factor} />

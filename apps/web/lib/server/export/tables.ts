@@ -56,6 +56,9 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
   { table: 'recipe_tags', file: 'recipes.json', key: 'tags', order: ID, household: H, member: child('id', 'recipe_tag_links', 'tag_id') },
   { table: 'recipe_favourites', file: 'recipes.json', key: 'favourites', order: ['recipe_id'], household: self('user_id'), member: self('user_id') },
   { table: 'recipe_ratings', file: 'recipes.json', key: 'ratings', order: ['recipe_id', 'user_id'], household: H, member: self('user_id') },
+  { table: 'recipe_cooked', file: 'recipes.json', key: 'cooked', order: ID, household: H, member: self('user_id') },
+  { table: 'recipe_cook_notes', file: 'recipes.json', key: 'cook_notes', order: ['cooked_id'], household: H, member: self('user_id') },
+  { table: 'recipe_dont_suggest', file: 'recipes.json', key: 'dont_suggest', order: ['recipe_id', 'user_id'], household: H, member: self('user_id') },
   { table: 'nutrition_profiles', file: 'recipes.json', key: 'nutrition_profiles', order: ID, household: H, member: child('recipe_id', 'recipes') },
   { table: 'nutrition_profile_values', file: 'recipes.json', key: 'nutrition_values', order: ID, household: H, member: child('nutrition_profile_id', 'nutrition_profiles') },
 

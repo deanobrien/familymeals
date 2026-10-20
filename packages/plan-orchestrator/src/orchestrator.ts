@@ -165,6 +165,8 @@ export class PlanOrchestrator {
     });
     const candidates: Candidate[] = raw
       .filter((c) => violatesExclusions(c.ingredientNames, terms).length === 0)
+      // "Don't suggest again" (P1-A): a soft hide, so only proposals skip it; the user can still place the recipe by hand.
+      .filter((c) => c.dontSuggest !== true)
       .map((c) => ({ ...c, favouriteOf: favRecipes.get(c.id) }));
 
     const brief = { tags: constraints.includeTags, excludeIngredients: terms };

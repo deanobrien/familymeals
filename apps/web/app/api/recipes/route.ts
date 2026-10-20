@@ -1,6 +1,8 @@
 import { getRecipeRepositoryFor } from '../../../lib/recipes/factory';
 import { badRequest, bodyHousehold, guarded, isRecord, json, queryHousehold, readJson } from '../../../lib/server/api/bearer-route';
 import { getIngredientCatalogue } from '../../../lib/server/refdata/catalogue';
+import { callerOf } from '../../../lib/server/cooking/api';
+import { withCooking } from '../../../lib/server/cooking/service';
 import { buildRecipeList } from '../../../lib/server/recipes/api-views';
 import { saveRecipe } from '../../../lib/server/recipes/service';
 import { saveResponse } from '../../../lib/server/recipes/save-response';
@@ -10,9 +12,10 @@ export const dynamic = 'force-dynamic';
 
 /** GET /api/recipes?householdId&q&cuisine&meal&prep&diet&price&tag&collection&sort&page&pageSize (Bearer or cookie). */
 export async function GET(req: Request) {
-  return guarded(req, queryHousehold(req), {}, async (auth) =>
-    json(await buildRecipeList(getRecipeRepositoryFor(auth.householdId), new URL(req.url).searchParams)),
-  );
+  return guarded(req, queryHousehold(req), {}, async (auth) => {
+    const list = await buildRecipeList(getRecipeRepositoryFor(auth.householdId), new URL(req.url).searchParams);
+    return json({ ...list, items: await withCooking(callerOf(auth), list.items) });
+  });
 }
 
 /** POST /api/recipes { householdId?, recipe, force? } -> SaveResult (200 ok, 422 not saved). */

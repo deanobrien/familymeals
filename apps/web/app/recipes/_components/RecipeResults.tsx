@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
+import { cookedLabel } from '@fr/engine/cooking';
 import { EmptyState, RecipeCard, RecipeGrid, useToast, type RecipeView as ViewMode } from '@fr/ui';
 import { imageSrc } from '../../../lib/server/images/paths';
 import { recipeQueryToParams, type RecipeQuery } from '../../../lib/recipes/schema';
@@ -18,6 +19,14 @@ interface Props {
   query: RecipeQuery;
   view: ViewMode;
   hasAnyRecipes: boolean;
+}
+
+/** "★ 4.5 · Cooked 3 times, last 2 days ago"; empty when there is nothing to say yet. */
+function cardNote(r: RecipeView): string {
+  const parts: string[] = [];
+  if (r.rating != null) parts.push(`★ ${Math.round(r.rating * 10) / 10}`);
+  if (r.cooked) parts.push(cookedLabel(r.cooked, Date.now()));
+  return parts.join(" · ");
 }
 
 export function RecipeResults({ items, total, page, pageCount, query, view, hasAnyRecipes }: Props) {
@@ -75,6 +84,7 @@ export function RecipeResults({ items, total, page, pageCount, query, view, hasA
             totalMinutes={totalMinutes(r)}
             costPerServingPence={costPerServing(r)}
             tags={r.tags}
+            note={cardNote(r)}
             favourite={r.favourite}
             onToggleFavourite={() => toggle(r.id)}
             variant={view === 'list' ? 'row' : 'card'}

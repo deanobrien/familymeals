@@ -37,6 +37,7 @@ export function toEngineCandidate(c: Candidate, servings: number): RecipeCandida
     totalMinutes: c.totalMinutes ?? null,
     estCostPerServingPence: c.costPence == null ? null : Math.round(c.costPence / Math.max(1, servings)),
     favouritedBy: c.favouriteOf ?? [],
+    ...(c.rating != null ? { rating: c.rating } : {}),
     mealTypes: c.mealTypes,
   };
 }

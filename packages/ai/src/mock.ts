@@ -4,6 +4,7 @@ import receiptFx from '../fixtures/receipt-parse.json' with { type: 'json' };
 import tagFx from '../fixtures/tag-suggestion.json' with { type: 'json' };
 import planFx from '../fixtures/plan-constraints.json' with { type: 'json' };
 import subsFx from '../fixtures/substitutions.json' with { type: 'json' };
+import subsByIngredientFx from '../fixtures/substitutions-by-ingredient.json' with { type: 'json' };
 import scanFx from '../fixtures/pantry-scan.json' with { type: 'json' };
 import listFx from '../fixtures/shopping-list-scan.json' with { type: 'json' };
 import { planRequestToConstraints } from './plan.js';
@@ -149,9 +150,21 @@ export class MockAiProvider implements AiProvider {
     return { model: 'mock' };
   }
 
-  async suggestSubstitutions(_req: SubstitutionRequest, ctx?: CallContext) {
+  /**
+   * Deterministic: keyed on the ingredient's words (butter, milk, egg, cream, flour, sugar, onion), else the single
+   * fixture. It deliberately IGNORES `avoid` (it even offers peanut butter for butter): a real model can ignore the
+   * instruction too, so the household exclusion re-check on the server is what keeps the output safe, and tests rely on it.
+   */
+  async suggestSubstitutions(req: SubstitutionRequest, ctx?: CallContext) {
     await this.pre('suggestSubstitutions', ctx);
-    return SubstitutionSchema.parse(clone(subsFx));
+    const words = req.ingredient.toLowerCase().split(/[^a-z]+/).filter(Boolean).map((w) => w.replace(/(?:es|s)$/, ''));
+    const table = subsByIngredientFx as Record<string, Array<{ substitute: string; ratioNote: string; effect: string; dietSafe: boolean }>>;
+    const key = Object.keys(table).find((k) => words.includes(k));
+    if (!key) return SubstitutionSchema.parse({ ...clone(subsFx), suggestions: clone(subsFx).suggestions.map((s) => ({ ...s, original: req.ingredient })) });
+    return SubstitutionSchema.parse({
+      suggestions: table[key]!.map((s) => ({ original: req.ingredient, ...s })),
+      notes: 'Mock fixture.',
+    });
   }
 }
 
