@@ -2,22 +2,24 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { Button } from '@fr/ui';
-import { fmtNum, rowFromDto, rowFromProduct, withCount, type ScanRow } from '../../../lib/pantry/scan-rows';
+import { Button, Card, CardBody } from '@fr/ui';
+import { fmtNum, mergeLookup, rapidKey, rowFromDto, rowFromProduct, rowFromRapid, withCount, type ScanRow } from '../../../lib/pantry/scan-rows';
 import type { ProductLookupDto } from '../../../lib/products/types';
 import { postScan, type ScanApiFailure } from '../../../lib/pantry/scan-client';
 import type { ScanProviderInfo } from '../../../lib/pantry/scan-types';
 import { SETTINGS_ERROR_CODES } from '../../recipes/import/upload-step';
 import { BarcodeStep } from './barcode-step';
 import { CaptureStep, type ScanImage } from './capture-step';
+import { RapidStep } from './rapid-step';
 import { ReviewStep } from './review-step';
+import { useRapidSession } from './use-rapid-session';
 import s from './scan.module.css';
 
-type Stage = 'capture' | 'scanning' | 'review' | 'done';
+type Stage = 'capture' | 'rapid' | 'scanning' | 'review' | 'done';
 type ApiError = ScanApiFailure;
 
-export function ScanFlow({ provider }: { provider: ScanProviderInfo }) {
-  const [stage, setStage] = useState<Stage>('capture');
+export function ScanFlow({ provider, startRapid = false }: { provider: ScanProviderInfo; startRapid?: boolean }) {
+  const [stage, setStage] = useState<Stage>(startRapid ? 'rapid' : 'capture');
   const [images, setImages] = useState<ScanImage[]>([]);
   const [rows, setRows] = useState<ScanRow[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
@@ -28,6 +30,43 @@ export function ScanFlow({ provider }: { provider: ScanProviderInfo }) {
   const imagesRef = useRef<ScanImage[]>([]);
   imagesRef.current = images;
   useEffect(() => () => imagesRef.current.forEach((i) => URL.revokeObjectURL(i.url)), []);
+
+  // Continuous barcode scanning (BS1): the session (tally + background lookups) lives here so lookups keep resolving
+  // while the owner reviews, and so a refresh restores the tally.
+  const rapid = useRapidSession();
+  const synced = useRef<Map<string, number>>(new Map());
+  useEffect(() => {
+    // After a page reload with a saved tally, go straight back to the scanner rather than an empty start page.
+    if (rapid.restored) setStage((s) => (s === 'capture' ? 'rapid' : s));
+  }, [rapid.restored]);
+  useEffect(() => {
+    // A lookup finished: fill in the rows that were waiting on it (counts, dates and names the owner set are kept).
+    setRows((cur) => {
+      let changed = false;
+      const next = cur.map((r) => {
+        if (!r.rapid || !r.scanBarcode) return r;
+        const m = mergeLookup(r, rapid.lookups.get(r.scanBarcode));
+        if (m !== r) changed = true;
+        return m;
+      });
+      return changed ? next : cur;
+    });
+  }, [rapid.lookups]);
+
+  /** Scanned codes -> review rows. Rows already in the review keep what the owner did to them; tally changes since the last sync win for the count. */
+  function syncRapidRows() {
+    const items = rapid.state.items;
+    setRows((cur) => {
+      const mine = new Map(cur.filter((r) => r.rapid).map((r) => [r.key, r]));
+      const rapidRows = items.map((i) => {
+        const existing = mine.get(rapidKey(i.barcode));
+        if (!existing) return rowFromRapid(i.barcode, i.count, rapid.lookups.get(i.barcode));
+        return synced.current.get(i.barcode) === i.count ? existing : withCount(existing, fmtNum(i.count));
+      });
+      return [...cur.filter((r) => !r.rapid), ...rapidRows];
+    });
+    synced.current = new Map(items.map((i) => [i.barcode, i.count]));
+  }
 
   async function scan() {
     setStage('scanning');
@@ -40,7 +79,7 @@ export function ScanFlow({ provider }: { provider: ScanProviderInfo }) {
     }
     if (out.data.provider) setActive(out.data.provider);
     // Barcode rows already chosen stay (first); the photo scan adds its own.
-    setRows((cur) => [...cur.filter((r) => r.barcode), ...out.data.rows.map(rowFromDto)]);
+    setRows((cur) => [...cur.filter((r) => r.barcode || r.rapid), ...out.data.rows.map(rowFromDto)]);
     setWarnings(out.data.warnings);
     setStage('review');
   }
@@ -55,6 +94,8 @@ export function ScanFlow({ provider }: { provider: ScanProviderInfo }) {
   }
 
   function startOver() {
+    rapid.clear();
+    synced.current = new Map();
     images.forEach((i) => URL.revokeObjectURL(i.url));
     setImages([]);
     setRows([]);
@@ -92,8 +133,32 @@ export function ScanFlow({ provider }: { provider: ScanProviderInfo }) {
         </div>
       )}
 
+      {stage === 'rapid' && (
+        <RapidStep
+          session={rapid}
+          onDone={() => { syncRapidRows(); setWarnings([]); setStage('review'); }}
+          onCancel={() => { syncRapidRows(); setStage('capture'); }}
+        />
+      )}
+
       {stage === 'capture' && (
         <>
+          <Card>
+            <CardBody>
+              <div className={s.stack}>
+                <h2 style={{ margin: 0, fontSize: 'var(--fr-text-lg)' }}>Lots to scan?</h2>
+                <p className={s.muted}>
+                  Scan barcodes one after another with the camera, no photos: it beeps for each one and keeps a running count.
+                  Works on iPhone and Android.
+                </p>
+                <div className={s.actions}>
+                  <Button size="lg" onClick={() => setStage('rapid')} data-testid="rapid-open">
+                    {rapid.state.items.length > 0 ? `Continue scanning barcodes (${rapid.state.items.length})` : 'Scan barcodes continuously'}
+                  </Button>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
           <BarcodeStep onProduct={addProduct} />
           {rows.some((r) => r.barcode) && (
             <div className={s.actions} data-testid="barcode-ready">
@@ -120,8 +185,10 @@ export function ScanFlow({ provider }: { provider: ScanProviderInfo }) {
           setRows={setRows}
           warnings={warnings}
           imageCount={images.length}
-          onBack={() => setStage('capture')}
-          onAdded={(message) => { setAdded(message); setStage('done'); }}
+          onBack={() => setStage(rows.some((r) => r.rapid) ? 'rapid' : 'capture')}
+          backLabel={rows.some((r) => r.rapid) ? 'Back to scanning' : 'Back to photos'}
+          onRetry={(code) => rapid.retry(code)}
+          onAdded={(message) => { rapid.clear(); synced.current = new Map(); setAdded(message); setStage('done'); }}
         />
       )}
 

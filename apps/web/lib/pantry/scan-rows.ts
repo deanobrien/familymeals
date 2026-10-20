@@ -1,6 +1,7 @@
 // Review-row state and its pure transitions for /pantry/scan (DECISIONS D84-D88). Client-safe, no I/O.
 import { estimateShelfLife } from './shelf-life';
 import type { IngredientRef, ScanCommitRow, ScanForm, ScanPackaging, ScanRowDto } from './scan-types';
+import type { LookupState } from '@fr/engine/pantry';
 import type { Product, ProductLookupDto } from '../products/types';
 
 export type DateSource = 'none' | 'scan' | 'closeup' | 'user' | 'estimate';
@@ -39,6 +40,13 @@ export interface ScanRow {
   /** Set when the row came from a barcode (X2): the product to show provenance for and link on confirm. */
   barcode?: string;
   product?: Product;
+  /** Rapid scan (BS1): the code this row was scanned from (kept even while its product is unknown)... */
+  scanBarcode?: string;
+  /** ...and where its lookup stands. pending = still looking (blocks confirm); notfound / failed = type a name; manual = the owner named it. */
+  lookup?: 'pending' | 'notfound' | 'failed' | 'manual';
+  lookupMessage?: string;
+  /** Came from a continuous scan: dates are optional and collapsed in the review. */
+  rapid?: boolean;
 }
 
 const LOW_CONFIDENCE = 0.5;
@@ -105,6 +113,53 @@ export function rowFromProduct(lookup: ProductLookupDto, key: string): ScanRow {
   if (packSize) row.packSize = packSize;
   return row;
 }
+
+/** Row key for a continuous-scan row: stable per barcode so a lookup that resolves later finds its row. */
+export const rapidKey = (barcode: string): string => `rp-${barcode}`;
+
+/**
+ * A row for a barcode from a continuous scan (BS1), in whatever state its lookup is in. A known product becomes the
+ * normal product row (name, pack size, matched ingredient, allergens); an unresolved code is a placeholder the owner can
+ * still count and date, and name by hand ("Name it myself") without waiting for the lookup.
+ */
+export function rowFromRapid(barcode: string, count: number, state: LookupState<ProductLookupDto> | undefined): ScanRow {
+  const key = rapidKey(barcode);
+  const n = fmtNum(Math.max(1, Math.round(count)));
+  if (state?.state === 'done') {
+    const row = withCount(rowFromProduct(state.value, key), n);
+    return { ...row, rapid: true, scanBarcode: barcode };
+  }
+  const q = defaultQuantity({ count: Number(n), packaging: 'pack' });
+  const base: ScanRow = {
+    key, scannedName: `Barcode ${barcode}`, form: 'ambient', packaging: 'pack', confidence: 1, frameRefs: [],
+    match: { status: 'unmatched', suggestions: [] }, needsCloseUp: false, include: true, ingredient: null, freeName: '',
+    count: n, value: fmtNum(q.value), unit: q.unit, valueEdited: false, useBy: '', bestBefore: '',
+    useBySource: 'none', bestBeforeSource: 'none', closeUp: 'idle', rapid: true, scanBarcode: barcode,
+    lookup: 'pending',
+  };
+  if (state?.state === 'notfound') return { ...base, lookup: 'notfound', lookupMessage: 'Not found in Open Food Facts. Type a name or pick an ingredient.' };
+  if (state?.state === 'error') return { ...base, lookup: 'failed', lookupMessage: state.error.message };
+  return base;
+}
+
+/**
+ * A lookup finished for a row that was waiting on it. Count, include, dates and any close-up already done are kept; a row
+ * the owner has named by hand ('manual') or whose product is already known is never touched.
+ */
+export function mergeLookup(row: ScanRow, state: LookupState<ProductLookupDto> | undefined): ScanRow {
+  if (!row.rapid || !row.scanBarcode || row.product || row.lookup === 'manual' || !state) return row;
+  if (state.state === 'pending') return row.lookup === 'pending' ? row : { ...row, lookup: 'pending' };
+  const fresh = rowFromRapid(row.scanBarcode, Number(row.count) || 1, state);
+  if (state.state !== 'done') return { ...row, lookup: fresh.lookup!, ...(fresh.lookupMessage ? { lookupMessage: fresh.lookupMessage } : {}) };
+  return {
+    ...fresh, include: row.include,
+    useBy: row.useBy, bestBefore: row.bestBefore, useBySource: row.useBySource, bestBeforeSource: row.bestBeforeSource,
+    closeUp: row.closeUp, ...(row.closeUpMessage ? { closeUpMessage: row.closeUpMessage } : {}),
+  };
+}
+
+/** "Name it myself": stop waiting for (or retrying) the lookup. */
+export const nameItMyself = (row: ScanRow): ScanRow => ({ ...row, lookup: 'manual' });
 
 export const rowName = (r: ScanRow): string => (r.ingredient?.name ?? r.freeName).trim();
 
@@ -194,6 +249,7 @@ export function toCommitRows(rows: readonly ScanRow[]): CommitResult {
   const errors: Record<string, string> = {};
   for (const r of rows) {
     if (!r.include) continue;
+    if (r.lookup === 'pending') { errors[r.key] = 'Still looking this product up. Wait a moment, or name it yourself.'; continue; }
     const name = rowName(r);
     const value = Number(r.value);
     if (!name) { errors[r.key] = 'Choose an ingredient or type a name.'; continue; }

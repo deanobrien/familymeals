@@ -22,7 +22,7 @@ function securityHeaders() {
   } catch { /* no Supabase configured at build */ }
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
+    "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
     "style-src 'self' 'unsafe-inline'",
     // images.openfoodfacts.org: product photos on barcode rows are hotlinked for display only (X2, D185); never stored.
     // www.themealdb.com: discovered-recipe photos are hotlinked for display, never copied (X1, D170).

@@ -1,5 +1,29 @@
 // Browser helper: GET /api/products/<barcode>. Never throws.
+import type { BatchEntry, BatchOutcome } from '@fr/engine/pantry';
 import type { ProductLookupDto, ProductLookupError } from './types';
+
+/**
+ * POST /api/products: the batch lookup behind rapid scanning (BS1, D272). Never throws. A 401/403 is `fatal` (the session
+ * is gone: stop polling and say so); a 429, 5xx or a network failure is not (the tracker backs off and keeps the codes).
+ */
+export async function postBatch(
+  req: { codes: string[]; retry?: string[] },
+  fetchFn: typeof fetch = (...a) => fetch(...a),
+): Promise<BatchOutcome<ProductLookupDto>> {
+  try {
+    const res = await fetchFn('/api/products', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(req),
+    });
+    if (res.status === 401 || res.status === 403) return { ok: false, fatal: true, message: 'You are signed out. Sign in again to look products up.' };
+    const json = (await res.json().catch(() => null)) as { results?: Record<string, BatchEntry<ProductLookupDto>> } | null;
+    if (!res.ok || !json?.results) return { ok: false, fatal: false, message: `HTTP ${res.status}` };
+    return { ok: true, results: json.results };
+  } catch {
+    return { ok: false, fatal: false, message: 'network' };
+  }
+}
 
 export async function fetchProduct(
   barcode: string,

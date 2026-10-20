@@ -5,18 +5,23 @@ import s from './scan.module.css';
 export const metadata = { title: 'Scan groceries' };
 export const dynamic = 'force-dynamic';
 
-export default async function ScanPage() {
+export default async function ScanPage({ searchParams }: { searchParams: Promise<{ mode?: string | string[] }> }) {
   const info = await describeActiveProvider();
+  const { mode } = await searchParams;
   return (
     <div className={s.page}>
       <header className={s.stack}>
         <h1>Scan groceries</h1>
         <p className={s.lead}>
-          Photograph or film what you have bought or what is in the fridge and cupboard. You review everything before
-          anything is added to your pantry.
+          Scan barcodes one after another, or photograph or film what you have bought or what is in the fridge and
+          cupboard. You review everything before anything is added to your pantry.
         </p>
       </header>
-      <ScanFlow provider={{ label: info.label, isMock: info.isMock, configured: info.configured }} />
+      {/* ?mode=rapid opens the continuous barcode scanner directly (a link target for the pantry and shopping pages). */}
+      <ScanFlow
+        provider={{ label: info.label, isMock: info.isMock, configured: info.configured }}
+        startRapid={(Array.isArray(mode) ? mode[0] : mode) === 'rapid'}
+      />
     </div>
   );
 }
