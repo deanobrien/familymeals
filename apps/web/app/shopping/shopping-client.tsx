@@ -15,6 +15,9 @@ import { AISLES, type SnapshotDto } from '../../lib/shopping/types';
 import { generateShoppingFromPlan, snapshotShopping, syncShopping } from './actions';
 import { ItemFormSheet, PartialSheet, type ItemFormValues } from './forms';
 import { ItemRow } from './item-row';
+import { AislePickerSheet, LearnToggle, RouteSuggestion, StoreSelector } from './store-ui';
+import { useStoreMode } from './use-store-mode';
+import { emptyStoreBook, type StoreBook } from '../../lib/shopping/engine';
 import styles from './shopping.module.css';
 
 const transport: Transport = {
@@ -24,7 +27,10 @@ const transport: Transport = {
 
 const AISLE_ORDER: string[] = [...AISLES];
 
-export function ShoppingClient({ initial, planId, approvedPlanId, actorId, prices, realtimeHouseholdId }: {
+/** "1" -> "Aisle 1"; named aisles ("Frozen") are shown as they are. */
+const aisleTitle = (label: string): string => (/^\d+[a-z]?$/i.test(label) ? `Aisle ${label}` : label);
+
+export function ShoppingClient({ initial, planId, approvedPlanId, actorId, prices, realtimeHouseholdId, storeBook, householdId }: {
   initial: SnapshotDto;
   /** /shopping?plan=<id>: build the list from that approved plan once. */
   planId?: string;
@@ -35,6 +41,9 @@ export function ShoppingClient({ initial, planId, approvedPlanId, actorId, price
   prices: PriceBook;
   /** Set when the list lives in Supabase: subscribe to its command log instead of polling (D122). */
   realtimeHouseholdId?: string;
+  /** The household's stores, aisles and placements (AS1): enables "Shopping at <store>" ordering. */
+  storeBook?: StoreBook;
+  householdId?: string;
 }) {
   const { toast } = useToast();
   const router = useRouter();
@@ -75,6 +84,9 @@ export function ShoppingClient({ initial, planId, approvedPlanId, actorId, price
   }, [realtimeHouseholdId]);
   const { controller, state, actor } = useShopping(initial, transport, onNotice, actorId, liveFeed);
   const ctx = defaultEngineContext;
+  const storeNotify = useCallback((message: string, tone?: 'info' | 'error') => toast({ message, ...(tone ? { tone } : {}) }), [toast]);
+  const storeMode = useStoreMode({ initialBook: storeBook ?? emptyStoreBook(), householdId: householdId ?? 'household', userId: actorId, notify: storeNotify });
+  const [placingId, setPlacingId] = useState<string | null>(null);
 
   // "Generate from plan": /shopping?plan=<id>
   const generated = useRef<string | null>(null);
@@ -102,7 +114,15 @@ export function ShoppingClient({ initial, planId, approvedPlanId, actorId, price
     () => activeView(state.view, ctx, { includeComplete: showCompleted }),
     [state.view, ctx, showCompleted],
   );
-  const groups = useMemo(() => groupByAisle(visible, AISLE_ORDER), [visible]);
+  const { store: activeStore, sections: storeSections } = storeMode;
+  // One shape for both views: category groups (default) or the chosen store's aisles in walking order (AS1).
+  const groups = useMemo(
+    () =>
+      activeStore
+        ? storeSections(visible).map((s) => ({ group: s.aisleId ? aisleTitle(s.label) : s.label, key: s.aisleId ?? 'not-placed', placed: s.placed, items: s.items }))
+        : groupByAisle(visible, AISLE_ORDER).map((g) => ({ group: g.group, key: g.group, placed: true, items: g.items })),
+    [visible, activeStore, storeSections],
+  );
   const basket = useMemo(() => estimateBasket(all, prices), [all, prices]);
 
   const live = all.filter((v) => !v.item.removed && !v.noLongerNeeded);
@@ -114,6 +134,7 @@ export function ShoppingClient({ initial, planId, approvedPlanId, actorId, price
 
   // ---- handlers ----
   const tick = (v: ItemView) => {
+    storeMode.recordTick(v);
     const eventId = controller.tick(v.item.id);
     toast({
       message: `Bought ${v.item.displayName}.`,
@@ -188,7 +209,8 @@ export function ShoppingClient({ initial, planId, approvedPlanId, actorId, price
   const hasAnything = live.length > 0 || history.length > 0;
 
   return (
-    <div data-hydrated={mounted} data-testid="shopping-root">
+    <div data-hydrated={mounted} data-testid="shopping-root" data-store={activeStore?.id ?? ''} className={activeStore ? styles.instore : undefined}>
+      <StoreSelector mode={storeMode} />
       <div className={styles.toolbar}>
         <Button onClick={() => { setEditingId(null); setFormOpen(true); }}>Add item</Button>
         <Checkbox
@@ -196,11 +218,14 @@ export function ShoppingClient({ initial, planId, approvedPlanId, actorId, price
           checked={showCompleted}
           onChange={(e) => setShowCompleted(e.target.checked)}
         />
+        <LearnToggle mode={storeMode} />
         <span className={styles.toolbarSpacer} />
         <span className={styles.status} role="status" data-testid="sync-status" data-status={state.status}>
           {statusText}
         </span>
       </div>
+
+      <RouteSuggestion mode={storeMode} />
 
       {live.length > 0 && (
         <Card className={styles.basket}>
@@ -235,7 +260,7 @@ export function ShoppingClient({ initial, planId, approvedPlanId, actorId, price
       )}
 
       {groups.map((g) => (
-        <section key={g.group} aria-label={g.group}>
+        <section key={g.key} aria-label={g.group} data-testid={activeStore ? `aisle-${g.key}` : undefined} data-aisle={activeStore ? g.group : undefined}>
           <ShoppingCategoryHeader>{g.group}</ShoppingCategoryHeader>
           <ul className={styles.list}>
             {g.items.map((v) => (
@@ -249,6 +274,7 @@ export function ShoppingClient({ initial, planId, approvedPlanId, actorId, price
                 onUntick={untick}
                 onPartial={(x) => setPartialFor(x.item.id)}
                 onEdit={(x) => { setEditingId(x.item.id); setFormOpen(true); }}
+                {...(activeStore ? { aisleLabel: storeMode.aisleOf(v)?.label ?? null, onPlace: (x: ItemView) => setPlacingId(x.item.id) } : {})}
               />
             ))}
           </ul>
@@ -288,6 +314,7 @@ export function ShoppingClient({ initial, planId, approvedPlanId, actorId, price
         onOpenChange={(o) => { if (!o) setPartialFor(null); }}
         onSubmit={submitPartial}
       />
+      <AislePickerSheet mode={storeMode} view={byId(placingId)} onClose={() => setPlacingId(null)} />
       <ItemFormSheet
         open={formOpen}
         onOpenChange={(o) => { setFormOpen(o); if (!o) setEditingId(null); }}

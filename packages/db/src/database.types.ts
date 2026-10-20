@@ -2342,6 +2342,133 @@ export type Database = {
         };
         Relationships: [];
       };
+      store_aisles: {
+        Row: {
+          created_at: string;
+          household_id: string;
+          id: string;
+          label: string;
+          sort_order: number;
+          store_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          household_id: string;
+          id?: string;
+          label: string;
+          sort_order?: number;
+          store_id: string;
+        };
+        Update: {
+          created_at?: string;
+          household_id?: string;
+          id?: string;
+          label?: string;
+          sort_order?: number;
+          store_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'store_aisles_store_id_household_id_fkey';
+            columns: ['store_id', 'household_id'];
+            isOneToOne: false;
+            referencedRelation: 'stores';
+            referencedColumns: ['id', 'household_id'];
+          },
+        ];
+      };
+      store_placements: {
+        Row: {
+          aisle_id: string;
+          created_by: string | null;
+          household_id: string;
+          id: string;
+          store_id: string;
+          target_key: string;
+          target_type: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          aisle_id: string;
+          created_by?: string | null;
+          household_id: string;
+          id?: string;
+          store_id: string;
+          target_key: string;
+          target_type: string;
+          updated_at?: string;
+        };
+        Update: {
+          aisle_id?: string;
+          created_by?: string | null;
+          household_id?: string;
+          id?: string;
+          store_id?: string;
+          target_key?: string;
+          target_type?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'store_placements_aisle_id_store_id_fkey';
+            columns: ['aisle_id', 'store_id'];
+            isOneToOne: false;
+            referencedRelation: 'store_aisles';
+            referencedColumns: ['id', 'store_id'];
+          },
+          {
+            foreignKeyName: 'store_placements_store_id_household_id_fkey';
+            columns: ['store_id', 'household_id'];
+            isOneToOne: false;
+            referencedRelation: 'stores';
+            referencedColumns: ['id', 'household_id'];
+          },
+        ];
+      };
+      stores: {
+        Row: {
+          chain: string | null;
+          created_at: string;
+          created_by: string | null;
+          household_id: string;
+          id: string;
+          name: string;
+          notes: string | null;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          chain?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          household_id: string;
+          id?: string;
+          name: string;
+          notes?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          chain?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          household_id?: string;
+          id?: string;
+          name?: string;
+          notes?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'stores_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       shopping_list_item_progress: {
@@ -2388,6 +2515,7 @@ export type Database = {
       };
       backfill_pantry_purchase_mode: { Args: Record<PropertyKey, never>; Returns: number };
       cancel_household_deletion: { Args: { p_household_id: string }; Returns: undefined };
+      copy_store_layout: { Args: { p_from_store: string; p_household_id: string; p_to_store: string }; Returns: number };
       create_invitation: {
         Args: {
           p_email?: string;
@@ -2429,6 +2557,7 @@ export type Database = {
       household_price_observations: { Args: { p_household_id: string }; Returns: Json };
       household_product_snapshots: { Args: { p_household_id: string }; Returns: Json };
       household_purchase_records: { Args: { p_household_id: string }; Returns: Json };
+      household_store_book: { Args: { p_household_id: string }; Returns: Json };
       is_household_member: { Args: { hid: string }; Returns: boolean };
       is_household_owner: { Args: { hid: string }; Returns: boolean };
       is_household_writable: { Args: { hid: string }; Returns: boolean };

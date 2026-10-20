@@ -7,6 +7,7 @@ import { getPriceStore } from '../prices/store';
 import { getProductSnapshotStore } from '../products/store';
 import { resetMemoryServices } from '../receipts/memory';
 import { getShoppingRepository } from '../shopping/repository';
+import { getMemoryStoreBook } from '../stores/repository';
 
 /**
  * Dev/e2e-only reset of every in-memory store (DECISIONS D36). Never available in production: the route
@@ -18,6 +19,7 @@ export function devToolsAllowed(env: { NODE_ENV?: string | undefined } = process
 
 export function resetInMemoryStores(): string[] {
   getShoppingRepository().reset();
+  getMemoryStoreBook().reset();
   resetPlanServices();
   resetPantryServices();
   resetMemoryServices();
@@ -25,5 +27,5 @@ export function resetInMemoryStores(): string[] {
   resetRecipeCalculators();
   getProductSnapshotStore().reset();
   resetRecipeRepository();
-  return ['shopping', 'plans', 'pantry', 'receipts', 'prices', 'products', 'recipes'];
+  return ['shopping', 'stores', 'plans', 'pantry', 'receipts', 'prices', 'products', 'recipes'];
 }
