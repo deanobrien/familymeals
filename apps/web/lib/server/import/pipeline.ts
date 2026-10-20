@@ -4,7 +4,8 @@ import {
   type RecipeDraft, type RecipeSummary,
 } from '@fr/recipe-import';
 import { describeActiveProvider, getAiProvider } from '../ai/provider';
-import { coverUrl, getUploadFiles, type UploadFiles } from '../uploads/dev-store';
+import { LocalImageStore } from '../images/local-store';
+import type { ImageStore } from '../images/store';
 import { ingredientMatcher, ingredientParser } from './engine-adapter';
 import { getRecipeSink, type RecipeSink } from './sink';
 import { deleteUpload, getUpload, putUpload, type UploadOwner } from './upload-store';
@@ -12,8 +13,8 @@ import { deleteUpload, getUpload, putUpload, type UploadOwner } from './upload-s
 export interface PipelineDeps {
   provider?: AiProvider;
   sink?: RecipeSink;
-  /** Where page photos / the cover image are written (default: local dev store under .data/uploads). */
-  uploads?: UploadFiles;
+  /** Where page photos / the cover image are written (default: the local dev store under .data/uploads; the routes pass the caller's store, D190). */
+  images?: ImageStore;
 }
 
 export interface PipelineError {
@@ -116,10 +117,10 @@ export async function runExtraction(input: ExtractInput, deps: PipelineDeps = {}
     draft.coverPage ??= 1;
     rec.draft = draft;
     // Keep the (EXIF-rotated) page photos on disk: the review screen previews them and the cover comes from them.
-    const uploads = deps.uploads ?? getUploadFiles();
+    const store = deps.images ?? new LocalImageStore();
     try {
-      uploads.sweep();
-      uploads.writePages(rec.id, prepared.map((p) => p.data));
+      await store.sweep();
+      await Promise.all(prepared.map((p, i) => store.put('page', rec.id, `page-${i + 1}.jpg`, p.data)));
     } catch (err) {
       console.error('[import] could not store page photos', err instanceof Error ? err.message : err);
     }
@@ -175,7 +176,7 @@ export async function saveImport(input: { uploadId: string; draft: RecipeDraft; 
   draft.issues = computeIssues(draft);
 
   // Cover image: the chosen page (the AI's front-of-card pick unless the user changed it), turned upright.
-  const uploads = deps.uploads ?? getUploadFiles();
+  const store = deps.images ?? new LocalImageStore();
   const pageCount = rec.images.length;
   const requested = Number.isInteger(d.coverPage) && d.coverPage! >= 1 && d.coverPage! <= pageCount ? d.coverPage! : (server.coverPage ?? 1);
   const rotation = requested === server.coverPage ? (server.coverRotation ?? 0) : 0;
@@ -188,10 +189,9 @@ export async function saveImport(input: { uploadId: string; draft: RecipeDraft; 
     if (server.coverImageRef) draft.coverImageRef = server.coverImageRef;
   } else {
     try {
-      const page = uploads.read(rec.id, `page-${requested}.jpg`)
+      const page = (await store.get('page', rec.id, `page-${requested}.jpg`))
         ?? (await prepareImages([rec.images[requested - 1]!]))[0]!.data;
-      uploads.writeCover(rec.id, await rotateJpeg(page, rotation));
-      draft.coverImageRef = coverUrl(rec.id);
+      draft.coverImageRef = await store.put('cover', rec.id, 'cover.jpg', await rotateJpeg(page, rotation));
     } catch (err) {
       console.error('[import] could not write cover image', err instanceof Error ? err.message : err);
     }
@@ -200,7 +200,7 @@ export async function saveImport(input: { uploadId: string; draft: RecipeDraft; 
   try {
     const finalised = finaliseDraft(draft);
     const { id } = await sink.save(finalised);
-    try { uploads.markSaved(rec.id); } catch { /* cover stays; sweep skips only marked folders */ }
+    try { await store.finishUpload(rec.id, pageCount); } catch { /* cover stays; the unsaved-upload sweep / cleanup job is the backstop */ }
     deleteUpload(input.uploadId);
     return { ok: true, id };
   } catch (e) {

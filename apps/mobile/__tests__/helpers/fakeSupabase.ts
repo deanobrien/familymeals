@@ -80,11 +80,22 @@ export class FakeBackend {
   dropRpcResponses = 0;
   rpcError: { code?: string; message: string } | null = null;
   selects: Record<string, number> = {};
+  /** Number of shopping_list_snapshot RPCs (full loads); catch-ups use the log query instead. */
+  snapshotCalls = 0;
   rpcCalls: Array<{ fn: string; args: Record<string, unknown> }> = [];
   userId = USER_ME;
   tables: Record<string, Row[]> = {};
   private seq = 0;
   private clock = 0;
+  /** shopping_list_log_heads: the per-list, commit-ordered list_seq counter. */
+  heads: Record<string, number> = {};
+  /** Realtime channel statuses the next subscribe() calls should report (default: SUBSCRIBED). */
+  realtimeStatuses: string[] = [];
+  /** Whether a subscribed channel gets the server's postgres_changes confirmation (system ok). */
+  realtimeConfirms = true;
+  channelsOpen = 0;
+  channelLog: string[] = [];
+  private channelHooks = new Set<{ emit: (row: Row) => void; confirm: () => void; fail: (status: string) => void }>();
 
   constructor() {
     this.tables = {
@@ -117,6 +128,18 @@ export class FakeBackend {
       shopping_list_id: LIST,
       household_id: HH,
       ingredient_id: null,
+      item_key: `name:${name.toLowerCase()}`,
+      plan_linked: true,
+      requirement: {
+        displayName: name,
+        quantity: {
+          kind: q.quantity_kind,
+          ...(q.quantity_value !== undefined ? { value: q.quantity_value } : {}),
+          ...(q.unit ? { unit: q.unit } : {}),
+          originalText: q.original_text ?? '',
+        },
+        contributions: [],
+      },
       display_name: name,
       quantity_kind: q.quantity_kind,
       quantity_value: q.quantity_value ?? null,
@@ -164,8 +187,12 @@ export class FakeBackend {
 
   private log(commandId: string, listId: string, type: string, command: Row, result: Row, by: string) {
     this.seq += 1;
-    this.tables.shopping_command_log!.push({
-      seq: this.seq,
+    // list_seq: gap-free per list, assigned in commit order (here: insertion order).
+    const listSeq = (this.heads[listId] ?? 0) + 1;
+    this.heads[listId] = listSeq;
+    const row: Row = {
+      seq: this.seq + 1000, // deliberately not equal to list_seq: the app must not use the global seq
+      list_seq: listSeq,
       command_id: commandId,
       household_id: HH,
       shopping_list_id: listId,
@@ -176,7 +203,31 @@ export class FakeBackend {
       result,
       created_by: by,
       created_at: this.stamp(),
-    });
+    };
+    this.tables.shopping_command_log!.push(row);
+    for (const h of this.channelHooks) h.emit(row);
+  }
+
+  /** Append a log row written by another writer (e.g. the web app's apply_shopping_command). */
+  appendLog(commandId: string, type: string, command: Row, result: Row, by = USER_SAM, listId = LIST) {
+    this.log(commandId, listId, type, command, result, by);
+  }
+
+  /** shopping_list_snapshot(p_household_id): items + events + log + head in one consistent read. */
+  snapshot(): Row {
+    const list = this.tables.shopping_lists!.filter((l) => l.status === 'active').sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+    if (!list) return { listId: null, head: 0, items: [], events: [], log: [] };
+    const itemIds = new Set(this.tables.shopping_list_items!.filter((i) => i.shopping_list_id === list.id).map((i) => i.id));
+    return {
+      listId: list.id,
+      head: this.heads[String(list.id)] ?? 0,
+      items: this.tables.shopping_list_items!.filter((i) => i.shopping_list_id === list.id).map((i) => ({ ...i })),
+      events: this.tables.purchase_events!.filter((e) => itemIds.has(e.shopping_list_item_id)).map((e) => ({ ...e })),
+      log: this.tables.shopping_command_log!
+        .filter((l) => l.shopping_list_id === list.id)
+        .sort((a, b) => Number(a.list_seq) - Number(b.list_seq))
+        .map((l) => ({ ...l })),
+    };
   }
 
   /** Server-side record_purchase (mirrors migration 0013). */
@@ -264,6 +315,54 @@ export class FakeBackend {
     );
   }
 
+  /** Minimal supabase-js RealtimeChannel stand-in: postgres_changes INSERT on shopping_command_log + system ok. */
+  private makeChannel(name: string) {
+    const handlers: { insert?: (p: { new: Row }) => void; system?: (p: { extension: string; status: string }) => void } = {};
+    let statusCb: ((s: string) => void) | undefined;
+    let open = false;
+    const hook = {
+      emit: (row: Row) => {
+        if (open && row.household_id === HH) handlers.insert?.({ new: { ...row } });
+      },
+      confirm: () => handlers.system?.({ extension: 'postgres_changes', status: 'ok' }),
+      fail: (status: string) => statusCb?.(status),
+    };
+    const ch = {
+      on: (type: string, _filter: unknown, cb: (p: never) => void) => {
+        if (type === 'postgres_changes') handlers.insert = cb as never;
+        else handlers.system = cb as never;
+        return ch;
+      },
+      subscribe: (cb: (s: string) => void) => {
+        statusCb = cb;
+        this.channelLog.push(`subscribe:${name}`);
+        const status = this.realtimeStatuses.shift() ?? 'SUBSCRIBED';
+        void Promise.resolve().then(() => {
+          if (status === 'SUBSCRIBED') {
+            open = true;
+            this.channelsOpen += 1;
+            this.channelHooks.add(hook);
+          }
+          cb(status);
+          if (status === 'SUBSCRIBED' && this.realtimeConfirms) void Promise.resolve().then(() => hook.confirm());
+        });
+        return ch;
+      },
+      __close: () => {
+        if (open) this.channelsOpen -= 1;
+        open = false;
+        this.channelHooks.delete(hook);
+        this.channelLog.push(`close:${name}`);
+      },
+    };
+    return ch;
+  }
+
+  /** Drop every open channel with the given status (CHANNEL_ERROR / CLOSED), as a lost connection would. */
+  dropRealtime(status = 'CLOSED') {
+    for (const h of [...this.channelHooks]) h.fail(status);
+  }
+
   asClient(): SupabaseClient {
     const session = () => ({
       user: { id: this.userId, email: 'dean@example.com' },
@@ -272,6 +371,10 @@ export class FakeBackend {
     const client = {
       from: (table: string) => new Query(this, table),
       rpc: async (fn: string, args: Record<string, unknown>): Promise<Result> => {
+        if (fn === 'shopping_list_snapshot') {
+          this.snapshotCalls += 1;
+          return this.offline ? { data: null, error: NETWORK_ERROR } : { data: this.snapshot(), error: null };
+        }
         this.rpcCalls.push({ fn, args });
         if (this.offline) return { data: null, error: NETWORK_ERROR };
         if (this.rpcError) return { data: null, error: this.rpcError };
@@ -286,6 +389,11 @@ export class FakeBackend {
           return { data: null, error: NETWORK_ERROR };
         }
         return { data, error: null };
+      },
+      channel: (name: string) => this.makeChannel(name),
+      removeChannel: (ch: { __close?: () => void }) => {
+        ch.__close?.();
+        return Promise.resolve('ok');
       },
       auth: {
         getSession: async () => ({ data: { session: session() }, error: null }),

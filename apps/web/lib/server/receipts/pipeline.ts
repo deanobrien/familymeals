@@ -1,4 +1,5 @@
 import type { ReceiptParse } from '@fr/ai';
+import type { ImageStore } from '../images/store';
 import { receiptMatcher, withQuantityValue, type PriceObservation, type ReceiptItemLine } from '../../receipts/matcher';
 import { buildReviewModel } from '../../receipts/review';
 import type { LineDecision, ReceiptLineRecord, ReceiptRecord, ReviewModel, StoredDecision } from '../../receipts/types';
@@ -20,6 +21,8 @@ export interface PipelineDeps {
   receipts: ReceiptRepository;
   purchases: PurchaseSink;
   newId(): string;
+  /** Where the receipt photo is kept (Supabase Storage, receipt-images bucket); absent = the photo is not stored (D190). */
+  images?: ImageStore;
   now(): Date;
 }
 
@@ -57,6 +60,16 @@ export async function processReceiptUpload(
   input: { bytes: Uint8Array; imageName?: string },
 ): Promise<ReceiptRecord> {
   const image = await deps.prepareImage(input.bytes);
+  const receiptId = deps.newId();
+  // Keep the (EXIF-stripped, resized) photo so the user can look back at it; deleted 90 days after confirmation or with the receipt.
+  const imagePaths: string[] = [];
+  if (deps.images?.backend === 'supabase') {
+    try {
+      imagePaths.push(await deps.images.put('receipt', receiptId, 'receipt.jpg', image));
+    } catch (e) {
+      console.error('[receipts] could not store the receipt photo', e instanceof Error ? e.message : 'unknown error'); // never log content
+    }
+  }
   const parse = await deps.parser.parseReceipt(image);
 
   const parsed = receiptMatcher.parseLines(toTillLines(parse), 'line');
@@ -79,13 +92,14 @@ export async function processReceiptUpload(
   if (parsed.ignored.length) warnings.push(`${parsed.ignored.length} line(s) were not recognised as products and were left out.`);
 
   const record: ReceiptRecord = {
-    id: deps.newId(),
+    id: receiptId,
     householdId: deps.householdId,
     retailer: parse.retailer,
     date: parse.date,
     totalPence: total,
     computedPence: tc.computedPence,
     imageName: input.imageName,
+    ...(imagePaths.length ? { imagePaths } : {}),
     createdAt: deps.now().toISOString(),
     status: 'needs_review',
     lines,

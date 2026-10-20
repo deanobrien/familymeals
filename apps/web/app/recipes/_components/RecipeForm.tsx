@@ -15,7 +15,8 @@ import {
   type RecipeView,
   type Unit,
 } from '../../../lib/recipes/types';
-import { checkDuplicatesAction, saveRecipeAction, type DuplicateHit } from '../actions';
+import { checkDuplicatesAction, previewIngredientLinksAction, saveRecipeAction, type DuplicateHit } from '../actions';
+import { IngredientLinkControl, UNCHECKED, type LinkState } from './IngredientLinkControl';
 import styles from '../recipes.module.css';
 
 const KIND_LABEL: Record<QuantityKind, string> = {
@@ -40,6 +41,8 @@ interface IngDraft {
   originalText: string;
   preparation: string;
   optional: boolean;
+  /** Link to the ingredient catalogue (D222). */
+  link: LinkState;
 }
 interface StepDraft {
   key: string;
@@ -51,11 +54,13 @@ const nextKey = () => `k${++counter}`;
 const numStr = (n: number | undefined) => (n == null ? '' : String(n));
 
 function blankIngredient(): IngDraft {
-  return { key: nextKey(), name: '', kind: 'exact', value: '', min: '', max: '', unit: '', approxLabel: '', originalText: '', preparation: '', optional: false };
+  return { key: nextKey(), name: '', kind: 'exact', value: '', min: '', max: '', unit: '', approxLabel: '', originalText: '', preparation: '', optional: false, link: UNCHECKED };
 }
 
-function fromRecipe(r: RecipeView): IngDraft[] {
+function fromRecipe(r: RecipeView, linkNames: Record<string, string>): IngDraft[] {
   return r.ingredients.map((i) => ({
+    // Saved lines keep what they have; an unlinked saved line is not re-matched until the person asks (it may be a deliberate "not in list").
+    link: { ingredientId: i.ingredientId, linkedName: i.ingredientId ? linkNames[i.ingredientId] : undefined, ambiguous: false, candidates: [], checked: true },
     key: nextKey(),
     name: i.name,
     kind: i.quantity.kind,
@@ -115,7 +120,7 @@ function move<T>(list: T[], from: number, to: number): T[] {
   return next;
 }
 
-export function RecipeForm({ recipe }: { recipe?: RecipeView }) {
+export function RecipeForm({ recipe, linkNames = {} }: { recipe?: RecipeView; /** Display names of the recipe's linked ingredient ids (the catalogue is server-only). */ linkNames?: Record<string, string> }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [title, setTitle] = useState(recipe?.title ?? '');
@@ -130,7 +135,7 @@ export function RecipeForm({ recipe }: { recipe?: RecipeView }) {
   const [mealType, setMealType] = useState<string>(recipe?.mealType ?? 'dinner');
   const [diet, setDiet] = useState<string>(recipe?.diet ?? 'vegetarian');
   const [tags, setTags] = useState((recipe?.tags ?? []).join(', '));
-  const [ings, setIngs] = useState<IngDraft[]>(recipe ? fromRecipe(recipe) : [blankIngredient()]);
+  const [ings, setIngs] = useState<IngDraft[]>(recipe ? fromRecipe(recipe, linkNames) : [blankIngredient()]);
   const [steps, setSteps] = useState<StepDraft[]>(
     recipe ? recipe.steps.map((s) => ({ key: nextKey(), text: s.text })) : [{ key: nextKey(), text: '' }],
   );
@@ -141,6 +146,29 @@ export function RecipeForm({ recipe }: { recipe?: RecipeView }) {
 
   const patchIng = (key: string, patch: Partial<IngDraft>) =>
     setIngs((l) => l.map((i) => (i.key === key ? { ...i, ...patch } : i)));
+
+  const previewSeq = useRef<Record<string, number>>({});
+  /** Live match of one line's typed name; applies the result unless the person has since chosen something. */
+  const previewLink = async (key: string, name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    const seq = (previewSeq.current[key] = (previewSeq.current[key] ?? 0) + 1);
+    const [s] = await previewIngredientLinksAction([trimmed]);
+    if (!s || previewSeq.current[key] !== seq) return;
+    patchIng(key, {
+      link: s.status === 'matched'
+        ? { ingredientId: s.ingredientId, linkedName: s.ingredientName, ambiguous: false, candidates: [], checked: true }
+        : { ingredientId: undefined, ambiguous: s.status === 'ambiguous', candidates: s.candidates, checked: true },
+    });
+  };
+  const chooseLink = (key: string, choice: { id: string; name: string } | null) => {
+    previewSeq.current[key] = (previewSeq.current[key] ?? 0) + 1;
+    patchIng(key, {
+      link: choice
+        ? { ingredientId: choice.id, linkedName: choice.name, ambiguous: false, candidates: [], checked: true }
+        : { ingredientId: null, ambiguous: false, candidates: [], checked: true },
+    });
+  };
 
   const build = (): RecipeInput => ({
     title: title.trim(),
@@ -158,6 +186,7 @@ export function RecipeForm({ recipe }: { recipe?: RecipeView }) {
     tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
     ingredients: ings.map((d) => ({
       name: d.name.trim(),
+      ...(d.link.ingredientId !== undefined ? { ingredientId: d.link.ingredientId } : {}),
       quantity: toQuantity(d),
       ...(d.preparation.trim() ? { preparation: d.preparation.trim() } : {}),
       optional: d.optional,
@@ -243,7 +272,14 @@ export function RecipeForm({ recipe }: { recipe?: RecipeView }) {
                 <Button variant="ghost" size="sm" aria-label={`Move ingredient ${n} down`} disabled={idx === ings.length - 1} onClick={() => setIngs((l) => move(l, idx, idx + 1))}>Down</Button>
                 <Button variant="ghost" size="sm" aria-label={`Remove ingredient ${n}`} disabled={ings.length === 1} onClick={() => setIngs((l) => l.filter((i) => i.key !== d.key))}>Remove</Button>
               </div>
-              <Input label={`Ingredient ${n} name`} hideLabel placeholder="Ingredient name" value={d.name} onChange={(e) => patchIng(d.key, { name: e.target.value })} error={err('name')} />
+              <Input label={`Ingredient ${n} name`} hideLabel placeholder="Ingredient name" value={d.name} onChange={(e) => patchIng(d.key, { name: e.target.value, link: UNCHECKED })} onBlur={() => { if (!d.link.checked) void previewLink(d.key, d.name); }} error={err('name')} />
+              <IngredientLinkControl
+                n={n}
+                hasName={d.name.trim() !== ''}
+                state={d.link}
+                onChoose={(c) => chooseLink(d.key, c)}
+                onAuto={() => { patchIng(d.key, { link: UNCHECKED }); void previewLink(d.key, d.name); }}
+              />
               <div className={styles.row2}>
                 <Select label={`Ingredient ${n} quantity type`} hideLabel value={d.kind} onChange={(e) => patchIng(d.key, { kind: e.target.value as QuantityKind })} options={QUANTITY_KINDS.map((k) => ({ value: k, label: KIND_LABEL[k] }))} />
                 {d.kind === 'exact' && (
