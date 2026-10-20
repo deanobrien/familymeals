@@ -19,7 +19,6 @@ import {
   createClient,
   deriveAll,
   deriveItem,
-  itemKey,
   type ClientState,
   type Command,
   type CommandResult,
@@ -27,18 +26,18 @@ import {
   type ItemView,
   type LogEntry,
   type ShoppingItem,
-  type ShoppingState,
-  type Snapshot,
 } from '@fr/engine/shopping';
 import type { Household, Recipe, ShoppingConflict, ShoppingListItem, UserSession } from '@/viewModels';
 import { newId } from '@/lib/format';
 import type { DataSource, ShoppingListState } from './DataSource';
 import { OfflineStore } from './offlineQueue';
+import { createShoppingLiveFeed, type LiveFeed, type LiveStatus } from './liveFeed';
+import { parseAuthLink } from '@/lib/authLink';
+import { logRowToEntry, stateFromSnapshot, type LoadedList, type Row } from './shoppingMapping';
 
-type Row = Record<string, unknown>;
-
-const FORMER_MEMBER = 'former-member';
 const LOG_PAGE = 500;
+/** While the Realtime feed is down (and we are online) the open list re-reads this often. */
+const FALLBACK_POLL_MS = 20_000;
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : '');
 const optStr = (v: unknown): string | undefined => (typeof v === 'string' && v !== '' ? v : undefined);
@@ -95,6 +94,10 @@ export interface SupabaseDataSourceOptions {
   /** Test seam: id generator for command ids. */
   newId?: () => string;
   now?: () => Date;
+  /** Test seam: the Realtime feed for a household (default: supabase-js channel). */
+  feedFactory?: (householdId: string) => LiveFeed;
+  /** Test seam: fallback poll interval while the feed is down. */
+  pollMs?: number;
 }
 
 /**
@@ -120,12 +123,18 @@ export class SupabaseDataSource implements DataSource {
   /** Command ids already re-issued once after `needs_engine_outstanding` (no endless loops). */
   private readonly reissued = new Set<string>();
   private readonly reportedConflicts = new Set<string>();
+  private readonly syncing = new Map<string, Promise<boolean>>();
+  private readonly loading = new Map<string, Promise<HouseholdState>>();
+  private readonly feedFactory: (householdId: string) => LiveFeed;
+  private readonly pollMs: number;
 
   constructor(opts: SupabaseDataSourceOptions) {
     this.db = opts.client;
     this.store = opts.store ?? new OfflineStore();
     this.genId = opts.newId ?? newId;
     this.now = opts.now ?? (() => new Date());
+    this.pollMs = opts.pollMs ?? FALLBACK_POLL_MS;
+    this.feedFactory = opts.feedFactory ?? ((householdId) => createShoppingLiveFeed(this.db, householdId));
   }
 
   setOnline(online: boolean) {
@@ -150,6 +159,22 @@ export class SupabaseDataSource implements DataSource {
     await this.db.auth.signOut();
     this.households.clear();
     this.conflicts = [];
+  }
+
+  async completeAuthLink(url: string): Promise<UserSession | null> {
+    const link = parseAuthLink(url);
+    if (link.kind === 'error') throw new Error(link.message);
+    if (link.kind === 'tokens') {
+      const { data, error } = await this.db.auth.setSession({ access_token: link.accessToken, refresh_token: link.refreshToken });
+      if (error) throw new Error(error.message);
+      return data.user ? { userId: data.user.id, email: data.user.email ?? '' } : null;
+    }
+    if (link.kind === 'code') {
+      const { data, error } = await this.db.auth.exchangeCodeForSession(link.code);
+      if (error) throw new Error(error.message);
+      return data.user ? { userId: data.user.id, email: data.user.email ?? '' } : null;
+    }
+    return null;
   }
 
   async getAccessToken(): Promise<string | null> {
@@ -295,61 +320,21 @@ export class SupabaseDataSource implements DataSource {
   }
 
   /**
-   * Fresh snapshot. The cursor is read BEFORE the rows so nothing logged in between is missed; replaying a log
-   * entry already reflected in the snapshot is harmless (the engine rejects it as a duplicate id / already voided).
+   * Fresh snapshot through `shopping_list_snapshot` (one statement = one MVCC read of the active list's items, purchase
+   * events and command log) so the cursor (`head`, the list's `list_seq`) and the rows can never disagree.
    */
-  private async fetchSnapshot(listId: string): Promise<Snapshot> {
-    const last = await run<Row[]>(
-      this.db
-        .from('shopping_command_log')
-        .select('seq')
-        .eq('shopping_list_id', listId)
-        .order('seq', { ascending: false })
-        .limit(1),
-    );
-    const cursor = last?.[0] ? Number(last[0].seq) : 0;
-    const itemRows = await run<Row[]>(
-      this.db
-        .from('shopping_list_items')
-        .select('*')
-        .eq('shopping_list_id', listId)
-        .order('position')
-        .order('created_at'),
-    );
-    const items: ShoppingItem[] = (itemRows ?? []).map(itemFromRow);
-    let eventRows: Row[] = [];
-    if (items.length > 0) {
-      eventRows = await run<Row[]>(
-        this.db
-          .from('purchase_events')
-          .select('*')
-          .in(
-            'shopping_list_item_id',
-            items.map((i) => i.id),
-          )
-          .order('created_at'),
-      );
-    }
-    const events = (eventRows ?? []).map(eventFromRow);
-    const state: ShoppingState = {
-      items: Object.fromEntries(items.map((i) => [i.id, i])),
-      itemOrder: items.map((i) => i.id),
-      events: Object.fromEntries(events.map((e) => [e.id, e])),
-      eventOrder: events.map((e) => e.id),
-      voids: {},
-      outcomes: {},
-    };
-    return { cursor, state };
+  private async fetchLoaded(householdId: string): Promise<LoadedList> {
+    const bundle = await run<Row | null>(this.db.rpc('shopping_list_snapshot', { p_household_id: householdId }));
+    return stateFromSnapshot(bundle);
   }
 
   private async loadHousehold(householdId: string, keep?: HouseholdState): Promise<HouseholdState> {
     const pending = keep ? keep.client.pending : await this.store.loadPending(householdId);
     try {
       const members = await this.fetchMembers(householdId);
-      const listId = await this.fetchActiveListId(householdId);
-      const snapshot: Snapshot = listId ? await this.fetchSnapshot(listId) : { cursor: 0, state: emptyShoppingState() };
-      const client: ClientState = { ...createClient(snapshot), pending };
-      const h: HouseholdState = { listId, client, members };
+      const loaded = await this.fetchLoaded(householdId);
+      const client: ClientState = { ...createClient({ cursor: loaded.head, state: loaded.state }), pending };
+      const h: HouseholdState = { listId: loaded.listId, client, members };
       await this.cache(householdId, h);
       return h;
     } catch (e) {
@@ -363,6 +348,30 @@ export class SupabaseDataSource implements DataSource {
         client: { ...createClient({ cursor: cached.cursor, state: cached.state }), pending },
         members: new Map(Object.entries(cached.members)),
       };
+    }
+  }
+
+  /**
+   * First use of a household in this process. With a cached snapshot (persisted per list, with its `list_seq` cursor)
+   * start from it: offline that is the whole answer, online we only catch up from the cursor instead of re-reading
+   * everything. No cache (first run / signed out) or a non-retryable catch-up failure -> a full snapshot.
+   */
+  private async openHousehold(householdId: string): Promise<HouseholdState> {
+    const cached = await this.store.loadSnapshot(householdId);
+    if (!cached) return this.loadHousehold(householdId);
+    const pending = await this.store.loadPending(householdId);
+    const h: HouseholdState = {
+      listId: cached.listId,
+      client: { ...createClient({ cursor: cached.cursor, state: cached.state }), pending },
+      members: new Map(Object.entries(cached.members)),
+    };
+    if (!this.online) return h;
+    try {
+      h.members = await this.fetchMembers(householdId).catch(() => h.members);
+      await this.sync(householdId, h);
+      return h;
+    } catch {
+      return this.loadHousehold(householdId);
     }
   }
 
@@ -382,43 +391,66 @@ export class SupabaseDataSource implements DataSource {
   private async ensureLoaded(householdId: string): Promise<HouseholdState> {
     let h = this.households.get(householdId);
     if (!h) {
-      h = await this.loadHousehold(householdId);
-      this.households.set(householdId, h);
-      return h;
+      // The list screen and the live feed's first catch-up can ask at the same time: one load.
+      let loading = this.loading.get(householdId);
+      if (!loading) {
+        loading = this.openHousehold(householdId)
+          .then((loaded) => {
+            this.households.set(householdId, loaded);
+            return loaded;
+          })
+          .finally(() => {
+            this.loading.delete(householdId);
+          });
+        this.loading.set(householdId, loading);
+      }
+      return loading;
     }
     if (this.online) await this.sync(householdId, h);
     return this.households.get(householdId) ?? h;
   }
 
   /**
-   * Catch up from the log cursor. Returns false when offline / transient failure (state untouched).
-   * Falls back to a full snapshot on a seq gap, an unmappable entry, or when the engine's replay of an
-   * applied purchase disagrees with the server.
+   * Catch up from the per-list `list_seq` cursor (commit-ordered and gap-free, so a reader never sees k+1 without k).
+   * Returns false when offline / transient failure (state untouched). Falls back to a full snapshot when the active
+   * list changed, on a seq gap (should not happen with list_seq), or when the engine's replay of an applied purchase
+   * disagrees with the server. Concurrent callers (Realtime hint + focus + flush) share one in-flight sync.
    */
-  private async sync(householdId: string, h: HouseholdState): Promise<boolean> {
+  private sync(householdId: string, h: HouseholdState): Promise<boolean> {
+    const running = this.syncing.get(householdId);
+    if (running) return running;
+    const p = this.syncOnce(householdId, h).finally(() => {
+      this.syncing.delete(householdId);
+    });
+    this.syncing.set(householdId, p);
+    return p;
+  }
+
+  private async syncOnce(householdId: string, h: HouseholdState): Promise<boolean> {
     try {
-      if (!h.listId) {
-        // No list yet (or never loaded online): try a full load.
-        const fresh = await this.loadHousehold(householdId, h);
-        this.households.set(householdId, fresh);
+      const active = await this.fetchActiveListId(householdId);
+      if (active !== h.listId) {
+        // A list was created / archived elsewhere (or we never loaded one): rebuild from a fresh snapshot, in place
+        // so in-flight flushes holding `h` see it.
+        Object.assign(h, await this.loadHousehold(householdId, h));
         return true;
       }
+      if (!h.listId) return true;
       const rows = await run<Row[]>(
         this.db
           .from('shopping_command_log')
-          .select('*')
+          .select('list_seq,command_id,command_type,command,status,reason,result,created_by,created_at')
           .eq('shopping_list_id', h.listId)
-          .gt('seq', h.client.cursor)
-          .order('seq')
+          .gt('list_seq', h.client.cursor)
+          .order('list_seq')
           .limit(LOG_PAGE),
       );
-      const entries = (rows ?? []).map(logEntryFromRow);
+      const entries: LogEntry[] = (rows ?? []).map(logRowToEntry);
       if (entries.length === 0) return true;
-      if (entries.some((e) => e === null) || (rows ?? []).length >= LOG_PAGE) return await this.resnapshot(householdId, h);
+      if (entries.length >= LOG_PAGE) return await this.resnapshot(householdId, h);
 
-      const good = entries as LogEntry[];
-      const ingested = clientIngest(h.client, good, this.ctx);
-      const diverged = good.some(
+      const ingested = clientIngest(h.client, entries, this.ctx);
+      const diverged = entries.some(
         (e) => e.result.status === 'applied' && (e.command.type === 'tick' || e.command.type === 'purchase') && !ingested.confirmed.events[e.command.commandId],
       );
       if (ingested.needsResync || diverged) return await this.resnapshot(householdId, h);
@@ -436,13 +468,50 @@ export class SupabaseDataSource implements DataSource {
   }
 
   private async resnapshot(householdId: string, h: HouseholdState): Promise<boolean> {
-    if (!h.listId) return false;
-    const snapshot = await this.fetchSnapshot(h.listId);
-    h.client = clientResync(h.client, snapshot, [], this.ctx);
+    const loaded = await this.fetchLoaded(householdId);
+    h.listId = loaded.listId;
+    h.client = clientResync(h.client, { cursor: loaded.head, state: loaded.state }, [], this.ctx);
     h.members = await this.fetchMembers(householdId).catch(() => h.members);
     await this.cache(householdId, h);
     await this.persist(householdId, h);
     return true;
+  }
+
+  // ---- shopping: live updates ---------------------------------------------------------------------------------------
+
+  /**
+   * Keep `onChange` informed while a household's list is open. Supabase Realtime (INSERT on shopping_command_log) is a
+   * HINT: `onChange` makes the caller re-read through `getShoppingList`, which catches up from the cursor, so a missed
+   * or duplicated event cannot corrupt state. A catch-up also runs once the subscription is CONFIRMED by the server
+   * (not just SUBSCRIBED), closing the window in which a change could be missed. Polling only runs while the feed is
+   * down and we are online. Returns the stop function.
+   */
+  watchShopping(householdId: Uuid, onChange: () => void): () => void {
+    let poll: ReturnType<typeof setInterval> | undefined;
+    const stopPoll = () => {
+      if (poll !== undefined) clearInterval(poll);
+      poll = undefined;
+    };
+    const startPoll = () => {
+      if (poll !== undefined) return;
+      poll = setInterval(() => {
+        if (this.online) onChange();
+      }, this.pollMs);
+    };
+    const feed: LiveFeed = this.feedFactory(householdId);
+    const stop = feed.start(
+      () => onChange(),
+      (s) => {
+        if (s === 'live') {
+          stopPoll();
+          onChange(); // confirmed-subscription catch-up
+        } else startPoll();
+      },
+    );
+    return () => {
+      stop();
+      stopPoll();
+    };
   }
 
   // ---- shopping: view -------------------------------------------------------------------------------------------
@@ -540,11 +609,13 @@ export class SupabaseDataSource implements DataSource {
       if (out.kind === 'retry') break;
       if (out.kind === 'reissue') {
         // The server consumed this command id with a stale-count rejection: refresh, then resend under a new id.
-        await this.resnapshot(householdId, h);
+        // Swap the id FIRST: the snapshot's log now carries the old id's rejection as an outcome, and the engine
+        // would drop (and report) a pending command whose id already has a rejected outcome.
         const fresh = { ...cmd, commandId: this.genId() } as Command;
         this.reissued.add(fresh.commandId);
         h.client = { ...h.client, pending: h.client.pending.map((c) => (c.commandId === cmd.commandId ? fresh : c)) };
         await this.persist(householdId, h);
+        await this.resnapshot(householdId, h);
         i--;
         continue;
       }
@@ -664,101 +735,6 @@ export function conflictMessage(name: string, reason: CommandResult['reason'] | 
 }
 
 // ---- row mapping -------------------------------------------------------------------------------------------------
-
-function emptyShoppingState(): ShoppingState {
-  return { items: {}, itemOrder: [], events: {}, eventOrder: [], voids: {}, outcomes: {} };
-}
-
-export function itemFromRow(r: Row): ShoppingItem {
-  const quantity = quantityFromColumns(r);
-  const displayName = str(r.display_name);
-  const ingredientId = optStr(r.ingredient_id);
-  const manual = Boolean(r.is_manual);
-  const unresolved = Array.isArray(r.unresolved) ? (r.unresolved as Quantity[]) : [];
-  const createdBy = optStr(r.created_by) ?? FORMER_MEMBER;
-  const item: ShoppingItem = {
-    id: str(r.id),
-    key: itemKey(ingredientId, displayName),
-    displayName,
-    category: optStr(r.category) ?? 'Other',
-    planLinked: !manual,
-    createdBy,
-    createdAt: str(r.created_at),
-    updatedAt: str(r.updated_at),
-    ...(ingredientId ? { ingredientId } : {}),
-    ...(optStr(r.aisle) ? { aisle: str(r.aisle) } : {}),
-    ...(optStr(r.notes) ? { notes: str(r.notes) } : {}),
-    ...(manual
-      ? { manualQuantity: quantity }
-      : {
-          requirement: {
-            displayName,
-            quantity,
-            contributions: [],
-            ...(ingredientId ? { ingredientId } : {}),
-            ...(unresolved.length > 0 ? { unresolved } : {}),
-          },
-        }),
-  };
-  if (str(r.status) === 'removed') item.removed = { by: createdBy, at: str(r.updated_at), reason: 'user' };
-  return item;
-}
-
-export function eventFromRow(r: Row): PurchaseEvent {
-  const voided = r.voided_at !== null && r.voided_at !== undefined;
-  return {
-    id: str(r.id),
-    shoppingListItemId: str(r.shopping_list_item_id),
-    quantity: quantityFromColumns(r),
-    createdBy: optStr(r.created_by) ?? FORMER_MEMBER,
-    createdAt: str(r.created_at),
-    ...(typeof r.actual_price_pence === 'number' ? { actualPricePence: r.actual_price_pence } : {}),
-    ...(optStr(r.receipt_line_id) ? { receiptLineId: str(r.receipt_line_id) } : {}),
-    ...(voided ? { voidedBy: optStr(r.voided_by) ?? FORMER_MEMBER } : {}),
-  };
-}
-
-/** shopping_command_log row -> engine LogEntry. Null for command types the mobile client cannot replay. */
-export function logEntryFromRow(r: Row): LogEntry | null {
-  const seq = Number(r.seq);
-  const type = str(r.command_type);
-  const cmd = (r.command ?? {}) as Record<string, unknown>;
-  const base = { commandId: str(r.command_id), actor: optStr(r.created_by) ?? FORMER_MEMBER, at: str(r.created_at) };
-  const resultJson = (r.result ?? {}) as Record<string, unknown>;
-  const status = str(r.status) === 'rejected' ? 'rejected' : 'applied';
-  const result: CommandResult = {
-    commandId: base.commandId,
-    type: type === 'void' ? 'undo' : (type as CommandResult['type']),
-    status,
-    ...(status === 'rejected' && optStr(r.reason) ? { reason: str(r.reason) as CommandResult['reason'] & string } : {}),
-    ...(optStr(cmd.itemId) ? { itemId: str(cmd.itemId) } : {}),
-    ...(Array.isArray(resultJson.completedBy) ? { completedBy: resultJson.completedBy as string[] } : {}),
-    ...(optStr(resultJson.eventId) ? { eventId: str(resultJson.eventId) } : {}),
-  };
-  if (type === 'tick') {
-    return { seq, command: { type: 'tick', ...base, itemId: str(cmd.itemId) }, result };
-  }
-  if (type === 'purchase') {
-    const quantity = cmd.quantity as Quantity | null | undefined;
-    if (!quantity) return null;
-    return {
-      seq,
-      command: {
-        type: 'purchase',
-        ...base,
-        itemId: str(cmd.itemId),
-        quantity,
-        ...(typeof cmd.pricePence === 'number' ? { actualPricePence: cmd.pricePence } : {}),
-        ...(optStr(cmd.receiptLineId) ? { receiptLineId: str(cmd.receiptLineId) } : {}),
-      },
-      result,
-    };
-  }
-  if (type === 'void') {
-    return { seq, command: { type: 'undo', ...base, eventId: str(cmd.eventId) }, result };
-  }
-  return null;
-}
 
 // ---- view helpers ------------------------------------------------------------------------------------------------
 

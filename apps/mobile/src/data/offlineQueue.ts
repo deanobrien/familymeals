@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Command, ShoppingState } from '@fr/engine/shopping';
+import { emptyState, type Command, type ShoppingState } from '@fr/engine/shopping';
 
 export interface KeyValueStore {
   getItem(key: string): Promise<string | null>;
@@ -9,6 +9,7 @@ export interface KeyValueStore {
 
 export interface CachedSnapshot {
   listId: string | null;
+  /** The list's `list_seq` (per-list commit-ordered cursor), persisted per list. */
   cursor: number;
   state: ShoppingState;
   members: Record<string, string>;
@@ -30,19 +31,28 @@ function isCommand(v: unknown): v is Command {
 export class OfflineStore {
   constructor(
     private readonly kv: KeyValueStore = AsyncStorage,
-    private readonly prefix = 'fr.shopping.v1.',
+    private readonly prefix = 'fr.shopping.v2.',
   ) {}
 
   private pendingKey(householdId: string) {
     return `${this.prefix}pending.${householdId}`;
   }
-  private snapshotKey(householdId: string) {
-    return `${this.prefix}snapshot.${householdId}`;
+  /** v1 keys held a global-`seq` cursor (unusable now); only the queued commands are still valid. */
+  private legacyPendingKey(householdId: string) {
+    return `fr.shopping.v1.pending.${householdId}`;
+  }
+  /** Which list this household last had, plus the member names (small, changes rarely). */
+  private activeKey(householdId: string) {
+    return `${this.prefix}active.${householdId}`;
+  }
+  /** One record per LIST: its confirmed state and the `list_seq` cursor that state is current to (kept together). */
+  private listKey(listId: string) {
+    return `${this.prefix}list.${listId}`;
   }
 
   async loadPending(householdId: string): Promise<Command[]> {
     try {
-      const raw = await this.kv.getItem(this.pendingKey(householdId));
+      const raw = (await this.kv.getItem(this.pendingKey(householdId))) ?? (await this.kv.getItem(this.legacyPendingKey(householdId)));
       if (!raw) return [];
       const parsed: unknown = JSON.parse(raw);
       return Array.isArray(parsed) ? parsed.filter(isCommand) : [];
@@ -52,17 +62,23 @@ export class OfflineStore {
   }
 
   async savePending(householdId: string, pending: Command[]): Promise<void> {
+    await this.kv.removeItem(this.legacyPendingKey(householdId));
     if (pending.length === 0) await this.kv.removeItem(this.pendingKey(householdId));
     else await this.kv.setItem(this.pendingKey(householdId), JSON.stringify(pending));
   }
 
   async loadSnapshot(householdId: string): Promise<CachedSnapshot | null> {
     try {
-      const raw = await this.kv.getItem(this.snapshotKey(householdId));
-      if (!raw) return null;
-      const s = JSON.parse(raw) as Partial<CachedSnapshot>;
-      if (!s || typeof s.cursor !== 'number' || !s.state || typeof s.state !== 'object') return null;
-      return { listId: s.listId ?? null, cursor: s.cursor, state: s.state, members: s.members ?? {} };
+      const rawActive = await this.kv.getItem(this.activeKey(householdId));
+      if (!rawActive) return null;
+      const active = JSON.parse(rawActive) as { listId?: string | null; members?: Record<string, string> };
+      const members = active.members ?? {};
+      if (!active.listId) return { listId: null, cursor: 0, state: emptyState(), members };
+      const rawList = await this.kv.getItem(this.listKey(active.listId));
+      if (!rawList) return null;
+      const l = JSON.parse(rawList) as { cursor?: unknown; state?: ShoppingState };
+      if (!l || typeof l.cursor !== 'number' || !l.state || typeof l.state !== 'object') return null;
+      return { listId: active.listId, cursor: l.cursor, state: l.state, members };
     } catch {
       return null;
     }
@@ -70,7 +86,8 @@ export class OfflineStore {
 
   async saveSnapshot(householdId: string, snap: CachedSnapshot): Promise<void> {
     try {
-      await this.kv.setItem(this.snapshotKey(householdId), JSON.stringify(snap));
+      if (snap.listId) await this.kv.setItem(this.listKey(snap.listId), JSON.stringify({ cursor: snap.cursor, state: snap.state }));
+      await this.kv.setItem(this.activeKey(householdId), JSON.stringify({ listId: snap.listId, members: snap.members }));
     } catch {
       /* cache only */
     }
@@ -78,6 +95,14 @@ export class OfflineStore {
 
   async clear(householdId: string): Promise<void> {
     await this.kv.removeItem(this.pendingKey(householdId));
-    await this.kv.removeItem(this.snapshotKey(householdId));
+    await this.kv.removeItem(this.legacyPendingKey(householdId));
+    try {
+      const raw = await this.kv.getItem(this.activeKey(householdId));
+      const listId = raw ? (JSON.parse(raw) as { listId?: string | null }).listId : null;
+      if (listId) await this.kv.removeItem(this.listKey(listId));
+    } catch {
+      /* cache only */
+    }
+    await this.kv.removeItem(this.activeKey(householdId));
   }
 }
