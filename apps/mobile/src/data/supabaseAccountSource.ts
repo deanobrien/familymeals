@@ -4,7 +4,7 @@ import { AccountError, isNetworkError, mapAuthApiError, mapDbError } from '@/lib
 import { requireEmail, requireNewPassword } from '@/lib/accountForms';
 import { AUTH_REDIRECT_URL } from '@/lib/authLink';
 import { INVITE_TOKEN_RE, buildAppInviteUrl, buildInviteUrl } from '@/lib/inviteLink';
-import { CONSENT_WORDING_VERSION } from '@/lib/privacyText';
+import { ApiError, createApiClient, type ApiClient } from '@/lib/apiClient';
 import type {
   AccountSettings,
   AccountSource,
@@ -19,6 +19,15 @@ import type {
 } from './accountSource';
 
 type Row = Record<string, unknown>;
+
+/** GET/POST /api/settings answer (apps/web/lib/server/settings/types.ts HouseholdSettings). */
+interface ServerSettings {
+  defaultServings?: number;
+  weeklyBudgetPence?: number | null;
+  exclusions?: string[];
+  consentActive?: boolean;
+  withheldExclusions?: number;
+}
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const isUuid = (v: unknown): v is string => typeof v === 'string' && UUID_RE.test(v);
@@ -52,6 +61,8 @@ export interface SupabaseAccountSourceOptions {
   /** Origin of the web app (EXPO_PUBLIC_API_BASE_URL): invitation links are `<origin>/invite/<token>`. */
   webBaseUrl?: string | undefined;
   verifyPassword?: PasswordVerifier;
+  /** Test seam: the client for the web app's JSON routes (default: one on `webBaseUrl` with the session's access token). */
+  api?: ApiClient;
   /** Called after the session is ended by an account deletion, so the data source can drop its caches. */
   onSignedOut?: () => void;
   now?: () => Date;
@@ -66,6 +77,7 @@ export interface SupabaseAccountSourceOptions {
 export class SupabaseAccountSource implements AccountSource {
   private readonly db: SupabaseClient;
   private readonly webBase: string | undefined;
+  private readonly api: ApiClient;
   private readonly verify: PasswordVerifier;
   private readonly onSignedOut: () => void;
   private readonly now: () => Date;
@@ -73,6 +85,18 @@ export class SupabaseAccountSource implements AccountSource {
   constructor(opts: SupabaseAccountSourceOptions) {
     this.db = opts.client;
     this.webBase = opts.webBaseUrl?.trim().replace(/\/+$/, '') || undefined;
+    this.api =
+      opts.api ??
+      createApiClient({
+        baseUrl: this.webBase,
+        getToken: async () => {
+          try {
+            return (await this.db.auth.getSession()).data.session?.access_token ?? null;
+          } catch {
+            return null;
+          }
+        },
+      });
     this.verify = opts.verifyPassword ?? verifyPasswordOnThrowawayClient;
     this.onSignedOut = opts.onSignedOut ?? (() => undefined);
     this.now = opts.now ?? (() => new Date());
@@ -352,103 +376,56 @@ export class SupabaseAccountSource implements AccountSource {
   }
 
   // ---- settings ---------------------------------------------------------------------------------------------
+  // Preferences, allergies and consent go through the web app's /api/settings (D350): the same server module the web Settings
+  // page uses, so the rules (owner only, consent before exclusions, withdrawal stops them applying) live in one place.
+
+  private async settingsCall(fn: () => Promise<{ settings: ServerSettings }>): Promise<ServerSettings> {
+    try {
+      return (await fn()).settings;
+    } catch (e) {
+      if (!(e instanceof ApiError)) throw e;
+      if (e.status === 0) throw new AccountError(e.retryable ? 'offline' : 'not_configured');
+      if (e.code === 'READ_ONLY') throw new AccountError('read_only');
+      if (e.status === 401 || e.status === 403) throw new AccountError('forbidden');
+      if (e.status === 422 || e.status === 400) throw new AccountError('invalid_input');
+      if (e.status === 404) throw new AccountError('not_found');
+      throw new AccountError('unknown');
+    }
+  }
+
+  private post(householdId: Uuid, body: Record<string, unknown>): Promise<ServerSettings> {
+    this.needUuids(householdId);
+    return this.settingsCall(() => this.api.send<{ settings: ServerSettings }>('POST', '/api/settings', { householdId, ...body }));
+  }
 
   async getSettings(householdId: Uuid): Promise<AccountSettings> {
-    const { userId } = await this.me();
     this.needUuids(householdId);
-    const [h, ex, consent] = await Promise.all([
-      this.db_<Row>(this.db.from('households').select('default_servings, weekly_budget_pence').eq('id', householdId).maybeSingle()),
-      this.db_<Row[]>(this.db.from('household_exclusions').select('id, term').eq('household_id', householdId).order('created_at', { ascending: true })),
-      this.db_<Row[]>(
-        this.db
-          .from('consent_records')
-          .select('id')
-          .eq('household_id', householdId)
-          .eq('user_id', userId)
-          .eq('consent_type', 'allergy_data')
-          .is('withdrawn_at', null),
-      ),
-    ]);
-    if (!h) throw new AccountError('not_found');
-    // Best effort: how many allergy rows the planner is withholding for lack of consent (a count only).
-    let withheld = 0;
-    try {
-      const prof = await this.rpc<{ withheldExclusions?: number }>('planner_household_profile', { p_household_id: householdId });
-      withheld = Number(prof?.withheldExclusions ?? 0) || 0;
-    } catch {
-      /* the notice is advisory */
-    }
+    const r = await this.settingsCall(() => this.api.get<{ settings: ServerSettings }>('/api/settings', { householdId }));
     return {
-      defaultServings: Number(h.default_servings ?? 4),
-      weeklyBudgetPence: typeof h.weekly_budget_pence === 'number' ? h.weekly_budget_pence : null,
-      exclusions: (ex ?? []).filter((r) => typeof r.term === 'string' && r.term !== '').map((r) => ({ id: str(r.id), term: str(r.term) })),
-      consentActive: (consent ?? []).length > 0,
-      withheldExclusions: withheld,
+      defaultServings: Number(r.defaultServings ?? 4),
+      weeklyBudgetPence: typeof r.weeklyBudgetPence === 'number' ? r.weeklyBudgetPence : null,
+      exclusions: (r.exclusions ?? []).filter((t) => typeof t === 'string' && t !== '').map((term) => ({ id: term, term })),
+      consentActive: r.consentActive === true,
+      withheldExclusions: Number(r.withheldExclusions ?? 0) || 0,
     };
   }
 
   async savePreferences(householdId: Uuid, prefs: { defaultServings: number; weeklyBudgetPence: number | null }): Promise<void> {
-    this.needUuids(householdId);
-    const rows = await this.db_<Row[]>(
-      this.db
-        .from('households')
-        .update({ default_servings: prefs.defaultServings, weekly_budget_pence: prefs.weeklyBudgetPence })
-        .eq('id', householdId)
-        .select('id'),
-    );
-    // RLS: only an owner can update the household row; a member's update matches nothing.
-    if ((rows ?? []).length === 0) throw new AccountError('forbidden');
+    const weeklyBudget = prefs.weeklyBudgetPence === null ? '' : (prefs.weeklyBudgetPence / 100).toFixed(2).replace(/\.00$/, '');
+    await this.post(householdId, { action: 'preferences', defaultServings: String(prefs.defaultServings), weeklyBudget });
   }
 
   async saveExclusions(householdId: Uuid, tags: string[], consent: boolean): Promise<void> {
-    const { userId } = await this.me();
-    this.needUuids(householdId);
-    const wanted = [...new Set(tags.map((t) => t.trim().toLowerCase()).filter(Boolean))];
-    if (wanted.length > 0 && !consent) throw new AccountError('invalid_input');
-    if (wanted.length > 0) await this.ensureConsent(householdId, userId);
-    const current = (await this.db_<Row[]>(this.db.from('household_exclusions').select('id, term').eq('household_id', householdId))) ?? [];
-    const keep = new Set(wanted);
-    const have = new Set<string>();
-    const drop: string[] = [];
-    for (const r of current) {
-      const term = typeof r.term === 'string' ? r.term.toLowerCase() : null;
-      if (term && keep.has(term)) have.add(term);
-      else if (term) drop.push(str(r.id));
-    }
-    for (const id of drop) await this.db_(this.db.from('household_exclusions').delete().eq('id', id).eq('household_id', householdId));
-    const stamp = this.now().toISOString();
-    const add = wanted.filter((t) => !have.has(t)).map((term) => ({ household_id: householdId, term, kind: 'allergy', consent_recorded_at: stamp }));
-    if (add.length > 0) await this.db_(this.db.from('household_exclusions').insert(add));
+    if (tags.length > 0 && !consent) throw new AccountError('invalid_input');
+    await this.post(householdId, { action: 'dietary', tags, consent });
   }
 
-  private async ensureConsent(householdId: string, userId: string): Promise<void> {
-    const active = await this.db_<Row[]>(
-      this.db
-        .from('consent_records')
-        .select('id')
-        .eq('household_id', householdId)
-        .eq('user_id', userId)
-        .eq('consent_type', 'allergy_data')
-        .is('withdrawn_at', null),
-    );
-    if ((active ?? []).length > 0) return;
-    await this.db_(
-      this.db.from('consent_records').insert({ household_id: householdId, consent_type: 'allergy_data', wording_version: CONSENT_WORDING_VERSION }),
-    );
+  async withdrawConsent(householdId: Uuid): Promise<void> {
+    await this.post(householdId, { action: 'withdraw_consent' });
   }
 
   async removeAllDietary(householdId: Uuid): Promise<void> {
-    const { userId } = await this.me();
-    this.needUuids(householdId);
-    await this.db_(this.db.from('household_exclusions').delete().eq('household_id', householdId));
-    await this.db_(
-      this.db
-        .from('consent_records')
-        .update({ withdrawn_at: this.now().toISOString() })
-        .eq('household_id', householdId)
-        .eq('user_id', userId)
-        .is('withdrawn_at', null),
-    );
+    await this.post(householdId, { action: 'remove_all' });
   }
 
   // ---- Your data --------------------------------------------------------------------------------------------

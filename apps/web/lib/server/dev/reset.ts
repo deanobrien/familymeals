@@ -10,6 +10,7 @@ import { resetMemoryServices } from '../receipts/memory';
 import { getShoppingRepository } from '../shopping/repository';
 import { getMemoryStoreBook } from '../stores/repository';
 import { resetMemoryExportAudit } from '../export/audit';
+import { resetMemorySettings } from '../settings/memory-store';
 
 /**
  * Dev/e2e-only reset of every in-memory store (DECISIONS D36). Never available in production: the route
@@ -22,6 +23,7 @@ export function devToolsAllowed(env: Parameters<typeof effectiveNodeEnv>[0] = pr
 export function resetInMemoryStores(): string[] {
   getShoppingRepository().reset();
   getMemoryStoreBook().reset();
+  resetMemorySettings();
   resetPlanServices();
   resetPantryServices();
   resetMemoryServices();

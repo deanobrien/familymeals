@@ -1,14 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, type FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import { useState, useTransition, type FormEvent } from 'react';
 import { Badge, Button, Card, Checkbox, ConfirmDialog, Input, Select, useToast } from '@fr/ui';
 import s from '../../lib/dashboard/dashboard.module.css';
 import { AiProviderSection } from './ai-provider-section';
 import { DataSection } from './data-section';
 import type { DataSettingsView } from './data-view';
 import type { AiSettingsView } from './ai-actions';
-import { consentEvent, defaultConsentSink, type ConsentSink } from './consent';
+import type { HouseholdSettings } from '../../lib/server/settings/types';
+import { removeAllDietaryAction, saveDietaryAction, savePreferencesAction, withdrawConsentAction } from './settings-actions';
+import { DEFAULT_DISPLAY_PREFS, type DisplayPrefs } from './display-prefs';
 import {
   COMMON_EXCLUSIONS,
   CONSENT_CHECKBOX_LABEL,
@@ -33,11 +36,21 @@ function collectErrors(issues: { path: PropertyKey[]; message: string }[]): Erro
 /** Recipe discovery source status (D174). Never includes the key itself. */
 export interface RecipeSourceView { label: string; keyKind: 'test' | 'supporter' | 'none'; note: string }
 
-export function SettingsView({ consentSink = defaultConsentSink, ai, recipeSource, data }: { consentSink?: ConsentSink; ai?: AiSettingsView; recipeSource?: RecipeSourceView; data?: DataSettingsView }) {
+/** What the page loaded on the server: the household's saved settings (null = could not be read) and this browser's display choices. */
+export interface SettingsInitial { settings: HouseholdSettings | null; display: DisplayPrefs }
+
+const ERROR_TEXT: Record<string, string> = {
+  forbidden: 'Only a household owner can change this.',
+  read_only: 'This household is read-only while it is waiting to be deleted.',
+  invalid_input: 'Some values were not accepted. Please check and try again.',
+  unknown: 'Something went wrong. Please try again.',
+};
+
+export function SettingsView({ initial, ai, recipeSource, data }: { initial?: SettingsInitial; ai?: AiSettingsView; recipeSource?: RecipeSourceView; data?: DataSettingsView }) {
   return (
     <div className={s.page}>
       <h1>Settings</h1>
-      <PreferencesSection />
+      <PreferencesSection initial={initial} isOwner={data?.isOwner ?? true} />
       <AiProviderSection initial={ai} />
       {recipeSource && (
         <Card>
@@ -61,17 +74,27 @@ export function SettingsView({ consentSink = defaultConsentSink, ai, recipeSourc
         </section>
       </Card>
       <AiUsageSection />
-      <ExclusionsSection sink={consentSink} />
+      <ExclusionsSection initial={initial?.settings ?? null} readOnly={data?.readOnly ?? false} />
       <PantrySection />
       <DataSection {...(data ? { data } : {})} />
     </div>
   );
 }
 
-function PreferencesSection() {
+function PreferencesSection({ initial, isOwner }: { initial: SettingsInitial | undefined; isOwner: boolean }) {
   const toast = useToast();
-  const [values, setValues] = useState<PreferencesInput>(DEFAULT_PREFERENCES);
+  const router = useRouter();
+  const saved = initial?.settings;
+  const display = initial?.display ?? DEFAULT_DISPLAY_PREFS;
+  const [values, setValues] = useState<PreferencesInput>({
+    ...DEFAULT_PREFERENCES,
+    defaultServings: String(saved?.defaultServings ?? 4),
+    weeklyBudget: saved?.weeklyBudgetPence == null ? '' : (saved.weeklyBudgetPence / 100).toFixed(2).replace(/\.00$/, ''),
+    units: display.units,
+    locale: display.locale,
+  });
   const [errors, setErrors] = useState<Errors>({});
+  const [pending, startTransition] = useTransition();
 
   const set = (k: keyof PreferencesInput) => (v: string) => setValues((p) => ({ ...p, [k]: v }));
 
@@ -83,8 +106,17 @@ function PreferencesSection() {
       return;
     }
     setErrors({});
-    // TODO(Supabase): persist household settings.
-    toast.toast({ message: 'Preferences saved' });
+    startTransition(async () => {
+      const res = await savePreferencesAction(values);
+      if (res.ok) {
+        toast.toast({ message: 'Preferences saved' });
+        router.refresh();
+      } else if (res.fieldErrors && Object.keys(res.fieldErrors).length > 0) {
+        setErrors(res.fieldErrors);
+      } else {
+        setErrors({ form: ERROR_TEXT[res.error] ?? ERROR_TEXT.unknown! });
+      }
+    });
   }
 
   return (
@@ -134,8 +166,16 @@ function PreferencesSection() {
           hint="Optional."
           error={errors.weeklyBudget}
         />
+        {!isOwner && <p className={s.muted}>Only a household owner can change the servings and budget.</p>}
+        {errors.form && (
+          <p role="alert" style={{ margin: 0, color: 'var(--fr-danger)' }}>
+            {errors.form}
+          </p>
+        )}
         <div>
-          <Button type="submit">Save preferences</Button>
+          <Button type="submit" disabled={pending}>
+            Save preferences
+          </Button>
         </div>
       </form>
     </Card>
@@ -159,13 +199,31 @@ function AiUsageSection() {
   );
 }
 
-function ExclusionsSection({ sink }: { sink: ConsentSink }) {
+function ExclusionsSection({ initial, readOnly }: { initial: HouseholdSettings | null; readOnly: boolean }) {
   const toast = useToast();
-  const [selected, setSelected] = useState<string[]>([]);
+  const router = useRouter();
+  const [selected, setSelected] = useState<string[]>(initial?.exclusions ?? []);
   const [custom, setCustom] = useState('');
-  const [consent, setConsent] = useState(false);
+  const [consent, setConsent] = useState(initial?.consentActive ?? false);
+  const [onFile, setOnFile] = useState(initial?.consentActive ?? false);
   const [errors, setErrors] = useState<Errors>({});
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const [pending, startTransition] = useTransition();
+
+  function apply(res: Awaited<ReturnType<typeof saveDietaryAction>>, message: string) {
+    if (res.ok) {
+      setSelected(res.settings.exclusions);
+      setConsent(res.settings.consentActive);
+      setOnFile(res.settings.consentActive);
+      setErrors({});
+      toast.toast({ message });
+      router.refresh(); // the consent notice above is rendered on the server
+    } else if (res.fieldErrors && Object.keys(res.fieldErrors).length > 0) {
+      setErrors(res.fieldErrors);
+    } else {
+      setErrors({ form: ERROR_TEXT[res.error] ?? ERROR_TEXT.unknown! });
+    }
+  }
 
   const toggle = (tag: string) =>
     setSelected((p) => (p.includes(tag) ? p.filter((t) => t !== tag) : [...p, tag]));
@@ -183,7 +241,7 @@ function ExclusionsSection({ sink }: { sink: ConsentSink }) {
     setCustom('');
   }
 
-  async function submit(e: FormEvent) {
+  function submit(e: FormEvent) {
     e.preventDefault();
     const r = exclusionsSchema.safeParse({ tags: selected, consent });
     if (!r.success) {
@@ -191,18 +249,16 @@ function ExclusionsSection({ sink }: { sink: ConsentSink }) {
       return;
     }
     setErrors({});
-    if (r.data.tags.length > 0) await sink.record(consentEvent(true));
-    // TODO(Supabase): persist exclusion tags on the household.
-    toast.toast({ message: 'Dietary information saved' });
+    startTransition(async () => apply(await saveDietaryAction({ tags: r.data.tags, consent }), 'Dietary information saved'));
   }
 
-  async function removeAll() {
+  function removeAll() {
     setConfirmRemove(false);
-    setSelected([]);
-    setConsent(false);
-    await sink.record(consentEvent(false));
-    // TODO(Supabase): delete dietary values and mark consent withdrawn.
-    toast.toast({ message: 'All dietary information removed' });
+    startTransition(async () => apply(await removeAllDietaryAction(), 'All dietary information removed'));
+  }
+
+  function withdraw() {
+    startTransition(async () => apply(await withdrawConsentAction(), 'Consent withdrawn. Your list is kept but is not applied.'));
   }
 
   const extras = selected.filter((t) => !(COMMON_EXCLUSIONS as readonly string[]).includes(t));
@@ -270,9 +326,21 @@ function ExclusionsSection({ sink }: { sink: ConsentSink }) {
             See our <Link className={s.link} href="/privacy">privacy notice</Link>.
           </p>
         </fieldset>
+        {errors.form && (
+          <p role="alert" style={{ margin: 0, color: 'var(--fr-danger)' }}>
+            {errors.form}
+          </p>
+        )}
         <div className={s.row}>
-          <Button type="submit">Save dietary information</Button>
-          <Button variant="secondary" onClick={() => setConfirmRemove(true)}>
+          <Button type="submit" disabled={pending || readOnly}>
+            Save dietary information
+          </Button>
+          {onFile && selected.length > 0 && (
+            <Button variant="secondary" onClick={withdraw} disabled={pending || readOnly}>
+              Withdraw consent
+            </Button>
+          )}
+          <Button variant="secondary" onClick={() => setConfirmRemove(true)} disabled={pending || readOnly}>
             Remove all dietary information
           </Button>
         </div>
