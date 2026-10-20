@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { fakeCameraVideoPath } from './support/fake-camera';
 
 // E2E_PORT lets a second dev server run beside the one on 3100 (e.g. while 3100 serves a demo).
 const PORT = Number(process.env.E2E_PORT ?? 3100);
@@ -19,7 +20,26 @@ export default defineConfig({
     navigationTimeout: 60_000,
     actionTimeout: 15_000,
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    { name: 'chromium', testIgnore: /rapid-scan\.spec\.ts/, use: { ...devices['Desktop Chrome'] } },
+    {
+      // Continuous barcode scanning (BS1): Chromium's fake camera plays a generated video of barcodes, so getUserMedia, the
+      // frame loop and the WASM decoder all run for real (headless Chromium has no BarcodeDetector, so this is the iPhone path).
+      name: 'chromium-camera',
+      testMatch: /rapid-scan\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        permissions: ['camera'],
+        launchOptions: {
+          args: [
+            '--use-fake-device-for-media-stream',
+            '--use-fake-ui-for-media-stream',
+            `--use-file-for-fake-video-capture=${fakeCameraVideoPath()}`,
+          ],
+        },
+      },
+    },
+  ],
   webServer: {
     command: `pnpm --filter @fr/web exec next dev -p ${PORT}`,
     url: `http://localhost:${PORT}`,

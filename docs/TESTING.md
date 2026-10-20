@@ -25,6 +25,8 @@ Static checks: `pnpm typecheck` (11 tasks; engine uses `tsconfig.test.json`), `p
 - Specs must not assume they are the only writers to the recipe store (imports add recipes). Reset the shared store **in place** (`resetRecipeRepository`); replacing the instance splits the import sink from the store.
 - `E2E_AUTH_CONFIGURED=1` with dummy `NEXT_PUBLIC_SUPABASE_URL/ANON_KEY` pointing at nothing runs the gated-routes variant of `auth.spec.ts` (fails closed to signed-out); without it the mock-auth variant runs.
 
+- **Camera project (BS1)**: `e2e/specs/rapid-scan.spec.ts` runs in a second Playwright project, `chromium-camera`, with Chromium's fake camera playing a generated video of barcodes (`e2e/support/fake-camera.ts` writes a Y4M into the temp folder; nothing is committed). The default `chromium` project ignores that spec. Run just it with `playwright test --project=chromium-camera --workers=2`. Headless Chromium has no BarcodeDetector, so it exercises getUserMedia, the frame loop and the real zxing-wasm decoder (the iPhone path). A click before hydration is lost: specs retry clicks with `toPass`.
+
 ## 3. Isolation rules (important)
 
 1. **Never let a test touch the owner's `apps/web/.data/`.** It holds the owner's encrypted AI provider key and dev app secret. Always run e2e with your own data directory:

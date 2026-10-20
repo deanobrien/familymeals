@@ -5,7 +5,7 @@ import { Badge, Button, Card, CardBody, Checkbox, Input, Select } from '@fr/ui';
 import { UNIT_OPTIONS, categoryLabel, type IngredientHit } from '../../../lib/pantry/types';
 import { postScan } from '../../../lib/pantry/scan-client';
 import {
-  applyEstimates, confidenceTone, mergeCloseUp, rowName, toCommitRows, withCount, withDate, withQuantity,
+  applyEstimates, confidenceTone, mergeCloseUp, nameItMyself, rowName, toCommitRows, withCount, withDate, withQuantity,
   type DateSource, type ScanRow,
 } from '../../../lib/pantry/scan-rows';
 import type { ScanPreviewLine } from '../../../lib/pantry/scan-types';
@@ -22,10 +22,14 @@ interface Props {
   warnings: string[];
   imageCount: number;
   onBack: () => void;
+  /** Label for the back button ("Back to photos", or "Back to scanning" after a continuous scan). */
+  backLabel?: string;
+  /** Ask the lookup again for a barcode whose lookup failed (continuous scan). */
+  onRetry?: (barcode: string) => void;
   onAdded: (message: string) => void;
 }
 
-export function ReviewStep({ rows, setRows, warnings, imageCount, onBack, onAdded }: Props) {
+export function ReviewStep({ rows, setRows, warnings, imageCount, onBack, backLabel = 'Back to photos', onRetry, onAdded }: Props) {
   const [estimate, setEstimate] = useState(false);
   const [preview, setPreview] = useState<Record<string, ScanPreviewLine>>({});
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -79,6 +83,8 @@ export function ReviewStep({ rows, setRows, warnings, imageCount, onBack, onAdde
   }
 
   const included = rows.filter((r) => r.include).length;
+  const isRapid = rows.some((r) => r.rapid);
+  const waiting = rows.filter((r) => r.include && r.lookup === 'pending').length;
 
   return (
     <div className={s.stack}>
@@ -86,6 +92,14 @@ export function ReviewStep({ rows, setRows, warnings, imageCount, onBack, onAdde
         Nothing has been added yet. Check each item, fix anything that is wrong, then confirm. Dates are read best from
         close-up photos.
       </div>
+      {isRapid && (
+        <div className={s.info} role="note" data-testid="rapid-review-note">
+          <strong>Add dates later:</strong> products scanned from barcodes have no date on them, so they go into your pantry
+          without an expiry date unless you add one. Open <em>Dates and close-up</em> on any item to type a date or read it from a
+          photo.
+          {waiting > 0 && <> <span data-testid="rapid-waiting">Still looking up {waiting} {waiting === 1 ? 'product' : 'products'}: they fill in as the lookups finish.</span></>}
+        </div>
+      )}
       {warnings.length > 0 && (
         <ul aria-label="Scan warnings" className={s.note} style={{ margin: 0, paddingLeft: '1.25rem' }}>
           {warnings.map((w) => <li key={w}>{w}</li>)}
@@ -122,6 +136,7 @@ export function ReviewStep({ rows, setRows, warnings, imageCount, onBack, onAdde
               error={commit.errors[r.key]}
               onChange={(next) => patch(r.key, next)}
               onCloseUp={(file) => void closeUp(r.key, file)}
+              onRetry={onRetry}
             />
           ))}
         </ul>
@@ -161,8 +176,8 @@ export function ReviewStep({ rows, setRows, warnings, imageCount, onBack, onAdde
         <Button disabled={pending || commit.rows.length === 0 || errorCount > 0} loading={pending} onClick={confirm}>
           {included === 0 ? 'Add to pantry' : `Add ${commit.rows.length} ${commit.rows.length === 1 ? 'item' : 'items'} to pantry`}
         </Button>
-        <Button variant="secondary" disabled={pending} onClick={onBack}>Back to photos</Button>
-        {errorCount > 0 && <span className={s.fieldError}>Fix the items marked below first.</span>}
+        <Button variant="secondary" disabled={pending} onClick={onBack}>{backLabel}</Button>
+        {errorCount > 0 && <span className={s.fieldError}>{waiting > 0 && waiting === errorCount ? 'Waiting for the product lookups, or name those items yourself.' : 'Fix the items marked below first.'}</span>}
       </div>
     </div>
   );
@@ -176,11 +191,85 @@ const SOURCE_BADGE: Record<DateSource, { tone: 'success' | 'warning' | 'accent' 
   estimate: { tone: 'warning', label: 'Estimate, not read from the pack' },
 };
 
-function ScanRowCard({ row, error, onChange, onCloseUp }: { row: ScanRow; error?: string; onChange: (r: ScanRow) => void; onCloseUp: (f: File) => void }) {
+interface CardProps {
+  row: ScanRow;
+  error?: string;
+  onChange: (r: ScanRow) => void;
+  onCloseUp: (f: File) => void;
+  onRetry?: ((barcode: string) => void) | undefined;
+}
+
+function ScanRowCard({ row, error, onChange, onCloseUp, onRetry }: CardProps) {
   const conf = confidenceTone(row.confidence);
-  const showCloseUp = row.needsCloseUp || row.closeUp !== 'idle';
+  const showCloseUp = row.needsCloseUp || row.closeUp !== 'idle' || !!row.rapid;
   const ub = SOURCE_BADGE[row.useBySource];
   const bb = SOURCE_BADGE[row.bestBeforeSource];
+  const code = row.barcode ?? row.scanBarcode;
+
+  // A scanned code whose product is still being looked up: count it, or name it yourself without waiting.
+  if (row.lookup === 'pending') {
+    return (
+      <li data-testid="scan-row" data-lookup="pending" aria-label={`Scanned item: ${row.scannedName}`} className={row.include ? undefined : s.rowOff}>
+        <Card>
+          <CardBody>
+            <div className={s.rowCard}>
+              <div className={s.rowHead}>
+                <Checkbox
+                  label={<strong>{row.scannedName}</strong>}
+                  aria-label={`Include ${row.scannedName}`}
+                  checked={row.include}
+                  onChange={(e) => onChange({ ...row, include: e.target.checked })}
+                />
+                <Badge tone="accent">Looking up...</Badge>
+              </div>
+              <p role="status" className={s.muted}>Looking this product up. It fills in by itself when it is found.</p>
+              <div className={s.grid}>
+                <Input label="Count" inputMode="numeric" value={row.count} onChange={(e) => onChange(withCount(row, e.target.value))} />
+              </div>
+              <div className={s.actions}>
+                <Button variant="secondary" size="sm" onClick={() => onChange(nameItMyself(row))} aria-label={`Name ${row.scannedName} myself`}>Name it myself</Button>
+              </div>
+              {error && <p role="alert" className={s.fieldError}>{error}</p>}
+            </div>
+          </CardBody>
+        </Card>
+      </li>
+    );
+  }
+
+  const dates = (
+    <>
+      <div className={s.grid}>
+        <div className={s.stack}>
+          <Input label="Use by" type="date" value={row.useBy} onChange={(e) => onChange(withDate(row, 'useBy', e.target.value))} />
+          {ub && <Badge tone={ub.tone}>{ub.label}</Badge>}
+        </div>
+        <div className={s.stack}>
+          <Input label="Best before" type="date" value={row.bestBefore} onChange={(e) => onChange(withDate(row, 'bestBefore', e.target.value))} />
+          {bb && <Badge tone={bb.tone} data-testid={row.bestBeforeSource === 'estimate' ? 'estimate-badge' : undefined}>{bb.label}</Badge>}
+        </div>
+      </div>
+
+      {showCloseUp && (
+        <div className={s.closeUp} data-testid="closeup-block">
+          <span role="status">
+            {row.closeUpMessage ?? (row.rapid ? 'Optional: photograph the date label to read it.' : 'A date label is visible but too small to read.')}
+          </span>
+          {row.closeUp !== 'done' && (
+            <label className="fr-btn fr-btn--secondary fr-btn--sm" style={{ cursor: 'pointer' }}>
+              Take close-up<span className="fr-visually-hidden"> of {row.scannedName}</span>
+              <input
+                type="file" accept="image/*" capture="environment" data-testid="closeup-input" className="fr-visually-hidden"
+                disabled={row.closeUp === 'busy'}
+                onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) onCloseUp(f); }}
+              />
+            </label>
+          )}
+        </div>
+      )}
+    </>
+  );
+
   return (
     <li data-testid="scan-row" aria-label={`Scanned item: ${row.scannedName}`} className={row.include ? undefined : s.rowOff}>
       <Card>
@@ -194,7 +283,7 @@ function ScanRowCard({ row, error, onChange, onCloseUp }: { row: ScanRow; error?
                 onChange={(e) => onChange({ ...row, include: e.target.checked })}
               />
               <div className={s.badges}>
-                {row.barcode ? <Badge tone="accent" data-testid="barcode-badge">From barcode {row.barcode}</Badge> : (
+                {code ? <Badge tone="accent" data-testid="barcode-badge">From barcode {code}</Badge> : (
                   <>
                     <Badge tone={conf.tone} data-testid="confidence">{conf.label} ({Math.round(row.confidence * 100)}%)</Badge>
                     <span className={s.muted}>seen in {row.frameRefs.length === 1 ? 'image' : 'images'} {row.frameRefs.join(', ')}</span>
@@ -204,6 +293,12 @@ function ScanRowCard({ row, error, onChange, onCloseUp }: { row: ScanRow; error?
             </div>
             {row.notes && <p className={s.muted}>{row.notes}</p>}
             {row.product && <ProductInfo product={row.product} />}
+            {row.lookupMessage && row.lookup && row.lookup !== 'manual' && (
+              <div className={s.closeUp} data-testid="lookup-note">
+                <span role="status">{row.lookupMessage}</span>
+                {row.lookup === 'failed' && code && onRetry && <Button variant="secondary" size="sm" onClick={() => onRetry(code)}>Try the lookup again</Button>}
+              </div>
+            )}
 
             <MatchPicker row={row} onChange={onChange} />
 
@@ -214,34 +309,12 @@ function ScanRowCard({ row, error, onChange, onCloseUp }: { row: ScanRow; error?
               <Select label="Unit" options={unitOptions} value={row.unit} onChange={(e) => onChange(withQuantity(row, { unit: e.target.value }))} />
             </div>
 
-            <div className={s.grid}>
-              <div className={s.stack}>
-                <Input label="Use by" type="date" value={row.useBy} onChange={(e) => onChange(withDate(row, 'useBy', e.target.value))} />
-                {ub && <Badge tone={ub.tone}>{ub.label}</Badge>}
-              </div>
-              <div className={s.stack}>
-                <Input label="Best before" type="date" value={row.bestBefore} onChange={(e) => onChange(withDate(row, 'bestBefore', e.target.value))} />
-                {bb && <Badge tone={bb.tone} data-testid={row.bestBeforeSource === 'estimate' ? 'estimate-badge' : undefined}>{bb.label}</Badge>}
-              </div>
-            </div>
-
-            {showCloseUp && (
-              <div className={s.closeUp} data-testid="closeup-block">
-                <span role="status">
-                  {row.closeUpMessage ?? 'A date label is visible but too small to read.'}
-                </span>
-                {row.closeUp !== 'done' && (
-                  <label className="fr-btn fr-btn--secondary fr-btn--sm" style={{ cursor: 'pointer' }}>
-                    Take close-up<span className="fr-visually-hidden"> of {row.scannedName}</span>
-                    <input
-                      type="file" accept="image/*" capture="environment" data-testid="closeup-input" className="fr-visually-hidden"
-                      disabled={row.closeUp === 'busy'}
-                      onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) onCloseUp(f); }}
-                    />
-                  </label>
-                )}
-              </div>
-            )}
+            {row.rapid ? (
+              <details data-testid="dates-details" className={s.stack}>
+                <summary style={{ minHeight: "var(--fr-target)", cursor: "pointer", display: "flex", alignItems: "center" }}>Dates and close-up (optional)</summary>
+                {dates}
+              </details>
+            ) : dates}
             {error && <p role="alert" className={s.fieldError}>{error}</p>}
           </div>
         </CardBody>

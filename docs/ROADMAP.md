@@ -26,6 +26,7 @@ Owner ideas first; others are maintainers' notes. Nothing here is committed scop
 - **Store aisles and in-store ordering** (owner idea, lane AS1): done on web and Android (D290-D299). Households define stores and aisles, place ingredients (or whole categories) per store, pick the shop on `/shopping` to see the list in aisle order; optional "learn from my route" (suggest only). Next: offline placement queue on Android, store maps/photos.
 - **Pantry video scan** (owner idea): done (P2); next is measuring accuracy and adding barcode lookup.
 - **TheMealDB recipe discovery** (owner idea, lane X1 in progress): browse/search an open recipe API, import selected recipes as drafts through the same review step; attribute the source; do not store without review; respect the API terms.
+- **Continuous barcode scanning** (owner request, lane BS1): done on web (D270-D273) and Android hand-off (D274); not done: phone-as-scanner for a desktop session (D275), a beep and keep-awake in the app, measuring decode speed and hit rate on real phones.
 - **Open Food Facts** (owner idea, lane X2 in progress): barcode/product lookup to fill pack sizes, brand and nutrition for pantry items and price packs; ODbL attribution; cache results per household.
 - Receipts: retailer-specific parsers, loyalty-card price capture, split-bill for shared households.
 - Planner: leftovers-aware plans, budget-first mode, batch-cooking suggestions, seasonal produce.
