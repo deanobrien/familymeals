@@ -111,6 +111,7 @@ export default function CaptureScreen({
       <ImportReviewScreen
         outcome={outcome}
         client={client}
+        pages={images}
         onDone={() => {
           setOutcome(null);
           setImages([]);

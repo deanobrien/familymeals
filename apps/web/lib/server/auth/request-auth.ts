@@ -17,6 +17,8 @@ export interface RequestAuth {
   readOnly: boolean;
   /** The caller's own client + household for the Supabase repositories; null in mock-auth demo mode. */
   dataContext: DataContext | null;
+  /** The chosen household's default serving count (the recipe detail opens at this). */
+  defaultServings: number;
 }
 
 export type AuthOutcome = { ok: true; auth: RequestAuth } | { ok: false; status: 400 | 401 | 403; message: string };
@@ -75,6 +77,7 @@ export async function resolveBearerAuth(token: string, requestedHouseholdId: str
         userId: data.user.id,
         householdId: chosen.id,
         readOnly: isReadOnly(chosen),
+        defaultServings: chosen.defaultServings,
         dataContext: { client, householdId: chosen.id, userId: data.user.id },
       },
     };
@@ -100,6 +103,7 @@ export async function resolveRequestAuth(req: Request, requestedHouseholdId?: st
       userId: ctx.user.id,
       householdId: chosen.id,
       readOnly: isReadOnly(chosen),
+      defaultServings: chosen.defaultServings,
       dataContext: ctx.mode === 'supabase' ? { client: ctx.supabase, householdId: chosen.id, userId: ctx.user.id } : null,
     },
   };

@@ -10,7 +10,16 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName === '@fr/ai' || moduleName.startsWith('@fr/ai/')) {
     throw new Error('@fr/ai is server-only and cannot be imported from apps/mobile.');
   }
-  return (prevResolve || context.resolveRequest)(context, moduleName, platform);
+  const resolve = prevResolve || context.resolveRequest;
+  // @fr/recipe-import imports './x.js' for './x.ts' (NodeNext style): try the literal request, then without the extension.
+  if (/^\.{1,2}\/.+\.js$/.test(moduleName)) {
+    try {
+      return resolve(context, moduleName, platform);
+    } catch {
+      return resolve(context, moduleName.slice(0, -3), platform);
+    }
+  }
+  return resolve(context, moduleName, platform);
 };
 
 module.exports = config;

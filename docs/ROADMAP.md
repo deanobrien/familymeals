@@ -28,11 +28,11 @@ Standing rule (D310): every web feature also ships on Android unless a reason is
 | Sign in / household picker | ✅ | ✅ | none |
 | Sign-up / forgot password | ✅ | ❌ | build on Android |
 | Household members / invites / transfer | ✅ | ❌ | build on Android |
-| Recipes browse / detail | ✅ | ✅ | detail lacks cost/nutrition panels and household-default servings |
-| Recipe create / edit + ingredient matching | ✅ | ❌ | build on Android |
-| Photo import full review/edit | ✅ | ⚠️ | capture + read-only summary only |
-| Discover | ✅ | ❌ | build on Android |
-| Meal planner manual + prompt chips | ✅ | ✅ | P0-C (D341); needs device check |
+| Recipes browse / detail | ✅ | ✅ | none (P0-B: search, filters, sort, collections, favourites, covers, household-default servings, cost + nutrition panels; needs a device check) |
+| Recipe create / edit + ingredient matching | ✅ | ✅ | none (P0-B: form, "Matched to" picker, duplicates, copy, delete) |
+| Photo import full review/edit | ✅ | ✅ | none (P0-B: full on-phone review, same corrections as web) |
+| Discover | ✅ | ✅ | none (P0-B; "Add to plan" hands off to the web planner until P0-C ships the Android planner) |
+| Meal planner manual + prompt chips | ✅ | ✅ | P0-C (D341); needs device check. Discover "Add to plan" still opens the web planner (`/plan?add=`): wiring it to the Android planner is a follow-up |
 | Shopping list live / offline / aisles | ✅ | ✅ | none |
 | Multi-list + handwritten list scan | ✅ | ✅ | P0-C (D346) |
 | Pantry stock / expiry / use-what-I-have / photo-video scan | ✅ | ⚠️ | P0-C (D342-D343): all but video frames (web-only, native module) and min stock (PR1 not merged) |

@@ -47,6 +47,13 @@ describe('bearer token parsing and middleware pass-through (D102)', () => {
     expect(acceptsBearer('/api/admin', 'Bearer t')).toBe(false); // not opted in
     expect(acceptsBearer('/recipes', 'Bearer t')).toBe(false);
   });
+  it('middleware lets a bearer request through to the recipe, catalogue and discover APIs (and nothing else under /api)', () => {
+    for (const p of ['/api/recipes', '/api/recipes/abc', '/api/recipes/abc/favourite', '/api/recipes/duplicates', '/api/catalogue/search', '/api/catalogue/match', '/api/discover/filters', '/api/discover/search', '/api/discover/draft']) {
+      expect(acceptsBearer(p, 'Bearer t')).toBe(true);
+      expect(acceptsBearer(p, null)).toBe(false);
+    }
+    expect(acceptsBearer('/api/plan', 'Bearer t')).toBe(false);
+  });
 });
 
 describe('resolveBearerAuth', () => {
@@ -56,6 +63,7 @@ describe('resolveBearerAuth', () => {
     expect(out).toMatchObject({ ok: true, auth: { userId: U, householdId: H1, readOnly: false } });
     if (!out.ok) throw new Error('unreachable');
     expect(out.auth.dataContext).toMatchObject({ householdId: H1, userId: U });
+    expect(out.auth.defaultServings).toBe(4);
     expect(seen).toEqual(['good']);
   });
   it('rejects a token the auth server does not accept', async () => {

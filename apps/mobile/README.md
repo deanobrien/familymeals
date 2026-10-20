@@ -73,3 +73,9 @@ For quick UI/logic checks without building anything (camera, picker, SecureStore
 - SecureStore session persistence, NetInfo transitions (airplane mode), foreground resync, TalkBack and dark mode on a real Android device.
 - The hosted project (the live checks above run against the local stack only), and an installed APK talking to it.
 - End-to-end photo import with a real AI provider key on the web server (the local checks use the mock provider).
+
+## Recipes (P0-B, D330-D335)
+
+Library, detail, create/edit/copy/delete, full import review and Discover call the web app's bearer JSON routes (`src/lib/recipesApi.ts`; `EXPO_PUBLIC_API_BASE_URL` is required when Supabase is configured). With no Supabase env the screens run on `src/lib/mockRecipesApi.ts` (demo data). Tests: `__tests__/recipe*.test.*`, `importReview`, `discover`, `servings`.
+
+Also needs a device: cover images behind the `/api/images` redirect, the AsyncStorage servings override across restarts, long-form keyboard behaviour, TalkBack on the filter chips and steppers, and a real `/api/extract/save` after on-phone edits.
