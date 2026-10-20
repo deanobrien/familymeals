@@ -3,6 +3,7 @@ import { ErrorState } from '@fr/ui';
 import { getRecipeRepository } from '../../lib/recipes/factory';
 import { parseRecipeQuery } from '../../lib/recipes/schema';
 import { RecipeFilters } from './_components/RecipeFilters';
+import { RematchAllButton } from './_components/RematchButtons';
 import { RecipeResults } from './_components/RecipeResults';
 import styles from './recipes.module.css';
 
@@ -39,15 +40,18 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
   }
 
   return (
-    <>
+    <div className="fr-has-fab">
       <div className={styles.header}>
         <h1>Recipes</h1>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <Link href="/recipes/import" className={`fr-btn fr-btn--primary ${styles.linkBtn}`} data-testid="add-from-photo">
+            <span aria-hidden="true">📷</span> Add from photo
+          </Link>
+          <Link href="/recipes/new" className={`fr-btn fr-btn--secondary ${styles.linkBtn}`}>
+            New recipe
+          </Link>
           <Link href="/recipes/discover" className={`fr-btn fr-btn--secondary ${styles.linkBtn}`}>
             Discover
-          </Link>
-          <Link href="/recipes/new" className={`fr-btn fr-btn--primary ${styles.linkBtn}`}>
-            New recipe
           </Link>
         </div>
       </div>
@@ -62,6 +66,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
         view={view}
         hasAnyRecipes={data.hasAny}
       />
-    </>
+      {data.hasAny && <RematchAllButton />}
+      <Link href="/recipes/import" className="fr-btn fr-btn--primary fr-fab" data-testid="add-from-photo-fab">
+        <span aria-hidden="true">📷</span> Add from photo
+      </Link>
+    </div>
   );
 }

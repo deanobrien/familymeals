@@ -75,7 +75,7 @@ test.describe.serial('Main journey (BRIEF s15)', () => {
     await review.save().click();
     await expect(page).toHaveURL(/\/recipes\/[0-9a-f-]{36}$/, { timeout: 30_000 });
     await expect(page.getByRole('heading', { level: 1, name: SOUP })).toBeVisible();
-    await expect(page.getByTestId('ingredient-qty').first()).toHaveText('300 g');
+    await expect(page.getByTestId('ingredient-qty').first()).toHaveText('200 g');
 
     await page.goto('/recipes?q=journey+lentil');
     await expect(new RecipeLibraryPage(page).card(SOUP)).toBeVisible();

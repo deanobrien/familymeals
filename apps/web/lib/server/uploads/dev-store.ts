@@ -6,7 +6,8 @@ import { dataDir } from '../ai/secret';
 /**
  * Local dev store for uploaded recipe photos: `<dataDir>/uploads/<uploadId>/{page-N.jpg,cover.jpg,.saved}`.
  * Gitignored. Served by `app/api/uploads/[id]/[file]/route.ts`.
- * TODO(Supabase): replace with Supabase Storage (private bucket, signed URLs, household-scoped RLS).
+ * Local-mode implementation behind `ImageStore` (lib/server/images); with DATA_BACKEND=supabase images live in Supabase
+ * Storage instead (ST1, D190).
  */
 export const UPLOAD_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const UPLOAD_FILE_RE = /^(?:page-\d{1,2}|cover)\.jpg$/;
@@ -18,6 +19,7 @@ export const pageUrl = (id: string, n: number) => `/api/uploads/${id}/page-${n}.
 
 export interface UploadFiles {
   writePages(id: string, pages: Uint8Array[]): void;
+  writePage(id: string, n: number, data: Uint8Array): void;
   writeCover(id: string, data: Uint8Array): void;
   /** Returns undefined for unknown ids/files and for anything that is not a plain expected file name. */
   read(id: string, file: string): Buffer | undefined;
@@ -38,6 +40,13 @@ export class DiskUploadFiles implements UploadFiles {
     if (!dir) throw new Error('bad upload id');
     mkdirSync(dir, { recursive: true });
     pages.forEach((p, i) => writeFileSync(join(dir, `page-${i + 1}.jpg`), p));
+  }
+
+  writePage(id: string, n: number, data: Uint8Array): void {
+    const dir = this.dirFor(id);
+    if (!dir || !UPLOAD_FILE_RE.test(`page-${n}.jpg`)) throw new Error('bad upload id');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, `page-${n}.jpg`), data);
   }
 
   writeCover(id: string, data: Uint8Array): void {

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { EmptyState, RecipeCard, RecipeGrid, useToast, type RecipeView as ViewMode } from '@fr/ui';
+import { imageSrc } from '../../../lib/server/images/paths';
 import { recipeQueryToParams, type RecipeQuery } from '../../../lib/recipes/schema';
 import { costPerServing, totalMinutes, type RecipeView } from '../../../lib/recipes/types';
 import { toggleFavouriteAction } from '../actions';
@@ -45,12 +46,17 @@ export function RecipeResults({ items, total, page, pageCount, query, view, hasA
         action={<Link href="/recipes" className="fr-btn fr-btn--secondary">Clear all filters</Link>}
       />
     ) : (
-      <EmptyState
-        icon="book"
-        title="No recipes yet"
-        description="Recipes you add or import will live here."
-        action={<Link href="/recipes/new" className="fr-btn fr-btn--primary">Add a recipe</Link>}
-      />
+      <section className="fr-cta" aria-labelledby="recipes-cta-h" data-testid="recipes-empty-cta">
+        <h2 id="recipes-cta-h">Photograph a recipe card or cookbook page</h2>
+        <p>Snap a photo and we will turn it into a recipe you can edit, scale and cook from.</p>
+        <div className="fr-cta__actions">
+          <Link href="/recipes/import" className="fr-btn fr-btn--primary fr-btn--lg" data-testid="empty-add-from-photo">
+            <span aria-hidden="true">📷</span> Add from photo
+          </Link>
+          <Link href="/recipes/new" className="fr-btn fr-btn--secondary fr-btn--lg">Type it in</Link>
+          <Link href="/recipes/discover" className="fr-btn fr-btn--secondary fr-btn--lg">Discover ideas</Link>
+        </div>
+      </section>
     );
   }
 
@@ -65,7 +71,7 @@ export function RecipeResults({ items, total, page, pageCount, query, view, hasA
             key={r.id}
             title={r.title}
             href={`/recipes/${r.id}`}
-            imageUrl={r.imageUrl}
+            imageUrl={imageSrc(r.imageUrl)}
             totalMinutes={totalMinutes(r)}
             costPerServingPence={costPerServing(r)}
             tags={r.tags}

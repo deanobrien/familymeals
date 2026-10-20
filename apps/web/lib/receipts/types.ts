@@ -37,6 +37,8 @@ export interface ReceiptRecord {
   /** Sum of net line prices (after discounts), integer pence. */
   computedPence: number;
   imageName?: string;
+  /** Storage paths of the kept receipt photo(s) (Supabase receipt-images bucket; absent in local mode). */
+  imagePaths?: string[];
   createdAt: string;
   status: ReceiptStatus;
   lines: ReceiptLineRecord[];
