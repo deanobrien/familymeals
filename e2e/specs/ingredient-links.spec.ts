@@ -1,8 +1,16 @@
 // IL1: ingredient links for recipes created in the form (D220-D229). In-memory mode, mock auth.
 // Every test creates its own uniquely titled recipe, so the seeded library tests stay order independent.
 import { expect, test, type Page } from '@playwright/test';
+import { enterHousehold, newHouseholdId, openRecipeEditor } from '../support/helpers';
 
 test.describe.configure({ mode: 'serial' });
+
+// Own sandbox household (D160): recipes created here must not land in household A's library, whose browse/search specs
+// assume the seeded recipes fit on the first page of 12 (extra household-A recipes pushed "Sunday Tomato Pasta" off it, FL1).
+const household = newHouseholdId('links');
+test.beforeEach(async ({ context }) => {
+  await enterHousehold(context, household);
+});
 
 const uid = Date.now().toString(36);
 
@@ -32,8 +40,7 @@ test('a hand-typed ingredient is matched on save, so cost and nutrition are comp
   await expect(page.getByTestId('unlinked-notice')).toHaveCount(0);
 
   // the saved link is shown again when editing
-  await page.getByRole('link', { name: 'Edit', exact: true }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Edit recipe' })).toBeVisible({ timeout: 60_000 });
+  await openRecipeEditor(page);
   await expect(link(page, 1)).toContainText('Matched to: plain flour');
 });
 
@@ -48,8 +55,7 @@ test('an unclear name offers candidates and a chosen one is saved and kept on ed
 
   await expect(page).toHaveURL(/\/recipes\/[0-9a-f-]{36}$/);
   await expect(page.getByTestId('unlinked-notice')).toHaveCount(0);
-  await page.getByRole('link', { name: 'Edit', exact: true }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Edit recipe' })).toBeVisible({ timeout: 60_000 });
+  await openRecipeEditor(page);
   await expect(link(page, 1)).toContainText('Matched to: fresh coriander');
 
   // saving again without touching the line preserves the manual choice

@@ -2,6 +2,8 @@ import { loadAiSettingsAction } from './ai-actions';
 import { recipeSourceStatus } from '../../lib/server/discover/source';
 import { requireHouseholdContext } from '../../lib/server/auth/household-context';
 import { loadLifecycle } from '../../lib/server/privacy/lifecycle';
+import { getWithheldExclusionCount } from '../../lib/server/plan/withheld';
+import { ConsentNotice } from '../consent-notice';
 import { SettingsView } from './settings-view';
 import type { DataSettingsView } from './data-view';
 
@@ -35,5 +37,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
   const sp = await searchParams;
   const notice = typeof sp.notice === 'string' && /^[a-z_]{1,40}$/.test(sp.notice) ? sp.notice : null;
   const [ai, data] = await Promise.all([loadAiSettingsAction(), loadDataView(notice)]);
-  return <SettingsView ai={ai} recipeSource={recipeSourceStatus()} data={data} />;
+  const withheld = await getWithheldExclusionCount();
+  return (
+    <>
+      <ConsentNotice withheld={withheld} />
+      <SettingsView ai={ai} recipeSource={recipeSourceStatus()} data={data} />
+    </>
+  );
 }

@@ -8,6 +8,8 @@
  * or weak APP_SECRET. Uploaded images live in Supabase Storage (private buckets, ST1 D190); the local-file store is a
  * dev / mock-mode implementation only, so the old ALLOW_LOCAL_FILE_STORE opt-in is gone (a leftover setting is ignored).
  */
+import { effectiveNodeEnv } from '../../e2e-mode';
+
 export interface ProdEnv {
   NODE_ENV?: string;
   NEXT_PUBLIC_SUPABASE_URL?: string;
@@ -23,7 +25,7 @@ export interface ProdEnv {
 }
 
 export function isProduction(env: ProdEnv = process.env as ProdEnv): boolean {
-  return env.NODE_ENV === 'production';
+  return effectiveNodeEnv(env) === 'production';
 }
 
 /** Returns human-readable problems; empty when not production or when everything required is present. */

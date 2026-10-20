@@ -526,6 +526,54 @@ Screenshots at 768 and 820 show the bottom bar with the 4-column plan grid fitti
 
 Instrumenting the controller showed that in failing runs B's replay reached the server BEFORE A's tick (A's tick was still queued behind an in-flight poll sync; the spec's "A confirmed" check, `pending-badge` count 0, is vacuous because the badge only decorates list rows, not Purchased rows). B legitimately won and A got the "Another shopper already bought" toast; the spec only looked at B. Server idempotency and conflict reporting behaved correctly (the first command to reach the server wins and the loser is always told). Fix: both race specs now wait for the first shopper's `sync-status` to read "All changes saved" (server-confirmed) before the other reconnects / is checked. Was failing about 1 run in 10; 30/30 stable after.
 
+## D240 E2E cold-start flakes: warm every route, longer dev timeouts (FL1)
+
+The shopping/journey/plan failures under load were cold-start compile timeouts, not app races: `recipes/[id]/edit` (and other routes) were missing from the globalSetup warm list, so the first test to visit them compiled them against a 15 s expect; `router.replace('/shopping')` after "generate from plan" refetches the page RSC, slow on a cold dev server. `global-setup.ts` now warms every page route and every API route; dev-mode expect/action timeouts are 20 s; URL/sync waits that follow server round trips are 30-45 s. Four consecutive full dev runs on an idle machine were green (277 passed); load is required to fail, and reproducing with CPU burners is forbidden (it froze the owner's PC).
+
+## D241 Production-build e2e mode (`pnpm test:e2e:prod`, CI)
+
+`next build && next start` removes request-time compilation entirely. `next start` forces NODE_ENV=production, which refuses mock auth, the in-memory backend, the mock AI and `/api/dev/*`. `E2E_PRODUCTION_BUILD=1` makes those guards read NODE_ENV as `e2e-production-build` (`lib/e2e-mode.ts`, unit-tested) ONLY when NODE_ENV=production and there is no Supabase URL and DATA_BACKEND is not supabase; a real deployment must have both, so the flag is inert there. It also skips the CSP/HSTS headers at build. CI's e2e job uses it.
+
+## D242 Consent notice for withheld allergy exclusions (closes the D129 open item)
+
+When allergy/intolerance exclusions exist but the recording member's consent is missing or withdrawn (D125 `withheldExclusions`), `/plan`, `/recipes/discover` and `/settings` show "N allergy exclusion(s) aren't being applied because consent hasn't been given - review in Settings" linking to `/settings#h-diet`. Count only: no allergen or member names, so no health detail reaches other members. Mock mode fakes the count via `POST /api/dev/seed {kind:'withheld-exclusions', count}`.
+
+## D243 Test conventions from FL1
+
+Playwright `--workers=2` on shared workstations; no CPU stress tooling; stop every server and browser you start.
+
+## D260 Handwritten list scan is one `@fr/ai` operation with a minimal context (SL1)
+
+`scanShoppingList(images[1-4], {ingredientNames?})` in `packages/ai/src/shopping-list-scan.ts`, wired through the shared base (OpenAI / Azure / Anthropic need no per-adapter code), the mock (fixture `fixtures/shopping-list-scan.json`: 11 realistic lines incl. "1kg spuds", "toms (tins) x3", "OJ", a note, a crossed-out line, an illegible one) and `createResolvingProvider`. Output per line: `originalText` (verbatim transcription), `name` (plain singular, abbreviations expanded), optional contract `Quantity` (ABSENT when nothing is written: never inferred), `notes`, `crossedOut`, `illegible`, `confidence`, `imageRef`; plus an optional heading `title`. The prompt covers UK handwriting, columns, margin notes, ticks and strike-throughs and forbids inventing items. The model gets canonical ingredient names as a naming hint only: no household, pantry, member or purchase data. Photos are prepared at a 2048 px long edge (default 1568) because handwriting needs the pixels.
+
+## D261 Scan output is sanitised in code, not trusted (SL1)
+
+`normaliseShoppingListScan`: an `unparsed` / `to_taste` / valueless-exact / blank-text quantity is dropped (never defaulted to 1); a line with no name is flagged illegible and capped at 0.4 confidence (so is any model-flagged illegible line) and loses its quantity; image refs are clamped to the photos sent; fully empty lines go; crossed-out lines are KEPT and flagged (never dropped silently, never un-flagged); repeated lines are not merged here (the merge preview does that).
+
+## D262 Review defaults and matching (SL1)
+
+`/shopping/scan`: capture 1-4 photos (browser downscale, EXIF baked in, Rotate/Remove like import) -> "Reading your list..." -> review. Each row shows the written text next to the parsed item. Names go through the same conservative engine matcher as the pantry scan (exact name / alias; ambiguous -> choose; unmatched -> free-text item, never fuzzy). Crossed-out and illegible rows start EXCLUDED with badges, the owner can switch them on; ranges use the larger number and say so; approximate amounts leave the quantity blank with a hint. Aisle comes from the matched ingredient's category (`lib/shopping/aisles.ts`, moved out of `plan-requirements.ts`), a small household-keyword guess for unmatched items, else Other; editable per row.
+
+## D263 Several named lists, one active (SL1)
+
+The app had ONE list per household ("the newest active `shopping_lists` row"). SL1 keeps that contract for every reader (web repository, Android app, Realtime filter, `shopping_list_snapshot`) and adds the minimum: migration `20261020002600` `shopping_list_create(household, name, list_id)` (archives the previous active list, whole; idempotent on the list id) and `shopping_list_activate`; rename / archive are plain RLS updates. `ShoppingRepository` gained `activeListId / listLists / createList / activateList / renameList / archiveActiveList` (in-memory and Supabase). `/shopping` shows the list name, a Lists sheet (rename, put away, start new, switch to an earlier list) and is keyed by list id so a different list remounts the client. List ids ride in `ListMeta` (`listId`, `listName`); the controller sends its list id with every sync and `syncList` answers a mismatch with the new list's snapshot and DROPS the old list's pending commands (never replayed against the wrong list). No id from the client = no guard (older clients). Not done: another device only notices a bare switch on its next sync (Realtime listens to the command log, which a bare switch does not write); no item counts for archived lists; no delete.
+
+## D264 Nothing is written before confirm; preview and confirm share one planner (SL1)
+
+`planListScan` turns reviewed rows into engine commands and simulates them over the destination list's state; the read-only preview and the confirm use the same function, so they cannot disagree. Server actions `previewShoppingScanAction` / `confirmShoppingScanAction` validate everything (`sanitiseCommitRows`: unknown ingredient ids degrade to free text, units must be engine units, amounts positive). `POST /api/shopping/scan` only reads (cookie or bearer, like `/api/extract`; `/api/shopping/scan` is in `BEARER_API_PATHS`).
+
+## D265 Merge rules (SL1)
+
+Add to current list = the engine's manual `add_item` merge (same ingredient key, compatible unit: kg onto g, items onto g via unit weights). Additions on top of this: (1) a catalogue-matched row also links to an existing HAND-TYPED item (no ingredient id) of the same ingredient by adding under that item's own name, so "banana" merges into a typed "Bananas"; (2) a row with no written amount is "already on your list" and left alone when the item exists (the engine would otherwise create a duplicate line); (3) an existing item with no amount gets the written amount through `edit_item`, not a second line; (4) incompatible units add a separate line and the preview says so; (5) repeated lines in one scan fold together. The preview shows before -> after per row. Create new list = a new empty list: quantities never merge across lists.
+
+## D266 Idempotency (SL1)
+
+Every command id and the new list's id are derived from (household, batch id, row key). The browser makes one batch id per scan; a double click, a retry after a lost response or a second tab replays the same ids and the repository's command-id idempotency drops them (unit test with concurrent confirms; PGlite test against the real schema; e2e double click). `createList` is idempotent on its id, so "create a new list" never makes two. The two steps (create, add) are not one transaction: a half-finished confirm is completed by retrying the same batch.
+
+## D267 Verification and what is NOT verified (SL1)
+
+Verified: ai schema / prompt / mock / OpenAI-Azure (fake fetch) and Anthropic (fake client) adapters, planner / merge / idempotency / sanitising / repository / controller unit tests, PGlite RLS script `010_sl1_shopping_multi_list.sql` and a PGlite contract test of the real Supabase repository, Playwright (mock): photo -> review -> add to existing (banana 3 + 6 = 9, flour 250 g + 500 g = 750 g) and -> create new list, double submit, axe and 44 px at 375, capture limits. NOT verified: live model accuracy on real handwriting (the biggest unknown: cursive, pencil, columns, margin notes); the mobile app has NO scan screen (only the bearer-capable `/api/shopping/scan` endpoint exists); Realtime propagation of a bare list switch.
+
 ## D290 Stores, aisles and placements are household data (AS1)
 
 Owner idea: "ALDI Aisle 1, LIDL Aisle 2 for tomatoes; in store, select the shop and get the list ordered by aisle." Model per household, shared by every member: `stores` {name, chain free text, notes}, `store_aisles` {label like "1" or "Frozen", sort_order}, `store_placements` {store, target_type, target_key, aisle}. Migration `20261020002900_store_aisles.sql`: plain tables under RLS (any member reads; any member of a writable household writes, so the grace period is read-only), composite FKs keep store, aisle and placement in one household, `household_store_book` returns the whole book in one round trip, `copy_store_layout` copies aisles and placements atomically. No FK from placements to ingredients: the key also holds free-text names and category labels, and a retired reference ingredient must not delete a household's placements.
@@ -565,38 +613,6 @@ The shopping screen reads the book via `household_store_book` (cached in AsyncSt
 ## D299 AS1 open items
 
 Mobile placement has no offline queue; no store map/photo; no per-store price book. The migration was applied to the shared local Supabase by hand (psql plus a schema_migrations row) because other lanes had applied newer ones, and `database.types.ts` entries were added by hand in the generator's format.
-
-## D260 Handwritten list scan is one `@fr/ai` operation with a minimal context (SL1)
-
-`scanShoppingList(images[1-4], {ingredientNames?})` in `packages/ai/src/shopping-list-scan.ts`, wired through the shared base (OpenAI / Azure / Anthropic need no per-adapter code), the mock (fixture `fixtures/shopping-list-scan.json`: 11 realistic lines incl. "1kg spuds", "toms (tins) x3", "OJ", a note, a crossed-out line, an illegible one) and `createResolvingProvider`. Output per line: `originalText` (verbatim transcription), `name` (plain singular, abbreviations expanded), optional contract `Quantity` (ABSENT when nothing is written: never inferred), `notes`, `crossedOut`, `illegible`, `confidence`, `imageRef`; plus an optional heading `title`. The prompt covers UK handwriting, columns, margin notes, ticks and strike-throughs and forbids inventing items. The model gets canonical ingredient names as a naming hint only: no household, pantry, member or purchase data. Photos are prepared at a 2048 px long edge (default 1568) because handwriting needs the pixels.
-
-## D261 Scan output is sanitised in code, not trusted (SL1)
-
-`normaliseShoppingListScan`: an `unparsed` / `to_taste` / valueless-exact / blank-text quantity is dropped (never defaulted to 1); a line with no name is flagged illegible and capped at 0.4 confidence (so is any model-flagged illegible line) and loses its quantity; image refs are clamped to the photos sent; fully empty lines go; crossed-out lines are KEPT and flagged (never dropped silently, never un-flagged); repeated lines are not merged here (the merge preview does that).
-
-## D262 Review defaults and matching (SL1)
-
-`/shopping/scan`: capture 1-4 photos (browser downscale, EXIF baked in, Rotate/Remove like import) -> "Reading your list..." -> review. Each row shows the written text next to the parsed item. Names go through the same conservative engine matcher as the pantry scan (exact name / alias; ambiguous -> choose; unmatched -> free-text item, never fuzzy). Crossed-out and illegible rows start EXCLUDED with badges, the owner can switch them on; ranges use the larger number and say so; approximate amounts leave the quantity blank with a hint. Aisle comes from the matched ingredient's category (`lib/shopping/aisles.ts`, moved out of `plan-requirements.ts`), a small household-keyword guess for unmatched items, else Other; editable per row.
-
-## D263 Several named lists, one active (SL1)
-
-The app had ONE list per household ("the newest active `shopping_lists` row"). SL1 keeps that contract for every reader (web repository, Android app, Realtime filter, `shopping_list_snapshot`) and adds the minimum: migration `20261020002600` `shopping_list_create(household, name, list_id)` (archives the previous active list, whole; idempotent on the list id) and `shopping_list_activate`; rename / archive are plain RLS updates. `ShoppingRepository` gained `activeListId / listLists / createList / activateList / renameList / archiveActiveList` (in-memory and Supabase). `/shopping` shows the list name, a Lists sheet (rename, put away, start new, switch to an earlier list) and is keyed by list id so a different list remounts the client. List ids ride in `ListMeta` (`listId`, `listName`); the controller sends its list id with every sync and `syncList` answers a mismatch with the new list's snapshot and DROPS the old list's pending commands (never replayed against the wrong list). No id from the client = no guard (older clients). Not done: another device only notices a bare switch on its next sync (Realtime listens to the command log, which a bare switch does not write); no item counts for archived lists; no delete.
-
-## D264 Nothing is written before confirm; preview and confirm share one planner (SL1)
-
-`planListScan` turns reviewed rows into engine commands and simulates them over the destination list's state; the read-only preview and the confirm use the same function, so they cannot disagree. Server actions `previewShoppingScanAction` / `confirmShoppingScanAction` validate everything (`sanitiseCommitRows`: unknown ingredient ids degrade to free text, units must be engine units, amounts positive). `POST /api/shopping/scan` only reads (cookie or bearer, like `/api/extract`; `/api/shopping/scan` is in `BEARER_API_PATHS`).
-
-## D265 Merge rules (SL1)
-
-Add to current list = the engine's manual `add_item` merge (same ingredient key, compatible unit: kg onto g, items onto g via unit weights). Additions on top of this: (1) a catalogue-matched row also links to an existing HAND-TYPED item (no ingredient id) of the same ingredient by adding under that item's own name, so "banana" merges into a typed "Bananas"; (2) a row with no written amount is "already on your list" and left alone when the item exists (the engine would otherwise create a duplicate line); (3) an existing item with no amount gets the written amount through `edit_item`, not a second line; (4) incompatible units add a separate line and the preview says so; (5) repeated lines in one scan fold together. The preview shows before -> after per row. Create new list = a new empty list: quantities never merge across lists.
-
-## D266 Idempotency (SL1)
-
-Every command id and the new list's id are derived from (household, batch id, row key). The browser makes one batch id per scan; a double click, a retry after a lost response or a second tab replays the same ids and the repository's command-id idempotency drops them (unit test with concurrent confirms; PGlite test against the real schema; e2e double click). `createList` is idempotent on its id, so "create a new list" never makes two. The two steps (create, add) are not one transaction: a half-finished confirm is completed by retrying the same batch.
-
-## D267 Verification and what is NOT verified (SL1)
-
-Verified: ai schema / prompt / mock / OpenAI-Azure (fake fetch) and Anthropic (fake client) adapters, planner / merge / idempotency / sanitising / repository / controller unit tests, PGlite RLS script `010_sl1_shopping_multi_list.sql` and a PGlite contract test of the real Supabase repository, Playwright (mock): photo -> review -> add to existing (banana 3 + 6 = 9, flour 250 g + 500 g = 750 g) and -> create new list, double submit, axe and 44 px at 375, capture limits. NOT verified: live model accuracy on real handwriting (the biggest unknown: cursive, pencil, columns, margin notes); the mobile app has NO scan screen (only the bearer-capable `/api/shopping/scan` endpoint exists); Realtime propagation of a bare list switch.
 
 ## D190 One `ImageStore` interface; Supabase Storage is the production store (ST1)
 

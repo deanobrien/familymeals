@@ -7,3 +7,4 @@ Playwright reuses the dev server on `E2E_PORT` (default 3100) when not CI. All a
 - Reset the shared recipe store IN PLACE (`resetRecipeRepository`): the import sink holds the instance; replacing it splits the store.
 - Cold dev server: keep workers at 4 (`E2E_WORKERS`); 16 workers starve on-demand compiles. `next.config.mjs` keeps compiled routes for an hour and ignores `.data`/`test-results` in the watcher; without that, files written during a run trigger rebuilds and 10-30 s server actions.
 - Specs must not assume they are the only writers to the recipe store (import adds recipes).
+- Production-build mode (`pnpm test:e2e:prod`, CI): build+start, guards read NODE_ENV as e2e-production-build via E2E_PRODUCTION_BUILD=1 (lib/e2e-mode.ts). globalSetup warms ALL page+API routes: add new routes there. Never use CPU burners to reproduce load (froze the owner PC); keep workers at 2.

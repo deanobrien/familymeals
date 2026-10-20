@@ -3,7 +3,8 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const isProd = process.env.NODE_ENV === 'production';
+// E2E_PRODUCTION_BUILD=1 (pnpm test:e2e:prod, never a deployable build): no HSTS/upgrade-insecure-requests CSP over http://localhost.
+const isProd = process.env.NODE_ENV === 'production' && process.env.E2E_PRODUCTION_BUILD !== '1';
 const version = JSON.parse(readFileSync(resolve(here, 'package.json'), 'utf8')).version;
 
 /**

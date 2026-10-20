@@ -1,4 +1,5 @@
 import 'server-only';
+import { effectiveNodeEnv } from '../../e2e-mode';
 import { resetRecipeRepository } from '../../recipes/factory';
 import { resetPantryServices } from '../pantry/deps';
 import { resetPlanServices } from '../plan/services';
@@ -14,8 +15,8 @@ import { resetMemoryExportAudit } from '../export/audit';
  * Dev/e2e-only reset of every in-memory store (DECISIONS D36). Never available in production: the route
  * handlers call devToolsAllowed() first and answer 404 otherwise.
  */
-export function devToolsAllowed(env: { NODE_ENV?: string | undefined } = process.env): boolean {
-  return env.NODE_ENV !== 'production';
+export function devToolsAllowed(env: Parameters<typeof effectiveNodeEnv>[0] = process.env): boolean {
+  return effectiveNodeEnv(env) !== 'production';
 }
 
 export function resetInMemoryStores(): string[] {

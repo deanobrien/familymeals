@@ -15,6 +15,7 @@
     "mobile:export": "pnpm --filter @fr/mobile exec expo export --platform android",
     "e2e:install": "pnpm --filter @fr/e2e exec playwright install chromium",
     "test:e2e": "pnpm --filter @fr/e2e e2e",
+    "test:e2e:prod": "pnpm --filter @fr/e2e e2e:prod",
     "test:e2e:live": "pnpm --filter @fr/e2e e2e:live",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

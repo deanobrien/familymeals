@@ -1,6 +1,7 @@
 // Recipe library (lane L12) against the dev server's in-memory repository, seeded from e2e/fixtures/recipes.
 // Mutating tests use unique titles and clean up, so the seeded browse/search tests stay order independent.
 import { expect, test, type Page } from '@playwright/test';
+import { openRecipeEditor } from '../support/helpers';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -192,8 +193,7 @@ test.describe('create, edit, duplicate and delete', () => {
     await expect(steps.first()).toHaveText('Blend and season.');
 
     // Edit
-    await page.getByRole('link', { name: 'Edit', exact: true }).click();
-    await expect(page.getByRole('heading', { level: 1, name: 'Edit recipe' })).toBeVisible();
+    await openRecipeEditor(page);
     const original = page.getByRole('textbox', { name: 'Original recipe text' });
     await expect(original).toHaveValue('1kg pumpkin, cubed. Roast it.');
     await expect(original).toHaveJSProperty('readOnly', true);
