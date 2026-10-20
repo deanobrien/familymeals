@@ -42,8 +42,10 @@ test('minimum 6 with stock 2 suggests 4; banner adds them to the list with resto
 
   // tick it off: not in the pantry yet, so the suggestion comes back until the stock is added
   await page.goto('/shopping');
+  await expect(page.getByTestId('shopping-root')).toHaveAttribute('data-hydrated', 'true');
   await page.getByRole('checkbox', { name: /^tinned tomatoes/ }).click();
-  await expect(page.getByTestId('sync-status')).toHaveAttribute('data-status', 'synced', { timeout: 15_000 }).catch(() => undefined);
+  await expect(page.getByTestId('purchase-row').filter({ hasText: 'tinned tomatoes' })).toBeVisible();
+  await expect(page.getByText('All changes saved')).toBeVisible();
   await page.goto('/pantry');
   await expect(page.getByRole('list', { name: 'Below minimum' })).toContainText('tinned tomatoes');
   await page.getByLabel('Ingredient', { exact: true }).fill('tinned tomatoes');
