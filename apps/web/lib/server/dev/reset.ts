@@ -12,6 +12,7 @@ import { getMemoryStoreBook } from '../stores/repository';
 import { resetMemoryExportAudit } from '../export/audit';
 import { resetMemorySettings } from '../settings/memory-store';
 import { resetMemoryCooking } from '../cooking/memory-store';
+import { resetMemoryNotifications } from '../notifications/store';
 
 /**
  * Dev/e2e-only reset of every in-memory store (DECISIONS D36). Never available in production: the route
@@ -34,5 +35,6 @@ export function resetInMemoryStores(): string[] {
   getProductSnapshotStore().reset();
   resetRecipeRepository();
   resetMemoryExportAudit();
-  return ['shopping', 'stores', 'plans', 'pantry', 'receipts', 'prices', 'products', 'recipes', 'exports'];
+  resetMemoryNotifications();
+  return ['shopping', 'stores', 'plans', 'pantry', 'receipts', 'prices', 'products', 'recipes', 'exports', 'notifications'];
 }

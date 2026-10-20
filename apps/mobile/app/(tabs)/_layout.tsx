@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { useTheme } from '@/screens/ui';
+import HeaderBell from '@/screens/notifications/HeaderBell';
 
 export default function TabsLayout() {
   const t = useTheme();
@@ -12,6 +13,7 @@ export default function TabsLayout() {
         tabBarActiveTintColor: t.primary,
         tabBarInactiveTintColor: t.muted,
         tabBarLabelStyle: { fontSize: 13 },
+        headerRight: () => <HeaderBell />,
       }}
     >
       <Tabs.Screen name="recipes" options={{ title: 'Recipes', tabBarAccessibilityLabel: 'Recipes tab' }} />

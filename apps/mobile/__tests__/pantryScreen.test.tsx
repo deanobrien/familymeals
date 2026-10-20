@@ -57,7 +57,7 @@ function fakeApi(opts: { body?: unknown; fail?: ServerApiError } = {}) {
     webUrl: () => null,
     authHeaders: async () => ({}),
   };
-  return { api, calls, posts: () => calls.filter((c) => c.method === 'POST'), gets: () => calls.filter((c) => c.method === 'GET' && c.path === '/api/pantry') };
+  return { api, calls, posts: () => calls.filter((c) => c.method === 'POST'), gets: () => calls.filter((c) => c.method === 'GET' && c.path === '/api/pantry' && !c.payload.part) };
 }
 
 function SetHousehold({ children }: { children: React.ReactNode }) {

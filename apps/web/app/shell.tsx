@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AppShell, ToastProvider, type NavKey } from '@fr/ui';
+import { NotificationBell } from './notifications/bell';
 
 const ROUTE_KEYS: ReadonlyArray<readonly [string, NavKey]> = [
   ['/recipes', 'recipes'],
@@ -63,7 +64,7 @@ export function Shell({ children, mockLabel }: { children: ReactNode; mockLabel?
   return (
     <ToastProvider>
       {banner}
-      <AppShell active={activeKey(pathname)} linkComponent={Link}>
+      <AppShell active={activeKey(pathname)} linkComponent={Link} topBar={<NotificationBell />}>
         {children}
       </AppShell>
     </ToastProvider>

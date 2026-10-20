@@ -58,6 +58,8 @@ Supabase repositories run **as the signed-in user** with a user-scoped client, s
 
 **Pantry scan.** `/pantry/scan`: video turned into 6-10 sharp JPEG frames in the browser (D82), only JPEG frames uploaded -> `scanPantry` (items, counts, pack sizes, UK use-by vs best-before, close-up flag; output sanitised in code, D81) -> review with the engine's conservative matcher, editable quantities/dates, close-up re-scan merges dates only (D88), opt-in labelled shelf-life estimates (D87), merge-with-stock preview -> **nothing written until confirm** (D84).
 
+**Minimum stock (PR1, D280-D287).** Par levels live in `pantry_par_levels` (separate from stock) behind `RestockRepository` (in-memory / Supabase). `@fr/engine/pantry` `restockSuggestions` is pure and computed on every read from stock + par levels + the active shopping list (+ pending purchases, + optionally the approved plan); `lib/server/restock/service.ts` adds the household context, validation, snooze, and the idempotent add to the shopping list (`add_item` with deterministic ids and a "Restock:" note). Auto-add (household setting, default off) runs from pantry write paths. UI: `/pantry` panels, `app/restock-banner.tsx` on `/shopping` and Home; Android via `/api/pantry` actions.
+
 ## 4. Provider interfaces
 
 - **AI** (`packages/ai/src/provider.ts`): `AiProvider` = `extractRecipe`, `parseReceipt`, `suggestTags`, `parsePlanPrompt`, `suggestIngredientMatches`, `suggestSubstitutions`, `scanPantry`. Config kinds: `mock | openai | azure | anthropic` (`packages/ai/src/config.ts`). Usage/cost metadata via `usage.ts`; strict JSON schemas via `strict-schema.ts`.

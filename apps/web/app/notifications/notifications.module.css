@@ -1,0 +1,18 @@
+.item {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--fr-space-3);
+  border-radius: var(--fr-radius-md);
+  min-height: var(--fr-target);
+}
+.item:focus-visible { outline: 3px solid var(--fr-focus); outline-offset: 2px; }
+.unread { background: var(--fr-accent-soft); }
+.types { width: 100%; border-collapse: collapse; }
+.types th, .types td { text-align: left; padding: var(--fr-space-2); border-bottom: 1px solid var(--fr-border); vertical-align: top; }
+.types td:not(:first-child), .types th:not(:first-child) { text-align: center; width: 6rem; }
+.types input[type='checkbox'] { width: 1.4rem; height: 1.4rem; }

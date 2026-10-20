@@ -884,6 +884,38 @@ Opens at the household default (fallback 4); the per-member, per-recipe override
 
 "Add to plan" opens the web planner (`/plan?add=<id>`) until lane P0-C ships the Android planner. "Review in Settings" (consent notice) opens the web settings until P0-A. Recipe duplicate on Android opens the form prefilled (no cover, no verbatim original text) instead of a server copy.
 
+## D280 Minimum pantry stock ("par levels") are separate from stock, per household (PR1)
+
+`pantry_par_levels` (`20261020002800_pantry_par_levels.sql`): one row per canonical ingredient, or per normalised free-text name when unmatched (two partial unique indexes), with `min_value`, optional `restock_to_value` (never below the minimum; null = restock to the minimum), unit, optional pack (`pack_value` + `pack_unit`, both or neither), `enabled`, `snoozed_until`. Kept apart from `pantry_items` because the pantry row is deleted at ~zero and the minimum must survive that. RLS = the shared member select / `is_household_writable` write policies, so it is read-only during the deletion grace period; `on delete cascade` from the household covers the purge. `restock_settings` (household pk, `auto_add` default false) holds the one household setting. In-memory repository for mock mode, `SupabaseRestockRepository` behind the same `RestockRepository` interface.
+
+## D281 `restockSuggestions` is pure, computed on read (PR1)
+
+`@fr/engine/pantry` `restockSuggestions(stock, pars, outstanding, converter, opts)`. Available = confident, non-expired, convertible stock in the par's unit; stale stock only with `countStale`; approximate or unconvertible stock is NOT counted and sets `checkQuantity` (never guessed). Suggest `restockTo - available - onList`, never negative; nothing when the list already covers it; whole packs when a pack is set (the pack unit is converted into the par unit; the catalogue converter can use unit weights, so "1 tin = 400 g" works); whole numbers for count units. Every suggestion carries a one-line explanation ("You have 2 cans; minimum 6 cans; 0 cans already on the list -> add 4 cans"). Snoozed pars are hidden until `snoozedUntil`; disabled pars are ignored. No stored suggestions and no background job: every read recomputes.
+
+## D282 "Will run low" is a separate, labelled kind (PR1)
+
+With the latest approved plan's requirements (`opts.planRequirements`), a par that is NOT below minimum but would be after `available + onList - plannedUse` produces a `will_run_low` suggestion, shown in its own section on /pantry and never in the banner count or auto-add. A par already below minimum only gets the `below_min` row.
+
+## D283 Adding to the shopping list: `add_item` with deterministic ids and a "Restock:" note (PR1)
+
+No new shopping command. `add_item` merges into a live item with the same key (ingredient id) when the quantities combine, otherwise creates one; provenance is the note "Restock: 2 cans left, minimum 6 cans" (on a merge the note is only set when the item had none). `commandId` and `itemId` are `stableUuid(household | par | kind | quantity | list cursor)`: a double click or two simultaneous "Add all" calls collapse to one add (the engine's idempotency table), while a legitimate re-add after the list changed gets a new id. Purchases recorded but not yet confirmed into the pantry count like list items, so a suggestion does not flap between ticking and confirming. In mock mode the purchase feed is the fixture one, so after ticking, the suggestion returns until the stock is added by hand (the e2e does exactly that).
+
+## D284 Snooze / dismiss = `snoozed_until` on the par (PR1)
+
+"Snooze 7 days" hides one suggestion until today + N (1-90); editing the minimum clears it. The banner "Dismiss" is per browser session, keyed on the suggestion signature, so it returns when the set of suggestions changes.
+
+## D285 Auto-add runs on the write paths (PR1)
+
+Household setting "Automatically add restock items to the shopping list" (default OFF = suggestions only). When on, `autoRestockAfterPantryChange` runs after pantry web actions (add / correct / confirm / remove / settings / accept adjustment / scan confirm), Android `/api/pantry` writes, receipt "extras to pantry", and on /pantry page load (purchase-driven stock changes in auto purchase mode). It adds only `below_min` suggestions that are not `checkQuantity`, skips snoozed ones, never throws (a restock failure must not fail the pantry write) and is repeat-safe because what is on the list counts. Turning the setting on catches up immediately. The web app has no cooked-meal write path yet (`consumeCookedMeal` is engine-only), so there is nothing to hook there; suggestions reflect it as soon as stock changes.
+
+## D286 Android parity via `/api/pantry` actions (PR1)
+
+`GET /api/pantry?part=restock` (minimums + running low) and `?part=banner`; POST actions `setMinimum`, `removeMinimum`, `snoozeRestock`, `addRestock` (no `parIds` = all below-minimum), `restockSettings`, calling the same `RestockService` as the web server actions with the web's messages (422 `REFUSED`). Android: "Set minimum" stepper form on pantry rows, Running low panel (Add / Add all / Snooze 7 days), minimums list with an auto-add switch, and a banner on the shopping screen. A failing minimums endpoint hides those sections and never breaks the pantry or the list.
+
+## D287 Not built (PR1)
+
+Minimums by store or person, a "restock to" learned from usage history, push notifications for low stock.
+
 ## D350 One settings module for web and Android (P0-D)
 
 `apps/web/lib/server/settings/service.ts` is the only place that validates and writes household preferences and the allergy list (`savePreferences`, `saveDietary`, `withdrawConsent`, `removeAllDietary`, `loadSettings`). It takes a caller (verified user + household, the caller's own Supabase client or null in mock mode, read-only flag) and a store: `SupabaseSettingsStore` (households, household_exclusions, consent_records under RLS: only an owner updates the household row, consent rows are own-rows-only, consent is recorded before exclusions) or `MemorySettingsStore`. Web server actions and `GET/POST /api/settings` (Bearer, `BEARER_API_PATHS`) both call it; `SupabaseAccountSource` on Android dropped its direct table code and calls the route (no fallback, as D330). Exclusions are written as `kind: allergy` with `consent_recorded_at` so the existing planner RPC applies them only while the recorder's consent is active. No migration. Tested against the real migrations in PGlite (`settings.pglite.test.ts`; the PGlite client double gained `.is(col, null)`).
@@ -907,3 +939,43 @@ expo-updates with `updates.url` = `https://u.expo.dev/<projectId>`, `runtimeVers
 ## D355 Application Insights through OpenTelemetry, opt-in (P0-D)
 
 `instrumentation.ts` -> `lib/server/monitoring.ts` -> `useAzureMonitor` only when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set, never throws, never loaded otherwise (tests, e2e, dev). Request metadata, failures and dependency timings only (no bodies, headers or cookies); incoming `/api/health`, `/_next/`, `/auth/`, `/api/images/`, `/invite/` and outgoing Supabase `/auth/v1/` are not traced; console capture limited to errors; non-HTTP instrumentations off; live metrics off. The packages are in `serverExternalPackages`. Owner steps (workspace-based resource in UK West, app setting, 5xx alert and availability test on `/api/health` e-mailing the owner): DEPLOY-APP-SERVICE.md 3d. Not verified against a real resource.
+
+## D380 One notification module, one table for the centre and the outbox (P1-C)
+
+`apps/web/lib/server/notifications/` is the only notification logic: `service.ts` (centre, read state, activity feed, settings, device registration, test) is called by the web pages (fetch with the cookie session) and the Android app (Bearer) through the same `/api/notifications*` routes (`BEARER_API_PREFIXES` gained `/api/notifications`); `job.ts` + `schedule.ts` are the delivery job. Migration `20261021001200_notifications.sql`: `notifications` is BOTH the in-app centre and the push outbox (one row per recipient: in-app text, separate generic push text, in-app link, unique `(user, household, dedupe_key)`, `push_status` / `push_attempts` / `deliver_after`, `read_at`); `notification_devices` (own rows; written only by `register_push_device`, which takes a token over from another user on a shared phone; max 10 per user + household); `notification_settings` + `notification_preferences` (own rows, writable household); `notification_delivery_attempts` and `notification_job_state` are service-only. Users may only update `read_at` (column grant; allowed during the deletion grace period). The in-app centre is the always-available channel: everything a push would say is in it, whatever the permission. Types are text + CHECK (`notification_type_is_valid`) so later lanes can add types without an enum migration. Memory store for mock mode (with demo activity); PGlite tests run the service and the job port against the real migrations. `packages/db/src/database.types.ts` got the new RPC signatures by hand (no local stack in the lane): regenerate it with the next `supabase gen types`.
+
+## D381 Time zones and quiet hours without a library (P1-C)
+
+`schedule.ts` uses `Intl.DateTimeFormat` for local wall time and a 3-step offset correction for local -> UTC (DST-safe; tested across BST/GMT and the October change). Quiet hours are a local `[start, end)` window that may wrap midnight; start == end means none. Quiet hours hold PUSH only: the in-app row appears at once, `deliver_after` = the end of the quiet period. Defaults: quiet 21:30-07:30 on, Europe/London, morning hour 08:00, expiry lead 1 day. Settings are per member per household (not per household) because people keep different hours.
+
+## D382 Senders behind an interface; Expo for Android, Web Push for browsers (P1-C)
+
+`PushSender { channel, send(items) -> results }` with outcomes `sent | invalid_token | retry | error`. Expo: Expo Push API (`exp.host`, batches of 100, `EXPO_ACCESS_TOKEN` only if Enhanced push security is on), FCM credentials live in EAS (owner steps, DEPLOY-APP-SERVICE.md 3e); tickets with `DeviceNotRegistered` prune the device, and Expo receipts are checked 15 minutes later for the same. Web Push: the `web-push` library (VAPID from `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT`; loaded lazily; 404/410 prune). Chosen over a hand-written RFC 8291 implementation because payload encryption cannot be verified against real push services in this lane. `fakeSender` drives every test (no network). Unconfigured channels are simply absent (their devices count as "no devices"); `PUSH_DISABLED=true` removes all senders.
+
+## D383 Expiry alerts: daily, per item, wording from the food (P1-C)
+
+The job creates one notification per pantry item per member per LOCAL day (`expiry:<item>:<local date>`), from the member's morning hour, for dates from today up to today + lead days (0-3). The pantry stores one date per item (use by wins over best before, D87), so "use by" vs the softer "best before" wording comes from the reference category: meat, fish, dairy/eggs, dairy and meat alternatives and leftovers say "use by"; other categories "best before" (with "about quality, not safety"); unknown free-text items say "use by" (the stricter default). Deep link `/pantry?item=<id>`: the web pantry scrolls to "Use what I have" (recipes ranked by what is in, i.e. "what can I make now"); Android opens the pantry screen. Several expiry pushes for one person in one run collapse into one ("3 items in your pantry need using soon"). A later lane can add an explicit expiry kind to `pantry_items` and replace the heuristic.
+
+## D384 Push text is generic by construction (P1-C)
+
+Each notification row carries `title`/`body` (in-app, may name the item: "Chicken: use by tomorrow") AND `push_title`/`push_body` (lock screen: "Food to use soon" / "Something in your pantry has a use-by date tomorrow."). Senders only ever read the push fields, so allergy details, receipt contents, item and recipe names never leave in a payload; activity pushes name only the member ("Bob added a recipe."). Links are in-app paths only (CHECK constraint; the service worker and the Android mapper also refuse anything else).
+
+## D385 "List changed while you are shopping" (P1-C)
+
+"Shopping now" = the member ticked or bought something on THAT list in the 30 minutes around the change (from `shopping_command_log`; no presence tracking). When someone else adds to that list, the shopper gets one notification per list per 10-minute bucket (dedupe key), however many items are added. Default on, push on.
+
+## D386 Quiet defaults (P1-C)
+
+Default ON with push: food to use soon, list changed while you are shopping (useful at the moment they happen). Default OFF (in-app and push): items bought by others, items added, plan approved, recipe added, member joined, restock below minimum. The household activity feed shows those events anyway, so the bell stays meaningful. "Push" implies "in the app" (CHECK + normalised in code). First job run sets the activity cursor to now (no burst of history).
+
+## D387 Activity feed derived from existing tables (P1-C)
+
+`activity_events(household, since, until, limit)` (SECURITY INVOKER, so RLS on every source table applies) unions applied tick/purchase/add rows of `shopping_command_log`, approved `meal_plans`, non-archived `recipes` and active `household_members` joins, with the member's display name. Nothing is written twice. Home (web) shows the latest 8 (replacing the seeded "Recent activity" card); the notification centre (web and Android) has a "Household activity" tab/section with 14 days. Mock mode shows a fixed demo feed. The job reads the same function as the service role to derive activity notifications for members who opted in.
+
+## D388 `/api/jobs/notify`: same protection and scheduler as the purge (P1-C)
+
+POST only, `JOBS_SECRET` in `x-jobs-secret` (unset = 503), service role only in the job (D100), never ids from the request, counts only in the response, HTTP 500 when a step failed. Steps, each isolated: recipients -> expiry -> restock (PR1 minimum stock, opt-in, only for households with an opted-in member; computed with `getRestockService().getBanner()` inside a service data context; skipped when auto-add is on) -> activity (cursor in `notification_job_state`) -> delivery (500 per run, retries with 5/10-minute backoff, 3 attempts, pushes older than 24 h expire) -> Expo receipts -> prune (notifications after 90 days, disabled devices after 30). Scheduled as a second HTTP action of the D259 Logic App, hourly. The TEST notification is sent at once by the request AS THE USER (own devices are readable under RLS; `complete_test_push` records the outcome), so the service role stays off the request path; rate limit one per 30 s in SQL.
+
+## D389 Permission prompts only after a user action; parity (P1-C)
+
+Web: `public/sw.js` (push + notificationclick only, no caching) is registered, and `Notification.requestPermission()` called, only from "Turn on in this browser". Android: `expo-notifications` permission + token only from "Turn on notifications on this phone"; tapping a push opens the mapped screen (`linkToRoute`). Parity: bell with unread count (web top bar via the new `AppShell.topBar`; Android tab headers), centre + household activity (web `/notifications`, Home feed; Android `/notifications`, More), settings (web `/settings/notifications`; Android `/notification-settings` from Settings), test button on both. Documented gap: Android has no Home dashboard yet (ROADMAP parity matrix), so its activity feed lives in the notification screen. `app.config.js` adds `android.googleServicesFile` only when the owner supplies `google-services.json` (EAS file variable `GOOGLE_SERVICES_JSON`); without it the app builds and the in-app list works.

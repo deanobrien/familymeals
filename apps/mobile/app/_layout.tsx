@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AppProvider } from '@/data/AppContext';
 import { useTheme } from '@/screens/ui';
+import NotificationTaps from '@/screens/notifications/NotificationTaps';
 
 function Navigator() {
   const t = useTheme();
@@ -31,6 +32,8 @@ function Navigator() {
       <Stack.Screen name="recipe/new" options={{ title: 'New recipe' }} />
       <Stack.Screen name="recipe/edit/[id]" options={{ title: 'Edit recipe' }} />
       <Stack.Screen name="discover" options={{ title: 'Discover recipes' }} />
+      <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
+      <Stack.Screen name="notification-settings" options={{ title: 'Notification settings' }} />
     </Stack>
   );
 }
@@ -39,6 +42,7 @@ export default function RootLayout() {
   return (
     <AppProvider>
       <StatusBar style="auto" />
+      <NotificationTaps />
       <Navigator />
     </AppProvider>
   );

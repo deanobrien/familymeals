@@ -77,3 +77,4 @@
 .fr-cta p { margin: 0; color: var(--fr-text-muted); }
 .fr-cta__actions { display: flex; flex-wrap: wrap; gap: var(--fr-space-2); }
 .fr-cta__actions .fr-btn { text-decoration: none; }
+.fr-shell__topbar { display: flex; justify-content: flex-end; align-items: center; gap: var(--fr-space-2); margin: calc(-1 * var(--fr-space-2)) 0 var(--fr-space-2); }

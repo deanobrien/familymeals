@@ -46,24 +46,15 @@ export function stopSpeaking(): void {
   }
 }
 
-let configured = false;
-function configureNotifications(): void {
-  if (configured) return;
-  configured = true;
-  try {
-    // A finished timer shows even while the app is open (the in-app banner shows too; the sound and vibration are the point).
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: true, shouldSetBadge: false }),
-    });
-  } catch {
-    /* ignore */
-  }
-}
-
+/**
+ * Local timer notifications ride on the notification setup P1-C owns (D380-D389): its start-up handler (push.ts,
+ * configureForegroundHandling) governs how they show in the foreground and its permission state is the same one the Settings
+ * toggle shows, so this file sets no handler of its own. It only adds a high-importance "Cooking timers" Android channel,
+ * because a kitchen timer must sound and pop up where the default channel would not.
+ */
 /** Asks for notification permission (once, when the first timer starts) and sets up the Android channel. */
 export async function ensureNotifyPermission(): Promise<boolean> {
   try {
-    configureNotifications();
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync(CHANNEL, {
         name: 'Cooking timers',
@@ -73,9 +64,9 @@ export async function ensureNotifyPermission(): Promise<boolean> {
       });
     }
     const cur = await Notifications.getPermissionsAsync();
-    if (cur.granted) return true;
-    if (cur.canAskAgain === false) return false;
-    return (await Notifications.requestPermissionsAsync()).granted;
+    if (cur.status === 'granted') return true;
+    if (cur.status === 'denied' && cur.canAskAgain === false) return false;
+    return (await Notifications.requestPermissionsAsync()).status === 'granted';
   } catch {
     return false;
   }
@@ -84,7 +75,6 @@ export async function ensureNotifyPermission(): Promise<boolean> {
 /** Schedules the "timer done" notification. The identifier is stable, so scheduling again replaces the earlier one. */
 export async function scheduleTimerNotification(key: string, label: string, recipeTitle: string, seconds: number): Promise<void> {
   try {
-    configureNotifications();
     await Notifications.scheduleNotificationAsync({
       identifier: key,
       content: { title: `${label} timer done`, body: recipeTitle, sound: 'default' },

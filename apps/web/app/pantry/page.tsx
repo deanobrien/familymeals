@@ -1,6 +1,11 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
+import { FocusFromLink } from './focus-from-link';
 import { getCurrentHouseholdId, getPantryService } from '../../lib/server/pantry/deps';
+import { autoRestockAfterPantryChange, getRestockService } from '../../lib/server/restock/deps';
+import { getAppContext } from '../../lib/server/context';
 import { AddItem } from './add-item';
+import { MinimumsPanel, RunningLowPanel } from './restock';
 import { LeftoversPanel, PendingPurchases, UseWhatIHave } from './insights';
 import { ExpiringPanel, SettingsPanel, StalePrompts, StockList } from './stock';
 import s from './pantry.module.css';
@@ -11,6 +16,9 @@ export const dynamic = 'force-dynamic';
 export default async function PantryPage() {
   const hh = await getCurrentHouseholdId();
   const view = await getPantryService(hh).getView(hh);
+  const ctx = await getAppContext();
+  if (!ctx.readOnly) await autoRestockAfterPantryChange(hh, ctx.userId); // auto-add mode: catch up after purchase-driven stock changes
+  const restock = await getRestockService(hh).getView(hh);
   return (
     <div className={`${s.page} fr-has-fab`}>
       <header className={s.section}>
@@ -22,6 +30,7 @@ export default async function PantryPage() {
           </Link>
         </div>
       </header>
+      <RunningLowPanel view={restock} />
       {view.totalItems === 0 && (
         <section className="fr-cta" aria-labelledby="pantry-cta-h" data-testid="pantry-empty-cta">
           <h2 id="pantry-cta-h">Snap your shopping to fill your pantry</h2>
@@ -36,10 +45,14 @@ export default async function PantryPage() {
       <StalePrompts items={view.staleItems} />
       <PendingPurchases pending={view.pending} mode={view.settings.purchaseMode} />
       <ExpiringPanel items={view.expiring} />
+      <Suspense fallback={null}>
+        <FocusFromLink />
+      </Suspense>
       <UseWhatIHave suggestions={view.suggestions} />
       <AddItem />
-      <StockList view={view} />
+      <StockList view={view} pars={restock.pars} />
       <LeftoversPanel leftovers={view.leftovers} />
+      <MinimumsPanel view={restock} />
       <SettingsPanel settings={view.settings} />
       <Link className="fr-btn fr-btn--primary fr-fab" href="/pantry/scan" data-testid="scan-groceries-fab">
         <span aria-hidden="true">📷</span> Scan groceries

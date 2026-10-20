@@ -11,7 +11,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', '..', '..'); // repo root
 type Row = Record<string, unknown>;
-type Res = { data: unknown; error: { message: string; code?: string } | null };
+type Res = { data: unknown; count?: number; error: { message: string; code?: string } | null };
 
 const JSONB_ARGS = new Set(['p_input', 'p_doc', 'p_items', 'p_command', 'p_result', 'p_qty', 'p_receipt', 'p_lines', 'p_config', 'p_keys']);
 const q = (id: string) => `"${id.replace(/"/g, '""')}"`;
@@ -21,7 +21,10 @@ class Builder implements PromiseLike<Res> {
   private cols = '*';
   private rows: Row[] = [];
   private values: Row = {};
-  private wheres: Array<{ col: string; op: 'eq' | 'neq' | 'in' | 'gt' | 'is'; val: unknown }> = [];
+  private wheres: Array<{ col: string; op: 'eq' | 'neq' | 'in' | 'gt' | 'is' | 'lte' | 'lt' | 'notnull'; val: unknown }> = [];
+  private max?: number;
+  private countOnly = false;
+  private wantCount = false;
   private orders: string[] = [];
   private lo?: number;
   private hi?: number;
@@ -34,7 +37,8 @@ class Builder implements PromiseLike<Res> {
     private readonly table: string,
   ) {}
 
-  select(cols = '*') {
+  select(cols = '*', opts: { count?: 'exact'; head?: boolean } = {}) {
+    if (opts.head && opts.count) this.countOnly = true;
     if (this.op === 'select') this.cols = cols;
     else {
       this.returning = true;
@@ -58,7 +62,8 @@ class Builder implements PromiseLike<Res> {
     this.values = values;
     return this;
   }
-  delete() {
+  delete(opts: { count?: 'exact' } = {}) {
+    if (opts.count) this.wantCount = true;
     this.op = 'delete';
     return this;
   }
@@ -72,6 +77,23 @@ class Builder implements PromiseLike<Res> {
   }
   gt(col: string, val: unknown) {
     this.wheres.push({ col, op: 'gt', val });
+    return this;
+  }
+  lte(col: string, val: unknown) {
+    this.wheres.push({ col, op: 'lte', val });
+    return this;
+  }
+  lt(col: string, val: unknown) {
+    this.wheres.push({ col, op: 'lt', val });
+    return this;
+  }
+  /** Only `.not(col, 'is', null)`. */
+  not(col: string, _op: 'is', _val: null) {
+    this.wheres.push({ col, op: 'notnull', val: null });
+    return this;
+  }
+  limit(n: number) {
+    this.max = n;
     return this;
   }
   /** `.is(col, null)` = IS NULL (the only form the repositories use). */
@@ -108,9 +130,11 @@ class Builder implements PromiseLike<Res> {
         params.push(w.val);
         return `${q(w.col)} = any($${params.length})`;
       }
+      if (w.op === 'notnull') return `${q(w.col)} is not null`;
       if (w.op === 'is') return `${q(w.col)} is ${w.val === null ? 'null' : w.val ? 'true' : 'false'}`;
       params.push(w.val);
-      return `${q(w.col)} ${w.op === 'eq' ? '=' : w.op === 'gt' ? '>' : '<>'} $${params.length}`;
+      const sym = { eq: '=', gt: '>', lte: '<=', lt: '<', neq: '<>' }[w.op as 'eq' | 'gt' | 'lte' | 'lt' | 'neq'];
+      return `${q(w.col)} ${sym} $${params.length}`;
     });
     return ` where ${parts.join(' and ')}`;
   }
@@ -122,8 +146,13 @@ class Builder implements PromiseLike<Res> {
     const ret = this.op === 'select' || this.returning ? ` returning ${this.cols}` : '';
     switch (this.op) {
       case 'select': {
+        if (this.countOnly) {
+          sql = `select count(*)::int as n from ${t}${this.where(params)}`;
+          break;
+        }
         sql = `select ${this.cols} from ${t}${this.where(params)}${this.orders.length ? ` order by ${this.orders.join(', ')}` : ''}`;
         if (this.lo !== undefined && this.hi !== undefined) sql += ` limit ${this.hi - this.lo + 1} offset ${this.lo}`;
+        else if (this.max !== undefined) sql += ` limit ${this.max}`;
         break;
       }
       case 'insert':
@@ -153,6 +182,8 @@ class Builder implements PromiseLike<Res> {
     }
     try {
       const res = await this.db.query<Row>(sql, params);
+      if (this.countOnly) return { data: null, count: Number(res.rows[0]?.n ?? 0), error: null };
+      if (this.wantCount) return { data: null, count: res.affectedRows ?? 0, error: null };
       if (this.single === 'maybe') return { data: res.rows[0] ?? null, error: null };
       return { data: this.op === 'select' || this.returning ? res.rows : null, error: null };
     } catch (e) {
@@ -194,8 +225,16 @@ export async function createPgliteSupabase(): Promise<PgliteSupabase> {
         // PostgREST types arguments from the function signature; here jsonb parameters are named explicitly
         return JSONB_ARGS.has(n) && v !== null ? JSON.stringify(v) : v;
       });
-      const call = `select public.${q(fn)}(${names.map((n, i) => `${n} => $${i + 1}`).join(', ')}) as data`;
+      const argList = names.map((n, i) => `${n} => $${i + 1}`).join(', ');
+      const call = `select public.${q(fn)}(${argList}) as data`;
       try {
+        // Set-returning functions (RETURNS TABLE / SETOF) come back as an array of rows, as PostgREST returns them.
+        const set = await db.query<{ s: boolean | null }>(
+          `select bool_or(proretset) as s from pg_proc where proname = $1 and pronamespace = 'public'::regnamespace`, [fn]);
+        if (set.rows[0]?.s) {
+          const rows = await db.query<Row>(`select * from public.${q(fn)}(${argList})`, params);
+          return { data: rows.rows, error: null };
+        }
         const res = await db.query<{ data: unknown }>(call, params);
         const data = res.rows[0]?.data;
         return { data: data === '' ? null : (data ?? null), error: null };

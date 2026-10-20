@@ -16,6 +16,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { SupabaseMealPlanRepository, SupabasePlanRecipeSource, type PlanSourceOptions } from './meal-plan-repository';
 import { SupabasePantryRepository } from './pantry-repository';
 import { SupabaseRecipeRepository } from './recipe-repository';
+import { SupabaseRestockRepository } from './restock-repository';
+import type { RestockRepository } from '../restock/repository';
 import { SupabaseReceiptRepository } from './receipt-repository';
 import { SupabaseShoppingRepository } from './shopping-repository';
 import { SupabaseStoreBookRepository } from './store-book-repository';
@@ -154,6 +156,11 @@ export function createSupabasePlanRecipeSource(
 }
 export function createSupabasePantryRepository(resolve: () => Promise<DataContext> = getDataContext): PantryRepository {
   return lazy((c) => new SupabasePantryRepository(c.client), resolve);
+}
+
+// ---- lane PR1 (D280-D289): minimum pantry stock (par levels) + restock settings ----
+export function createSupabaseRestockRepository(resolve: () => Promise<DataContext> = getDataContext): RestockRepository {
+  return lazy((c) => new SupabaseRestockRepository(c.client), resolve);
 }
 
 // ---- lane S2 (D120-D127): shopping, receipts, pantry purchase feed, planner profile ----

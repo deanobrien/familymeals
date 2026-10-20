@@ -113,9 +113,11 @@ export interface AppShellProps {
   nav?: NavItem[];
   appName?: string;
   linkComponent?: ComponentType<{ href: string; className?: string; 'aria-current'?: 'page'; children?: ReactNode }>;
+  /** Rendered at the top of the main area, right-aligned (e.g. the notification bell). */
+  topBar?: ReactNode;
 }
 
-export function AppShell({ children, active, nav = DEFAULT_NAV, appName = 'Family Recipes', linkComponent: LinkC }: AppShellProps) {
+export function AppShell({ children, active, nav = DEFAULT_NAV, appName = 'Family Recipes', linkComponent: LinkC, topBar }: AppShellProps) {
   const renderLink = (item: NavItem, extraLabel?: boolean) => {
     const props = { href: item.href, className: 'fr-navlink', 'aria-current': item.key === active ? ('page' as const) : undefined };
     const body = (<><Icon name={item.icon} /><span>{extraLabel ? shortLabel(item) : item.label}</span></>);
@@ -128,7 +130,10 @@ export function AppShell({ children, active, nav = DEFAULT_NAV, appName = 'Famil
         <div className="fr-brand">{appName}</div>
         <ul>{nav.map((n) => <li key={n.key}>{renderLink(n)}</li>)}</ul>
       </nav>
-      <main id="main" className="fr-shell__main" tabIndex={-1}>{children}</main>
+      <main id="main" className="fr-shell__main" tabIndex={-1}>
+        {topBar ? <div className="fr-shell__topbar">{topBar}</div> : null}
+        {children}
+      </main>
       <nav className="fr-bottomnav" aria-label="Main (mobile)">
         <ul>{nav.filter((n) => n.mobile !== false).map((n) => <li key={n.key}>{renderLink(n, true)}</li>)}</ul>
       </nav>

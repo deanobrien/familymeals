@@ -20,13 +20,17 @@ jest.mock('expo-haptics', () => ({
   ImpactFeedbackStyle: { Light: 'light', Medium: 'medium', Heavy: 'heavy' },
 }));
 jest.mock('expo-speech', () => ({ speak: jest.fn(), stop: jest.fn() }));
+// expo-notifications (P1-C push + P1-A local cook timers): native module; tests drive it through this fake.
 jest.mock('expo-notifications', () => ({
   setNotificationHandler: jest.fn(),
-  setNotificationChannelAsync: jest.fn(async () => undefined),
-  getPermissionsAsync: jest.fn(async () => ({ granted: true, canAskAgain: true })),
-  requestPermissionsAsync: jest.fn(async () => ({ granted: true })),
+  getPermissionsAsync: jest.fn(async () => ({ status: 'undetermined', canAskAgain: true })),
+  requestPermissionsAsync: jest.fn(async () => ({ status: 'granted', canAskAgain: true })),
+  setNotificationChannelAsync: jest.fn(async () => null),
+  getExpoPushTokenAsync: jest.fn(async () => ({ type: 'expo', data: 'ExponentPushToken[testtoken1234]' })),
+  getLastNotificationResponseAsync: jest.fn(async () => null),
+  addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
   scheduleNotificationAsync: jest.fn(async () => 'id'),
   cancelScheduledNotificationAsync: jest.fn(async () => undefined),
-  AndroidImportance: { HIGH: 4 },
+  AndroidImportance: { DEFAULT: 3, HIGH: 4 },
   SchedulableTriggerInputTypes: { TIME_INTERVAL: 'timeInterval' },
 }));

@@ -19,6 +19,9 @@ Controller: the product owner (name, address, ICO registration number: TBD befor
 | Audit log (membership/role/export/deletion events) | Security, accountability | Legitimate interests / legal obligation | 12 months | No content fields |
 | Server logs (request id, route, status, user id) | Operations, security | Legitimate interests | 30 days or less | Redacted; no bodies |
 | Invitations (hashed token, invitee email, expiry) | Add household members | Contract / legitimate interests | Deleted 30 days after accept/expiry | Invitee email is third-party data: used only to send the invite |
+| Notification settings, per-type preferences, quiet hours, time zone (P1-C) | Send only the reminders/updates the member chose, at sensible times | Contract | Life of membership; deleted with the account/household; exported (notifications.json) | Own rows only (RLS) |
+| Notifications (in-app centre + push outbox: title, generic push text, in-app link, read state) | Expiry reminders, household updates, test | Contract | 90 days (job prunes) | Push text is generic by construction (no allergy details, receipt contents or item names, D384); exported |
+| Push device tokens (Expo token / Web Push endpoint + public keys), delivery attempts | Deliver pushes; prune dead devices | Contract | Until the member turns push off or the token dies; disabled tokens deleted after 30 days; attempts deleted with the notification | Device credentials: never exported, never shown to other members |
 | Backups (Supabase) | Disaster recovery | Legitimate interests | See DATA-EXPORT-DELETION.md section 5 | |
 
 No advertising, no identifying analytics, no sale of data. If analytics are added later: cookieless/aggregate, and update this file.
@@ -41,6 +44,8 @@ No advertising, no identifying analytics, no sale of data. If analytics are adde
 | Supabase | Database, auth, storage, realtime | All app data | Project in London (eu-west-2); DPA with SCCs/UK Addendum |
 | Vercel | Hosting, edge, logs | Request metadata, transient payloads | Function region `lhr1`; DPA |
 | Email provider (Supabase SMTP / Resend etc.) | Auth and invite emails | Email address | DPA |
+| Expo (push service) + Google Firebase Cloud Messaging | Deliver Android pushes | Expo push token, generic notification text, in-app link | US; Expo and Google DPAs; text is generic (D384) |
+| Browser push services (Google FCM, Mozilla, Microsoft, Apple) | Deliver web pushes | Push endpoint, encrypted generic payload (Web Push encryption: the push service cannot read it) | Chosen by the user's browser; payload end-to-end encrypted |
 | Error monitoring (if used) | Crash reports | Scrubbed metadata only | EU region; scrubber enforced |
 
 Keep this table as the sub-processor register and update the public notice when it changes. Complete a **DPIA** (special-category data + AI + images) and a transfer risk assessment for the US transfer before launch.
@@ -66,6 +71,7 @@ Access/portability: export in Settings > Your data (built, DX1: zip of JSON + ph
 - *Your household's food data:* recipes, meal plans, shopping lists, what you bought and what is in your pantry. So the app can do its job.
 - *Photos you upload:* recipe pages and receipts. We store them privately for your household. Receipt photos are deleted after 90 days unless you choose to keep them. We remove location data from photos.
 - *Allergies and foods you avoid (only if you choose):* we ask your explicit permission first. We use it only to filter your meal plans and warn you about conflicts.
+- *Notifications (only if you turn them on):* your notification choices and quiet hours, the notifications we have shown you and whether you have read them, and, for push, a token for each browser or phone you switch on. Push messages say what kind of update it is and never include allergy details, receipt contents or item names, because they can appear on a locked screen. Turn push off on any device, or change what you get, in Settings > Notifications. Notifications are deleted after 90 days.
 - *Basic technical records:* for example which pages errored, so we can keep the service safe. We do not put the content of your recipes, receipts or health information in these records.
 
 **Who else sees your data**
