@@ -5,7 +5,9 @@ import type { ShoppingListState } from '@/data/DataSource';
 import { formatQuantity } from '@/lib/format';
 import { orderable, placementTarget } from '@/lib/storeBook';
 import { emptyStoreBook, orderForStore, resolveAisle, sortedAisles, type StoreBook } from '@fr/engine/shopping';
+import { useServerApi } from '@/data/ServerApiContext';
 import type { ShoppingListItem } from '@/viewModels';
+import { ShoppingListsBar } from './ShoppingListsSheet';
 import { Button, EmptyState, ErrorState, ErrorText, Loading, MIN_TAP, Muted, Text, Toast, useStyles } from './ui';
 
 type Row = { kind: 'header'; key: string; label: string } | { kind: 'item'; key: string; item: ShoppingListItem; aisle: string | null | undefined };
@@ -16,6 +18,7 @@ const aisleTitle = (label: string) => (/^\d+[a-z]?$/i.test(label) ? `Aisle ${lab
 export default function ShoppingListScreen() {
   const { ds, householdId, online, syncVersion } = useApp();
   const styles = useStyles();
+  const api = useServerApi();
   const [book, setBook] = useState<StoreBook>(emptyStoreBook());
   const [storeId, setStoreId] = useState<string | null>(null);
   const [placingId, setPlacingId] = useState<string | null>(null);
@@ -134,6 +137,21 @@ export default function ShoppingListScreen() {
         </View>
       )}
       <ErrorText message={error ?? actionError} />
+      {api.configured && (
+        <ShoppingListsBar
+          api={api}
+          householdId={householdId}
+          version={syncVersion}
+          beforeChange={async () => {
+            try {
+              await ds.flushPending(); // queued ticks land in the list they were made on
+            } catch {
+              /* offline: the server call below reports it */
+            }
+          }}
+          onChanged={refresh}
+        />
+      )}
       {pending.size > 0 && (
         <View style={styles.banner}>
           <Text style={styles.pending} testID="pending-banner">

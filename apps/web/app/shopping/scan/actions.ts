@@ -2,21 +2,17 @@
 
 import { revalidatePath } from 'next/cache';
 import { getAppContext } from '../../../lib/server/context';
-import { getIngredientCatalogue } from '../../../lib/server/refdata/catalogue';
 import {
   confirmListScan, isBatchId, parseDestination, previewListScan, sanitiseCommitRows, type ApplyEnv,
 } from '../../../lib/server/shopping/list-scan-apply';
-import { getShoppingStore } from '../../../lib/server/shopping/store';
-import { defaultEngineContext } from '../../../lib/shopping/engine';
+import { listScanEnv } from '../../../lib/server/shopping/list-scan-env';
 import type { ListScanActionResult, ListScanPreview } from '../../../lib/shopping/list-scan-types';
 
 const FAILED = 'Something went wrong. Please try again.';
 
 async function env(): Promise<ApplyEnv & { readOnly: boolean }> {
   const ctx = await getAppContext(); // outside try: lets the auth redirect through
-  const cat = getIngredientCatalogue();
-  // Decisions use the catalogue converter (density / unit weights), like the shopping repository.
-  return { repo: getShoppingStore(), householdId: ctx.householdId, actor: ctx.userId, ctx: { ...defaultEngineContext, converter: cat.converter }, cat, readOnly: ctx.readOnly };
+  return { ...listScanEnv(ctx.householdId, ctx.userId), readOnly: ctx.readOnly };
 }
 
 /** Review step: what confirming would do to the destination list. Read-only: writes nothing, creates nothing. */

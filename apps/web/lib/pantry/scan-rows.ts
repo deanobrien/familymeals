@@ -1,267 +1,30 @@
 // Review-row state and its pure transitions for /pantry/scan (DECISIONS D84-D88). Client-safe, no I/O.
-import { estimateShelfLife } from './shelf-life';
-import type { IngredientRef, ScanCommitRow, ScanForm, ScanPackaging, ScanRowDto } from './scan-types';
-import type { LookupState } from '@fr/engine/pantry';
+// The logic lives in @fr/engine/pantry (scan-review.ts) so the Android app reviews scans the same way (D343-D344);
+// this module pins the product type to the web's full Open Food Facts Product.
+import {
+  applyEstimates as engineApplyEstimates, mergeCloseUp as engineMergeCloseUp, mergeLookup as engineMergeLookup,
+  nameItMyself as engineNameItMyself, rowFromDto as engineRowFromDto, rowFromProduct as engineRowFromProduct,
+  rowFromRapid as engineRowFromRapid, withCount as engineWithCount, withDate as engineWithDate, withQuantity as engineWithQuantity,
+  type LookupState, type ScanRow as EngineScanRow,
+} from '@fr/engine/pantry';
+import type { ScanRowDto } from './scan-types';
 import type { Product, ProductLookupDto } from '../products/types';
 
-export type DateSource = 'none' | 'scan' | 'closeup' | 'user' | 'estimate';
-export type CloseUpState = 'idle' | 'busy' | 'unread' | 'done';
+export {
+  confidenceTone, defaultQuantity, fmtNum, rapidKey, rowExpiry, rowName, toCommitRows,
+  type CloseUpState, type CommitResult, type DateSource,
+} from '@fr/engine/pantry';
 
-export interface ScanRow {
-  key: string;
-  /** The model's name for the item (kept for display and as the free-text default). */
-  scannedName: string;
-  form: ScanForm;
-  packaging: ScanPackaging;
-  packSizeText?: string;
-  packSize?: { value: number; unit: string };
-  confidence: number;
-  frameRefs: number[];
-  notes?: string;
-  match: ScanRowDto['match'];
-  needsCloseUp: boolean;
+export type ScanRow = EngineScanRow<Product>;
 
-  include: boolean;
-  /** Chosen canonical ingredient (auto for a clean match). Null = free text. */
-  ingredient: IngredientRef | null;
-  freeName: string;
-  /** Text inputs, so the owner can type freely. */
-  count: string;
-  value: string;
-  unit: string;
-  /** Once the owner edits quantity / unit by hand, changing the count no longer rewrites them. */
-  valueEdited: boolean;
-  useBy: string;
-  bestBefore: string;
-  useBySource: DateSource;
-  bestBeforeSource: DateSource;
-  closeUp: CloseUpState;
-  closeUpMessage?: string;
-  /** Set when the row came from a barcode (X2): the product to show provenance for and link on confirm. */
-  barcode?: string;
-  product?: Product;
-  /** Rapid scan (BS1): the code this row was scanned from (kept even while its product is unknown)... */
-  scanBarcode?: string;
-  /** ...and where its lookup stands. pending = still looking (blocks confirm); notfound / failed = type a name; manual = the owner named it. */
-  lookup?: 'pending' | 'notfound' | 'failed' | 'manual';
-  lookupMessage?: string;
-  /** Came from a continuous scan: dates are optional and collapsed in the review. */
-  rapid?: boolean;
-}
-
-const LOW_CONFIDENCE = 0.5;
-const MASS_VOLUME = new Set(['g', 'kg', 'ml', 'l']);
-
-export const fmtNum = (n: number): string => String(Math.round(n * 1e6) / 1e6);
-
-/**
- * Total quantity to stock for a scanned item (D86):
- *  - tins -> count of `can` (the pantry and recipes count tins; the printed size is shown, not multiplied);
- *  - other packs with a legible mass / volume -> count x pack size in that unit;
- *  - otherwise loose -> `item`, anything packaged -> `pack`.
- */
-export function defaultQuantity(i: { count: number; packaging: ScanPackaging; packSize?: { value: number; unit: string } }): { value: number; unit: string } {
-  const count = Number.isFinite(i.count) && i.count > 0 ? i.count : 1;
-  if (i.packaging === 'tin') return { value: count, unit: 'can' };
-  if (i.packSize && MASS_VOLUME.has(i.packSize.unit)) return { value: Math.round(i.packSize.value * count * 1e6) / 1e6, unit: i.packSize.unit };
-  return { value: count, unit: i.packaging === 'loose' ? 'item' : 'pack' };
-}
-
-export function rowFromDto(dto: ScanRowDto): ScanRow {
-  const q = defaultQuantity(dto);
-  const row: ScanRow = {
-    key: dto.key, scannedName: dto.name, form: dto.form, packaging: dto.packaging, confidence: dto.confidence,
-    frameRefs: dto.frameRefs, match: dto.match, needsCloseUp: dto.needsCloseUp,
-    include: dto.confidence >= LOW_CONFIDENCE,
-    ingredient: dto.match.status === 'matched' ? dto.match.ingredient : null,
-    freeName: dto.name,
-    count: fmtNum(dto.count), value: fmtNum(q.value), unit: q.unit, valueEdited: false,
-    useBy: dto.useBy ?? '', bestBefore: dto.bestBefore ?? '',
-    useBySource: dto.useBy ? 'scan' : 'none', bestBeforeSource: dto.bestBefore ? 'scan' : 'none',
-    closeUp: 'idle',
-  };
-  if (dto.packSizeText) row.packSizeText = dto.packSizeText;
-  if (dto.packSize) row.packSize = dto.packSize;
-  if (dto.notes) row.notes = dto.notes;
-  return row;
-}
-
-/**
- * A barcode lookup as a review row (X2). Name, pack size, matched ingredient and allergens come from the product record;
- * dates are NOT on the product, so they start empty and come from a close-up photo, the owner, or the opt-in estimate.
- * Only a clean ingredient match is pre-selected; an ambiguous or missing one is left for the owner to choose.
- */
-export function rowFromProduct(lookup: ProductLookupDto, key: string): ScanRow {
-  const p = lookup.product;
-  const canned = p.categories.some((c) => /canned|tinned/.test(c));
-  const packaging: ScanPackaging = canned ? 'tin' : p.nutrition.per === 'ml' ? 'bottle' : 'pack';
-  const packSize = p.packSize && (p.packSize.unit === 'g' || p.packSize.unit === 'ml') && p.packSize.value !== undefined
-    ? { value: p.packSize.value, unit: p.packSize.unit }
-    : undefined;
-  // A multipack ("6 x 125 g") is ONE pack of the whole size; the owner can edit the count.
-  const q = defaultQuantity({ count: 1, packaging, ...(packSize ? { packSize } : {}) });
-  const row: ScanRow = {
-    key, scannedName: p.brand && !p.name.toLowerCase().startsWith(p.brand.toLowerCase()) ? `${p.brand} ${p.name}` : p.name,
-    form: canned ? 'canned' : 'ambient', packaging, confidence: 1, frameRefs: [], match: lookup.match, needsCloseUp: false,
-    include: true,
-    ingredient: lookup.match.status === 'matched' ? lookup.match.ingredient : null,
-    freeName: p.name, count: '1', value: fmtNum(q.value), unit: q.unit, valueEdited: false,
-    useBy: '', bestBefore: '', useBySource: 'none', bestBeforeSource: 'none', closeUp: 'idle',
-    barcode: p.barcode, product: p,
-  };
-  if (p.packSizeText) row.packSizeText = p.packSizeText;
-  if (packSize) row.packSize = packSize;
-  return row;
-}
-
-/** Row key for a continuous-scan row: stable per barcode so a lookup that resolves later finds its row. */
-export const rapidKey = (barcode: string): string => `rp-${barcode}`;
-
-/**
- * A row for a barcode from a continuous scan (BS1), in whatever state its lookup is in. A known product becomes the
- * normal product row (name, pack size, matched ingredient, allergens); an unresolved code is a placeholder the owner can
- * still count and date, and name by hand ("Name it myself") without waiting for the lookup.
- */
-export function rowFromRapid(barcode: string, count: number, state: LookupState<ProductLookupDto> | undefined): ScanRow {
-  const key = rapidKey(barcode);
-  const n = fmtNum(Math.max(1, Math.round(count)));
-  if (state?.state === 'done') {
-    const row = withCount(rowFromProduct(state.value, key), n);
-    return { ...row, rapid: true, scanBarcode: barcode };
-  }
-  const q = defaultQuantity({ count: Number(n), packaging: 'pack' });
-  const base: ScanRow = {
-    key, scannedName: `Barcode ${barcode}`, form: 'ambient', packaging: 'pack', confidence: 1, frameRefs: [],
-    match: { status: 'unmatched', suggestions: [] }, needsCloseUp: false, include: true, ingredient: null, freeName: '',
-    count: n, value: fmtNum(q.value), unit: q.unit, valueEdited: false, useBy: '', bestBefore: '',
-    useBySource: 'none', bestBeforeSource: 'none', closeUp: 'idle', rapid: true, scanBarcode: barcode,
-    lookup: 'pending',
-  };
-  if (state?.state === 'notfound') return { ...base, lookup: 'notfound', lookupMessage: 'Not found in Open Food Facts. Type a name or pick an ingredient.' };
-  if (state?.state === 'error') return { ...base, lookup: 'failed', lookupMessage: state.error.message };
-  return base;
-}
-
-/**
- * A lookup finished for a row that was waiting on it. Count, include, dates and any close-up already done are kept; a row
- * the owner has named by hand ('manual') or whose product is already known is never touched.
- */
-export function mergeLookup(row: ScanRow, state: LookupState<ProductLookupDto> | undefined): ScanRow {
-  if (!row.rapid || !row.scanBarcode || row.product || row.lookup === 'manual' || !state) return row;
-  if (state.state === 'pending') return row.lookup === 'pending' ? row : { ...row, lookup: 'pending' };
-  const fresh = rowFromRapid(row.scanBarcode, Number(row.count) || 1, state);
-  if (state.state !== 'done') return { ...row, lookup: fresh.lookup!, ...(fresh.lookupMessage ? { lookupMessage: fresh.lookupMessage } : {}) };
-  return {
-    ...fresh, include: row.include,
-    useBy: row.useBy, bestBefore: row.bestBefore, useBySource: row.useBySource, bestBeforeSource: row.bestBeforeSource,
-    closeUp: row.closeUp, ...(row.closeUpMessage ? { closeUpMessage: row.closeUpMessage } : {}),
-  };
-}
-
-/** "Name it myself": stop waiting for (or retrying) the lookup. */
-export const nameItMyself = (row: ScanRow): ScanRow => ({ ...row, lookup: 'manual' });
-
-export const rowName = (r: ScanRow): string => (r.ingredient?.name ?? r.freeName).trim();
-
-/** Changing the count re-derives the quantity unless the owner already typed their own. */
-export function withCount(row: ScanRow, count: string): ScanRow {
-  const next = { ...row, count };
-  const n = Number(count);
-  if (!row.valueEdited && count.trim() !== '' && Number.isFinite(n) && n > 0) {
-    const q = defaultQuantity({ count: n, packaging: row.packaging, ...(row.packSize ? { packSize: row.packSize } : {}) });
-    next.value = fmtNum(q.value);
-    next.unit = q.unit;
-  }
-  return next;
-}
-
-export function withQuantity(row: ScanRow, patch: { value?: string; unit?: string }): ScanRow {
-  return { ...row, ...patch, valueEdited: true };
-}
-
-export function withDate(row: ScanRow, field: 'useBy' | 'bestBefore', value: string): ScanRow {
-  return field === 'useBy'
-    ? { ...row, useBy: value, useBySource: value ? 'user' : 'none' }
-    : { ...row, bestBefore: value, bestBeforeSource: value ? 'user' : 'none' };
-}
-
-/**
- * Fold a single-photo close-up of one item into its row (D88): only dates (and a pack size when the row had none)
- * are taken. Dates already typed by the owner are never overwritten. When nothing legible came back the row stays
- * flagged and the owner is told to type the date.
- */
-export function mergeCloseUp(row: ScanRow, result: ScanRowDto | undefined): ScanRow {
-  const found = !!result && (!!result.useBy || !!result.bestBefore);
-  if (!result || !found) {
-    return { ...row, closeUp: 'unread', closeUpMessage: 'Still could not read a date from that photo. Try again closer, or type the date.' };
-  }
-  const next: ScanRow = { ...row, closeUp: 'done', closeUpMessage: 'Date read from the close-up. Check it before you confirm.', needsCloseUp: false };
-  if (result.useBy && row.useBySource !== 'user') { next.useBy = result.useBy; next.useBySource = 'closeup'; }
-  if (result.bestBefore && row.bestBeforeSource !== 'user') { next.bestBefore = result.bestBefore; next.bestBeforeSource = 'closeup'; }
-  // A leftover estimate must not sit beside a date that has now actually been read.
-  if (next.bestBeforeSource === 'estimate') { next.bestBefore = ''; next.bestBeforeSource = 'none'; }
-  if (!row.packSize && result.packSize && result.packSizeText) {
-    next.packSize = result.packSize;
-    next.packSizeText = result.packSizeText;
-    if (!row.valueEdited) {
-      const q = defaultQuantity({ count: Number(row.count) || 1, packaging: row.packaging, packSize: result.packSize });
-      next.value = fmtNum(q.value);
-      next.unit = q.unit;
-    }
-  }
-  return next;
-}
-
-/**
- * Opt-in typical shelf life (D87). ON: rows with no date at all get a visibly labelled ESTIMATE in the best-before
- * field. OFF: estimates are removed again. A date from the label or typed by the owner is never touched.
- */
-export function applyEstimates(rows: readonly ScanRow[], enabled: boolean, today: string): ScanRow[] {
-  return rows.map((r) => {
-    if (!enabled) {
-      return r.bestBeforeSource === 'estimate' ? { ...r, bestBefore: '', bestBeforeSource: 'none' as const } : r;
-    }
-    if (r.useBy || r.bestBefore) return r;
-    const category = r.ingredient?.category ?? (r.match.status === 'matched' ? r.match.ingredient.category : undefined);
-    const est = estimateShelfLife(category, r.form, today);
-    return est ? { ...r, bestBefore: est.date, bestBeforeSource: 'estimate' as const } : r;
-  });
-}
-
-export function confidenceTone(c: number): { tone: 'success' | 'warning' | 'danger'; label: string } {
-  if (c >= 0.85) return { tone: 'success', label: 'High confidence' };
-  if (c >= 0.6) return { tone: 'warning', label: 'Check this one' };
-  return { tone: 'danger', label: 'Low confidence' };
-}
-
-/** The single pantry expiry for a row: use by wins over best before (the safety date is the stricter one). */
-export const rowExpiry = (r: Pick<ScanRow, 'useBy' | 'bestBefore'>): string | undefined => r.useBy || r.bestBefore || undefined;
-
-export interface CommitResult {
-  rows: ScanCommitRow[];
-  /** Included rows that cannot be added yet, keyed by row key. */
-  errors: Record<string, string>;
-}
-
-/** Included rows -> what preview / confirm send. Rows that are excluded are never sent. */
-export function toCommitRows(rows: readonly ScanRow[]): CommitResult {
-  const out: ScanCommitRow[] = [];
-  const errors: Record<string, string> = {};
-  for (const r of rows) {
-    if (!r.include) continue;
-    if (r.lookup === 'pending') { errors[r.key] = 'Still looking this product up. Wait a moment, or name it yourself.'; continue; }
-    const name = rowName(r);
-    const value = Number(r.value);
-    if (!name) { errors[r.key] = 'Choose an ingredient or type a name.'; continue; }
-    if (!(r.value.trim() !== '' && Number.isFinite(value) && value > 0)) { errors[r.key] = 'Enter a quantity above zero.'; continue; }
-    if (!r.unit) { errors[r.key] = 'Choose a unit.'; continue; }
-    const expiry = rowExpiry(r);
-    out.push({
-      key: r.key, value, unit: r.unit,
-      ...(r.ingredient ? { ingredientId: r.ingredient.id } : { name: name.slice(0, 80) }),
-      ...(expiry ? { expiry } : {}),
-      ...(r.barcode ? { barcode: r.barcode } : {}),
-    });
-  }
-  return { rows: out, errors };
-}
+export const rowFromDto = (dto: ScanRowDto): ScanRow => engineRowFromDto<Product>(dto);
+export const rowFromProduct = (lookup: ProductLookupDto, key: string): ScanRow => engineRowFromProduct(lookup, key);
+export const rowFromRapid = (barcode: string, count: number, state: LookupState<ProductLookupDto> | undefined): ScanRow =>
+  engineRowFromRapid(barcode, count, state);
+export const mergeLookup = (row: ScanRow, state: LookupState<ProductLookupDto> | undefined): ScanRow => engineMergeLookup(row, state);
+export const nameItMyself = (row: ScanRow): ScanRow => engineNameItMyself(row);
+export const withCount = (row: ScanRow, count: string): ScanRow => engineWithCount(row, count);
+export const withQuantity = (row: ScanRow, patch: { value?: string; unit?: string }): ScanRow => engineWithQuantity(row, patch);
+export const withDate = (row: ScanRow, field: 'useBy' | 'bestBefore', value: string): ScanRow => engineWithDate(row, field, value);
+export const mergeCloseUp = (row: ScanRow, result: ScanRowDto | undefined): ScanRow => engineMergeCloseUp(row, result);
+export const applyEstimates = (rows: readonly ScanRow[], enabled: boolean, today: string): ScanRow[] => engineApplyEstimates(rows, enabled, today);

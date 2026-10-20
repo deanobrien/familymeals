@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import { getAppContext } from '../../lib/server/context';
 import { getRequirementSource } from '../../lib/server/shopping/approved-plan-source';
-import { cleanListName } from '../../lib/server/shopping/repository';
+import { archiveListOp, createListOp, renameListOp, switchListOp } from '../../lib/server/shopping/lists-ops';
 import { getShoppingStore } from '../../lib/server/shopping/store';
 import { generateFromPlan, syncList } from '../../lib/server/shopping/service';
 import type { SnapshotDto, SyncResponse } from '../../lib/shopping/types';
@@ -58,29 +58,19 @@ async function listAction(run: (hh: string) => Promise<ListActionResult>): Promi
 
 /** Start a new, empty named list (it becomes the one you shop from; the previous list is kept, archived). */
 export async function createShoppingListAction(name: string): Promise<ListActionResult> {
-  return listAction(async (hh) => {
-    const clean = cleanListName(name);
-    if (!clean) return { ok: false, error: 'Give the list a name.' };
-    await getShoppingStore().createList(hh, { id: randomUUID(), name: clean });
-    return { ok: true };
-  });
+  return listAction((hh) => createListOp(getShoppingStore(), hh, name));
 }
 
 /** Make an older list the one you shop from (the current one is archived, not deleted). */
 export async function switchShoppingListAction(listId: string): Promise<ListActionResult> {
-  return listAction(async (hh) =>
-    (await getShoppingStore().activateList(hh, String(listId))) ? { ok: true } : { ok: false, error: 'That list could not be found.' });
+  return listAction((hh) => switchListOp(getShoppingStore(), hh, listId));
 }
 
 export async function renameShoppingListAction(listId: string, name: string): Promise<ListActionResult> {
-  return listAction(async (hh) => {
-    if (!cleanListName(name)) return { ok: false, error: 'Give the list a name.' };
-    return (await getShoppingStore().renameList(hh, String(listId), name)) ? { ok: true } : { ok: false, error: 'That list could not be found.' };
-  });
+  return listAction((hh) => renameListOp(getShoppingStore(), hh, listId, name));
 }
 
 /** Put the current list away (kept whole, archived). The next item you add starts a fresh list. */
 export async function archiveShoppingListAction(): Promise<ListActionResult> {
-  return listAction(async (hh) =>
-    (await getShoppingStore().archiveActiveList(hh)) ? { ok: true } : { ok: false, error: 'There is no current list to archive.' });
+  return listAction((hh) => archiveListOp(getShoppingStore(), hh));
 }
