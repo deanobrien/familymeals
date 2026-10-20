@@ -20,7 +20,8 @@ export const PUBLIC_PATHS: readonly string[] = [
 /** Public path prefixes (the prefix itself or anything below it). */
 export const PUBLIC_PREFIXES: readonly string[] = ['/auth/', '/invite/'];
 
-export const PUBLIC_API_PREFIXES: readonly string[] = ['/api/health'];
+/** `/api/jobs/**`: scheduler endpoints, each verifies JOBS_SECRET itself (DX1, D256). */
+export const PUBLIC_API_PREFIXES: readonly string[] = ['/api/health', '/api/jobs'];
 
 /**
  * API routes the Android app calls with `Authorization: Bearer <supabase access token>` instead of cookies (D102).

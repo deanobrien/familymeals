@@ -7,6 +7,7 @@ import { getPriceStore } from '../prices/store';
 import { getProductSnapshotStore } from '../products/store';
 import { resetMemoryServices } from '../receipts/memory';
 import { getShoppingRepository } from '../shopping/repository';
+import { resetMemoryExportAudit } from '../export/audit';
 
 /**
  * Dev/e2e-only reset of every in-memory store (DECISIONS D36). Never available in production: the route
@@ -25,5 +26,6 @@ export function resetInMemoryStores(): string[] {
   resetRecipeCalculators();
   getProductSnapshotStore().reset();
   resetRecipeRepository();
-  return ['shopping', 'plans', 'pantry', 'receipts', 'prices', 'products', 'recipes'];
+  resetMemoryExportAudit();
+  return ['shopping', 'plans', 'pantry', 'receipts', 'prices', 'products', 'recipes', 'exports'];
 }

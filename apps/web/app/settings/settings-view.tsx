@@ -5,6 +5,8 @@ import { useState, type FormEvent } from 'react';
 import { Badge, Button, Card, Checkbox, ConfirmDialog, Input, Select, useToast } from '@fr/ui';
 import s from '../../lib/dashboard/dashboard.module.css';
 import { AiProviderSection } from './ai-provider-section';
+import { DataSection } from './data-section';
+import type { DataSettingsView } from './data-view';
 import type { AiSettingsView } from './ai-actions';
 import { consentEvent, defaultConsentSink, type ConsentSink } from './consent';
 import {
@@ -31,7 +33,7 @@ function collectErrors(issues: { path: PropertyKey[]; message: string }[]): Erro
 /** Recipe discovery source status (D174). Never includes the key itself. */
 export interface RecipeSourceView { label: string; keyKind: 'test' | 'supporter' | 'none'; note: string }
 
-export function SettingsView({ consentSink = defaultConsentSink, ai, recipeSource }: { consentSink?: ConsentSink; ai?: AiSettingsView; recipeSource?: RecipeSourceView }) {
+export function SettingsView({ consentSink = defaultConsentSink, ai, recipeSource, data }: { consentSink?: ConsentSink; ai?: AiSettingsView; recipeSource?: RecipeSourceView; data?: DataSettingsView }) {
   return (
     <div className={s.page}>
       <h1>Settings</h1>
@@ -54,7 +56,7 @@ export function SettingsView({ consentSink = defaultConsentSink, ai, recipeSourc
       <AiUsageSection />
       <ExclusionsSection sink={consentSink} />
       <PantrySection />
-      <DataSection />
+      <DataSection {...(data ? { data } : {})} />
     </div>
   );
 }
@@ -291,68 +293,6 @@ function PantrySection() {
         </p>
         {/* TODO: pantry route owned by another lane; confirm href. */}
         <Link className={s.link} href="/pantry">Pantry and post-purchase behaviour</Link>
-      </section>
-    </Card>
-  );
-}
-
-function DataSection() {
-  const toast = useToast();
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [exportRequested, setExportRequested] = useState(false);
-  const [deleteRequested, setDeleteRequested] = useState(false);
-
-  function requestExport() {
-    // TODO: POST /api/export (DATA-EXPORT-DELETION.md section 1).
-    setExportRequested(true);
-    toast.toast({ message: 'Export requested. We will let you know when it is ready.' });
-  }
-
-  function requestDelete() {
-    // TODO: DELETE /api/household/:id (sets pending_deletion, purge after 14 days; re-auth required).
-    setConfirmDelete(false);
-    setDeleteRequested(true);
-    toast.toast({ message: 'Household deletion scheduled' });
-  }
-
-  return (
-    <Card>
-      <section className={s.card} aria-labelledby="h-data">
-        <h2 id="h-data">Your data</h2>
-        <div>
-          <h3 style={{ margin: 0, fontSize: '1rem' }}>Export my data</h3>
-          <p className={s.muted}>
-            Download your recipes, plans, lists and purchase history. You can request one export
-            every 24 hours; the download link works for 24 hours.
-          </p>
-          <div className={s.row}>
-            <Button variant="secondary" onClick={requestExport} disabled={exportRequested}>
-              {exportRequested ? 'Export requested' : 'Request data export'}
-            </Button>
-          </div>
-        </div>
-        <div>
-          <h3 style={{ margin: 0, fontSize: '1rem' }}>Delete household</h3>
-          <p className={s.muted}>
-            Deleting the household removes all recipes, plans and lists for every member. You then
-            have 14 days to change your mind; only the owner can cancel. After that everything is
-            permanently deleted, and it disappears from our backups within a further 14 days.
-          </p>
-          <div className={s.row}>
-            <Button variant="danger" onClick={() => setConfirmDelete(true)} disabled={deleteRequested}>
-              {deleteRequested ? 'Deletion scheduled' : 'Delete household'}
-            </Button>
-          </div>
-        </div>
-        <ConfirmDialog
-          open={confirmDelete}
-          onOpenChange={setConfirmDelete}
-          title="Delete this household?"
-          description="This deletes all recipes, plans and lists. All members will be notified. You have 14 days to cancel before it is permanent."
-          confirmLabel="Delete household"
-          destructive
-          onConfirm={requestDelete}
-        />
       </section>
     </Card>
   );

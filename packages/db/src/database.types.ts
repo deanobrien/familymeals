@@ -125,6 +125,60 @@ export type Database = {
           },
         ];
       };
+      data_export_requests: {
+        Row: {
+          bytes: number | null;
+          counts: Json | null;
+          download_count: number;
+          error: string | null;
+          expires_at: string;
+          household_id: string;
+          id: string;
+          last_downloaded_at: string | null;
+          requested_at: string;
+          scope: string;
+          status: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          bytes?: number | null;
+          counts?: Json | null;
+          download_count?: number;
+          error?: string | null;
+          expires_at: string;
+          household_id: string;
+          id?: string;
+          last_downloaded_at?: string | null;
+          requested_at?: string;
+          scope: string;
+          status?: string;
+          user_id?: string;
+        };
+        Update: {
+          bytes?: number | null;
+          counts?: Json | null;
+          download_count?: number;
+          error?: string | null;
+          expires_at?: string;
+          household_id?: string;
+          id?: string;
+          last_downloaded_at?: string | null;
+          requested_at?: string;
+          scope?: string;
+          status?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'data_export_requests_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       deletion_ledger: {
         Row: {
           cancelled_at: string | null;
@@ -2312,6 +2366,7 @@ export type Database = {
           enqueued_at: string;
           household_id: string | null;
           id: string;
+          last_attempt_at: string | null;
           last_error: string | null;
           object_path: string;
           processed_at: string | null;
@@ -2324,6 +2379,7 @@ export type Database = {
           enqueued_at?: string;
           household_id?: string | null;
           id?: string;
+          last_attempt_at?: string | null;
           last_error?: string | null;
           object_path: string;
           processed_at?: string | null;
@@ -2335,6 +2391,7 @@ export type Database = {
           enqueued_at?: string;
           household_id?: string | null;
           id?: string;
+          last_attempt_at?: string | null;
           last_error?: string | null;
           object_path?: string;
           processed_at?: string | null;
@@ -2387,6 +2444,16 @@ export type Database = {
         Returns: Json;
       };
       backfill_pantry_purchase_mode: { Args: Record<PropertyKey, never>; Returns: number };
+      begin_data_export: {
+        Args: { p_household_id: string; p_scope: string };
+        Returns: {
+          allowed: boolean;
+          expires_at: string;
+          export_id: string;
+          retry_after: string;
+        }[];
+      };
+      cancel_account_deletion: { Args: Record<PropertyKey, never>; Returns: boolean };
       cancel_household_deletion: { Args: { p_household_id: string }; Returns: undefined };
       create_invitation: {
         Args: {
@@ -2400,6 +2467,10 @@ export type Database = {
           invitation_id: string;
           token: string;
         }[];
+      };
+      delete_product_snapshot: {
+        Args: { p_barcode: string; p_household_id: string };
+        Returns: undefined;
       };
       enqueue_storage_cleanup: {
         Args: { p_bucket: string; p_household_id: string; p_path: string; p_reason: string };
@@ -2417,7 +2488,6 @@ export type Database = {
         Returns: Json;
       };
       fr_norm_ingredient: { Args: { p: string }; Returns: string };
-      delete_product_snapshot: { Args: { p_barcode: string; p_household_id: string }; Returns: undefined };
       fr_norm_title: { Args: { p: string }; Returns: string };
       get_household_ai_settings: { Args: { p_household_id: string }; Returns: Json };
       get_receipt: { Args: { p_household_id: string; p_receipt_id: string }; Returns: Json };
@@ -2432,6 +2502,28 @@ export type Database = {
       is_household_member: { Args: { hid: string }; Returns: boolean };
       is_household_owner: { Args: { hid: string }; Returns: boolean };
       is_household_writable: { Args: { hid: string }; Returns: boolean };
+      jobs_claim_storage_cleanup: {
+        Args: { p_limit?: number; p_max_attempts?: number };
+        Returns: {
+          attempts: number;
+          bucket: string;
+          id: string;
+          object_path: string;
+        }[];
+      };
+      jobs_complete_account_purge: { Args: { p_user_id: string }; Returns: undefined };
+      jobs_complete_storage_cleanup: { Args: { p_ids: string[] }; Returns: number };
+      jobs_due_account_deletions: {
+        Args: { p_limit?: number };
+        Returns: {
+          replay: boolean;
+          user_id: string;
+        }[];
+      };
+      jobs_fail_storage_cleanup: { Args: { p_error: string; p_id: string }; Returns: undefined };
+      jobs_prepare_account_purge: { Args: { p_user_id: string }; Returns: string };
+      jobs_purge_due: { Args: { p_limit?: number }; Returns: Json };
+      jobs_status: { Args: { p_max_attempts?: number }; Returns: Json };
       list_receipts: { Args: { p_household_id: string }; Returns: Json };
       list_recipes: {
         Args: {
@@ -2452,6 +2544,7 @@ export type Database = {
       };
       member_leave: { Args: { p_household_id: string }; Returns: undefined };
       metric_base_factor: { Args: { u: Database['public']['Enums']['unit'] }; Returns: number };
+      my_account_deletion: { Args: Record<PropertyKey, never>; Returns: string };
       planner_household_profile: { Args: { p_household_id: string }; Returns: Json };
       purge_household: { Args: { p_household_id: string }; Returns: undefined };
       quantity_is_valid: {
@@ -2465,7 +2558,21 @@ export type Database = {
         Returns: boolean;
       };
       recipe_facets: { Args: { p_household_id: string }; Returns: Json };
+      recipe_version_local_uploads: {
+        Args: { p_corrected: Json; p_paths: string[] };
+        Returns: string[];
+      };
       recipe_view_json: { Args: { p_recipe_id: string; p_user_id: string }; Returns: Json };
+      record_data_export_download: {
+        Args: {
+          p_bytes?: number;
+          p_counts?: Json;
+          p_error?: string;
+          p_export_id: string;
+          p_ok: boolean;
+        };
+        Returns: undefined;
+      };
       record_price_observations: {
         Args: { p_household_id: string; p_items: Json };
         Returns: number;
@@ -2485,6 +2592,7 @@ export type Database = {
       };
       refresh_recipe_search: { Args: { p_recipe_id: string }; Returns: undefined };
       replace_pantry_items: { Args: { p_household_id: string; p_items: Json }; Returns: undefined };
+      request_account_deletion: { Args: Record<PropertyKey, never>; Returns: string };
       request_household_deletion: {
         Args: { p_grace?: string; p_household_id: string };
         Returns: string;
@@ -2498,7 +2606,13 @@ export type Database = {
         Returns: undefined;
       };
       save_product_snapshot: {
-        Args: { p_barcode: string; p_household_id: string; p_ingredient_id: string | null; p_retrieved_at: string; p_snapshot: Json };
+        Args: {
+          p_barcode: string;
+          p_household_id: string;
+          p_ingredient_id: string;
+          p_retrieved_at: string;
+          p_snapshot: Json;
+        };
         Returns: undefined;
       };
       save_receipt: {
@@ -2588,7 +2702,7 @@ export type Database = {
         | 'sulphites'
         | 'tree_nuts';
       consent_type: 'allergy_data' | 'dietary_restrictions';
-      deletion_subject: 'household' | 'member';
+      deletion_subject: 'household' | 'member' | 'account';
       diet_category: 'meat' | 'fish' | 'vegetarian' | 'vegan';
       dimension: 'mass' | 'volume' | 'count';
       exclusion_kind: 'allergy' | 'intolerance' | 'avoid';
@@ -2782,7 +2896,7 @@ export const Constants = {
         'tree_nuts',
       ],
       consent_type: ['allergy_data', 'dietary_restrictions'],
-      deletion_subject: ['household', 'member'],
+      deletion_subject: ['household', 'member', 'account'],
       diet_category: ['meat', 'fish', 'vegetarian', 'vegan'],
       dimension: ['mass', 'volume', 'count'],
       exclusion_kind: ['allergy', 'intolerance', 'avoid'],
