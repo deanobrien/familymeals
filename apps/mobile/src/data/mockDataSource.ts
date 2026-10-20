@@ -1,6 +1,6 @@
 import type { NutrientValue, PurchaseEvent, Quantity, Uuid } from '@fr/domain';
 import type { PlacementTargetType, StoreBook } from '@fr/engine/shopping';
-import type { Recipe, ShoppingConflict, ShoppingListItem, UserSession } from '@/viewModels';
+import type { Household, Recipe, ShoppingConflict, ShoppingListItem, UserSession } from '@/viewModels';
 import { newId } from '@/lib/format';
 import { MockAccountSource } from './mockAccountSource';
 import type { DataSource, ShoppingListState } from './DataSource';
@@ -19,7 +19,12 @@ const nut = (
   value?: number,
 ): NutrientValue => ({ nutrient, unit, status, value, estimate: false });
 
-const RECIPES: Recipe[] = [
+export const HOUSEHOLDS: Household[] = [
+  { id: 'hh-1', name: 'The Smiths', memberCount: 4 },
+  { id: 'hh-2', name: 'Flat 3B', memberCount: 2 },
+];
+
+export const RECIPES: Recipe[] = [
   {
     id: 'r-1',
     householdId: 'hh-1',

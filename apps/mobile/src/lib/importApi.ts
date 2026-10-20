@@ -43,12 +43,27 @@ export interface DraftSummary {
   warnings: string[];
 }
 
+/** Which AI read the photos (never includes a key). Absent for discovered recipes (no AI). */
+export interface ProviderInfo {
+  label: string;
+  isMock: boolean;
+}
+
+export interface ExistingRecipe {
+  id: string;
+  title: string;
+  ingredientNames?: string[];
+  ingredientIds?: string[];
+}
+
 export interface ExtractionOutcome {
   uploadId: string;
+  /** The server's RecipeDraft (@fr/recipe-import), edited on the phone by the review screen and sent back on save. */
   draft: unknown;
   summary: DraftSummary;
-  /** Recipes already in the library that look like this one. */
-  existing: Array<{ id: string; title: string }>;
+  /** Recipes already in the library, used for the "looks similar" check. */
+  existing: ExistingRecipe[];
+  provider?: ProviderInfo;
 }
 
 export interface ImportClient {
@@ -142,15 +157,24 @@ export function createImportClient(opts: {
     async extract(householdId, images) {
       // No Content-Type header: React Native sets the multipart boundary itself.
       const res = await call('/api/extract', { method: 'POST', body: buildExtractionForm(householdId, images) });
-      const body = (await res.json()) as { uploadId?: unknown; draft?: unknown; existing?: unknown };
+      const body = (await res.json()) as { uploadId?: unknown; draft?: unknown; existing?: unknown; provider?: unknown };
       if (typeof body.uploadId !== 'string' || !isObj(body.draft)) {
         throw new ImportApiError('The server returned an unexpected response.', res.status, false);
       }
       const existing = (Array.isArray(body.existing) ? body.existing : [])
         .filter(isObj)
         .filter((e) => typeof e.id === 'string' && typeof e.title === 'string')
-        .map((e) => ({ id: e.id as string, title: e.title as string }));
-      return { uploadId: body.uploadId, draft: body.draft, summary: summariseDraft(body.draft), existing };
+        .map(
+          (e): ExistingRecipe => ({
+            id: e.id as string,
+            title: e.title as string,
+            ...(Array.isArray(e.ingredientNames) ? { ingredientNames: e.ingredientNames.filter((n): n is string => typeof n === 'string') } : {}),
+            ...(Array.isArray(e.ingredientIds) ? { ingredientIds: e.ingredientIds.filter((n): n is string => typeof n === 'string') } : {}),
+          }),
+        );
+      const provider =
+        isObj(body.provider) && typeof body.provider.label === 'string' ? { label: body.provider.label, isMock: body.provider.isMock === true } : undefined;
+      return { uploadId: body.uploadId, draft: body.draft, summary: summariseDraft(body.draft), existing, ...(provider ? { provider } : {}) };
     },
     async save(outcome) {
       const res = await call('/api/extract/save', {

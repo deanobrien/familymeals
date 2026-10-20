@@ -825,3 +825,27 @@ Default servings and weekly budget are saved to `households` (owner only; RLS de
 ## D326 Deletion on Android: same confirmations, two taps (P0-A)
 
 Account deletion: Settings tab, "Delete my account" -> screen with typed DELETE + current password; household deletion (owner) on "Your data" with the typed household name + password; cancel needs neither; the grace countdown, the read-only banner (household, settings and your-data screens) and the "transfer ownership first" block match web. Password re-authentication uses a throwaway non-persisting client (as `reauth.ts`); because it runs on the device it is an accident guard, exactly as on web where the RPCs are also callable with a session token. When the RPC schedules the account for now (no sole-member household) the app signs out and shows sign-in with a "deletion scheduled" note.
+
+## D330 Android recipes call the web app's server logic through bearer JSON routes (P0-B)
+
+Matching, cost, nutrition, duplicate detection, discover exclusions and image signing need server-only refdata and household data, so the app does not re-implement them. New routes (all `resolveRequestAuth` + `runWithDataContext`, D102/D213, listed in `BEARER_API_PATHS/PREFIXES`): `GET/POST /api/recipes`, `GET/PUT/DELETE /api/recipes/[id]`, `POST /api/recipes/[id]/favourite|rematch`, `POST /api/recipes/duplicates`, `GET /api/catalogue/search`, `POST /api/catalogue/match`, `GET /api/discover/filters`, `POST /api/discover/search|draft`. Web server actions and these routes share `lib/server/recipes/service.ts` and `lib/server/discover/api.ts`. Body routes accept only `application/json` (415 otherwise). `RequestAuth` gained `defaultServings`. Without `EXPO_PUBLIC_API_BASE_URL` (Supabase configured) the recipe screens show a readable error; with no Supabase env an in-memory demo (`mockRecipesApi`) is used.
+
+## D331 Wire contract and mobile abstraction (P0-B)
+
+`apps/mobile/src/lib/recipesApi.ts` holds the wire types and the `RecipesApi` interface (HTTP client + demo implementation); it mirrors `lib/recipes/types.ts` and `lib/calc/types.ts`, changed together. Covers load through `/api/images/<path>` with the bearer header (a 302 to a signed URL); there is no public bucket.
+
+## D332 Full import review on the phone (P0-B)
+
+`ImportReviewScreen` edits the server's `RecipeDraft` with the same `@fr/recipe-import` functions the web uses (`applyCorrections`, `computeIssues`, `findDuplicates`) and saves through `/api/extract/save`. The package imports `./x.js` for `.ts` files, so Metro (`metro.config.js`) and jest (`jest.resolver.js`) retry without the extension. Cover choice previews the phone's own captured pages. Discover reuses the same screen.
+
+## D333 Discover exclusions stay server-side (P0-B)
+
+`/api/discover/search` and `/draft` re-derive the household's hard exclusions on the server; the app can neither remove nor see them (only a withheld count). Diet labels stay "unverified".
+
+## D334 Servings (P0-B)
+
+Opens at the household default (fallback 4); the per-member, per-recipe override lives in AsyncStorage under the web's key shape (`fr:servings:v1:<hh>:<user>:<recipe>`), device-local (does not sync with the web's localStorage). Amounts use `@fr/engine/scale` (`scaleToServings`, `formatQuantity`): to-taste, pinch and unparsed stay unchanged.
+
+## D335 Documented gaps (P0-B)
+
+"Add to plan" opens the web planner (`/plan?add=<id>`) until lane P0-C ships the Android planner. "Review in Settings" (consent notice) opens the web settings until P0-A. Recipe duplicate on Android opens the form prefilled (no cover, no verbatim original text) instead of a server copy.

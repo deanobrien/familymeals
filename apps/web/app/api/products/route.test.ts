@@ -16,7 +16,7 @@ const { getBatchResolver, setBatchResolverForTests, resetPollRate } = await impo
 const { acceptsBearer, isPublicPath } = await import('../../../lib/server/auth/routes');
 
 const H = 'aa000000-0000-4000-8000-0000000000aa';
-const ok: AuthOutcome = { ok: true, auth: { userId: 'u1', householdId: H, readOnly: false, dataContext: null } };
+const ok: AuthOutcome = { ok: true, auth: { userId: 'u1', householdId: H, readOnly: false, dataContext: null, defaultServings: 4 } };
 const call = (body: unknown, headers: Record<string, string> = { 'content-type': 'application/json' }) =>
   POST(new Request('http://t/api/products', { method: 'POST', headers, body: typeof body === 'string' ? body : JSON.stringify(body) }));
 
