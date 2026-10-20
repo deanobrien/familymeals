@@ -19,6 +19,9 @@ function Navigator() {
       <Stack.Screen name="households" options={{ title: 'Households' }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="recipe/[id]" options={{ title: 'Recipe' }} />
+      <Stack.Screen name="recipe/new" options={{ title: 'New recipe' }} />
+      <Stack.Screen name="recipe/edit/[id]" options={{ title: 'Edit recipe' }} />
+      <Stack.Screen name="discover" options={{ title: 'Discover recipes' }} />
     </Stack>
   );
 }

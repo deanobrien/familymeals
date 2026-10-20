@@ -28,10 +28,10 @@ Standing rule (D310): every web feature also ships on Android unless a reason is
 | Sign in / household picker | ✅ | ✅ | none |
 | Sign-up / forgot password | ✅ | ❌ | build on Android |
 | Household members / invites / transfer | ✅ | ❌ | build on Android |
-| Recipes browse / detail | ✅ | ✅ | detail lacks cost/nutrition panels and household-default servings |
-| Recipe create / edit + ingredient matching | ✅ | ❌ | build on Android |
-| Photo import full review/edit | ✅ | ⚠️ | capture + read-only summary only |
-| Discover | ✅ | ❌ | build on Android |
+| Recipes browse / detail | ✅ | ✅ | none (P0-B: search, filters, sort, collections, favourites, covers, household-default servings, cost + nutrition panels; needs a device check) |
+| Recipe create / edit + ingredient matching | ✅ | ✅ | none (P0-B: form, "Matched to" picker, duplicates, copy, delete) |
+| Photo import full review/edit | ✅ | ✅ | none (P0-B: full on-phone review, same corrections as web) |
+| Discover | ✅ | ✅ | none (P0-B; "Add to plan" hands off to the web planner until P0-C ships the Android planner) |
 | Meal planner manual + prompt chips | ✅ | ❌ | build on Android |
 | Shopping list live / offline / aisles | ✅ | ✅ | none |
 | Multi-list + handwritten list scan | ✅ | ⚠️ | server endpoint only, no Android UI |

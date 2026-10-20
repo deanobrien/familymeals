@@ -173,3 +173,5 @@ If a lane's branch is merged into your checkout, its decisions are in `DECISIONS
 | [../supabase/SCHEMA.md](../supabase/SCHEMA.md) | schema, RLS model, RPCs |
 | [../e2e/ACCEPTANCE.md](../e2e/ACCEPTANCE.md), [../e2e/A11Y-AUDIT.md](../e2e/A11Y-AUDIT.md) | acceptance matrix, accessibility audit |
 - Recipe detail opens at the household default servings (fallback 4) with a per-member localStorage override per recipe (lib/recipes/initial-servings.ts).
+
+| P0-B | Android parity: recipes (D330-D335) | **done on branch `prj018/p0b-android-recipes`** (no migration): Android library (search/filters/sort/collections/favourites/covers), detail (household-default servings + per-recipe override, scaled amounts, cost and nutrition panels, printed card column, re-match), create/edit/copy/delete form with "Matched to" picker, full on-phone import review, Discover. Server side: bearer JSON routes `/api/recipes*`, `/api/catalogue/*`, `/api/discover/*` over the same service code as the web actions. Needs a real device (see apps/mobile/README.md "Recipes") |

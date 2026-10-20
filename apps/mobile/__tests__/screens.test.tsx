@@ -6,12 +6,9 @@ import SignInScreen from '@/screens/SignInScreen';
 import RecipeDetailScreen from '@/screens/RecipeDetailScreen';
 import ShoppingListScreen from '@/screens/ShoppingListScreen';
 
-const mockReplace = jest.fn();
-let mockParams: Record<string, string> = {};
-jest.mock('expo-router', () => ({
-  useRouter: () => ({ replace: mockReplace, push: jest.fn() }),
-  useLocalSearchParams: () => mockParams,
-}));
+import { params, resetRouter, router } from './helpers/router';
+
+jest.mock('expo-router', () => require('./helpers/router').routerModule());
 
 function SetHousehold({ id, children }: { id: string; children: React.ReactNode }) {
   const { householdId, setHouseholdId } = useApp();
@@ -27,7 +24,7 @@ function renderWith(ds: MockDataSource, ui: React.ReactElement, household = 'hh-
   );
 }
 
-beforeEach(() => mockReplace.mockClear());
+beforeEach(() => resetRouter());
 
 describe('SignInScreen', () => {
   it('shows an error for bad credentials and navigates on success', async () => {
@@ -45,13 +42,13 @@ describe('SignInScreen', () => {
     await fireEvent.changeText(screen.getByPlaceholderText('Email'), 'a@b.co');
     await fireEvent.changeText(screen.getByPlaceholderText('Password'), 'secret1');
     await fireEvent.press(screen.getByTestId('sign-in'));
-    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/households'));
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith('/households'));
   });
 });
 
 describe('RecipeDetailScreen', () => {
   it('shows Unknown for unknown/unavailable/missing nutrition, not 0', async () => {
-    mockParams = { id: 'r-1' };
+    params.current = { id: 'r-1' };
     await renderWith(new MockDataSource(), <RecipeDetailScreen />);
     expect(await screen.findByText('Spaghetti Bolognese')).toBeTruthy();
     expect(screen.getByTestId('nutrition-energy_kcal')).toHaveTextContent('520 kcal');

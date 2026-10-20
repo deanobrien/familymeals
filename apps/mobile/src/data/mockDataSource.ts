@@ -18,12 +18,12 @@ const nut = (
   value?: number,
 ): NutrientValue => ({ nutrient, unit, status, value, estimate: false });
 
-const HOUSEHOLDS: Household[] = [
+export const HOUSEHOLDS: Household[] = [
   { id: 'hh-1', name: 'The Smiths', memberCount: 4 },
   { id: 'hh-2', name: 'Flat 3B', memberCount: 2 },
 ];
 
-const RECIPES: Recipe[] = [
+export const RECIPES: Recipe[] = [
   {
     id: 'r-1',
     householdId: 'hh-1',

@@ -16,7 +16,7 @@ const { resetProductQuota } = await import('../../../../lib/server/products/look
 const { acceptsBearer, isPublicPath } = await import('../../../../lib/server/auth/routes');
 
 const H = 'aa000000-0000-4000-8000-0000000000aa';
-const ok: AuthOutcome = { ok: true, auth: { userId: 'u1', householdId: H, readOnly: false, dataContext: null } };
+const ok: AuthOutcome = { ok: true, auth: { userId: 'u1', householdId: H, readOnly: false, dataContext: null, defaultServings: 4 } };
 const call = (barcode: string, qs = '', authorization?: string) =>
   GET(new Request(`http://t/api/products/${barcode}${qs}`, { headers: authorization ? { authorization } : {} }), { params: Promise.resolve({ barcode }) });
 
