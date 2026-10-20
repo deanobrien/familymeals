@@ -161,3 +161,4 @@ If a lane's branch is merged into your checkout, its decisions are in `DECISIONS
 | [../claude/](../claude/status-and-next-steps.md) | verified status per integration pass; `memories/` = durable gotchas |
 | [../supabase/SCHEMA.md](../supabase/SCHEMA.md) | schema, RLS model, RPCs |
 | [../e2e/ACCEPTANCE.md](../e2e/ACCEPTANCE.md), [../e2e/A11Y-AUDIT.md](../e2e/A11Y-AUDIT.md) | acceptance matrix, accessibility audit |
+- Recipe detail opens at the household default servings (fallback 4) with a per-member localStorage override per recipe (lib/recipes/initial-servings.ts).

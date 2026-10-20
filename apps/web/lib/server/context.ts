@@ -12,6 +12,8 @@ export interface AppContext {
   householdId: string;
   householdName: string;
   userId: string;
+  /** households.default_servings: recipes open scaled to this. */
+  defaultServings: number;
   displayName: string;
   readOnly: boolean;
   mode: 'supabase' | 'mock';
@@ -23,6 +25,7 @@ export async function getAppContext(): Promise<AppContext> {
     householdId: ctx.household.id,
     householdName: ctx.household.name,
     userId: ctx.user.id,
+    defaultServings: ctx.household.defaultServings,
     displayName: ctx.mode === 'mock' ? MOCK_USER_NAME : (ctx.user.email?.split('@')[0] ?? 'Member'),
     readOnly: ctx.readOnly,
     mode: ctx.mode,
