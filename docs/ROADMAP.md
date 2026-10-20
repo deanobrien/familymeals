@@ -19,6 +19,74 @@ Milestones are the brief's M0-M10 ([product/BRIEF.md](product/BRIEF.md) section 
 | Extra: Handwritten list scan + multiple lists | 80 | photo(s) of a paper list -> reviewable lines -> add to current list (merge preview) or a new named list; several lists per household with one active, switcher, rename, put away (SL1, D260-D267) | live-model accuracy on real handwriting; Android scan screen; Realtime notice of a bare list switch; item counts / delete for archived lists |
 | Extra: Azure deploy | 60 | standalone build, packaging script, runbook, health check, CSP | push schema to cloud, redeploy with D2 fix, smoke test (HANDOVER section 8); Supabase Storage for uploads; scale-out readiness |
 
+## Parity matrix (web vs Android)
+
+Standing rule (D310): every web feature also ships on Android unless a reason is recorded in [../DECISIONS.md](../DECISIONS.md). As of 2026-10-20.
+
+| Feature | Web | Android | Gap |
+|---|---|---|---|
+| Sign in / household picker | ✅ | ✅ | none |
+| Sign-up / forgot password | ✅ | ❌ | build on Android |
+| Household members / invites / transfer | ✅ | ❌ | build on Android |
+| Recipes browse / detail | ✅ | ✅ | detail lacks cost/nutrition panels and household-default servings |
+| Recipe create / edit + ingredient matching | ✅ | ❌ | build on Android |
+| Photo import full review/edit | ✅ | ⚠️ | capture + read-only summary only |
+| Discover | ✅ | ❌ | build on Android |
+| Meal planner manual + prompt chips | ✅ | ❌ | build on Android |
+| Shopping list live / offline / aisles | ✅ | ✅ | none |
+| Multi-list + handwritten list scan | ✅ | ⚠️ | server endpoint only, no Android UI |
+| Pantry stock / expiry / use-what-I-have / photo-video scan | ✅ | ❌ | build on Android |
+| Barcode scanning | ✅ continuous | ⚠️ | tally only, review on web |
+| Receipts | ✅ | ❌ | build on Android |
+| Settings: preferences / allergy consent / store aisles | ✅ | ⚠️ | aisle placement only |
+| Data export + account/household deletion | ✅ | ❌ | **release blocker**: Google Play requires in-app account deletion |
+| Home dashboard, privacy/sources pages | ✅ | ❌ | build on Android |
+| Settings -> AI provider | ✅ | - | proposed web-only (D310, awaiting owner confirmation) |
+
+## Phased plan
+
+All durations are **estimates**, not commitments.
+
+### Phase 0 - Finish the release (~1 wk + 2-3 wks parity)
+
+- Real-device APK test; scan beep / keep-awake / haptics.
+- Hourly purge Logic App (D259); Expo OTA updates; App Insights alerts.
+- Parity catch-up in 3 lanes:
+  - **P0-A** account and household, including account deletion first (Play blocker).
+  - **P0-B** recipe create/edit, full import review, discover, cost/nutrition panels, household servings.
+  - **P0-C** planner with chips, pantry with scan + min stock, receipts, handwritten list, barcode confirm.
+
+### Phase 1 - Everyday wins (~2 wks)
+
+- **A Cooking**: cook mode (steps, timers, read-aloud, keep-awake); ratings and notes after cooking; substitutions (AI, allergy-checked).
+- **B Import and pantry**: recipe from a web link (JSON-LD first, then AI); "what can I make now?"; 5-a-day and variety score.
+- **C Notifications**: notification platform (Expo push + web push, per-person preferences) -> expiry alerts, activity feed.
+- Plus per-person soft dislikes.
+
+### Phase 2 - Smarter shopping and planning (~3 wks)
+
+- **A Location**: store switching on arrival; optional "near Tesco" prompt (opt-in, geofences on device).
+- **B Money**: price comparison per shop; budget tracking over time.
+- **C Planning**: calendar-aware planning (consent; busy/free only); leftovers and batch cooking.
+- Small: voice add.
+
+### Phase 3 - Household, health and platform (~3 wks)
+
+- **A Sharing**: shared family cookbook links; kids' mode.
+- **B Health**: per-person nutrition goals (consent, privacy notice/DPIA, no medical claims).
+- **C Platform**: home-screen widget (Android-only by nature); phone-as-scanner for desktop; offline web PWA.
+
+### Phase 4 - Later
+
+- iOS (parked: owner chose Android-only); items from real use.
+
+### Cross-cutting
+
+- Every feature ships web + Android, or a documented reason (D310).
+- Privacy consent for location, calendar and nutrition goals, included in data export.
+- Docs updated per lane.
+- One migration push + one zip per phase.
+
 ## Ideas backlog
 
 Owner ideas first; others are maintainers' notes. Nothing here is committed scope.

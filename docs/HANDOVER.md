@@ -125,6 +125,8 @@ If a lane's branch is merged into your checkout, its decisions are in `DECISIONS
 
 ## 8. Exact next steps
 
+**Standing rule - Web <-> Android parity** (owner decision, 2026-10-20, D310): every feature available in the web app must also ship in the Android app (`apps/mobile`) unless there is a good reason, recorded in [../DECISIONS.md](../DECISIONS.md). Every feature lane is briefed and accepted as web + Android; reports state Android status per feature. Gaps and the phased plan: [ROADMAP.md](ROADMAP.md).
+
 1. LV1 is done; the schema is cleared for the cloud.
 2. **Push the schema** (owner): `pnpm exec supabase link --project-ref guzsjqoosjqxfuqrjhxu` then `pnpm exec supabase db push --include-seed` (database password from the password manager; `--include-seed` is required so the reference ingredient list is loaded). Then set the hosted Auth settings to set in the dashboard (Authentication): email confirmations ON, minimum password length 10, leaked-password protection ON, Site URL `https://family-recipes-dean-cph4g5cuh9fmhhfy.ukwest-01.azurewebsites.net`, redirect URLs `https://family-recipes-dean-cph4g5cuh9fmhhfy.ukwest-01.azurewebsites.net/auth/callback` and `http://localhost:3100/auth/callback`. Then enable Realtime for the tables in migration `20261019001100_realtime.sql` if the dashboard shows the publication empty ([SUPABASE.md](SUPABASE.md) section 4), and configure Auth URLs (section 5 there).
 3. **Rebuild and redeploy the zip** (it now includes the D2 no-rebuild fix): `scripts/package-appservice.ps1`, then Kudu upload; rebuild whenever `NEXT_PUBLIC_*` values change (they are baked in).

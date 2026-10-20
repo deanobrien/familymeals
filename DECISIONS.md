@@ -791,3 +791,9 @@ Household deletion: type the household name; account deletion: type DELETE; both
 ## D259 Scheduler: one Azure Logic App calling /api/jobs/purge (DX1)
 
 Recommended: one Consumption Logic App, hourly Recurrence -> HTTP POST `/api/jobs/purge` with the secret header (secure inputs/outputs, retries, failed-run alert); that run also does ST1's storage cleanup. Alternatives: a triggered WebJob as ST1 documents (DEPLOY-APP-SERVICE.md 4b) or a GitHub Actions cron (best effort, disabled after 60 idle days). Steps in DEPLOY-APP-SERVICE.md 3c. No Azure resources were created by the lane.
+
+## D310 Web <-> Android parity rule (owner decision, 2026-10-20)
+
+Every feature available in the web app must also ship in the Android app (`apps/mobile`) unless there is a good reason, which must be recorded in this file. Every feature lane is briefed and accepted as web + Android, and lane reports state Android status per feature. The current gaps are the parity matrix in [docs/ROADMAP.md](docs/ROADMAP.md); Phase 0 closes them.
+
+**PROPOSED exception - awaiting owner confirmation:** Settings -> AI provider (endpoint/key) is web-only. It is a one-off owner admin task and typing API keys on a phone adds little.
