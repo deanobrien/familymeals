@@ -27,6 +27,9 @@ export interface ShoppingListItem {
   displayName: string;
   quantity: Quantity;
   aisle: string;
+  /** Canonical ingredient link and list category, when known (store aisle ordering, AS1). */
+  ingredientId?: Uuid;
+  category?: string;
   /** True once a PurchaseEvent has been recorded (locally or on the server). */
   ticked: boolean;
   /** True when a ticked item has a purchase that can be undone. */

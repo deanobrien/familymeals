@@ -28,6 +28,7 @@ adjustments, plus requests from L24 (privacy lifecycle) and L17a (shopping concu
 | `001600_shopping_repository.sql` | S2 (D120-D122): engine item state on `shopping_list_items`, shopping quantities `numeric(18,6)`, `shopping_command_log.list_seq` per-list commit-ordered cursor (`shopping_list_log_heads` counter), `ensure_shopping_list`, `shopping_list_snapshot`, `apply_shopping_command` |
 | `001610_receipts_prices.sql` | S2 (D123, D124, D127): `receipts.review_state`, `receipt_lines.parsed`, `save_receipt` / `get_receipt` / `list_receipts`, `record_price_observations` / `household_price_observations` (idempotent per source), `household_purchase_records` |
 | `001620_household_profile_ai_settings.sql` | S2 (D125, D126): `planner_household_profile` (consent-gated allergy exclusions), `household_ai_settings` (no grants; ciphertext keys) + member-read / owner-write RPCs |
+| `20261020002500_dx1_export_deletion.sql` | DX1 (D250-D259): `data_export_requests` (own-row select; `begin_data_export` rate limit / `record_data_export_download`); `request_household_deletion` grace clamp; `request/cancel_account_deletion`, `my_account_deletion`; `deletion_subject` + `account`; purchase-event anonymisation shape; `invitations` CHECK relaxed to `accepted_by is null or accepted_at is not null` (account deletion of an invitee failed); service-role-only `jobs_purge_due` (+ ledger replay), `jobs_due_account_deletions`, `jobs_prepare/complete_account_purge`, `jobs_status` (queue processing is ST1's `claim_storage_cleanup`). Tests: `packages/db/tests/rls/011_dx1_export_deletion.sql` |
 | `packages/domain/src/` | `@fr/domain`: primitives, CONTRACT-SEED shapes, one row schema per table/view, RPC DTOs, row mapping |
 | `packages/db/tests/rls/*.sql` | plain-SQL assert scripts (BEGIN…ROLLBACK); `000_helpers.sql` defines `tests.act_as()` etc. |
 | `packages/db/tests/support/supabase-stub.sql` | stand-in for `auth`/`storage`/roles — **CI only, never on Supabase** |
@@ -51,9 +52,12 @@ auth.users ─┬─< household_members >── households ──< invitations
                                        │  ├──< receipts ──< receipt_lines ─? shopping_list_items
                                        │  ├──< pantry_items, ai_usage
                                        │  └──< product_packs / ingredient_prices (household_id NULL = reference row)
+                                       │  └──< stores ──< store_aisles ──< store_placements   (AS1, D290; target = ingredient id | item name | category label, text)
 ingredients ──< ingredient_aliases, ingredient_densities, ingredient_unit_weights, ingredient_nutrients, ingredient_allergens
 storage_cleanup_queue, deletion_ledger   (no FKs; service role only)
 ```
+
+**Stores and aisles (AS1, migration `20261020002900`).** `stores` (unique name per household, case-insensitive), `store_aisles` (label, `sort_order`), `store_placements` (unique per `(store_id, target_type, target_key)`; `target_type` in `ingredient | item | category`). Composite FKs `(store_id, household_id)` and `(aisle_id, store_id)` keep rows in one household and one store; deleting an aisle or store cascades. RLS: members select, writable-household members write (read-only in the deletion grace period). Functions: `household_store_book(p_household_id)` (jsonb, security invoker) and `copy_store_layout(p_household_id, p_from_store, p_to_store)` (replaces the target's aisles and placements atomically). RLS tests: `packages/db/tests/rls/010_as1_store_aisles.sql`.
 
 The four concepts the brief insists stay separate are separate tables: **recipe requirement**
 (`recipe_ingredients`), **shopping requirement** (`shopping_list_items` + provenance in `shopping_list_item_sources`),

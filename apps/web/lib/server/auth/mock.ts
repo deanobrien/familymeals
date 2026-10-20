@@ -1,3 +1,4 @@
+import { effectiveNodeEnv } from '../../e2e-mode';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { HouseholdSummary } from './memberships';
 
@@ -24,11 +25,11 @@ export class MockAuthForbiddenError extends Error {
   }
 }
 
-export function assertMockAllowed(nodeEnv: string | undefined = process.env.NODE_ENV): void {
+export function assertMockAllowed(nodeEnv: string | undefined = effectiveNodeEnv()): void {
   if (nodeEnv === 'production') throw new MockAuthForbiddenError();
 }
 
-export function getMockIdentity(nodeEnv: string | undefined = process.env.NODE_ENV, sandboxId?: string): {
+export function getMockIdentity(nodeEnv: string | undefined = effectiveNodeEnv(), sandboxId?: string): {
   user: { id: string; email: string | null };
   household: HouseholdSummary;
 } {

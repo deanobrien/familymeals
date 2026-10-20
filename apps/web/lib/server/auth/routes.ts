@@ -20,14 +20,17 @@ export const PUBLIC_PATHS: readonly string[] = [
 /** Public path prefixes (the prefix itself or anything below it). */
 export const PUBLIC_PREFIXES: readonly string[] = ['/auth/', '/invite/'];
 
-/** /api/jobs/storage-cleanup authenticates by shared secret header (CRON_SECRET) inside the route (ST1, D190). */
-export const PUBLIC_API_PREFIXES: readonly string[] = ['/api/health', '/api/jobs/storage-cleanup'];
+/**
+ * `/api/jobs/**`: scheduler endpoints; each verifies its own shared secret inside the route
+ * (`/api/jobs/storage-cleanup`: CRON_SECRET, ST1 D190; `/api/jobs/purge`: JOBS_SECRET, DX1 D256).
+ */
+export const PUBLIC_API_PREFIXES: readonly string[] = ['/api/health', '/api/jobs'];
 
 /**
  * API routes the Android app calls with `Authorization: Bearer <supabase access token>` instead of cookies (D102).
  * Middleware lets a bearer request through; the ROUTE verifies the token (auth.getUser) and household membership.
  */
-export const BEARER_API_PATHS: readonly string[] = ['/api/extract', '/api/extract/save'];
+export const BEARER_API_PATHS: readonly string[] = ['/api/extract', '/api/extract/save', '/api/shopping/scan', '/api/products'];
 
 /** Bearer-capable route families (dynamic segments), e.g. GET /api/products/<barcode> (X2, D188). */
 export const BEARER_API_PREFIXES: readonly string[] = ['/api/products/', '/api/images/'];

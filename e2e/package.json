@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "e2e": "playwright test",
+    "e2e:prod": "node scripts/run-prod.mjs",
     "e2e:live": "playwright test -c playwright.live.config.ts",
     "test": "vitest run",
     "generate": "tsx fixtures-src/generate.ts",

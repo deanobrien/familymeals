@@ -96,6 +96,7 @@ If the build fails with `EPERM` symlink errors you are building in the repo inst
 | `AI_PROVIDER` | `anthropic` (or `openai`) | choose; never `mock` (startup refuses it) | no |
 | `ANTHROPIC_API_KEY` (or `OPENAI_API_KEY`) | provider key | skip if you will enter it in Settings instead | **yes** |
 | `AI_MODEL_TEXT`, `AI_MODEL_VISION` | model ids | optional overrides | no |
+| `JOBS_SECRET` | 64 random hex chars (same command as `APP_SECRET`, a DIFFERENT value) | password manager; also stored in the scheduler (section 3c). Unset or shorter than 32 chars = `/api/jobs/purge` disabled (503) | **yes** |
 
 Do **not** set `AI_ALLOW_MOCK_IN_PRODUCTION`, `SUPABASE_DATA_CONTEXT`, `SUPABASE_DEFAULT_*`, `SUPABASE_URL`/`SUPABASE_ANON_KEY` (dev fallbacks). If a required setting is missing or a forbidden one set, every request returns 500 and the Log stream shows "Invalid production configuration" with the reasons. Optional hardening: Key Vault references for the secrets.
 
@@ -104,6 +105,23 @@ Do **not** set `AI_ALLOW_MOCK_IN_PRODUCTION`, `SUPABASE_DATA_CONTEXT`, `SUPABASE
 - Startup command: `node apps/web/server.js`. Always On: on. HTTPS Only: on, minimum TLS 1.2. ARR affinity: off. FTP: FTPS only or disabled.
 - Health check (Monitoring): enabled, path `/api/health`.
 - App Service logs: Application logging File System, Information; use Log stream to watch startup.
+
+### 3c. Scheduled purge job (DX1, D256, D259)
+
+Household deletions (after the 14-day grace), account deletions and the deletion-ledger replay run when something calls `POST https://<host>/api/jobs/purge` with header `x-jobs-secret: <JOBS_SECRET>`. The same call then runs the ST1 storage cleanup (the code behind `/api/jobs/storage-cleanup`, section 4b), so purged households' photos go straight away and **scheduling this one endpoint covers both jobs**; scheduling 4b as well is harmless (both are idempotent and claim queue rows with `skip locked`). Returns counts only (`{ ok, households: { purged, replayed }, accounts: { deleted, replayed, blocked, failed }, storage: { deleted, failed }, status: {...} }`); HTTP 500 = a step failed (retried next run), 401 = wrong secret, 503 = `JOBS_SECRET` unset. **Nothing calls it until you create a scheduler.** Use one of:
+
+**Option A (recommended): Azure Logic App (Consumption)**
+1. Portal > Create a resource > **Logic App** > Plan type **Consumption**; resource group `rg-family-recipes`; name `la-family-recipes-purge`; region UK West > Review + create.
+2. Open it > Logic app designer > add trigger **Recurrence**: interval `1`, frequency `Hour` (daily would satisfy the 14-day rule; hourly keeps storage clean-up prompt). Cost is a few pence a month.
+3. Add action **HTTP**: Method `POST`; URI `https://<host>/api/jobs/purge`; Headers: key `x-jobs-secret`, value = the JOBS_SECRET value. In the action's **Settings** turn on **Secure inputs** and **Secure outputs** (keeps the secret out of run history) and set Retry policy to exponential (3 retries).
+4. Save > **Run trigger** > open the run: the HTTP action must show status 200 and `"ok": true`.
+5. Optional alert: Logic App > Monitoring > Alerts > Create > metric **Runs Failed** > 0 over 1 hour > action group with your email.
+(Stronger: keep JOBS_SECRET in a Key Vault and read it with a Key Vault "Get secret" action feeding the header.)
+
+**Option B: GitHub Actions schedule** (only if the repo's Actions are enabled): repository secrets `JOBS_URL` (`https://<host>/api/jobs/purge`) and `JOBS_SECRET`; a workflow with `on: schedule: [{ cron: '17 * * * *' }]` and one step `curl -fsS -X POST -H "x-jobs-secret: ${{ secrets.JOBS_SECRET }}" "${{ secrets.JOBS_URL }}"`. GitHub may delay or skip scheduled runs and disables them after 60 days without repository activity, so A is preferred.
+
+Manual run (PowerShell): `Invoke-RestMethod -Method Post -Uri https://<host>/api/jobs/purge -Headers @{ 'x-jobs-secret' = $env:JOBS_SECRET }`.
+Rotate: generate a new value, update the App Service setting (restarts the app) and the Logic App header together.
 
 ## 4. Supabase Auth URL configuration
 

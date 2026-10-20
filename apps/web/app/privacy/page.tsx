@@ -83,11 +83,29 @@ export default function PrivacyPage() {
         Until you delete it or your account, apart from the exceptions above. After you delete
         something, it disappears from our backups within 14 days.
       </p>
+      <ul>
+        <li>
+          <em>Deleting a household</em> (owners): the household becomes read-only for 14 days, during which everyone can
+          still view and export it and an owner can cancel. Then all its recipes, plans, lists, receipts and photos are
+          permanently deleted by a scheduled clean-up.
+        </li>
+        <li>
+          <em>Deleting your account</em>: you leave every household you share straight away; what you added stays with
+          that household, and purchases keep the name they were recorded under, but not your account. A household where
+          you are the only member is deleted after its 14-day grace period, then your account, profile and consent
+          records are removed.
+        </li>
+        <li>
+          <em>Backups</em>: we keep a record of what was deleted (ids and dates only) so that, if we ever restore a
+          backup, deleted households and accounts are deleted again straight away.
+        </li>
+      </ul>
 
-      <h2>Your rights</h2>
+      <h2 id="your-rights">Your rights</h2>
       <p>
-        In Settings you can see and download your data, correct it, delete a recipe, leave a
-        household, or delete your account. You can ask us to restrict or stop using your data and
+        In Settings &gt; Your data you can download a copy of your data (a zip of JSON files and photos: your own data,
+        or the whole household if you are an owner; once every 24 hours), correct it, delete a recipe, leave a
+        household, delete the household or delete your account. You can ask us to restrict or stop using your data and
         withdraw consent for allergy information at any time: <Tbd>privacy email</Tbd>. If you are
         unhappy, you can complain to the Information Commissioner&rsquo;s Office (ico.org.uk, 0303
         123 1113).

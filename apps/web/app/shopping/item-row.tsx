@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import { Badge, Button, Checkbox, IconButton } from '@fr/ui';
 import { formatPence } from '@fr/ui';
 import type { ItemView } from '../../lib/shopping/engine';
@@ -58,15 +59,34 @@ export interface ItemRowProps {
   onUntick: (v: ItemView) => void;
   onPartial: (v: ItemView) => void;
   onEdit: (v: ItemView) => void;
+  /** In-store mode (AS1): the aisle this item is placed in (null = not placed yet). undefined = not shopping at a store. */
+  aisleLabel?: string | null | undefined;
+  /** In-store mode: open the "which aisle?" picker. Also opened by pressing and holding the row. */
+  onPlace?: ((v: ItemView) => void) | undefined;
 }
 
-export function ItemRow({ view, meta, pending, cost, onTick, onUntick, onPartial, onEdit }: ItemRowProps) {
+const LONG_PRESS_MS = 600;
+
+export function ItemRow({ view, meta, pending, cost, onTick, onUntick, onPartial, onEdit, aisleLabel, onPlace }: ItemRowProps) {
   const done = view.status === 'complete' || view.status === 'over_purchased';
   const name = view.item.displayName;
   const part = partialLabel(view);
   const extra = view.unresolvedRequired.filter((q) => q.kind !== 'to_taste' && q.kind !== 'unparsed');
+  // long-press anywhere on the row opens the aisle picker (touch shortcut; the Aisle button is the accessible route)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fired = useRef(false);
+  const cancel = () => { if (timer.current) { clearTimeout(timer.current); timer.current = null; } };
+  const press = onPlace
+    ? {
+        onPointerDown: () => { fired.current = false; cancel(); timer.current = setTimeout(() => { fired.current = true; onPlace(view); }, LONG_PRESS_MS); },
+        onPointerUp: cancel,
+        onPointerLeave: cancel,
+        onPointerCancel: cancel,
+        onClickCapture: (e: { preventDefault: () => void; stopPropagation: () => void }) => { if (fired.current) { fired.current = false; e.preventDefault(); e.stopPropagation(); } },
+      }
+    : {};
   return (
-    <li className={styles.row} data-complete={done} data-testid={`item-${view.item.id}`} data-item-name={name} data-status={view.status}>
+    <li className={styles.row} data-complete={done} data-testid={`item-${view.item.id}`} data-item-name={name} data-status={view.status} {...press}>
       <div className={styles.rowMain}>
         <Checkbox
           large
@@ -94,6 +114,18 @@ export function ItemRow({ view, meta, pending, cost, onTick, onUntick, onPartial
       <div className={styles.actions}>
         {!done && view.quantified && (
           <IconButton label={`Bought some ${name}`} icon="plus" variant="secondary" onClick={() => onPartial(view)} />
+        )}
+        {onPlace && (
+          <Button
+            size="sm"
+            variant={aisleLabel ? 'ghost' : 'secondary'}
+            className={styles.aisleButton}
+            aria-label={aisleLabel ? `Change aisle for ${name}, now ${aisleLabel}` : `Set aisle for ${name}`}
+            data-testid={`place-${view.item.id}`}
+            onClick={() => onPlace(view)}
+          >
+            {aisleLabel ? `Aisle ${aisleLabel}` : 'Set aisle'}
+          </Button>
         )}
         <Button size="sm" variant="ghost" aria-label={`Edit ${name}`} onClick={() => onEdit(view)}>Edit</Button>
       </div>

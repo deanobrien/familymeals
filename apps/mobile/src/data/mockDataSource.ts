@@ -1,4 +1,5 @@
 import type { NutrientValue, PurchaseEvent, Quantity, Uuid } from '@fr/domain';
+import type { PlacementTargetType, StoreBook } from '@fr/engine/shopping';
 import type { Household, Recipe, ShoppingConflict, ShoppingListItem, UserSession } from '@/viewModels';
 import { newId } from '@/lib/format';
 import type { DataSource, ShoppingListState } from './DataSource';
@@ -79,6 +80,21 @@ const SHOPPING: ShoppingListItem[] = [
   { id: 's-4', householdId: 'hh-2', displayName: 'Bread', quantity: q(1, 'pack', '1 loaf'), aisle: 'Bakery', ticked: false },
 ];
 
+/** Demo store for hh-1 (AS1): categories placed by category, aisle order differs from the alphabetical default. */
+const DEMO_BOOK: StoreBook = {
+  stores: [{ id: 'st-1', name: 'Demo Shop', chain: null, notes: null }],
+  aisles: [
+    { id: 'ai-1', storeId: 'st-1', label: '1', sortOrder: 10 },
+    { id: 'ai-2', storeId: 'st-1', label: '2', sortOrder: 20 },
+    { id: 'ai-3', storeId: 'st-1', label: '3', sortOrder: 30 },
+  ],
+  placements: [
+    { storeId: 'st-1', targetType: 'category', targetKey: 'Veg', aisleId: 'ai-1' },
+    { storeId: 'st-1', targetType: 'category', targetKey: 'Tins', aisleId: 'ai-2' },
+    { storeId: 'st-1', targetType: 'category', targetKey: 'Meat', aisleId: 'ai-3' },
+  ],
+};
+
 export interface MockOptions {
   latencyMs?: number;
   online?: boolean;
@@ -154,6 +170,26 @@ export class MockDataSource implements DataSource {
   async getRecipe(recipeId: Uuid) {
     await this.delay();
     return RECIPES.find((r) => r.id === recipeId) ?? null;
+  }
+
+  private book: StoreBook = structuredClone(DEMO_BOOK);
+  private selectedStore: string | null = null;
+
+  async getStoreBook(householdId: Uuid): Promise<StoreBook> {
+    await this.delay();
+    return householdId === 'hh-1' ? structuredClone(this.book) : { stores: [], aisles: [], placements: [] };
+  }
+
+  async setPlacement(_h: Uuid, storeId: Uuid, target: { targetType: PlacementTargetType; targetKey: string }, aisleId: Uuid | null): Promise<void> {
+    this.book.placements = this.book.placements.filter((p) => !(p.storeId === storeId && p.targetType === target.targetType && p.targetKey === target.targetKey));
+    if (aisleId) this.book.placements.push({ storeId, aisleId, ...target });
+  }
+
+  async getSelectedStoreId(): Promise<string | null> {
+    return this.selectedStore;
+  }
+  async setSelectedStoreId(_h: Uuid, storeId: string | null): Promise<void> {
+    this.selectedStore = storeId;
   }
 
   async getShoppingList(householdId: Uuid): Promise<ShoppingListState> {

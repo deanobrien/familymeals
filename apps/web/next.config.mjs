@@ -3,7 +3,8 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const isProd = process.env.NODE_ENV === 'production';
+// E2E_PRODUCTION_BUILD=1 (pnpm test:e2e:prod, never a deployable build): no HSTS/upgrade-insecure-requests CSP over http://localhost.
+const isProd = process.env.NODE_ENV === 'production' && process.env.E2E_PRODUCTION_BUILD !== '1';
 const version = JSON.parse(readFileSync(resolve(here, 'package.json'), 'utf8')).version;
 
 /**
@@ -22,7 +23,7 @@ function securityHeaders() {
   } catch { /* no Supabase configured at build */ }
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
+    "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
     "style-src 'self' 'unsafe-inline'",
     // images.openfoodfacts.org: product photos on barcode rows are hotlinked for display only (X2, D185); never stored.
     // www.themealdb.com: discovered-recipe photos are hotlinked for display, never copied (X1, D170).

@@ -542,6 +542,94 @@ The key and "Test connection" paths run against a throwaway OpenAI-compatible HT
 
 The Settings dietary exclusions form still writes to an in-memory consent sink (`TODO(Supabase)` in `app/settings/consent.ts`), so "withdraw consent" is verified at the database / RPC level only, not through the UI. Planner generation against live exclusions (names resolved to ingredients, solver) stays covered by the mock suite and unit tests. Concurrent receipt confirms from two sessions are not raced.
 
+## D240 E2E cold-start flakes: warm every route, longer dev timeouts (FL1)
+
+The shopping/journey/plan failures under load were cold-start compile timeouts, not app races: `recipes/[id]/edit` (and other routes) were missing from the globalSetup warm list, so the first test to visit them compiled them against a 15 s expect; `router.replace('/shopping')` after "generate from plan" refetches the page RSC, slow on a cold dev server. `global-setup.ts` now warms every page route and every API route; dev-mode expect/action timeouts are 20 s; URL/sync waits that follow server round trips are 30-45 s. Four consecutive full dev runs on an idle machine were green (277 passed); load is required to fail, and reproducing with CPU burners is forbidden (it froze the owner's PC).
+
+## D241 Production-build e2e mode (`pnpm test:e2e:prod`, CI)
+
+`next build && next start` removes request-time compilation entirely. `next start` forces NODE_ENV=production, which refuses mock auth, the in-memory backend, the mock AI and `/api/dev/*`. `E2E_PRODUCTION_BUILD=1` makes those guards read NODE_ENV as `e2e-production-build` (`lib/e2e-mode.ts`, unit-tested) ONLY when NODE_ENV=production and there is no Supabase URL and DATA_BACKEND is not supabase; a real deployment must have both, so the flag is inert there. It also skips the CSP/HSTS headers at build. CI's e2e job uses it.
+
+## D242 Consent notice for withheld allergy exclusions (closes the D129 open item)
+
+When allergy/intolerance exclusions exist but the recording member's consent is missing or withdrawn (D125 `withheldExclusions`), `/plan`, `/recipes/discover` and `/settings` show "N allergy exclusion(s) aren't being applied because consent hasn't been given - review in Settings" linking to `/settings#h-diet`. Count only: no allergen or member names, so no health detail reaches other members. Mock mode fakes the count via `POST /api/dev/seed {kind:'withheld-exclusions', count}`.
+
+## D243 Test conventions from FL1
+
+Playwright `--workers=2` on shared workstations; no CPU stress tooling; stop every server and browser you start.
+
+## D260 Handwritten list scan is one `@fr/ai` operation with a minimal context (SL1)
+
+`scanShoppingList(images[1-4], {ingredientNames?})` in `packages/ai/src/shopping-list-scan.ts`, wired through the shared base (OpenAI / Azure / Anthropic need no per-adapter code), the mock (fixture `fixtures/shopping-list-scan.json`: 11 realistic lines incl. "1kg spuds", "toms (tins) x3", "OJ", a note, a crossed-out line, an illegible one) and `createResolvingProvider`. Output per line: `originalText` (verbatim transcription), `name` (plain singular, abbreviations expanded), optional contract `Quantity` (ABSENT when nothing is written: never inferred), `notes`, `crossedOut`, `illegible`, `confidence`, `imageRef`; plus an optional heading `title`. The prompt covers UK handwriting, columns, margin notes, ticks and strike-throughs and forbids inventing items. The model gets canonical ingredient names as a naming hint only: no household, pantry, member or purchase data. Photos are prepared at a 2048 px long edge (default 1568) because handwriting needs the pixels.
+
+## D261 Scan output is sanitised in code, not trusted (SL1)
+
+`normaliseShoppingListScan`: an `unparsed` / `to_taste` / valueless-exact / blank-text quantity is dropped (never defaulted to 1); a line with no name is flagged illegible and capped at 0.4 confidence (so is any model-flagged illegible line) and loses its quantity; image refs are clamped to the photos sent; fully empty lines go; crossed-out lines are KEPT and flagged (never dropped silently, never un-flagged); repeated lines are not merged here (the merge preview does that).
+
+## D262 Review defaults and matching (SL1)
+
+`/shopping/scan`: capture 1-4 photos (browser downscale, EXIF baked in, Rotate/Remove like import) -> "Reading your list..." -> review. Each row shows the written text next to the parsed item. Names go through the same conservative engine matcher as the pantry scan (exact name / alias; ambiguous -> choose; unmatched -> free-text item, never fuzzy). Crossed-out and illegible rows start EXCLUDED with badges, the owner can switch them on; ranges use the larger number and say so; approximate amounts leave the quantity blank with a hint. Aisle comes from the matched ingredient's category (`lib/shopping/aisles.ts`, moved out of `plan-requirements.ts`), a small household-keyword guess for unmatched items, else Other; editable per row.
+
+## D263 Several named lists, one active (SL1)
+
+The app had ONE list per household ("the newest active `shopping_lists` row"). SL1 keeps that contract for every reader (web repository, Android app, Realtime filter, `shopping_list_snapshot`) and adds the minimum: migration `20261020002600` `shopping_list_create(household, name, list_id)` (archives the previous active list, whole; idempotent on the list id) and `shopping_list_activate`; rename / archive are plain RLS updates. `ShoppingRepository` gained `activeListId / listLists / createList / activateList / renameList / archiveActiveList` (in-memory and Supabase). `/shopping` shows the list name, a Lists sheet (rename, put away, start new, switch to an earlier list) and is keyed by list id so a different list remounts the client. List ids ride in `ListMeta` (`listId`, `listName`); the controller sends its list id with every sync and `syncList` answers a mismatch with the new list's snapshot and DROPS the old list's pending commands (never replayed against the wrong list). No id from the client = no guard (older clients). Not done: another device only notices a bare switch on its next sync (Realtime listens to the command log, which a bare switch does not write); no item counts for archived lists; no delete.
+
+## D264 Nothing is written before confirm; preview and confirm share one planner (SL1)
+
+`planListScan` turns reviewed rows into engine commands and simulates them over the destination list's state; the read-only preview and the confirm use the same function, so they cannot disagree. Server actions `previewShoppingScanAction` / `confirmShoppingScanAction` validate everything (`sanitiseCommitRows`: unknown ingredient ids degrade to free text, units must be engine units, amounts positive). `POST /api/shopping/scan` only reads (cookie or bearer, like `/api/extract`; `/api/shopping/scan` is in `BEARER_API_PATHS`).
+
+## D265 Merge rules (SL1)
+
+Add to current list = the engine's manual `add_item` merge (same ingredient key, compatible unit: kg onto g, items onto g via unit weights). Additions on top of this: (1) a catalogue-matched row also links to an existing HAND-TYPED item (no ingredient id) of the same ingredient by adding under that item's own name, so "banana" merges into a typed "Bananas"; (2) a row with no written amount is "already on your list" and left alone when the item exists (the engine would otherwise create a duplicate line); (3) an existing item with no amount gets the written amount through `edit_item`, not a second line; (4) incompatible units add a separate line and the preview says so; (5) repeated lines in one scan fold together. The preview shows before -> after per row. Create new list = a new empty list: quantities never merge across lists.
+
+## D266 Idempotency (SL1)
+
+Every command id and the new list's id are derived from (household, batch id, row key). The browser makes one batch id per scan; a double click, a retry after a lost response or a second tab replays the same ids and the repository's command-id idempotency drops them (unit test with concurrent confirms; PGlite test against the real schema; e2e double click). `createList` is idempotent on its id, so "create a new list" never makes two. The two steps (create, add) are not one transaction: a half-finished confirm is completed by retrying the same batch.
+
+## D267 Verification and what is NOT verified (SL1)
+
+Verified: ai schema / prompt / mock / OpenAI-Azure (fake fetch) and Anthropic (fake client) adapters, planner / merge / idempotency / sanitising / repository / controller unit tests, PGlite RLS script `010_sl1_shopping_multi_list.sql` and a PGlite contract test of the real Supabase repository, Playwright (mock): photo -> review -> add to existing (banana 3 + 6 = 9, flour 250 g + 500 g = 750 g) and -> create new list, double submit, axe and 44 px at 375, capture limits. NOT verified: live model accuracy on real handwriting (the biggest unknown: cursive, pencil, columns, margin notes); the mobile app has NO scan screen (only the bearer-capable `/api/shopping/scan` endpoint exists); Realtime propagation of a bare list switch.
+
+## D290 Stores, aisles and placements are household data (AS1)
+
+Owner idea: "ALDI Aisle 1, LIDL Aisle 2 for tomatoes; in store, select the shop and get the list ordered by aisle." Model per household, shared by every member: `stores` {name, chain free text, notes}, `store_aisles` {label like "1" or "Frozen", sort_order}, `store_placements` {store, target_type, target_key, aisle}. Migration `20261020002900_store_aisles.sql`: plain tables under RLS (any member reads; any member of a writable household writes, so the grace period is read-only), composite FKs keep store, aisle and placement in one household, `household_store_book` returns the whole book in one round trip, `copy_store_layout` copies aisles and placements atomically. No FK from placements to ingredients: the key also holds free-text names and category labels, and a retired reference ingredient must not delete a household's placements.
+
+## D291 Resolution order and ordering rules (AS1)
+
+`orderForStore` (`@fr/engine/shopping`, pure, tested): ingredient placement beats item-name placement beats category placement; an item with none (or one pointing at a deleted aisle) goes to a final "Not placed yet" section ordered by list category then name. Aisles sort by sort_order, label, id; items inside an aisle by name then id so nothing jumps when ticked. Ticked-item behaviour is unchanged: the caller passes the already filtered list. Item-name keys are normalised (lower case, punctuation stripped) so "Baked-Beans" and "baked beans" match.
+
+## D292 Starting templates are labelled guesses (AS1)
+
+Per-chain starting aisles (`store-templates.ts`: generic supermarket, discounter for ALDI/LIDL, frozen-first for Iceland) are generic guesses of a typical layout, expressed as list categories mapped to aisles. They are labelled "a starting guess, not real shop data" everywhere; nothing is scraped and no chain data is shipped. Applying one reuses aisles with the same label and never overwrites an existing placement.
+
+## D293 Direct table access under RLS, shared behaviour suite (AS1)
+
+Writes use PostgREST table operations (RLS is the guard), reads use one RPC. One contract suite (`lib/server/stores/contract.ts`) runs against the in-memory repository and the real Supabase repository on PGlite so mock mode and Supabase cannot drift. Server actions identify `StoreBookError` by name as well as `instanceof` (Next can load the module in two layers).
+
+## D294 Shopping UI: store selector, in-store mode, quick placement (AS1)
+
+`/shopping` gets "Shopping at" (default "No store: group by category"), remembered per member per device in localStorage. With a store: aisle headers in walking order, larger rows, an "Aisle X / Set aisle" button on every item (and a 600 ms long-press on the row as a touch shortcut) opening a sheet of aisle chips; the choice is saved for that store at ingredient scope (item-name scope when there is no ingredient link) or, if chosen, for the whole category. Optimistic and applied at once. Page edits are kept small: `use-store-mode.ts` and `store-ui.tsx` hold the logic.
+
+## D295 Offline (AS1)
+
+The store book is cached in localStorage and ordering is client-side, so selecting a store and reading the order need no server. Placement edits made while the server is unreachable are queued on the device (last write wins per target) and replayed on the next load, tab focus or `online` event; a refused edit is reverted with a message. Creating an aisle needs a connection.
+
+## D296 "Learn from my route" suggests only (AS1)
+
+An opt-in toggle records the aisle of each item ticked in store; after ticks in at least three aisles, if the walked order differs, a banner offers "Update aisle order". Visited aisles take the slots visited aisles already occupy, re-sorted by first visit; nothing is reordered without the confirm button.
+
+## D297 Settings > Stores (AS1)
+
+`/settings/stores`: create/edit/delete stores (delete confirms), aisles (add, rename on blur, reorder by drag or Up/Down buttons so it works with a keyboard), placements per store (change aisle, remove), starting layouts, copy a layout from another store (same-chain stores listed first; confirms because it replaces). Errors show inline as well as in a toast.
+
+## D298 Android (AS1)
+
+The shopping screen reads the book via `household_store_book` (cached in AsyncStorage so the order works offline), shows a store chip row, orders by aisle with headers, remembers the store, and offers quick placement (online only: it writes `store_placements` directly). Placement offline queueing is web only for now.
+
+## D299 AS1 open items
+
+Mobile placement has no offline queue; no store map/photo; no per-store price book. The migration was applied to the shared local Supabase by hand (psql plus a schema_migrations row) because other lanes had applied newer ones, and `database.types.ts` entries were added by hand in the generator's format.
+
 ## D190 One `ImageStore` interface; Supabase Storage is the production store (ST1)
 
 `lib/server/images/`: `ImageStore { put, get, signedUrl, finishUpload, sweep }` over logical `(kind, id, file)` with kinds `page` / `cover` (bucket `recipe-images`) and `receipt` (`receipt-images`). `LocalImageStore` keeps the old `<APP_DATA_DIR>/uploads/<id>/...` layout and `/api/uploads` URLs (dev / mock; no receipt storage). `SupabaseImageStore` is built per request from the caller's OWN user-scoped client and household (`imageStoreFor(auth)` / `sessionImageStore()`), so Storage RLS (household folder = first path segment) is the access control; the service role is never on this path (D100). Selected by `useSupabaseBackend()`. Object path `<household_id>/<kind>/<id>/<file>`; ids and file names are regex-validated (`paths.ts`) before any storage call, so no traversal. Buckets stay private; no public URL is ever produced.
@@ -635,3 +723,71 @@ They already read `ingredientId`; linked lines now exist. Note: `calc` still nam
 ## D225 Backfill: Re-match ingredients (per recipe, whole household, SQL one-off)
 
 `lib/server/recipes/rematch.ts` (`rematchRecipe`, `rematchAllRecipes`) links only lines that have NO link, re-sends existing links unchanged, saves only recipes that gained a link, and reports linked/ambiguous/unmatched counts. It works through `RecipeRepository`, so memory and Supabase behave alike and printed nutrition/allergens are carried. Surfaces: `rematchRecipeAction` (detail page button), `rematchAllRecipesAction` (library page "Re-match ingredients in all recipes"), both refused for read-only households. It does not remember "not in list" (no persisted flag), so an explicit unlink is re-linked if the name matches exactly. Existing Supabase data: migration 20261020002301 is an idempotent, exact-only backfill (a NULL line is linked only when its lower-cased trimmed name equals exactly one ingredient name/alias; ambiguous and plural-only names are left for the app action; changed recipes lose their nutrition cache). There is no TS script: the workspace has no TS runner outside Next/vitest, and the action plus the SQL cover memory and Supabase.
+
+## D270 Rapid (continuous) barcode scanning in /pantry/scan (BS1)
+
+Owner: photographing every barcode to put 40 products into the pantry is too slow. `/pantry/scan` gains "Scan barcodes continuously" (also `?mode=rapid`): live rear camera (getUserMedia, torch and tap-to-focus only where the track reports the capability, Wake Lock while scanning), a decode loop over a centred, downscaled region (92% x 50% of the frame, at most 640 px wide, one decode at a time aiming at ~10 fps and running flat out when the phone is slower), a beep (WebAudio, unlocked by the Start tap, toggle remembered), `navigator.vibrate`, a green flash, an `aria-live` announcement per scan, and a running tally (newest first) with 44 px minus/plus per line, Undo, Pause and typed digits. Done opens the EXISTING review step (D84-D88) with one row per distinct product and the scanned count; the merge-with-stock preview and confirm are unchanged: nothing is written before confirm. The tally survives an accidental refresh (sessionStorage, try/catch, tally only: no product data), and is cleared on confirm / Clear all. Pure logic is in `@fr/engine/pantry` (`rapid-scan.ts`) so web and Android share it. The single-barcode step stays. Review rows from a continuous scan keep dates collapsed under "Dates and close-up (optional)" with an "Add dates later" note (items go in without an expiry unless one is typed or read from a close-up photo).
+
+## D271 Decoder: platform BarcodeDetector, else lazy zxing-wasm (replaces the "no library" part of D189)
+
+Evaluated: `zxing-wasm` 3.1.6 (MIT, maintained, published 2026-10-19; reader-only build), `@undecaf/zbar-wasm` 0.11.0 (LGPL-2.1+, 3.3 MB unpacked, last release 2024-05), `barcode-detector` ponyfill (MIT, a BarcodeDetector shim over zxing-wasm that fetches its wasm from a CDN by default, which our CSP forbids), zxing-js (unmaintained). Chosen: `zxing-wasm/reader`. Cost: `zxing_reader.wasm` is 946,860 bytes raw (about 410 kB gzip) plus a ~53 kB JS loader, BOTH fetched only when the scanner starts on a browser without a usable BarcodeDetector (iPhone Safari, Firefox, desktop); where `BarcodeDetector.getSupportedFormats()` includes `ean_13` (Android Chrome) nothing is downloaded. The wasm is committed at `apps/web/public/vendor/zxing/zxing_reader.wasm` (self-hosted, no CDN; `.gitattributes` marks `*.wasm` binary; a unit test asserts its SHA-256 equals the installed package's `ZXING_WASM_SHA256`, so an upgrade that forgets to re-copy it fails). Production CSP `script-src` gains `'wasm-unsafe-eval'` (needed to compile WebAssembly; it does not allow `eval`); middleware lets `.wasm` through the matcher. Formats: EAN-13, EAN-8, UPC-A (normalised to EAN-13), UPC-E (expanded to UPC-A first: it is the only format where an 8-digit code is not an EAN-8). Check digits are always verified. Measured in Node over a 640x320 noise frame (worst case, nothing to find): 1.5 ms per frame without `tryHarder`, 4.9 ms with; rendered EAN-13/EAN-8/UPC-A frames and 2 px-module barcodes decode in unit tests. A native detector that throws `NotSupportedError` hands over to the wasm reader for the rest of the session; `?decoder=wasm|native` forces one (used by e2e). Needs real-device verification: speed and autofocus on mid-range Android and iPhone.
+
+## D272 Lookups never block scanning: batch endpoint, per-household queue, cache (`lib/server/products/batch.ts`)
+
+`POST /api/products { codes[<=50], retry?, householdId? }` (web cookie or Android bearer; JSON only; read-only) answers at once with a status per code: `done` / `notfound` / `pending` / `error`. Resolution order: the in-process LRU of recent lookups (500 entries, 24 h hits, 1 h misses; public product data only, nothing about any household, so D182 is unaffected), then the household's own product snapshots (D187; the product they confirmed, matched to the ingredient they linked), then a per-household FIFO queue drained by ONE worker that round-robins between households and calls the existing `lookupProduct` (so the source's own limiter, 10 reads/min, D181, still sets the pace, below Open Food Facts' 15/min, D180). A retryable `rate_limited` answer is waited out (6 s, up to 12 tries) instead of failing the product. At most 120 queued per household; a polling-rate guard (150 requests/min/household) is separate from the upstream allowance. Failed codes stay failed for 30 s unless the client sends `retry`. The client (`createLookupTracker`, engine) requests each distinct code once, polls only the still-pending codes every 1.5 s in chunks of 25, and backs off on network errors. Consequences: 40 never-seen products take about 4 minutes to resolve fully at 10/min, but scanning and review are not blocked, rows fill in as they land, and any row can be named by hand meanwhile; repeat shops resolve instantly from snapshots. State is in process memory (App Service single instance); with several instances each has its own queue and the per-IP upstream limit is shared (same caveat as D181).
+
+## D273 Tally semantics: counted once while held, again after moving away
+
+A read is counted when the code is new, or when its last COUNTED read was at least 1.5 s ago AND it was out of view for at least 0.5 s. Holding a pack in front of the camera therefore counts once however long it stays, moving away and back counts again, and a pack swapped back within 1.5 s is ignored (the + button covers a fast same-product run). Typed digits always count. Undo reverses the last change (scan, +/-, removal) and clears that code's cool-down so the same pack can be scanned again straight away. Caps: 99 per product, 150 distinct products. Rows whose lookup is `pending` block confirm (a clear message, and "Name it myself" unblocks them); `notfound` / failed rows ask for a name or an ingredient; a row the owner named is never overwritten by a late lookup.
+
+## D274 Android: continuous scan screen and hand-off to the web review
+
+`RapidBarcodeScan` ("Scan many barcodes" on the capture screen): expo-camera `onBarcodeScanned` through the same engine tally (`normaliseRetailCode(data, type)`, `sight`, undo, +/-), vibration per counted scan, background lookups through the same batch endpoint (`ProductClient.lookupBatch`, bearer token), tally with names. The app still writes nothing (D188): "Review on the web" opens `/pantry/scan?mode=rapid&codes=<code>x<count>,...` and the page seeds the scan session from `codes` (validated: 8/13-digit codes with a good check digit, counts 1-99, at most 150), where matching, pack sizes, allergens, dates, the merge preview and confirm happen. Not done on Android: a beep and keep-awake (each needs another native module: expo-audio / expo-keep-awake); screen timeouts during a long scan are possible.
+
+## D275 Phone as a scanner for a desktop session: not built (stretch item skipped)
+
+Skipped on purpose, with the design recorded. It needs shared server state between two devices (a short-lived signed session id bound to household + user, codes pushed by the phone and read by the desktop via Supabase Realtime or polling). The in-memory per-process store used by the lookup queue is not safe for that on a multi-instance deployment, and a durable table plus RLS and expiry is a migration and a security review of its own. What exists instead covers most of the need: the phone scans on the web page directly (iOS and Android), and the Android app hands its tally to the web review (D274). If built later: `scan_sessions(id, household_id, user_id, expires_at)` + `scan_session_codes`, RPCs checking membership, the QR carrying only the signed id, polling every 2 s, and the desktop review consuming codes through the same tally.
+
+## D276 Test seams for scanning
+
+`@fr/product-sources` exports an EAN-13/EAN-8 bitmap renderer (`renderEanGray`, test support only) used by the decoder unit tests (real wasm reader over rendered barcodes) and by `e2e/support/fake-camera.ts`, which writes a Y4M video of barcodes (BEANS, gap, BEANS, gap, FUSILLI, gap, an unknown code, gap; looping) for Chromium's fake camera. Playwright has a second project, `chromium-camera` (`--use-fake-device-for-media-stream --use-file-for-fake-video-capture`, camera permission), that runs only `e2e/specs/rapid-scan.spec.ts`; the main `chromium` project ignores that file. Headless Chromium has no BarcodeDetector, so these specs run the wasm path end to end.
+
+## D250 Data export is built on demand and streamed; nothing is stored (DX1)
+
+`POST /api/export` only writes an audit row (`data_export_requests`, via `begin_data_export`); `GET /api/export/<id>` builds the zip while streaming it, as the signed-in user (RLS client for PostgREST and Storage). The design's private `exports/` bucket + emailed signed URL + 7-day expiry was dropped: no copy of a household's data exists outside the database, so there is nothing to expire, purge on account deletion, or leak from a bucket, and no email hook is needed. Limits: one non-failed export per (user, household, scope) per 24 h (enforced in SQL under a row lock; a failed build frees it), link valid 1 hour, at most 5 downloads, only for the requesting user, membership/ownership re-checked at download. Scopes: `member` = rows the member created plus their profile, consents, favourites, ratings and the children of those rows; `household` (owners) = everything household-scoped. Columns naming a person (`user_id`, `*_by`) become "you" / "another member"; no email but the requester's; AI settings, invitations, logs, queues and the ledger are never read (`lib/server/export/tables.ts`), and secret-looking column names are dropped generically.
+
+## D251 Own streaming zip writer, SHA-256 manifest (DX1)
+
+`lib/server/export/zip.ts`: PKZIP 2.0 (deflate for text, store for images), one entry in memory at a time, no ZIP64 (fails above 65k entries / 4 GiB rather than corrupting), UTF-8 names, path validation. Avoids a new dependency for ~150 lines; `unzip.ts` (CRC-checked) verifies archives in unit and live tests. `manifest.json` (written last) lists SHA-256 per file, row counts, images found / missing / external URLs. Checksums are not signed (would need a key users can verify; not worth it now).
+
+## D252 End users cannot shorten the 14-day grace (DX1)
+
+`request_household_deletion(p_household_id, p_grace)` accepted any `p_grace`, so an owner could purge at once and other members would get no notice period. Now `p_grace` can only lengthen it when `auth.uid()` is set; maintenance (no JWT) may still pass shorter values. Tests age the timestamps with the service role instead.
+
+## D253 Account deletion: leave now, delete later, by the job (DX1)
+
+`request_account_deletion()` (as the user, one transaction): refuses if the user is the only owner of a household that has other members (transfer first); households where they are the only member go to `pending_deletion` (14 days); every other membership is left immediately with `member_leave` effects; then an `account` ledger row (`deletion_subject` gained `account`) scheduled at the latest of those purge times (now if none). If nothing is pending the user is signed out (`/sign-in?deleted=1`). `cancel_account_deletion()` cancels only the account row: households already left stay left, scheduled households stay scheduled (owner cancels separately). The job deletes the auth user (`auth.admin.deleteUser`, service role, job only) after `jobs_prepare_account_purge` returns `ready` (`blocked_owner` / `blocked_household` are reported and retried). Found by the live purge test: deleting any account that had ACCEPTED an invitation failed (`invitations.accepted_by` is ON DELETE SET NULL but the 0002 CHECK demanded `(accepted_at is null) = (accepted_by is null)`); the DX1 migration replaces it with `accepted_by is null or accepted_at is not null`.
+
+## D254 Purchase-history anonymisation shape (DX1)
+
+`purchase_events_append_only` additionally allows: actor columns to NULL and, only when it was NULL and `created_by` is being nulled, filling `created_by_display_name`. The job sets `created_by = null`, keeps the insert-time snapshot (owner decision A) or writes "Former member", and nulls `voided_by`. Rewriting an existing snapshot stays forbidden.
+
+## D255 Export reads images through ST1's ImageStore; Storage deletion is ST1's queue cleanup (DX1)
+
+Export goes through `lib/server/objects/port.ts` (`ObjectReader`, `parseObjectRef`); `objects/stores.ts` adapts ST1's `ImageStore` (D190): ST1-layout paths `<hh>/<page|cover|receipt>/<id>/<file>` via `SupabaseImageStore` as the signed-in user, dev/mock `/api/uploads/<id>/<file>` via `LocalImageStore`, plus a plain user-client download for other in-household paths (e.g. `recipe_images.storage_path`). External URLs are listed in the manifest, not fetched. A first DX1 draft also had its own queue worker (`jobs_claim/complete/fail_storage_cleanup`, a `local-uploads` pseudo-bucket and a `recipe_versions` delete trigger); it was removed when ST1 merged, because ST1 owns `storage_cleanup_queue` processing (`claim_storage_cleanup`, reference-aware `enqueue_storage_cleanup`, `runStorageCleanup`, D195) and its worker would have retried `local-uploads` rows against Supabase forever. The local photo store is dev/mock only since ST1 (D196), so nothing needs the pseudo-bucket.
+
+## D256 `/api/jobs/purge`: one idempotent endpoint behind JOBS_SECRET (DX1)
+
+POST only; `x-jobs-secret` (or `Authorization: Bearer`) compared in constant time over SHA-256; `JOBS_SECRET` unset or < 32 chars disables it (503, never open). `/api/jobs` is a public prefix in middleware (shared with ST1's `/api/jobs/storage-cleanup`, CRON_SECRET), and the route never takes ids from the request. Order: due households + ledger replay -> accounts -> ST1's `runStorageCleanup` (so purged households' objects go in the same run) -> status. Each step is isolated (one failing does not stop the others; HTTP 500 when any failed). Response = counts only (it ends up in scheduler run history). The service role is used here and nowhere on the user request path (D100). All `jobs_*` SQL functions are `service_role` only. JOBS_SECRET stays separate from CRON_SECRET so the destructive purge can be rotated or disabled without touching storage cleanup.
+
+## D257 Deletion-ledger replay runs in every job (DX1)
+
+`jobs_purge_due` first re-purges any existing household whose ledger has a `purged_at`, and `jobs_due_account_deletions` returns accounts the ledger marks deleted that exist again (`replay = true`). The ledger is restored with the database, so the runbook (OPS-RUNBOOK section 3) exports it before a restore and re-imports missing rows afterwards; the next job run then does the replay.
+
+## D258 Destructive lifecycle actions need typed confirmation + current password (DX1)
+
+Household deletion: type the household name; account deletion: type DELETE; both: current password, checked on a throwaway non-persisting anon client whose session is then revoked with `signOut({ scope: 'local' })` (`lib/server/auth/reauth.ts`). Cancelling needs neither. Magic-link-only accounts would need a fresh-link re-auth instead (none exist today: sign-in is password-based).
+
+## D259 Scheduler: one Azure Logic App calling /api/jobs/purge (DX1)
+
+Recommended: one Consumption Logic App, hourly Recurrence -> HTTP POST `/api/jobs/purge` with the secret header (secure inputs/outputs, retries, failed-run alert); that run also does ST1's storage cleanup. Alternatives: a triggered WebJob as ST1 documents (DEPLOY-APP-SERVICE.md 4b) or a GitHub Actions cron (best effort, disabled after 60 idle days). Steps in DEPLOY-APP-SERVICE.md 3c. No Azure resources were created by the lane.

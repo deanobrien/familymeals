@@ -1,6 +1,7 @@
 import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { effectiveNodeEnv } from '../../e2e-mode';
 import { redirect } from 'next/navigation';
 import { cache } from 'react';
 import { resolveAuthMode } from '../../supabase/env';
@@ -66,7 +67,7 @@ export const getAuthState = cache(async (): Promise<AuthState | null> => {
   const store = await cookies();
   const cookieId = store.get(ACTIVE_HOUSEHOLD_COOKIE)?.value;
   if (mode === 'mock') {
-    const { household } = getMockIdentity(process.env.NODE_ENV, cookieId);
+    const { household } = getMockIdentity(effectiveNodeEnv(), cookieId);
     return { user, memberships: [household], supabase: createUnavailableClient(), mode: 'mock', activeId: household.id };
   }
   const supabase = await createSupabaseServerClient();

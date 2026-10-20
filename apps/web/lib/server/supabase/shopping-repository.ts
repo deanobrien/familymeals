@@ -14,8 +14,8 @@ import type {
   Command, CommandResult, EngineContext, LogEntry, PurchaseEvent, Quantity, RejectReason, ShoppingItem, ShoppingState,
 } from '../../shopping/engine';
 import { applyCommand, deriveItem, emptyState, itemKey } from '../../shopping/engine';
-import type { ListMeta, SnapshotDto } from '../../shopping/types';
-import type { ShoppingRepository, SubmitOutcome } from '../shopping/repository';
+import type { ListMeta, ShoppingListInfo, SnapshotDto } from '../../shopping/types';
+import { cleanListName, type ShoppingRepository, type SubmitOutcome } from '../shopping/repository';
 import { SupabaseRepositoryError, callRpc, isUuid, selectAll, toIso, unwrap, type PgResult, type SupabaseClient } from './rpc';
 
 type Row = Record<string, unknown>;
@@ -234,22 +234,35 @@ export class SupabaseShoppingRepository implements ShoppingRepository {
     return stateFromSnapshot(await callRpc<Row>(this.client, 'shopping_list_snapshot', { p_household_id: this.hh }));
   }
 
-  private async activeListId(): Promise<string | null> {
-    const res = (await this.client.from('shopping_lists').select('id').eq('household_id', this.hh).eq('status', 'active')
+  /** The household's active list (newest wins if another writer made several, like ensure_shopping_list). */
+  private async activeList(): Promise<{ id: string; name: string } | null> {
+    const res = (await this.client.from('shopping_lists').select('id, name').eq('household_id', this.hh).eq('status', 'active')
       .order('created_at', { ascending: false }).order('id', { ascending: false }).range(0, 0)) as PgResult<Row[]>;
     const rows = unwrap('shopping_lists active', res) ?? [];
-    return rows[0] ? String(rows[0].id) : null;
+    return rows[0] ? { id: String(rows[0].id), name: String(rows[0].name) } : null;
+  }
+
+  async activeListId(householdId: string): Promise<string | null> {
+    this.check(householdId);
+    return (await this.activeList())?.id ?? null;
   }
 
   async snapshot(householdId: string): Promise<SnapshotDto> {
     this.check(householdId);
     const loaded = await this.load();
-    return { cursor: loaded.head, state: loaded.state, meta: await this.metaFor(loaded.state) };
+    const meta = await this.metaFor(loaded.state);
+    if (loaded.listId) {
+      const res = (await this.client.from('shopping_lists').select('name').eq('id', loaded.listId).maybeSingle()) as PgResult<Row>;
+      meta.listId = loaded.listId;
+      const name = str(unwrap('shopping list name', res)?.name);
+      if (name) meta.listName = name;
+    }
+    return { cursor: loaded.head, state: loaded.state, meta };
   }
 
   async head(householdId: string): Promise<number> {
     this.check(householdId);
-    const listId = await this.activeListId();
+    const listId = (await this.activeList())?.id;
     if (!listId) return 0;
     const res = (await this.client.from('shopping_list_log_heads').select('head').eq('shopping_list_id', listId).maybeSingle()) as PgResult<Row>;
     return Number(unwrap('shopping head', res)?.head ?? 0);
@@ -257,7 +270,7 @@ export class SupabaseShoppingRepository implements ShoppingRepository {
 
   async entriesSince(householdId: string, cursor: number): Promise<LogEntry[]> {
     this.check(householdId);
-    const listId = await this.activeListId();
+    const listId = (await this.activeList())?.id;
     if (!listId) return [];
     const rows = await selectAll<Row>('shopping log since', (from, to) =>
       this.client.from('shopping_command_log')
@@ -268,11 +281,68 @@ export class SupabaseShoppingRepository implements ShoppingRepository {
 
   async getMeta(householdId: string): Promise<ListMeta> {
     this.check(householdId);
-    const listId = await this.activeListId();
-    if (!listId) return { recipeTitles: {} };
+    const list = await this.activeList();
+    if (!list) return { recipeTitles: {} };
     const rows = await selectAll<Row>('shopping requirements', (from, to) =>
-      this.client.from('shopping_list_items').select('requirement').eq('shopping_list_id', listId).range(from, to) as unknown as PromiseLike<PgResult<Row[]>>);
-    return this.titles(rows.map((r) => obj(r.requirement)));
+      this.client.from('shopping_list_items').select('requirement').eq('shopping_list_id', list.id).range(from, to) as unknown as PromiseLike<PgResult<Row[]>>);
+    return { ...(await this.titles(rows.map((r) => obj(r.requirement)))), listId: list.id, listName: list.name };
+  }
+
+  // ---- several lists, one active (SL1, D263) ----
+  async listLists(householdId: string): Promise<ShoppingListInfo[]> {
+    this.check(householdId);
+    const rows = await selectAll<Row>('shopping lists', (from, to) =>
+      this.client.from('shopping_lists').select('id, name, status, created_at, updated_at').eq('household_id', this.hh)
+        .order('updated_at', { ascending: false }).order('id', { ascending: false }).range(from, to) as unknown as PromiseLike<PgResult<Row[]>>);
+    const newestActive = rows.filter((r) => r.status === 'active')
+      .sort((a, b) => toIso(b.created_at).localeCompare(toIso(a.created_at)))[0];
+    const toInfo = (r: Row, status: ShoppingListInfo['status']): ShoppingListInfo => ({
+      id: String(r.id), name: String(r.name), status, updatedAt: toIso(r.updated_at),
+    });
+    return [
+      ...(newestActive ? [toInfo(newestActive, 'active')] : []),
+      ...rows.filter((r) => r !== newestActive).map((r) => toInfo(r, 'archived')),
+    ];
+  }
+
+  async createList(householdId: string, input: { id: string; name: string }): Promise<ShoppingListInfo> {
+    this.check(householdId);
+    const name = cleanListName(input.name);
+    if (!name) throw new SupabaseRepositoryError('shopping_list_create', 'a list needs a name');
+    if (!isUuid(input.id)) throw new SupabaseRepositoryError('shopping_list_create', 'bad list id');
+    const id = await callRpc<string>(this.client, 'shopping_list_create', { p_household_id: this.hh, p_name: name, p_list_id: input.id });
+    if (!id) throw new SupabaseRepositoryError('shopping_list_create', 'no list id returned');
+    const res = (await this.client.from('shopping_lists').select('id, name, status, updated_at').eq('id', String(id)).maybeSingle()) as PgResult<Row>;
+    const row = unwrap('shopping list', res);
+    return { id: String(id), name: String(row?.name ?? name), status: row?.status === 'active' ? 'active' : 'archived', updatedAt: toIso(row?.updated_at ?? new Date().toISOString()) };
+  }
+
+  async activateList(householdId: string, listId: string): Promise<boolean> {
+    this.check(householdId);
+    if (!isUuid(listId)) return false;
+    try {
+      await callRpc<string>(this.client, 'shopping_list_activate', { p_household_id: this.hh, p_list_id: listId });
+      return true;
+    } catch (e) {
+      if (e instanceof SupabaseRepositoryError && e.code === 'P0002') return false; // list_not_found
+      throw e;
+    }
+  }
+
+  async renameList(householdId: string, listId: string, name: string): Promise<boolean> {
+    this.check(householdId);
+    const clean = cleanListName(name);
+    if (!clean || !isUuid(listId)) return false;
+    const res = (await this.client.from('shopping_lists').update({ name: clean }).eq('id', listId).eq('household_id', this.hh).select('id')) as PgResult<Row[]>;
+    return (unwrap('rename shopping list', res) ?? []).length > 0;
+  }
+
+  async archiveActiveList(householdId: string): Promise<boolean> {
+    this.check(householdId);
+    const list = await this.activeList();
+    if (!list) return false;
+    const res = (await this.client.from('shopping_lists').update({ status: 'archived' }).eq('id', list.id).eq('household_id', this.hh).select('id')) as PgResult<Row[]>;
+    return (unwrap('archive shopping list', res) ?? []).length > 0;
   }
 
   /** Titles come from the recipes themselves (always current); nothing to store. */

@@ -1,4 +1,4 @@
-> **Hosting note:** these documents were written before the hosting decision and say "Vercel" in places. The app actually runs on **Azure App Service** (Linux, Node 22; see `docs/DEPLOY-APP-SERVICE.md`); read "Vercel env vars" as "App Service application settings" and "Vercel logs/rollback" as "App Service log stream / redeploying the previous `appservice.zip`". The Supabase, RLS, privacy and AI-gateway content applies unchanged. Several controls are **designed but not yet built** (export/deletion UI beyond the SQL RPCs, AI budgets, rate limits): check `docs/ROADMAP.md` before assuming a control exists.
+> **Hosting note:** these documents were written before the hosting decision and say "Vercel" in places. The app actually runs on **Azure App Service** (Linux, Node 22; see `docs/DEPLOY-APP-SERVICE.md`); read "Vercel env vars" as "App Service application settings" and "Vercel logs/rollback" as "App Service log stream / redeploying the previous `appservice.zip`". The Supabase, RLS, privacy and AI-gateway content applies unchanged. Several controls are **designed but not yet built** (AI budgets, general rate limits; export and deletion ARE built since DX1, D250-D259, see DATA-EXPORT-DELETION.md "Status"): check `docs/ROADMAP.md` before assuming a control exists.
 
 # PRIVACY.md — Data protection (UK GDPR / DPA 2018)
 
@@ -46,7 +46,7 @@ No advertising, no identifying analytics, no sale of data. If analytics are adde
 Keep this table as the sub-processor register and update the public notice when it changes. Complete a **DPIA** (special-category data + AI + images) and a transfer risk assessment for the US transfer before launch.
 
 ## 4. Data subject rights
-Access/portability: export (DATA-EXPORT-DELETION.md). Erasure: member/household/account deletion. Rectification: edit in-app. Restriction/objection: privacy mailbox, respond within one month. Withdraw consent: dietary data removal. Complaints: ICO. Service is for adults; no accounts for under-13s.
+Access/portability: export in Settings > Your data (built, DX1: zip of JSON + photos; own data for any member, whole household for owners; DATA-EXPORT-DELETION.md "Status"). Erasure: member leave, household deletion (14-day read-only grace, owner can cancel) and account deletion, completed by the scheduled purge job (built, DX1). Rectification: edit in-app. Restriction/objection: privacy mailbox, respond within one month. Withdraw consent: dietary data removal. Complaints: ICO. Service is for adults; no accounts for under-13s.
 
 ## 5. Privacy-by-design rules for engineers
 1. Collect nothing without a feature behind it.
