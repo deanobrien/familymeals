@@ -22,3 +22,5 @@ apps/web/.data/
 apps/web/.next-e2e/
 
 apps/web/.next-*/
+# Firebase config for Android push (owner supplies it; EAS builds use the GOOGLE_SERVICES_JSON file env var)
+apps/mobile/google-services.json
