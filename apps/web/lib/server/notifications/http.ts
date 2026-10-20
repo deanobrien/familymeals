@@ -14,7 +14,8 @@ export const callerOf = (auth: RequestAuth): NotificationCaller => ({
 /** Shared envelope for the /api/notifications/* routes (web fetch with cookies, Android with a Bearer token). */
 export function respond<T extends object>(r: Result<T>): NextResponse {
   if (r.ok) {
-    const { ok: _ok, ...body } = r as { ok: true } & T;
+    const body: Record<string, unknown> = { ...r };
+    delete body.ok;
     return json(body);
   }
   switch (r.error) {

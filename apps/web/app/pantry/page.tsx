@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
+import { FocusFromLink } from './focus-from-link';
 import { getCurrentHouseholdId, getPantryService } from '../../lib/server/pantry/deps';
 import { autoRestockAfterPantryChange, getRestockService } from '../../lib/server/restock/deps';
 import { getAppContext } from '../../lib/server/context';
@@ -43,6 +45,9 @@ export default async function PantryPage() {
       <StalePrompts items={view.staleItems} />
       <PendingPurchases pending={view.pending} mode={view.settings.purchaseMode} />
       <ExpiringPanel items={view.expiring} />
+      <Suspense fallback={null}>
+        <FocusFromLink />
+      </Suspense>
       <UseWhatIHave suggestions={view.suggestions} />
       <AddItem />
       <StockList view={view} pars={restock.pars} />

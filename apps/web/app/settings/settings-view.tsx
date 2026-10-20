@@ -52,6 +52,13 @@ export function SettingsView({ initial, ai, recipeSource, data }: { initial?: Se
     <div className={s.page}>
       <h1>Settings</h1>
       <PreferencesSection initial={initial} isOwner={data?.isOwner ?? true} />
+      <Card>
+        <section className={s.card} aria-labelledby="h-notifications-link" data-testid="settings-notifications-link">
+          <h2 id="h-notifications-link">Notifications</h2>
+          <p className={s.muted}>Food to use soon, household updates, quiet hours and push to this browser or your phone.</p>
+          <Link className={s.link} href="/settings/notifications">Notification settings</Link>
+        </section>
+      </Card>
       <AiProviderSection initial={ai} />
       {recipeSource && (
         <Card>
