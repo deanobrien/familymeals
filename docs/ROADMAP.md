@@ -42,6 +42,8 @@ Standing rule (D310): every web feature also ships on Android unless a reason is
 | Receipts | ✅ | ✅ | P0-C (D345) |
 | Settings: preferences / allergy consent / store aisles | ✅ | ✅ | P0-A (D325): preferences, allergy consent (same wording), AI provider note; store aisles via AS1; web and Android now persist through one shared server module (P0-D, D350-D352: owner-only preferences, consent gate, withdraw consent keeps the list but stops it applying, notice counts it); units/locale are display-only per device; scan sound is a per-device setting on both |
 | Data export + account/household deletion | ✅ | ✅ | P0-A (D322, D326): export via bearer + share sheet, household and account deletion with the web confirmations, cancel, countdown; account deletion 2 taps from Settings (Play blocker cleared, pending device check) |
+| Notifications: bell + centre, settings (per type, quiet hours), test, push | ✅ | ✅ | P1-C (D389): web push via service worker, Android via expo-notifications; needs owner FCM/VAPID setup and a device check |
+| Household activity feed | ✅ Home | ✅ | P1-C (D387): Android shows it in Notifications > Household activity (no Android Home yet) |
 | Home dashboard, privacy/sources pages | ✅ | ⚠️ | privacy + sources open the web pages from Settings (D325); dashboard still to build |
 | Settings -> AI provider | ✅ | - | proposed web-only (D310, awaiting owner confirmation) |
 
@@ -62,7 +64,7 @@ All durations are **estimates**, not commitments.
 
 - **A Cooking**: cook mode (steps, timers, read-aloud, keep-awake); ratings and notes after cooking; substitutions (AI, allergy-checked).
 - **B Import and pantry**: recipe from a web link (JSON-LD first, then AI); "what can I make now?"; 5-a-day and variety score.
-- **C Notifications**: notification platform (Expo push + web push, per-person preferences) -> expiry alerts, activity feed.
+- **C Notifications**: **built by P1-C (D380-D389), web + Android:** notification platform (in-app centre + bell on both; Expo push for Android, Web Push for browsers; per-member per-type preferences, quiet hours, time zone; `/api/jobs/notify` delivery job), daily expiry alerts (use by / best before wording, deep link to "Use what I have"), household activity feed (Home on web, notification screen on Android), opt-in restock nudges (PR1). Owner steps: push the migration, VAPID keys, Firebase/FCM in EAS + a new build, second Logic App action (DEPLOY-APP-SERVICE.md 3e). Not verified: real push delivery (browser push services, FCM on a phone), the job against the hosted project.
 - Plus per-person soft dislikes.
 
 ### Phase 2 - Smarter shopping and planning (~3 wks)
