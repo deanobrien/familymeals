@@ -26,8 +26,8 @@ Standing rule (D310): every web feature also ships on Android unless a reason is
 | Feature | Web | Android | Gap |
 |---|---|---|---|
 | Sign in / household picker | ✅ | ✅ | none |
-| Sign-up / forgot password | ✅ | ❌ | build on Android |
-| Household members / invites / transfer | ✅ | ❌ | build on Android |
+| Sign-up / forgot password | ✅ | ✅ | P0-A (D320): deep-link confirmation, reset, resend, expired-link handling; needs a device + redirect allow-list |
+| Household members / invites / transfer | ✅ | ✅ | P0-A (D321): create, switcher, invite via share sheet, revoke, remove, transfer, leave, accept via deep link, read-only banner |
 | Recipes browse / detail | ✅ | ✅ | none (P0-B: search, filters, sort, collections, favourites, covers, household-default servings, cost + nutrition panels; needs a device check) |
 | Recipe create / edit + ingredient matching | ✅ | ✅ | none (P0-B: form, "Matched to" picker, duplicates, copy, delete) |
 | Photo import full review/edit | ✅ | ✅ | none (P0-B: full on-phone review, same corrections as web) |
@@ -38,9 +38,9 @@ Standing rule (D310): every web feature also ships on Android unless a reason is
 | Pantry stock / expiry / use-what-I-have / photo-video scan | ✅ | ⚠️ | P0-C (D342-D343): all but video frames (web-only, native module) and min stock (PR1 not merged) |
 | Barcode scanning | ✅ continuous | ✅ | P0-C (D344): review + confirm on the phone, haptics, keep-awake; device check |
 | Receipts | ✅ | ✅ | P0-C (D345) |
-| Settings: preferences / allergy consent / store aisles | ✅ | ⚠️ | aisle placement only |
-| Data export + account/household deletion | ✅ | ❌ | **release blocker**: Google Play requires in-app account deletion |
-| Home dashboard, privacy/sources pages | ✅ | ❌ | build on Android |
+| Settings: preferences / allergy consent / store aisles | ✅ | ✅ | P0-A (D325): preferences, allergy consent (same wording), AI provider note; store aisles via AS1; Android persists to the DB, the web preferences/allergy form does not yet (see HANDOVER) |
+| Data export + account/household deletion | ✅ | ✅ | P0-A (D322, D326): export via bearer + share sheet, household and account deletion with the web confirmations, cancel, countdown; account deletion 2 taps from Settings (Play blocker cleared, pending device check) |
+| Home dashboard, privacy/sources pages | ✅ | ⚠️ | privacy + sources open the web pages from Settings (D325); dashboard still to build |
 | Settings -> AI provider | ✅ | - | proposed web-only (D310, awaiting owner confirmation) |
 
 ## Phased plan

@@ -66,6 +66,9 @@ export function getSupabase(): SupabaseClient {
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,
+      // Email links (confirmation, recovery) carry the tokens in the URL fragment of `familyrecipes://auth/callback`
+      // (D214, D320): the implicit flow needs no code verifier, which a link opened after an app restart would lack.
+      flowType: 'implicit',
     },
   });
   return client;

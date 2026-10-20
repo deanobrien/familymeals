@@ -9,7 +9,7 @@ export const AUTH_CALLBACK_PATH = 'auth/callback';
 export const AUTH_REDIRECT_URL = 'familyrecipes://auth/callback';
 
 export type AuthLink =
-  | { kind: 'tokens'; accessToken: string; refreshToken: string }
+  | { kind: 'tokens'; accessToken: string; refreshToken: string; /** `recovery` = password-reset link, `signup` = confirmation */ type?: string }
   | { kind: 'code'; code: string }
   | { kind: 'error'; message: string; code?: string }
   | { kind: 'none' };
@@ -41,7 +41,10 @@ export function parseAuthLink(url: string): AuthLink {
   }
   const access = p.get('access_token');
   const refresh = p.get('refresh_token');
-  if (access && refresh) return { kind: 'tokens', accessToken: access, refreshToken: refresh };
+  if (access && refresh) {
+    const type = p.get('type') ?? undefined;
+    return { kind: 'tokens', accessToken: access, refreshToken: refresh, ...(type ? { type } : {}) };
+  }
   const code = p.get('code');
   if (code) return { kind: 'code', code };
   return { kind: 'none' };

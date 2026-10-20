@@ -799,6 +799,7 @@ Every feature available in the web app must also ship in the Android app (`apps/
 **PROPOSED exception - awaiting owner confirmation:** Settings -> AI provider (endpoint/key) is web-only. It is a one-off owner admin task and typing API keys on a phone adds little.
 
 
+
 ## D340 Android parity API: thin JSON routes over the same server logic (P0-C)
 
 The phone is a client of the web server's logic, never a second copy of it. `apps/web/lib/server/api/handle.ts` (`withApi`) resolves the caller (web cookie, or `Authorization: Bearer <Supabase access token>` + household membership, D102), refuses writes for read-only households (403 `READ_ONLY`), and runs the handler inside `runWithDataContext` (D213) with the `{ error: { code, message, retryable } }` envelope. Routes added: `/api/plan` (+ `week`, `save`, `approve`, `parse`, `solve`, `propose`, `generate-shopping`, `ideas`, `ideas/draft`), `/api/pantry` (+ `ingredients`, `scan` made bearer-capable, `scan/preview`, `scan/confirm`), `/api/receipts` (+ `[id]`, `[id]/confirm`, `[id]/photo`), `/api/shopping/lists`, `/api/shopping/scan/preview`, `/api/shopping/scan/confirm`. `BEARER_API_PREFIXES` opts the families in. Where a service was bound to the cookie-only `getAppContext()` it now takes an explicit identity. The app side is `src/lib/serverApi.ts` (`ServerApi`, `ServerApiError`) plus per-feature clients with defensive parsers (the app never imports `@fr/ai` or `@fr/plan-orchestrator`); mock mode (no `EXPO_PUBLIC_API_BASE_URL`) shows "needs the server" through `ServerScreen`, it does not pretend.
@@ -827,9 +828,37 @@ The phone is a client of the web server's logic, never a second copy of it. `app
 
 Shopping screen: a lists sheet (switch / new / rename / archive) over `/api/shopping/lists`, shown only when the server API is configured, followed by a re-read of the active list. `/shopping-scan`: up to 4 photos -> `/api/shopping/scan` -> review (transcription vs parsed rows, edit / remove / add) -> destination (current list or a new named list) -> preview -> confirm. A single `batchId` per review session makes retries idempotent (D266).
 
-## D347 Navigation: a More tab keeps the bottom bar at four items (P0-C)
+## D347 Navigation: a More tab keeps the bottom bar at five items or fewer (P0-C)
 
-Tabs are Recipes, Shopping, Capture, More. More lists Meal planner, Pantry, Scan groceries, Receipts, Handwritten list scan and Households (`MORE_ENTRIES` in `MoreScreen.tsx`); other lanes append rows there. Feature screens are stack routes under `apps/mobile/app` with their own titles. Shared pieces: `PhotoCapture`, `IngredientPicker`, `ServerApiContext`.
+Tabs are Recipes, Shopping, Capture, Settings (P0-A), More (five, the maximum). More lists Meal planner, Pantry, Scan groceries, Receipts, Handwritten list scan and Households (`MORE_ENTRIES` in `MoreScreen.tsx`); other lanes append rows there. Feature screens are stack routes under `apps/mobile/app` with their own titles. Shared pieces: `PhotoCapture`, `IngredientPicker`, `ServerApiContext`.
+
+## D320 Android auth links: implicit flow, `familyrecipes://auth/callback`, no separate web fallback page (P0-A)
+
+Sign-up, resend-confirmation and forgot-password pass `emailRedirectTo` / `redirectTo` = `familyrecipes://auth/callback` (D214). The mobile Supabase client now sets `flowType: 'implicit'` explicitly: the link carries the tokens in the URL fragment, so it works after an app restart (PKCE would need a code verifier that may be gone). `type=recovery` in the fragment marks a password-reset link: the callback routes to `/reset-password`, otherwise to a pending invitation or the household picker. Expired / used / rejected links all read as the web's "expired or already used" text (`mapLinkError`) with buttons for sign-in and a new reset link. **Web fallback** is deliberately not a page: Supabase confirms the address when the link is clicked, whatever the redirect does, so on a device without the app the person simply signs in with their password (the sign-up screen says so). Owner step: add `familyrecipes://auth/callback` to Auth > URL Configuration > Redirect URLs. A web bounce page that re-opens the app is a possible follow-up.
+
+## D321 Households on Android: `AccountSource`, invites, deep link, pending-next (P0-A)
+
+Account, household and lifecycle calls live in `apps/mobile/src/data/accountSource.ts` (`DataSource.account`; Supabase and in-memory mock implementations) so the shopping/recipe `DataSource` other lanes edit is untouched. It uses the same RPCs and RLS as web (`create_invitation`, `accept_invitation`, `transfer_ownership`, `member_leave`, invitations / household_members updates) as the signed-in user; errors become fixed, user-safe texts (port of `errors.ts`, drift-tested). Invite links are `<web origin>/invite/<token>` (`familyrecipes://invite/<token>` when no web origin is configured), shown once and handed to the system share sheet with React Native `Share` (expo-sharing shares FILES, so it is used only for the export zip); tokens are never logged or stored. Both link forms open the app: `app.json` has an https App Link intent filter for `/invite` on the Azure host (autoVerify) and the scheme is automatic; the web invite page has an "Open this invitation in the Android app" fallback link. A signed-out invite is remembered on the device for one hour (`pendingNext`, `/invite/<64 hex>` only, re-validated on read) and resumes after sign-in, sign-up or the confirmation link. Remove / transfer / leave ask for confirmation (stricter than web).
+
+## D322 Data export over a Bearer token (P0-A)
+
+`/api/export` and `/api/export/<id>` accept `Authorization: Bearer <supabase access token>` (D102 pattern): `resolveExportCaller` (cookie session unchanged, else `resolveBearerHouseholdContext`: `auth.getUser(token)`, memberships under RLS, the POST body `householdId` only narrowed to the caller's memberships, GET falls back to the oldest membership because the export row and memberships authorise the download); work runs inside `runWithDataContext` (D213). Middleware opts both paths in (`BEARER_API_PATHS/PREFIXES`). The app downloads with `File.downloadFileAsync` (Bearer header, streams to cache), opens the share sheet (expo-sharing) and deletes the cached copy straight after; it only follows a `/api/export/<id>` path on its own server, so the token cannot be sent elsewhere. Same limits as web (1 per scope per 24 h, 1 hour link, 5 downloads).
+
+## D323 App Links for invitations need the signing fingerprint (P0-A)
+
+Verifying the https intent filter needs `/.well-known/assetlinks.json` to list the SHA-256 of the key that signs the installed app (EAS keystore for the preview APK, Play app signing key for the store build). The fingerprint is not in the repo: the web serves the file from `ANDROID_APP_CERT_SHA256` (comma separated; 404 until set; public path). Until then https invite links open in the browser (working accept page + app fallback link).
+
+## D324 Drift guard for duplicated text (P0-A)
+
+The consent wording, allergen list, withheld-consent notice and the shared auth/household messages exist in `apps/mobile/src/lib/{privacyText,accountErrors}.ts` because the app cannot import server code. `apps/web/app/settings/mobile-parity.test.ts` transpiles the mobile files and asserts they equal the web copies and that the Android mappers answer exactly like `mapAuthApiError` / `mapDbError` / `mapCallbackError` (offline is the only extra Android code). Change one side, change both.
+
+## D325 Android settings persist to the database; privacy pages are web links (P0-A)
+
+Default servings and weekly budget are saved to `households` (owner only; RLS decides, a member sees them locked). Allergies / foods to avoid are `household_exclusions` rows (`term`, kind `allergy`) with an `allergy_data` consent record for the signed-in member (same wording and checkbox, version v1; required before saving; "remove all" deletes the rows and withdraws consent); the planner already reads them (`planner_household_profile`) and Settings shows the withheld-consent count. Units and locale are display-only and stay on the device, like the web's "display only". NOTE for the web lane: the web preferences and allergy forms still end in `TODO(Supabase)` and do not save; the Android screens are the first to use the real tables. Privacy notice and data-sources pages open the web pages (one source of truth; the privacy draft still has owner TBDs). AI provider settings stay web-only (D310 proposed exception): Settings shows "Manage AI provider on the website." with a link.
+
+## D326 Deletion on Android: same confirmations, two taps (P0-A)
+
+Account deletion: Settings tab, "Delete my account" -> screen with typed DELETE + current password; household deletion (owner) on "Your data" with the typed household name + password; cancel needs neither; the grace countdown, the read-only banner (household, settings and your-data screens) and the "transfer ownership first" block match web. Password re-authentication uses a throwaway non-persisting client (as `reauth.ts`); because it runs on the device it is an accident guard, exactly as on web where the RPCs are also callable with a session token. When the RPC schedules the account for now (no sole-member household) the app signs out and shows sign-in with a "deletion scheduled" note.
 
 ## D330 Android recipes call the web app's server logic through bearer JSON routes (P0-B)
 

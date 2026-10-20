@@ -8,7 +8,7 @@ Mock data by default; Supabase when `EXPO_PUBLIC_SUPABASE_URL` + `EXPO_PUBLIC_SU
 
 ## Server-backed features (D340-D347)
 
-Planner, pantry, pantry scan (photos and continuous barcodes), receipts, the shopping lists sheet and handwritten list scan call the web app's JSON API with the Supabase access token (`src/lib/serverApi.ts`, `src/data/ServerApiContext.tsx`; per-feature clients `planApi`, `pantryApi`, `pantryScanApi`, `receiptsApi`, `shoppingListsApi`, `listScanApi`). They need `EXPO_PUBLIC_API_BASE_URL` and Supabase sign-in; in mock mode the screens say so. Bottom tabs: Recipes, Shopping, Capture, More (planner, pantry, scan, receipts, list scan, households). Tests use a fake `ServerApi` via `ServerApiProvider`. Needs a real device: camera/photo flows, haptics and keep-awake while scanning barcodes, authenticated receipt photo display, TalkBack.
+Planner, pantry, pantry scan (photos and continuous barcodes), receipts, the shopping lists sheet and handwritten list scan call the web app's JSON API with the Supabase access token (`src/lib/serverApi.ts`, `src/data/ServerApiContext.tsx`; per-feature clients `planApi`, `pantryApi`, `pantryScanApi`, `receiptsApi`, `shoppingListsApi`, `listScanApi`). They need `EXPO_PUBLIC_API_BASE_URL` and Supabase sign-in; in mock mode the screens say so. Bottom tabs: Recipes, Shopping, Capture, Settings, More (planner, pantry, scan, receipts, list scan, households). Tests use a fake `ServerApi` via `ServerApiProvider`. Needs a real device: camera/photo flows, haptics and keep-awake while scanning barcodes, authenticated receipt photo display, TalkBack.
 
 ## Shopping sync (D210, D211)
 
@@ -67,8 +67,16 @@ For quick UI/logic checks without building anything (camera, picker, SecureStore
 
 `node scripts/verify-mobile-bearer.mjs http://localhost:3131` (repo root; needs `pnpm exec supabase start` and `pnpm dev:live`) signs a throw-away user in against the LOCAL stack exactly as the app does and exercises `/api/products/<barcode>`, `/api/extract` and `/api/extract/save` with `Authorization: Bearer <token>`, including the 401 / 403 cases. `pnpm --filter @fr/mobile test:live` runs `SupabaseDataSource` against the same local stack (real RPCs, RLS and Realtime). Both are opt-in and refuse non-local URLs.
 
+## Account, household and "Your data" (P0-A, D320-D326)
+
+- Data: `src/data/accountSource.ts` (interface, reached as `ds.account`), `supabaseAccountSource.ts` (RPCs + RLS as the user), `mockAccountSource.ts` (demo mode; re-auth password `secret1`). Screens in `src/screens/` (`SignUp`, `ForgotPassword`, `ResetPassword`, `CreateHousehold`, `Household`, `InviteAccept`, `Settings` tab, `YourData`, `DeleteAccount`), helpers in `src/screens/account/`. Libs: `accountErrors`, `accountForms`, `inviteLink`, `pendingNext`, `privacyText` (copied from web, drift-tested in `apps/web/app/settings/mobile-parity.test.ts`), `exportApi` + `exportDownload` (expo-file-system + expo-sharing), `webLinks`, `devicePrefs`.
+- Deep links: `familyrecipes://auth/callback` (add to the Supabase redirect allow-list), `familyrecipes://invite/<token>` and `https://<web host>/invite/<token>` (App Link; verified only once the web has `ANDROID_APP_CERT_SHA256` set).
+- Export needs `EXPO_PUBLIC_API_BASE_URL` (calls the web `/api/export` with the Bearer token).
+- Account deletion: Settings tab -> "Delete my account" (type DELETE + password).
+
 ## Needs a device or a live Supabase to verify
 
+- Account flows end to end: the confirmation / reset email opening the app, the invite App Link, the share sheet (invite link, export zip), the export download from the hosted web app, account deletion against a real project.
 - Camera capture, photo picker, rotate (native modules; jest mocks them).
 - SecureStore session persistence, NetInfo transitions (airplane mode), foreground resync, TalkBack and dark mode on a real Android device.
 - The hosted project (the live checks above run against the local stack only), and an installed APK talking to it.

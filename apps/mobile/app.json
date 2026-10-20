@@ -27,6 +27,20 @@
       "package": "uk.ac.northumbria.familyrecipes",
       "versionCode": 1,
       "allowBackup": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "family-recipes-dean-cph4g5cuh9fmhhfy.ukwest-01.azurewebsites.net",
+              "pathPrefix": "/invite"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#2E7D32"

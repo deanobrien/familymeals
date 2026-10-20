@@ -2,6 +2,7 @@ import type { NutrientValue, PurchaseEvent, Quantity, Uuid } from '@fr/domain';
 import type { PlacementTargetType, StoreBook } from '@fr/engine/shopping';
 import type { Household, Recipe, ShoppingConflict, ShoppingListItem, UserSession } from '@/viewModels';
 import { newId } from '@/lib/format';
+import { MockAccountSource } from './mockAccountSource';
 import type { DataSource, ShoppingListState } from './DataSource';
 
 const q = (value: number, unit: Quantity['unit'], originalText: string): Quantity => ({
@@ -101,6 +102,7 @@ export interface MockOptions {
 }
 
 export class MockDataSource implements DataSource {
+  readonly account = new MockAccountSource();
   private session: UserSession | null = null;
   private items: ShoppingListItem[] = SHOPPING.map((i) => ({ ...i }));
   private queue: PurchaseEvent[] = [];
@@ -159,7 +161,10 @@ export class MockDataSource implements DataSource {
 
   async listHouseholds() {
     await this.delay();
-    return HOUSEHOLDS.map((h) => ({ ...h }));
+    const memberships = await this.account.listMemberships();
+    return Promise.all(
+      memberships.map(async (m) => ({ id: m.id, name: m.name, memberCount: (await this.account.listMembers(m.id)).length })),
+    );
   }
 
   async listRecipes(householdId: Uuid) {

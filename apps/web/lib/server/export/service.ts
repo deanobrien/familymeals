@@ -14,6 +14,7 @@ import { zipStream } from './zip';
  * Supabase client (RLS) for rows and Storage, never the service role. Mock mode exports the demo recipe library.
  */
 type Ctx = Pick<HouseholdContext, 'user' | 'household' | 'memberships' | 'supabase' | 'mode' | 'isOwner'>;
+export type ExportContext = Ctx;
 
 function auditFor(ctx: Ctx): ExportAudit {
   if (ctx.mode === 'supabase') return supabaseExportAudit(ctx.supabase);
