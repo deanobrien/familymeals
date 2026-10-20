@@ -136,6 +136,7 @@ If a lane's branch is merged into your checkout, its decisions are in `DECISIONS
 - LV1 open items: `apps/web/lib/shopping/live.ts` marks the channel live before the server confirms the subscription; receipts, price observations and per-household AI settings have no live tests; recipes created through the form have no ingredient links.
 - Dev-only service-role fallback (`SUPABASE_DATA_CONTEXT=service`, D100) exists for scripts; production startup refuses it.
 - Photo uploads >10 MB are downscaled in the browser; Next buffers request bodies in middleware up to 10 MB by default, raised to 40 MB in `next.config.mjs` (see `claude/memories/middleware-body-limit-10mb.md`).
+- App Service internal hostname (fixed 2026-10-20): never build absolute URLs/redirects from `request.url`/Host; use `publicOrigin()` (`lib/server/site-url.ts`). Email scanners can consume one-time confirmation links (`otp_expired`); the sign-in page explains this and offers "Resend confirmation email". See `claude/memories/app-service-internal-hostname.md`.
 - B1 App Service quota is not always available in a region; see DEPLOY-APP-SERVICE.md section 8.
 - Receipts/AI quality on real data is unmeasured; the mock provider returns canned data.
 - Shopping `seq` vs `list_seq` for the Android client (above).

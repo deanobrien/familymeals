@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { readPublicEnv, resolveAuthMode } from './lib/supabase/env';
 import { redirectWithCookies, updateSession } from './lib/supabase/middleware';
+import { publicUrl } from './lib/server/site-url';
 import { productionConfigProblems } from './lib/server/config/production';
 import { GUEST_ONLY_PATHS, SIGN_IN_PATH, acceptsBearer, isApiPath, isPublicPath } from './lib/server/auth/routes';
 
@@ -33,7 +34,7 @@ export async function middleware(request: NextRequest) {
 
   const { response, user } = await updateSession(request, env);
   if (user) {
-    if (GUEST_ONLY_PATHS.includes(pathname)) return redirectWithCookies(new URL('/', request.url), response);
+    if (GUEST_ONLY_PATHS.includes(pathname)) return redirectWithCookies(publicUrl('/', request), response);
     return response;
   }
   if (isPublicPath(pathname)) return response;
@@ -42,7 +43,7 @@ export async function middleware(request: NextRequest) {
   if (isApiPath(pathname)) {
     return NextResponse.json({ error: 'unauthenticated' }, { status: 401, headers: { 'cache-control': 'no-store' } });
   }
-  const url = new URL(SIGN_IN_PATH, request.url);
+  const url = publicUrl(SIGN_IN_PATH, request);
   url.searchParams.set('next', pathname + search);
   return redirectWithCookies(url, response);
 }

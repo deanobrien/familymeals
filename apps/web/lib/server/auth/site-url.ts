@@ -1,14 +1,13 @@
 import 'server-only';
 import { headers } from 'next/headers';
+import { publicOrigin } from '../site-url';
 
 export { buildInviteUrl } from './site-url-pure';
 
-/** Origin used in emailed links and invite URLs. Prefers NEXT_PUBLIC_SITE_URL, else the request host. */
+/**
+ * Origin used in emailed links and invite URLs: the PUBLIC origin (see ../site-url.ts), never the container's
+ * internal host. Prefers NEXT_PUBLIC_SITE_URL; forwarded/Host headers are only honoured for localhost dev.
+ */
 export async function getSiteUrl(): Promise<string> {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, '');
-  if (configured) return configured;
-  const h = await headers();
-  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3100';
-  const proto = h.get('x-forwarded-proto') ?? (host.startsWith('localhost') || host.startsWith('127.') ? 'http' : 'https');
-  return `${proto}://${host}`;
+  return publicOrigin({ headers: await headers() });
 }

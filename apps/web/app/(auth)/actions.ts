@@ -68,6 +68,23 @@ export async function signUpAction(fd: FormData): Promise<void> {
   redirect(requested === '/' ? '/sign-up?sent=1' : `/sign-up?sent=1&next=${encodeURIComponent(requested)}`);
 }
 
+export async function resendConfirmationAction(fd: FormData): Promise<void> {
+  requireSupabaseMode('/sign-in');
+  const email = Email.safeParse(field(fd, 'email').trim());
+  if (!email.success) back('/sign-in', 'invalid_input');
+  const next = safeNextPath(field(fd, 'next'));
+  const supabase = await createSupabaseServerClient();
+  const origin = await getSiteUrl();
+  // Result deliberately ignored apart from rate limiting: identical response for unknown/confirmed/pending addresses.
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email: email.data,
+    options: { emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next === '/' ? '/household/new' : next)}` },
+  });
+  if (error && mapAuthApiError(error) === 'rate_limited') back('/sign-in', 'rate_limited');
+  redirect('/sign-in?resent=1');
+}
+
 export async function forgotPasswordAction(fd: FormData): Promise<void> {
   requireSupabaseMode('/forgot-password');
   const email = Email.safeParse(field(fd, 'email').trim());

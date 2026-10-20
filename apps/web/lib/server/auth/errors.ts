@@ -4,6 +4,8 @@
  */
 export type AuthErrorCode =
   | 'invalid_credentials'
+  | 'email_not_confirmed'
+  | 'link_expired'
   | 'invalid_input'
   | 'weak_password'
   | 'rate_limited'
@@ -18,6 +20,9 @@ export type AuthErrorCode =
 
 export const AUTH_ERROR_MESSAGES: Record<AuthErrorCode, string> = {
   invalid_credentials: 'That email and password did not match. Please try again.',
+  email_not_confirmed: 'Your email address has not been confirmed yet. Use the link in the confirmation email, or request a new one below.',
+  link_expired:
+    'That link has expired or was already used (some email security scanners open links automatically). Try signing in — your email may already be confirmed — or request a new link.',
   invalid_input: 'Please check the details you entered and try again.',
   weak_password: 'Choose a password of at least 10 characters.',
   rate_limited: 'Too many attempts. Please wait a minute and try again.',
@@ -67,6 +72,19 @@ export function mapAuthApiError(err: unknown): AuthErrorCode {
   if (e.status === 429 || e.code === 'over_request_rate_limit' || e.code === 'over_email_send_rate_limit') return 'rate_limited';
   if (e.code === 'weak_password') return 'weak_password';
   if (e.code === 'validation_failed') return 'invalid_input';
+  if (e.code === 'email_not_confirmed') return 'email_not_confirmed';
+  if (e.code === 'otp_expired') return 'link_expired';
   if (e.status && e.status >= 500) return 'unknown';
   return 'invalid_credentials';
+}
+
+/**
+ * Maps an error from the email-link landing (provider `error_code`/`error` query param, or a failed code exchange)
+ * to a precise code. Expired/used links, a missing PKCE verifier (link opened in another browser) and unknown
+ * codes all read as "link expired or already used"; only genuine denials stay generic.
+ */
+export function mapCallbackError(code: string | null | undefined): AuthErrorCode {
+  if (code === 'email_not_confirmed') return 'email_not_confirmed';
+  if (code === 'over_request_rate_limit' || code === 'over_email_send_rate_limit') return 'rate_limited';
+  return 'link_expired';
 }

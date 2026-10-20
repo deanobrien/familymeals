@@ -1,0 +1,5 @@
+Behind Azure App Service Linux, request.url / nextUrl.origin / Host are the container's internal host (e.g. https://65339094faad:8080), so redirects and emailed links must use publicOrigin().
+
+App Service sets HOSTNAME to the container id and fronts the app with a reverse proxy; Next standalone therefore sees the internal host. `apps/web/lib/server/site-url.ts` `publicOrigin(req?)` prefers NEXT_PUBLIC_SITE_URL (https required in production), trusts x-forwarded-* only for localhost dev, never arbitrary Host headers (open redirect / host-header poisoning). Used by middleware redirects, /auth/callback, signUp/reset/resend emailRedirectTo and invite links (`getSiteUrl`).
+
+Related: Supabase reports expired/used email links in the URL hash (`#error=access_denied&error_code=otp_expired`); email scanners often consume one-time links. Sign-in page reads the hash client-side and offers "Resend confirmation email". Auth error codes `email_not_confirmed` / `link_expired` replace the old catch-all `invalid_credentials` for these cases.
