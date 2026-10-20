@@ -16,7 +16,8 @@ export const callerOf = (auth: RequestAuth): CookingCaller => ({
 /** A service result as the standard envelope: `{ ...fields }` on success, `{ error: { code, message, retryable } }` otherwise. */
 export function respond<T extends object>(r: CookingResult<T>): NextResponse {
   if (r.ok) {
-    const { ok: _ok, ...rest } = r;
+    const rest: Record<string, unknown> = { ...r };
+    delete rest.ok;
     return json(rest);
   }
   switch (r.error) {

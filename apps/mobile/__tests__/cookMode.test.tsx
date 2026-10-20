@@ -69,7 +69,6 @@ async function signedIn(): Promise<MockDataSource> {
 const press = async (id: string) => {
   await fireEvent.press(screen.getByTestId(id));
 };
-const text = (id: string) => screen.getByTestId(id).props.children as unknown;
 const flat = (n: string) => JSON.stringify(n);
 
 async function mount(api: RecipesApi = apiWithTimers(), servings?: string) {

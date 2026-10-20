@@ -80,7 +80,6 @@ export function CookMode({ recipe, initialServings, servingsPinned, householdId,
     }
     setNotify(notifyState());
     setRestored(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
   // ---- persist ----
@@ -185,7 +184,6 @@ export function CookMode({ recipe, initialServings, servingsPinned, householdId,
       stopSpeaking();
       setReading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, autoRead]);
 
   // ---- timers ----

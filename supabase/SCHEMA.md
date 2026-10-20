@@ -165,3 +165,10 @@ sessions once the Supabase local stack is available (logic is lock-based; idempo
 3. **SQL `quantity_is_valid()` is looser than the zod `Quantity`** (zod additionally requires `approxLabel` and forbids a unit on `approximate`, per the ratified L6 strictness). Tighten SQL only if a DB-level guarantee is wanted.
 4. **`ReceiptLine` naming**: the ratified canonical wire line lives in `@fr/domain` as `ReceiptParseLine` (+ `ReceiptParse`) because `ReceiptLine` is the persisted row schema; alias at the engine/ai merge if the shorter name is preferred.
 5. **Not yet in `@fr/domain`**: `ExtractedRecipe`, `PlanConstraints` (ratified canonical) - they arrive with the ai/engine contract swap.
+
+## P1-A cooking (`20261021001000_cooking.sql`)
+
+- **recipe_cooked** (household, recipe, user, cooked_at, servings, rating?): household-readable, writable only for `user_id = auth.uid()` in a writable household.
+- **recipe_cook_notes** (cooked_id, note, is_private): a private note is readable only by its author; household notes by every member; only the cook can write.
+- **recipe_dont_suggest** (recipe, user): household-readable (the planner needs everyone's), self-written.
+- `recipe_cook_summaries(household)` (invoker): count + last cooked per recipe. A trigger on `household_members.status` (left / revoked) deletes the leaver's rows in these tables.

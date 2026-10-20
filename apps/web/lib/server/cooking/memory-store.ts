@@ -49,8 +49,8 @@ export class MemoryCookingStore implements CookingStore {
 
   private out(e: Stored, userId: string): CookEntry {
     const mine = e.userId === userId;
-    const { userId: _u, ...rest } = e;
-    return { ...rest, mine, cookedBy: mine ? 'You' : 'A household member', note: e.note && (!e.note.isPrivate || mine) ? { ...e.note } : null };
+    return {
+      id: e.id, recipeId: e.recipeId, cookedAt: e.cookedAt, servings: e.servings, rating: e.rating, mine, cookedBy: mine ? 'You' : 'A household member', note: e.note && (!e.note.isPrivate || mine) ? { ...e.note } : null };
   }
 
   async view(householdId: string, userId: string, recipeId: string): Promise<RecipeCookingView> {

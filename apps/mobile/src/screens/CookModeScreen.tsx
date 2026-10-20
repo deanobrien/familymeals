@@ -111,7 +111,6 @@ function CookMode({ data, householdId, userId, initialServings, servingsPinned, 
     return () => {
       live = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
   // ---- persist ----

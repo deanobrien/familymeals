@@ -979,3 +979,43 @@ POST only, `JOBS_SECRET` in `x-jobs-secret` (unset = 503), service role only in 
 ## D389 Permission prompts only after a user action; parity (P1-C)
 
 Web: `public/sw.js` (push + notificationclick only, no caching) is registered, and `Notification.requestPermission()` called, only from "Turn on in this browser". Android: `expo-notifications` permission + token only from "Turn on notifications on this phone"; tapping a push opens the mapped screen (`linkToRoute`). Parity: bell with unread count (web top bar via the new `AppShell.topBar`; Android tab headers), centre + household activity (web `/notifications`, Home feed; Android `/notifications`, More), settings (web `/settings/notifications`; Android `/notification-settings` from Settings), test button on both. Documented gap: Android has no Home dashboard yet (ROADMAP parity matrix), so its activity feed lives in the notification screen. `app.config.js` adds `android.googleServicesFile` only when the owner supplies `google-services.json` (EAS file variable `GOOGLE_SERVICES_JSON`); without it the app builds and the in-app list works.
+
+## D360 Cooking data: three small tables, ratings stay in recipe_ratings (P1-A)
+
+Migration `20261021001000_cooking.sql`: `recipe_cooked` (who cooked, when, servings, rating?), `recipe_cook_notes` (one note per cook, private or household) and `recipe_dont_suggest` (recipe + member). A member's CURRENT rating still lives in the existing `recipe_ratings` (marking a cook with a rating upserts it), so the household mean (`recipes.rating`), sort-by-rating and the card stars needed no change. Composite FKs keep every row in the recipe's household; writes need a writable household (not pending deletion). `recipe_cook_summaries(household)` returns count + last cooked per recipe in one call for the cards. Data export lists all three tables.
+
+## D361 Cook mode: one engine module, a saved session on the device (P1-A)
+
+Timer parsing, the timer state machine, per-step ingredient matching, the saved-session format and the "cooked 3 times, last 2 days ago" wording are pure code in `@fr/engine/cooking`, shared by web and Android. A session (step, servings, ticked ingredients, swaps, timers) is saved on the device (localStorage / AsyncStorage) under household + user + recipe and resumed for 24 hours; it is parsed defensively (stale, hand-edited or malformed data is dropped, never trusted) and cleared when the cook is saved.
+
+## D362 Timers and alerts (P1-A)
+
+`parseStepTimers` reads "20 minutes", "10-12 mins" (runs the lower bound, shows the range), "1 hour 30 minutes", "1½ hours", "half an hour", "an hour", "five minutes"; zero or over 24 h is ignored. Timers store an ABSOLUTE end time, so a sleeping screen or a backgrounded tab cannot drift them; several run at once. Web: in-page alert banner (always), beep (Web Audio, primed by the click that starts a timer), vibration where supported, system Notification if permitted (asked when the first timer starts), Wake Lock (re-acquired when the tab is visible again), Web Speech read-aloud. Android: expo-keep-awake, expo-speech, expo-haptics, and a LOCAL notification scheduled when a timer starts (cancelled on pause / reset / remove) so it fires with the app in the background. It reuses the P1-C notification setup (the start-up handler and permission state in `push.ts`; no second handler) and only adds a high-importance "Cooking timers" channel. expo-speech is a new native module: app version 0.2.0 / versionCode 2, so the OTA runtime (policy appVersion) never sends this JS to a binary without it; one new EAS build is needed.
+
+## D363 Notes are private by default; a leaver takes their rows with them (P1-A)
+
+A note is private (only its author can read it, enforced by RLS, not by the app) unless the cook picks "My household". History rows and the don't-suggest flags are household-visible and self-written. A trigger on `household_members.status` becoming left / revoked deletes that member's history, notes and flags in that household, like favourites.
+
+## D364 Substitutions: the AI proposes, the server decides (P1-A)
+
+`suggestSubstitutionsFor` sends only anonymous avoid terms to the model, then re-checks EVERY suggestion (the substitute name AND its guidance and effect text) with the same rules and fail-safe as discovered recipes (D172): an excluded ingredient, an allergen-group keyword hit, or a substitute that cannot be matched to a known ingredient while any exclusion is active is dropped before it leaves the server; only a count is returned. The checks over-include on purpose (oat milk is withheld for a dairy exclusion); a missed allergen is the worse error. The mock provider deliberately ignores `avoid` and offers peanut butter for butter, so tests prove the server filter, not the model. Not a write: it works while a household is read-only.
+
+## D365 Applying a swap never edits the original (P1-A)
+
+A swap in cook mode is temporary (saved with the session only). "Save as variant" makes a NEW recipe (title "... (no butter)", the swapped line notes "instead of butter: <guidance>"; printed nutrition and allergens are not carried over because they describe the original); each swap is re-checked on the server at save time, whatever the client says. "Cook with this swap" reaches the web cook page as a URL parameter, so the page re-checks it against the exclusions and drops failures; on Android it is handed over in memory (never a route parameter), so a crafted deep link cannot inject a substitute.
+
+## D366 One service, two callers (P1-A)
+
+`lib/server/cooking/service.ts` (+ `substitutions.ts`, `variant.ts`) is called by the web server actions (`app/recipes/cooking-actions.ts`) and by the bearer routes `/api/recipes/[id]/{cooking,cooked,dont-suggest,substitutions,variant}`; the recipe detail and list routes also return the cooking summary. Mock auth mode uses an in-memory store with the same behaviour. The Android mock (`mockRecipesApi`) implements the same calls for the no-server demo (tiny substitution list, no exclusion rules: the real rules live on the server).
+
+## D367 What cooking feeds the planner (P1-A)
+
+The household mean rating becomes a soft solver weight (`rating: 8` per point above 3: 5 stars = +16, 1 star = -16; unrated neither helps nor hurts; far below any hard rule). "Don't suggest again" removes the recipe from PROPOSALS only (the orchestrator skips it); the picker and manual placement still show it, so it is a soft hide, not an exclusion, and never touches allergy logic. Any member's flag applies.
+
+## D368 Web and Android parity for P1-A (P1-A)
+
+Everything ships on both. Documented differences: keyboard arrows are web-only (a phone has no hardware keyboard; swipe and the big Previous / Next buttons do the job there); Android notification permission is asked when the first timer starts, not at launch (D389); web "Cook with this swap" uses a URL, Android an in-memory hand-off (D365). Android mock mode has no exclusion filtering (server rules only).
+
+## D369 Cards and detail (P1-A)
+
+Recipe cards (web grid / list, Android list) show a quiet line: star mean and "Cooked 3 times, last 2 days ago"; the detail has a Cooking panel (household rating, your rating, history with notes marked private / household, Mark as cooked, Don't suggest again). The wording comes from `@fr/engine/cooking` so both apps agree.
