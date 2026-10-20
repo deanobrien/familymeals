@@ -186,7 +186,7 @@ export class MockAccountSource implements AccountSource {
 
   async getSettings(householdId: Uuid): Promise<AccountSettings> {
     const h = this.hh(householdId);
-    return { defaultServings: h.defaultServings, weeklyBudgetPence: h.weeklyBudgetPence, exclusions: h.exclusions.map((e) => ({ ...e })), consentActive: h.consent, withheldExclusions: 0 };
+    return { defaultServings: h.defaultServings, weeklyBudgetPence: h.weeklyBudgetPence, exclusions: h.exclusions.map((e) => ({ ...e })), consentActive: h.consent, withheldExclusions: h.consent ? 0 : h.exclusions.length };
   }
   async savePreferences(householdId: Uuid, prefs: { defaultServings: number; weeklyBudgetPence: number | null }): Promise<void> {
     const h = this.owner(householdId);
@@ -198,6 +198,9 @@ export class MockAccountSource implements AccountSource {
     if (tags.length > 0 && !consent) throw new AccountError('invalid_input');
     if (tags.length > 0) h.consent = true;
     h.exclusions = [...new Set(tags.map((t) => t.trim().toLowerCase()))].map((term, i) => ({ id: `ex-${i}`, term }));
+  }
+  async withdrawConsent(householdId: Uuid): Promise<void> {
+    this.hh(householdId).consent = false;
   }
   async removeAllDietary(householdId: Uuid): Promise<void> {
     const h = this.hh(householdId);

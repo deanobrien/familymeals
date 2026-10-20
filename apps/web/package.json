@@ -10,6 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@azure/monitor-opentelemetry": "^1.20.1",
     "@fr/ai": "workspace:*",
     "@fr/domain": "workspace:*",
     "@fr/engine": "workspace:*",

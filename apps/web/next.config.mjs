@@ -91,7 +91,7 @@ const nextConfig = {
     '@fr/refdata',
     '@fr/ui',
   ],
-  serverExternalPackages: ['sharp'],
+  serverExternalPackages: ['sharp', '@azure/monitor-opentelemetry', '@azure/monitor-opentelemetry-exporter', '@opentelemetry/api', '@opentelemetry/sdk-node'],
   // Dev only: keep compiled routes for an hour instead of disposing them after 60s idle, so e2e runs (and
   // demos) do not pay repeated cold compiles of pages and server actions (D36).
   onDemandEntries: { maxInactiveAge: 60 * 60 * 1000, pagesBufferLength: 50 },

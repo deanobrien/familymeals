@@ -10,7 +10,8 @@ import { HH, IDEAS, PARSED, PROPOSAL, WEEK, err, fakePlanApi, pageJson } from '.
 /** toHaveTextContent(string) matches the whole text; these checks want "contains". */
 const rx = (s: string) => new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
 const mockPush = jest.fn();
-jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush, replace: jest.fn() }) }));
+const mockParams: { current: Record<string, string> } = { current: {} };
+jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush, replace: jest.fn(), setParams: jest.fn() }), useLocalSearchParams: () => mockParams.current }));
 
 function SetHousehold({ children }: { children: React.ReactNode }) {
   const { householdId, setHouseholdId } = useApp();
@@ -76,6 +77,22 @@ describe('planner screen: gate, week view, consent notice', () => {
     const { api } = fakePlanApi({ 'GET /api/plan': () => pageJson(undefined, { withheldExclusions: 2 }) });
     await mount(api);
     expect(screen.getByTestId('consent-notice')).toHaveTextContent(rx("2 allergy exclusions aren't being applied because consent hasn't been given"));
+  });
+
+  it('the consent notice opens the in-app Settings; an "add" hand-over fills the tapped slot', async () => {
+    const { api } = fakePlanApi({ 'GET /api/plan': () => pageJson(undefined, { withheldExclusions: 1 }) });
+    mockParams.current = { add: 'r-1' };
+    try {
+      await mount(api);
+      await fireEvent.press(screen.getByTestId('consent-review'));
+      expect(mockPush).toHaveBeenCalledWith('/(tabs)/settings');
+      expect(screen.getByTestId('add-pending')).toBeTruthy();
+      await fireEvent.press(screen.getByTestId('slot-2026-10-19-dinner'));
+      expect(screen.queryByTestId('add-pending')).toBeNull();
+      expect(screen.queryByTestId('recipe-picker')).toBeNull();
+    } finally {
+      mockParams.current = {};
+    }
   });
 
   it('shows a load error with a retry', async () => {

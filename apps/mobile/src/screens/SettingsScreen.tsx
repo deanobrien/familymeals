@@ -182,6 +182,16 @@ function PreferencesSection({ household, onSaved }: { household: HouseholdSummar
         testID="pref-units"
       />
       <Muted style={{ marginBottom: 8 }}>Display only, on this phone. Your recipes keep their original quantities.</Muted>
+      <Segmented
+        label="Scan sound"
+        value={device.scanSound ? 'on' : 'off'}
+        onChange={(v) => setDevice((d) => ({ ...d, scanSound: v === 'on' }))}
+        options={[
+          { value: 'on', label: 'Beep on each scan' },
+          { value: 'off', label: 'Silent' },
+        ]}
+        testID="pref-scan-sound"
+      />
       <ErrorText message={error} />
       <Notice message={saved ? 'Preferences saved' : null} testID="prefs-saved" />
       <Button title={busy ? 'Saving...' : 'Save preferences'} onPress={save} disabled={busy} testID="pref-save" />
@@ -250,6 +260,18 @@ function DietarySection({ household }: { household: HouseholdSummary }) {
     }
   }
 
+  async function withdraw() {
+    setNotice(null);
+    const ok = await run(async () => {
+      await ds.account.withdrawConsent(household.id);
+      return true;
+    });
+    if (ok) {
+      setNotice('Consent withdrawn. Your list is kept but is not applied.');
+      await load();
+    }
+  }
+
   async function removeAll() {
     if (!(await confirm('Remove all dietary information?', 'This deletes every allergy and exclusion we hold for your household and withdraws your consent. You can add them again at any time.', 'Remove everything'))) return;
     setNotice(null);
@@ -298,6 +320,9 @@ function DietarySection({ household }: { household: HouseholdSummary }) {
       <ErrorText message={error} />
       <Notice message={notice} testID="dietary-notice" />
       <Button title={busy ? 'Saving...' : 'Save dietary information'} onPress={save} disabled={busy || readOnly} testID="dietary-save" />
+      {loaded?.consentActive && selected.length > 0 ? (
+        <Button title="Withdraw consent" variant="secondary" onPress={() => void withdraw()} disabled={busy || readOnly} testID="dietary-withdraw" />
+      ) : null}
       <Button title="Remove all dietary information" variant="secondary" onPress={() => void removeAll()} disabled={busy || readOnly} testID="dietary-remove" />
     </View>
   );

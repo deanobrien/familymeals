@@ -17,6 +17,7 @@ import { getRequirementSource } from '../shopping/approved-plan-source';
 import { buildRequirementsForMeals } from '../shopping/plan-requirements';
 import { getShoppingStore } from '../shopping/store';
 import { generateFromPlan } from '../shopping/service';
+import { peekMemorySettings } from '../settings/memory-store';
 import { createSupabaseHouseholdProfile, createSupabasePlanRecipeSource, useSupabaseBackend } from '../supabase/backend';
 
 export const DEMO_HOUSEHOLD_ID = 'demo-household';
@@ -170,6 +171,21 @@ export async function loadPlanServices(householdId: string): Promise<PlanService
     const { withheldExclusions = 0, ...household } = p ?? { id: householdId, hardExclusions: [], members: [] };
     svc.household = household;
     svc.withheldExclusions = withheldExclusions;
+  } else {
+    // Mock mode: once Settings has saved anything for this household, its profile drives the planner (P0-D, D351):
+    // exclusions apply only while consent is active, otherwise they are withheld and the consent notice counts them.
+    const saved = peekMemorySettings(householdId);
+    if (saved) {
+      const next = {
+        ...svc.household,
+        defaultServings: saved.defaultServings,
+        hardExclusions: saved.consentActive ? saved.exclusions.map((ingredientName) => ({ ingredientName, kind: 'allergy' as const })) : [],
+      };
+      if (saved.weeklyBudgetPence === null) delete next.weeklyBudgetPence;
+      else next.weeklyBudgetPence = saved.weeklyBudgetPence;
+      svc.household = next;
+      svc.withheldExclusions = saved.withheldExclusions;
+    }
   }
   return svc;
 }

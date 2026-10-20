@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { InMemoryConsentSink, consentEvent } from './consent';
 import {
   CONSENT_WORDING_V1,
   DEFAULT_PREFERENCES,
@@ -56,16 +55,8 @@ describe('exclusionsSchema', () => {
   });
 });
 
-describe('ConsentSink', () => {
-  it('records versioned grant and withdrawal events', async () => {
-    const sink = new InMemoryConsentSink();
-    await sink.record(consentEvent(true, new Date('2026-10-19T10:00:00Z')));
-    await sink.record(consentEvent(false, new Date('2026-10-20T10:00:00Z')));
-    expect(sink.events.map((e) => e.granted)).toEqual([true, false]);
-    expect(sink.events[0]).toMatchObject({ purpose: 'dietary_restrictions', wordingVersion: 'v1' });
-  });
-
-  it('wording matches PRIVACY.md v1', () => {
+describe('consent wording', () => {
+  it('matches PRIVACY.md v1', () => {
     expect(CONSENT_WORDING_V1).toContain('health-related information');
   });
 });

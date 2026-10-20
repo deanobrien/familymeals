@@ -1,4 +1,5 @@
 import { AccountError } from '@/lib/accountErrors';
+import { ApiError, type ApiClient } from '@/lib/apiClient';
 import { AUTH_REDIRECT_URL } from '@/lib/authLink';
 import { SupabaseAccountSource } from '@/data/supabaseAccountSource';
 import { ME, fakeAccountDb, froms, ops, rpcs, type Responder } from './helpers/fakeAccountDb';
@@ -199,67 +200,63 @@ describe('households', () => {
   });
 });
 
-describe('settings', () => {
-  const settingsData: Responder = (c) => {
-    if (c.name === 'households') return { data: { default_servings: 6, weekly_budget_pence: 7550 } };
-    if (c.name === 'household_exclusions') return { data: [{ id: 'e1', term: 'peanuts' }, { id: 'e2', term: null }] };
-    if (c.name === 'consent_records') return { data: [{ id: 'c1' }] };
-    if (c.name === 'planner_household_profile') return { data: { withheldExclusions: 2 } };
-    return undefined;
-  };
-  it('reads preferences, exclusions, the member consent and the withheld count', async () => {
-    const { src } = make(settingsData);
+describe('settings (through the web app /api/settings, D350)', () => {
+  const server = { defaultServings: 6, weeklyBudgetPence: 7550, exclusions: ['peanuts'], consentActive: true, withheldExclusions: 2 };
+  function makeApi(impl: { get?: () => Promise<unknown>; send?: () => Promise<unknown> } = {}) {
+    const get = jest.fn(impl.get ?? (async () => ({ settings: server })));
+    const send = jest.fn(impl.send ?? (async () => ({ settings: server })));
+    const api = { configured: true, url: () => null, authHeaders: async () => ({}), get, send } as unknown as ApiClient;
+    const { client } = fakeAccountDb(() => ({ data: null }));
+    return { src: new SupabaseAccountSource({ client, api, now: () => NOW }), get, send };
+  }
+  it('reads the server settings', async () => {
+    const { src, get } = makeApi();
     await expect(src.getSettings(H)).resolves.toEqual({
       defaultServings: 6,
       weeklyBudgetPence: 7550,
-      exclusions: [{ id: 'e1', term: 'peanuts' }],
+      exclusions: [{ id: 'peanuts', term: 'peanuts' }],
       consentActive: true,
       withheldExclusions: 2,
     });
+    expect(get).toHaveBeenCalledWith('/api/settings', { householdId: H });
   });
-  it('still loads when the advisory withheld count fails', async () => {
-    const { src } = make((c) => (c.name === 'planner_household_profile' ? { error: { code: 'XX', message: 'nope' } } : settingsData(c)));
-    expect((await src.getSettings(H)).withheldExclusions).toBe(0);
+  it('sends preferences as the web form strings (pounds)', async () => {
+    const { src, send } = makeApi();
+    await src.savePreferences(H, { defaultServings: 5, weeklyBudgetPence: 8550 });
+    expect(send).toHaveBeenLastCalledWith('POST', '/api/settings', { householdId: H, action: 'preferences', defaultServings: '5', weeklyBudget: '85.50' });
+    await src.savePreferences(H, { defaultServings: 5, weeklyBudgetPence: 8500 });
+    expect(send).toHaveBeenLastCalledWith('POST', '/api/settings', expect.objectContaining({ weeklyBudget: '85' }));
+    await src.savePreferences(H, { defaultServings: 5, weeklyBudgetPence: null });
+    expect(send).toHaveBeenLastCalledWith('POST', '/api/settings', expect.objectContaining({ weeklyBudget: '' }));
   });
-  it('saves preferences; a non-owner update matches no row and is forbidden', async () => {
-    const ok = make(() => ({ data: [{ id: H }] }));
-    await ok.src.savePreferences(H, { defaultServings: 5, weeklyBudgetPence: null });
-    expect(ops(ok.calls[0]!, 'update')[0]![1]).toEqual({ default_servings: 5, weekly_budget_pence: null });
-    expect(await code(make(() => ({ data: [] })).src.savePreferences(H, { defaultServings: 5, weeklyBudgetPence: 1 }))).toBe('forbidden');
-  });
-  it('records allergy consent before saving exclusions, and only changes what differs', async () => {
-    const { src, calls } = make((c) => {
-      if (c.name === 'consent_records') return { data: [] };
-      if (c.name === 'household_exclusions' && c.ops.some((o) => o[0] === 'select')) return { data: [{ id: 'keep', term: 'milk' }, { id: 'old', term: 'eggs' }] };
-      return { data: null };
-    });
-    await src.saveExclusions(H, [' Milk ', 'peanuts', 'milk'], true);
-    const consentInsert = froms(calls, 'consent_records').find((c) => ops(c, 'insert').length)!;
-    expect(ops(consentInsert, 'insert')[0]![1]).toEqual({ household_id: H, consent_type: 'allergy_data', wording_version: 'v1' });
-    const exclusion = froms(calls, 'household_exclusions');
-    const del = exclusion.find((c) => ops(c, 'delete').length)!;
-    expect(ops(del, 'eq')).toContainEqual(['eq', 'id', 'old']);
-    const ins = exclusion.find((c) => ops(c, 'insert').length)!;
-    expect(ops(ins, 'insert')[0]![1]).toEqual([{ household_id: H, term: 'peanuts', kind: 'allergy', consent_recorded_at: NOW.toISOString() }]);
-  });
-  it('does not insert a second active consent and refuses exclusions without consent', async () => {
-    const { src, calls } = make((c) => (c.name === 'consent_records' ? { data: [{ id: 'c1' }] } : { data: [] }));
-    await src.saveExclusions(H, ['fish'], true);
-    expect(froms(calls, 'consent_records').every((c) => ops(c, 'insert').length === 0)).toBe(true);
-    const none = make();
-    expect(await code(none.src.saveExclusions(H, ['fish'], false))).toBe('invalid_input');
-    expect(none.calls).toHaveLength(0);
-    // an empty list needs no consent and clears the rows
-    await expect(make(() => ({ data: [{ id: 'x', term: 'fish' }] })).src.saveExclusions(H, [], false)).resolves.toBeUndefined();
-  });
-  it('removes every exclusion and withdraws only the signed-in member consent', async () => {
-    const { src, calls } = make();
+  it('sends dietary, withdraw and remove-all actions; refuses exclusions without consent before calling', async () => {
+    const { src, send } = makeApi();
+    await src.saveExclusions(H, ['milk'], true);
+    expect(send).toHaveBeenLastCalledWith('POST', '/api/settings', { householdId: H, action: 'dietary', tags: ['milk'], consent: true });
+    await src.withdrawConsent(H);
+    expect(send).toHaveBeenLastCalledWith('POST', '/api/settings', { householdId: H, action: 'withdraw_consent' });
     await src.removeAllDietary(H);
-    expect(ops(froms(calls, 'household_exclusions')[0]!, 'delete')).toHaveLength(1);
-    const consent = froms(calls, 'consent_records')[0]!;
-    expect(ops(consent, 'update')[0]![1]).toEqual({ withdrawn_at: NOW.toISOString() });
-    expect(ops(consent, 'eq')).toContainEqual(['eq', 'user_id', ME.id]);
-    expect(ops(consent, 'is')).toEqual([['is', 'withdrawn_at', null]]);
+    expect(send).toHaveBeenLastCalledWith('POST', '/api/settings', { householdId: H, action: 'remove_all' });
+    send.mockClear();
+    expect(await code(src.saveExclusions(H, ['fish'], false))).toBe('invalid_input');
+    expect(send).not.toHaveBeenCalled();
+  });
+  it.each([
+    [new ApiError('x', 403, false, 'FORBIDDEN'), 'forbidden'],
+    [new ApiError('x', 403, false, 'READ_ONLY'), 'read_only'],
+    [new ApiError('x', 401, false, 'UNAUTHENTICATED'), 'forbidden'],
+    [new ApiError('x', 422, false, 'INVALID_INPUT'), 'invalid_input'],
+    [new ApiError('x', 0, true), 'offline'],
+    [new ApiError('x', 0, false), 'not_configured'],
+    [new ApiError('x', 500, true, 'INTERNAL'), 'unknown'],
+  ])('maps %# to a fixed account error', async (err, expected) => {
+    const { src } = makeApi({ send: async () => Promise.reject(err) });
+    expect(await code(src.savePreferences(H, { defaultServings: 5, weeklyBudgetPence: null }))).toBe(expected);
+  });
+  it('rejects a malformed household id without calling the server', async () => {
+    const { src, get } = makeApi();
+    expect(await code(src.getSettings('nope'))).toBe('invalid_input');
+    expect(get).not.toHaveBeenCalled();
   });
 });
 

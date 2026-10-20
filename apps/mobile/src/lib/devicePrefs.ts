@@ -11,9 +11,11 @@ export type Locale = 'en-GB' | 'en-IE';
 export interface DevicePrefs {
   units: UnitSystem;
   locale: Locale;
+  /** Short confirmation beep on each new barcode read (default on). */
+  scanSound: boolean;
 }
 
-export const DEFAULT_DEVICE_PREFS: DevicePrefs = { units: 'metric', locale: 'en-GB' };
+export const DEFAULT_DEVICE_PREFS: DevicePrefs = { units: 'metric', locale: 'en-GB', scanSound: true };
 const KEY = 'fr.devicePrefs.v1';
 
 export async function loadDevicePrefs(): Promise<DevicePrefs> {
@@ -24,6 +26,7 @@ export async function loadDevicePrefs(): Promise<DevicePrefs> {
     return {
       units: v.units === 'imperial' ? 'imperial' : 'metric',
       locale: v.locale === 'en-IE' ? 'en-IE' : 'en-GB',
+      scanSound: v.scanSound !== false,
     };
   } catch {
     return DEFAULT_DEVICE_PREFS;

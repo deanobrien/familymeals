@@ -96,6 +96,7 @@ If the build fails with `EPERM` symlink errors you are building in the repo inst
 | `AI_PROVIDER` | `anthropic` (or `openai`) | choose; never `mock` (startup refuses it) | no |
 | `ANTHROPIC_API_KEY` (or `OPENAI_API_KEY`) | provider key | skip if you will enter it in Settings instead | **yes** |
 | `AI_MODEL_TEXT`, `AI_MODEL_VISION` | model ids | optional overrides | no |
+| `APPLICATIONINSIGHTS_CONNECTION_STRING` | from the Application Insights resource (section 3d) | optional: unset = no telemetry | no |
 | `JOBS_SECRET` | 64 random hex chars (same command as `APP_SECRET`, a DIFFERENT value) | password manager; also stored in the scheduler (section 3c). Unset or shorter than 32 chars = `/api/jobs/purge` disabled (503) | **yes** |
 
 Do **not** set `AI_ALLOW_MOCK_IN_PRODUCTION`, `SUPABASE_DATA_CONTEXT`, `SUPABASE_DEFAULT_*`, `SUPABASE_URL`/`SUPABASE_ANON_KEY` (dev fallbacks). If a required setting is missing or a forbidden one set, every request returns 500 and the Log stream shows "Invalid production configuration" with the reasons. Optional hardening: Key Vault references for the secrets.
@@ -122,6 +123,17 @@ Household deletions (after the 14-day grace), account deletions and the deletion
 
 Manual run (PowerShell): `Invoke-RestMethod -Method Post -Uri https://<host>/api/jobs/purge -Headers @{ 'x-jobs-secret' = $env:JOBS_SECRET }`.
 Rotate: generate a new value, update the App Service setting (restarts the app) and the Logic App header together.
+
+### 3d. Monitoring: Application Insights and two alerts (P0-D, D355)
+
+The server ships telemetry (requests, failures, dependency timings, error logs; never request bodies, headers or cookies; `/api/health`, `/auth/*`, `/api/images/*`, `/invite/*` and Supabase auth calls are not traced) through OpenTelemetry (`@azure/monitor-opentelemetry`) **only when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set**. Unset = nothing loads (dev, tests and e2e never send anything). No Azure resources were created by the lane; the owner steps:
+
+1. **Create the resource** (Portal > Create a resource > Application Insights): same resource group as the web app, **region UK West** (same as the App Service), name e.g. `family-recipes-ai`, resource mode **Workspace-based**; create (or pick) a Log Analytics workspace in UK West (same resource group) when asked. Set the workspace's data cap to a small daily value (e.g. 0.5 GB) so cost cannot surprise you.
+2. **Connect the app**: copy the **Connection string** from the resource's Overview page (it is a configuration value, not a password, but keep it out of git and chat). In the web app: Settings > Environment variables > add `APPLICATIONINSIGHTS_CONNECTION_STRING` = that value > Apply (restarts the app). Do **not** also turn on the portal's "Application Insights" auto-instrumentation for this app (double reporting); the code does it.
+3. **Check**: browse the site for a minute, then Application Insights > Live metrics is off by design; open **Transaction search** / **Performance** after 2-5 minutes and see the requests (no `/api/health` rows).
+4. **Alert 1: server errors.** Application Insights > Alerts > Create alert rule. Condition: custom log search (Logs) on the resource with `requests | where toint(resultCode) >= 500` and measure **Count** over 5 minutes, threshold **greater than 5**, evaluated every 5 minutes. (Alternative without KQL: the App Service's own metric `Http 5xx`, Total, threshold 5, aggregation 5 minutes, frequency 5 minutes.) Action group: create `family-recipes-owner` with an **Email** action to your address. Severity 2.
+5. **Alert 2: availability.** Application Insights > Availability > **Add Standard test**: URL `https://<host>/api/health`, frequency 5 minutes, at least 3 test locations (include UK South and West Europe), HTTP 200 success, SSL check on, **Alerts enabled** (an alert rule "failed locations >= 2 in 5 minutes" is created for you); attach the same `family-recipes-owner` action group. The health endpoint answers 503 when production configuration is wrong, so this also catches a bad deploy.
+6. Cost note: a Standard availability test is billed per test per month (small); telemetry is billed per GB ingested in the workspace.
 
 ## 4. Supabase Auth URL configuration
 

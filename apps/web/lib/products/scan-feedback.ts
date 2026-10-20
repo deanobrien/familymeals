@@ -1,6 +1,9 @@
 // Screen wake lock and per-scan feedback (beep, vibration) for rapid barcode scanning (BS1, D270). Every browser API is
 // optional and every call is guarded: no sound, no vibration (iOS Safari has none) or no wake lock never breaks scanning.
 
+/** localStorage key of the "scan sound" setting (Settings page and the scanner's own toggle share it; 'off' = silent, default on). */
+export const SCAN_SOUND_KEY = 'fr.rapidscan.sound';
+
 interface WakeLockSentinelLike { release(): Promise<void>; addEventListener?(type: 'release', cb: () => void): void }
 interface NavigatorLike { wakeLock?: { request(type: 'screen'): Promise<WakeLockSentinelLike> }; vibrate?: (p: number | number[]) => boolean }
 interface DocumentLike { visibilityState?: string; addEventListener(type: 'visibilitychange', cb: () => void): void; removeEventListener(type: 'visibilitychange', cb: () => void): void }

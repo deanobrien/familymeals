@@ -110,6 +110,8 @@ export interface AccountSource {
   savePreferences(householdId: Uuid, prefs: { defaultServings: number; weeklyBudgetPence: number | null }): Promise<void>;
   /** Replaces the household's exclusion list with `tags`; records the signed-in member's consent (needs `consent` when tags exist). */
   saveExclusions(householdId: Uuid, tags: string[], consent: boolean): Promise<void>;
+  /** Withdraws the member's consent but keeps the list: the planner stops applying it and the notice counts it. */
+  withdrawConsent(householdId: Uuid): Promise<void>;
   /** Deletes every exclusion and withdraws the member's consent. */
   removeAllDietary(householdId: Uuid): Promise<void>;
 
