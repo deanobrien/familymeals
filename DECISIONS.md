@@ -525,3 +525,19 @@ Screenshots at 768 and 820 show the bottom bar with the 4-column plan grid fitti
 ## D164 "Offline shopper loses the race" flake was a test race, not an app bug (B1)
 
 Instrumenting the controller showed that in failing runs B's replay reached the server BEFORE A's tick (A's tick was still queued behind an in-flight poll sync; the spec's "A confirmed" check, `pending-badge` count 0, is vacuous because the badge only decorates list rows, not Purchased rows). B legitimately won and A got the "Another shopper already bought" toast; the spec only looked at B. Server idempotency and conflict reporting behaved correctly (the first command to reach the server wins and the loser is always told). Fix: both race specs now wait for the first shopper's `sync-status` to read "All changes saved" (server-confirmed) before the other reconnects / is checked. Was failing about 1 run in 10; 30/30 stable after.
+
+## D240 E2E cold-start flakes: warm every route, longer dev timeouts (FL1)
+
+The shopping/journey/plan failures under load were cold-start compile timeouts, not app races: `recipes/[id]/edit` (and other routes) were missing from the globalSetup warm list, so the first test to visit them compiled them against a 15 s expect; `router.replace('/shopping')` after "generate from plan" refetches the page RSC, slow on a cold dev server. `global-setup.ts` now warms every page route and every API route; dev-mode expect/action timeouts are 20 s; URL/sync waits that follow server round trips are 30-45 s. Four consecutive full dev runs on an idle machine were green (277 passed); load is required to fail, and reproducing with CPU burners is forbidden (it froze the owner's PC).
+
+## D241 Production-build e2e mode (`pnpm test:e2e:prod`, CI)
+
+`next build && next start` removes request-time compilation entirely. `next start` forces NODE_ENV=production, which refuses mock auth, the in-memory backend, the mock AI and `/api/dev/*`. `E2E_PRODUCTION_BUILD=1` makes those guards read NODE_ENV as `e2e-production-build` (`lib/e2e-mode.ts`, unit-tested) ONLY when NODE_ENV=production and there is no Supabase URL and DATA_BACKEND is not supabase; a real deployment must have both, so the flag is inert there. It also skips the CSP/HSTS headers at build. CI's e2e job uses it.
+
+## D242 Consent notice for withheld allergy exclusions (closes the D129 open item)
+
+When allergy/intolerance exclusions exist but the recording member's consent is missing or withdrawn (D125 `withheldExclusions`), `/plan`, `/recipes/discover` and `/settings` show "N allergy exclusion(s) aren't being applied because consent hasn't been given - review in Settings" linking to `/settings#h-diet`. Count only: no allergen or member names, so no health detail reaches other members. Mock mode fakes the count via `POST /api/dev/seed {kind:'withheld-exclusions', count}`.
+
+## D243 Test conventions from FL1
+
+Playwright `--workers=2` on shared workstations; no CPU stress tooling; stop every server and browser you start.

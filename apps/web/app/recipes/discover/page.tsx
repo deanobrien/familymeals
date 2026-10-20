@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { getAppContext } from '../../../lib/server/context';
 import { getRecipeSource, recipeSourceStatus } from '../../../lib/server/discover/source';
+import { ConsentNotice } from '../../consent-notice';
+import { getWithheldExclusionCount } from '../../../lib/server/plan/withheld';
 import { DiscoverView } from './discover-view';
 import styles from '../recipes.module.css';
 
@@ -10,6 +12,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function Page() {
   await getAppContext(); // signed-in household only
+  const withheld = await getWithheldExclusionCount();
   const status = recipeSourceStatus();
   let categories: string[] = [];
   let areas: string[] = [];
@@ -24,6 +27,7 @@ export default async function Page() {
         <h1>Discover recipes</h1>
         <Link href="/recipes" className="fr-btn fr-btn--secondary">Back to my recipes</Link>
       </div>
+      <ConsentNotice withheld={withheld} />
       <p>Find new recipes to try. Nothing is added until you review and save it.</p>
       <DiscoverView categories={categories} areas={areas} sourceLabel={status.label} sourceNote="" />
     </>

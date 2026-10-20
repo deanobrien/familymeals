@@ -2,6 +2,7 @@ import 'server-only';
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'node:crypto';
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { effectiveNodeEnv } from '../../e2e-mode';
 
 /** Thrown for configuration problems that the Settings screen can explain to the owner. */
 export class SettingsError extends Error {
@@ -19,7 +20,7 @@ export class SettingsError extends Error {
 export function dataDir(env: Record<string, string | undefined> = process.env): string {
   const explicit = env.APP_DATA_DIR?.trim();
   if (explicit) return explicit;
-  if (env.NODE_ENV === 'production') return '/home/data';
+  if (effectiveNodeEnv(env) === 'production') return '/home/data';
   return join(process.cwd(), '.data');
 }
 
@@ -40,7 +41,7 @@ export function getAppSecret(env: Record<string, string | undefined> = process.e
     if (fromEnv.length < 16) throw new SettingsError('WEAK_APP_SECRET', 'APP_SECRET must be at least 16 characters.');
     return fromEnv;
   }
-  if (env.NODE_ENV === 'production') {
+  if (effectiveNodeEnv(env) === 'production') {
     throw new SettingsError('NO_APP_SECRET', 'APP_SECRET is not set, so API keys cannot be stored. Set APP_SECRET (at least 16 characters) on the server.');
   }
   const file = join(dir, 'app-secret');

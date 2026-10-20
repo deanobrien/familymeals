@@ -104,7 +104,7 @@ test.describe.serial('Main journey (BRIEF s15)', () => {
     await page.getByRole('link', { name: 'Open shopping list' }).click();
     const list = new ShoppingListPage(page);
     await list.root().waitFor();
-    await expect(page).toHaveURL(/\/shopping$/);
+    await expect(page).toHaveURL(/\/shopping$/, { timeout: 45_000 });
     await expect(list.tick('Onion')).toHaveCount(1); // onion is needed by several recipes but listed once
     await page.getByRole('button', { name: 'From plan: where Onion comes from' }).click();
     const pop = page.getByRole('dialog', { name: /where Onion comes from/ });

@@ -1,5 +1,7 @@
 import { loadAiSettingsAction } from './ai-actions';
 import { recipeSourceStatus } from '../../lib/server/discover/source';
+import { getWithheldExclusionCount } from '../../lib/server/plan/withheld';
+import { ConsentNotice } from '../consent-notice';
 import { SettingsView } from './settings-view';
 
 export const metadata = { title: 'Settings' };
@@ -7,5 +9,11 @@ export const metadata = { title: 'Settings' };
 export const dynamic = 'force-dynamic';
 
 export default async function Page() {
-  return <SettingsView ai={await loadAiSettingsAction()} recipeSource={recipeSourceStatus()} />;
+  const withheld = await getWithheldExclusionCount();
+  return (
+    <>
+      <ConsentNotice withheld={withheld} />
+      <SettingsView ai={await loadAiSettingsAction()} recipeSource={recipeSourceStatus()} />
+    </>
+  );
 }

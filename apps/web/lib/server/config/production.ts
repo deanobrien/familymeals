@@ -9,6 +9,8 @@
  * with ALLOW_LOCAL_FILE_STORE=true (first test deploy only; data then lives under APP_DATA_DIR, default /home/data,
  * which App Service persists).
  */
+import { effectiveNodeEnv } from '../../e2e-mode';
+
 export interface ProdEnv {
   NODE_ENV?: string;
   NEXT_PUBLIC_SUPABASE_URL?: string;
@@ -23,7 +25,7 @@ export interface ProdEnv {
 }
 
 export function isProduction(env: ProdEnv = process.env as ProdEnv): boolean {
-  return env.NODE_ENV === 'production';
+  return effectiveNodeEnv(env) === 'production';
 }
 
 export function localFileStoreAllowed(env: ProdEnv = process.env as ProdEnv): boolean {
