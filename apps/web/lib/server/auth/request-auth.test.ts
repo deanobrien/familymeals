@@ -43,7 +43,8 @@ describe('bearer token parsing and middleware pass-through (D102)', () => {
     expect(acceptsBearer('/api/extract/save', 'Bearer t')).toBe(true);
     expect(acceptsBearer('/api/extract', null)).toBe(false);
     expect(acceptsBearer('/api/extract', 'Basic t')).toBe(false);
-    expect(acceptsBearer('/api/pantry/scan', 'Bearer t')).toBe(false); // not opted in
+    expect(acceptsBearer('/api/pantry/scan', 'Bearer t')).toBe(true); // Android parity API (D340)
+    expect(acceptsBearer('/api/admin', 'Bearer t')).toBe(false); // not opted in
     expect(acceptsBearer('/recipes', 'Bearer t')).toBe(false);
   });
 });
