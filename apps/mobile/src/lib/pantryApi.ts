@@ -169,3 +169,118 @@ export async function planLeftovers(api: ServerApi, hh: string, r: LeftoverReque
   if (!plan) throw new Error('The server returned an unexpected leftovers response.');
   return plan;
 }
+
+/* ---------- minimum stock / restock (PR1, D280-D289): the server owns every rule, the app renders and sends intents ---------- */
+
+export interface RestockSuggestionView {
+  parId: string;
+  kind: 'below_min' | 'will_run_low';
+  name: string;
+  quantityLabel: string;
+  quantity: number;
+  unit: string;
+  explanation: string;
+  checkQuantity: boolean;
+  notes: string[];
+}
+export interface MinimumView {
+  id: string;
+  key: string;
+  name: string;
+  ingredientId?: string;
+  unit: string;
+  minValue: number;
+  restockToValue?: number;
+  pack?: { value: number; unit: string };
+  enabled: boolean;
+  snoozedUntil?: string;
+  label: string;
+  available: number;
+  status: string;
+  belowMin: boolean;
+}
+export interface RestockViewModel {
+  settings: { autoAdd: boolean };
+  pars: MinimumView[];
+  suggestions: RestockSuggestionView[];
+  willRunLow: RestockSuggestionView[];
+  snoozedCount: number;
+}
+export interface RestockBannerModel {
+  items: { parId: string; name: string; quantityLabel: string; checkQuantity: boolean }[];
+  signature: string;
+  autoAdd: boolean;
+}
+
+function suggestion(v: unknown): RestockSuggestionView | null {
+  if (!isObj(v) || typeof v.parId !== 'string' || typeof v.name !== 'string') return null;
+  return {
+    parId: v.parId, kind: v.kind === 'will_run_low' ? 'will_run_low' : 'below_min', name: v.name,
+    quantityLabel: str(v.quantityLabel), quantity: numOr(v.quantity, 0), unit: str(v.unit, 'item'),
+    explanation: str(v.explanation), checkQuantity: v.checkQuantity === true, notes: strs(v.notes),
+  };
+}
+const suggestions = (v: unknown): RestockSuggestionView[] => arr(v).map(suggestion).filter((s): s is RestockSuggestionView => !!s);
+
+function minimum(v: unknown): MinimumView | null {
+  if (!isObj(v) || typeof v.id !== 'string' || typeof v.name !== 'string') return null;
+  const pack = isObj(v.pack) && typeof v.pack.value === 'number' && typeof v.pack.unit === 'string' ? { value: v.pack.value, unit: v.pack.unit } : undefined;
+  return {
+    id: v.id, key: str(v.key), name: v.name, unit: str(v.unit, 'item'), minValue: numOr(v.minValue, 0), enabled: v.enabled !== false,
+    label: str(v.label), available: numOr(v.available, 0), status: str(v.status), belowMin: v.belowMin === true,
+    ...(typeof v.ingredientId === 'string' ? { ingredientId: v.ingredientId } : {}),
+    ...(typeof v.restockToValue === 'number' ? { restockToValue: v.restockToValue } : {}),
+    ...(pack ? { pack } : {}),
+    ...(typeof v.snoozedUntil === 'string' ? { snoozedUntil: v.snoozedUntil } : {}),
+  };
+}
+
+/** Defensive: an unexpected shape throws so the screen can leave the section out instead of rendering something wrong. */
+export function parseRestockView(body: unknown): RestockViewModel {
+  const r = isObj(body) && isObj(body.restock) ? body.restock : undefined;
+  if (!r) throw new Error('The server returned an unexpected minimums response.');
+  return {
+    settings: { autoAdd: isObj(r.settings) && r.settings.autoAdd === true },
+    pars: arr(r.pars).map(minimum).filter((m): m is MinimumView => !!m),
+    suggestions: suggestions(r.suggestions), willRunLow: suggestions(r.willRunLow), snoozedCount: numOr(r.snoozedCount, 0),
+  };
+}
+
+export function parseRestockBanner(body: unknown): RestockBannerModel {
+  const b = isObj(body) && isObj(body.banner) ? body.banner : undefined;
+  if (!b) throw new Error('The server returned an unexpected restock response.');
+  return {
+    items: arr(b.items).filter(isObj).flatMap((i) =>
+      typeof i.parId === 'string' && typeof i.name === 'string'
+        ? [{ parId: i.parId, name: i.name, quantityLabel: str(i.quantityLabel), checkQuantity: i.checkQuantity === true }]
+        : []),
+    signature: str(b.signature), autoAdd: b.autoAdd === true,
+  };
+}
+
+export async function fetchRestock(api: ServerApi, householdId: string): Promise<RestockViewModel> {
+  return parseRestockView(await api.get<unknown>('/api/pantry', { householdId, part: 'restock' }));
+}
+export async function fetchRestockBanner(api: ServerApi, householdId: string): Promise<RestockBannerModel> {
+  return parseRestockBanner(await api.get<unknown>('/api/pantry', { householdId, part: 'banner' }));
+}
+
+export interface MinimumPayload {
+  ingredientId?: string; name?: string; unit: string; min: number;
+  restockTo?: number | null; packValue?: number | null; packUnit?: string | null;
+}
+export const setMinimum = (api: ServerApi, hh: string, p: MinimumPayload) => act(api, hh, 'setMinimum', { ...p });
+export const removeMinimum = (api: ServerApi, hh: string, id: string) => act(api, hh, 'removeMinimum', { id });
+export const snoozeRestock = (api: ServerApi, hh: string, id: string, days = 7) => act(api, hh, 'snoozeRestock', { id, days });
+/** No ids = every below-minimum suggestion ("Add all"). */
+export const addRestock = (api: ServerApi, hh: string, parIds?: string[]) => act(api, hh, 'addRestock', parIds ? { parIds } : {});
+export const saveRestockSettings = (api: ServerApi, hh: string, autoAdd: boolean) => act(api, hh, 'restockSettings', { autoAdd });
+
+/** Client-side check for the minimum form (the server still has the last word). Returns an error message or null. */
+export function minimumError(min: number | null, restockTo: number | null, packValue: number | null): string | null {
+  if (min === null) return 'Enter the minimum as a number.';
+  if (min <= 0) return 'The minimum must be more than zero.';
+  if (restockTo !== null && restockTo < min) return 'Restock-to cannot be below the minimum.';
+  if (packValue !== null && packValue <= 0) return 'The pack size must be more than zero.';
+  return null;
+}

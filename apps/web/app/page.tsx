@@ -6,6 +6,7 @@ import { Badge, Card, ErrorState, Skeleton, formatPence } from '@fr/ui';
 import { basketLabel, defaultDashboardSource, relativeDay } from '../lib/dashboard/source';
 import type { DashboardData } from '../lib/dashboard/types';
 import s from '../lib/dashboard/dashboard.module.css';
+import { RestockBanner } from './restock-banner';
 
 type State =
   | { status: 'loading' }
@@ -31,6 +32,7 @@ export default function HomePage() {
         <h1>Home</h1>
         {state.status === 'ready' && <p className={s.sub}>{state.data.householdName}</p>}
       </header>
+      <RestockBanner />
       {state.status === 'loading' && <Loading />}
       {state.status === 'error' && (
         <ErrorState

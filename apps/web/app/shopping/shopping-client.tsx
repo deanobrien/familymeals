@@ -93,6 +93,13 @@ export function ShoppingClient({ initial, lists = [], planId, approvedPlanId, ac
   const storeMode = useStoreMode({ initialBook: storeBook ?? emptyStoreBook(), householdId: householdId ?? 'household', userId: actorId, notify: storeNotify });
   const [placingId, setPlacingId] = useState<string | null>(null);
 
+  // PR1: restock items added server-side (banner "Add all") show up straight away instead of on the next poll.
+  useEffect(() => {
+    const onChanged = () => { void controller.sync(); };
+    window.addEventListener('fr:shopping-changed', onChanged);
+    return () => window.removeEventListener('fr:shopping-changed', onChanged);
+  }, [controller]);
+
   // "Generate from plan": /shopping?plan=<id>
   const generated = useRef<string | null>(null);
   useEffect(() => {
