@@ -1,6 +1,7 @@
 import type { PurchaseEvent, Uuid } from '@fr/domain';
 import type { PlacementTargetType, StoreBook } from '@fr/engine/shopping';
 import type { Household, Recipe, ShoppingConflict, ShoppingListItem, UserSession } from '@/viewModels';
+import type { AccountSource } from './accountSource';
 
 export interface ShoppingListState {
   items: ShoppingListItem[];
@@ -13,6 +14,8 @@ export interface ShoppingListState {
  * (EXPO_PUBLIC_SUPABASE_URL set) both implement it; screens never know which one they have.
  */
 export interface DataSource {
+  /** Sign-up, households, invitations, settings and the data-lifecycle actions (P0-A; see accountSource.ts). */
+  readonly account: AccountSource;
   getSession(): Promise<UserSession | null>;
   signIn(email: string, password: string): Promise<UserSession>;
   signOut(): Promise<void>;

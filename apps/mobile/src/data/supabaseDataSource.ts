@@ -35,6 +35,9 @@ import type { DataSource, ShoppingListState } from './DataSource';
 import { OfflineStore } from './offlineQueue';
 import { createShoppingLiveFeed, type LiveFeed } from './liveFeed';
 import { parseAuthLink } from '@/lib/authLink';
+import { AccountError, mapAuthApiError, mapLinkError } from '@/lib/accountErrors';
+import type { AccountSource } from './accountSource';
+import { SupabaseAccountSource } from './supabaseAccountSource';
 import { logRowToEntry, stateFromSnapshot, type LoadedList, type Row } from './shoppingMapping';
 
 const LOG_PAGE = 500;
@@ -98,6 +101,8 @@ export interface SupabaseDataSourceOptions {
   now?: () => Date;
   /** Test seam: the Realtime feed for a household (default: supabase-js channel). */
   feedFactory?: (householdId: string) => LiveFeed;
+  /** Test seam: the account / household / lifecycle source (default: SupabaseAccountSource over the same client). */
+  account?: AccountSource;
   /** Test seam: fallback poll interval while the feed is down. */
   pollMs?: number;
 }
@@ -113,6 +118,7 @@ export interface SupabaseDataSourceOptions {
  * since the cursor; a seq gap, an unknown command type or any divergence falls back to a fresh snapshot.
  */
 export class SupabaseDataSource implements DataSource {
+  readonly account: AccountSource;
   private readonly db: SupabaseClient;
   private readonly store: OfflineStore;
   private readonly genId: () => string;
@@ -137,6 +143,16 @@ export class SupabaseDataSource implements DataSource {
     this.now = opts.now ?? (() => new Date());
     this.pollMs = opts.pollMs ?? FALLBACK_POLL_MS;
     this.feedFactory = opts.feedFactory ?? ((householdId) => createShoppingLiveFeed(this.db, householdId));
+    this.account =
+      opts.account ??
+      new SupabaseAccountSource({
+        client: opts.client,
+        webBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL,
+        onSignedOut: () => {
+          this.households.clear();
+          this.conflicts = [];
+        },
+      });
   }
 
   setOnline(online: boolean) {
@@ -153,7 +169,7 @@ export class SupabaseDataSource implements DataSource {
 
   async signIn(email: string, password: string): Promise<UserSession> {
     const { data, error } = await this.db.auth.signInWithPassword({ email, password });
-    if (error || !data.user) throw new Error(error?.message ?? 'Sign-in failed');
+    if (error || !data.user) throw new AccountError(mapAuthApiError(error ?? { code: 'invalid_credentials' }));
     return { userId: data.user.id, email: data.user.email ?? email };
   }
 
@@ -165,15 +181,15 @@ export class SupabaseDataSource implements DataSource {
 
   async completeAuthLink(url: string): Promise<UserSession | null> {
     const link = parseAuthLink(url);
-    if (link.kind === 'error') throw new Error(link.message);
+    if (link.kind === 'error') throw new AccountError(mapLinkError(link.code));
     if (link.kind === 'tokens') {
       const { data, error } = await this.db.auth.setSession({ access_token: link.accessToken, refresh_token: link.refreshToken });
-      if (error) throw new Error(error.message);
-      return data.user ? { userId: data.user.id, email: data.user.email ?? '' } : null;
+      if (error) throw new AccountError(mapLinkError(error.code));
+      return data.user ? { userId: data.user.id, email: data.user.email ?? '', ...(link.type === 'recovery' ? { recovery: true } : {}) } : null;
     }
     if (link.kind === 'code') {
       const { data, error } = await this.db.auth.exchangeCodeForSession(link.code);
-      if (error) throw new Error(error.message);
+      if (error) throw new AccountError(mapLinkError(error.code));
       return data.user ? { userId: data.user.id, email: data.user.email ?? '' } : null;
     }
     return null;

@@ -14,6 +14,7 @@ describe('auth deep link', () => {
       kind: 'tokens',
       accessToken: 'AT',
       refreshToken: 'RT',
+      type: 'signup',
     });
   });
 

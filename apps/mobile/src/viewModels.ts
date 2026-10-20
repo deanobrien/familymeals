@@ -39,6 +39,8 @@ export interface ShoppingListItem {
 export interface UserSession {
   userId: Uuid;
   email: string;
+  /** Set by `completeAuthLink` for a password-recovery link: go on to choose a new password. */
+  recovery?: boolean;
 }
 
 /** A shopping command the server rejected (or could not apply). Surfaced to the user as a toast. */
