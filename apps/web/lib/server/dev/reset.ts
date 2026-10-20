@@ -7,6 +7,7 @@ import { getPriceStore } from '../prices/store';
 import { getProductSnapshotStore } from '../products/store';
 import { resetMemoryServices } from '../receipts/memory';
 import { getShoppingRepository } from '../shopping/repository';
+import { getMemoryStoreBook } from '../stores/repository';
 import { resetMemoryExportAudit } from '../export/audit';
 
 /**
@@ -19,6 +20,7 @@ export function devToolsAllowed(env: { NODE_ENV?: string | undefined } = process
 
 export function resetInMemoryStores(): string[] {
   getShoppingRepository().reset();
+  getMemoryStoreBook().reset();
   resetPlanServices();
   resetPantryServices();
   resetMemoryServices();
@@ -27,5 +29,5 @@ export function resetInMemoryStores(): string[] {
   getProductSnapshotStore().reset();
   resetRecipeRepository();
   resetMemoryExportAudit();
-  return ['shopping', 'plans', 'pantry', 'receipts', 'prices', 'products', 'recipes', 'exports'];
+  return ['shopping', 'stores', 'plans', 'pantry', 'receipts', 'prices', 'products', 'recipes', 'exports'];
 }

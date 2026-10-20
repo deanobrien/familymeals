@@ -33,3 +33,37 @@
 .formRow { display: grid; grid-template-columns: 2fr 1fr; gap: var(--fr-space-3); }
 .formActions { display: flex; gap: var(--fr-space-2); justify-content: flex-end; flex-wrap: wrap; }
 .spacer { height: var(--fr-space-5); }
+
+/* ---- AS1: shopping at a store (D294-D296) ---- */
+.storePicker { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--fr-space-3); margin: var(--fr-space-3) 0; }
+.storePickerField { min-width: 14rem; flex: 1 1 14rem; max-width: 24rem; }
+.storeLink { display: inline-flex; align-items: center; min-height: var(--fr-target); }
+.instore .row { min-height: 3.5rem; padding: var(--fr-space-2) 0; }
+.instore .name { font-size: var(--fr-text-lg, 1.125rem); }
+.aisleButton { white-space: nowrap; }
+.routeCard { margin: var(--fr-space-3) 0; }
+.routeText { margin: 0 0 var(--fr-space-1); }
+.routeOrder { margin: 0 0 var(--fr-space-3); font-weight: 600; }
+.pickerBody { display: grid; gap: var(--fr-space-4); margin-top: var(--fr-space-3); }
+.scope { border: 0; margin: 0; padding: 0; display: grid; gap: var(--fr-space-1); }
+.scope legend { font-weight: 600; padding: 0; margin-bottom: var(--fr-space-1); }
+.scopeOption { display: flex; align-items: center; gap: var(--fr-space-2); min-height: var(--fr-target); }
+.scopeOption input { width: 1.25rem; height: 1.25rem; }
+.chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--fr-space-2); }
+.chip { font: inherit; font-weight: 600; min-height: var(--fr-target); min-width: var(--fr-target); padding: 0 var(--fr-space-4); border-radius: var(--fr-radius-full); border: 2px solid var(--fr-border); background: var(--fr-surface); color: inherit; cursor: pointer; }
+.chip[aria-pressed='true'] { border-color: var(--fr-accent); }
+.chip:focus-visible { outline: 2px solid var(--fr-focus); outline-offset: 2px; }
+.pickerEmpty { color: var(--fr-text-muted); margin: 0; }
+.newAisle { display: grid; grid-template-columns: 1fr auto; gap: var(--fr-space-2); align-items: end; }
+
+/* SL1: scan entry, list switcher */
+.listBar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--fr-space-3); margin: var(--fr-space-3) 0; }
+.listName { font-weight: 600; font-size: var(--fr-text-lg); min-width: 0; overflow-wrap: anywhere; }
+.scanLink { flex: none; }
+@media (max-width: 640px) {
+  .scanLink { width: 100%; order: -1; }
+}
+.listsSection { display: grid; gap: var(--fr-space-2); }
+.listsHeading { margin: 0; font-size: var(--fr-text-base); }
+.listsHint { color: var(--fr-text-muted); font-size: var(--fr-text-sm); }
+.listsError { color: var(--fr-danger); margin: 0; }

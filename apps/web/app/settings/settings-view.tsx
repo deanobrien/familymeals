@@ -53,6 +53,13 @@ export function SettingsView({ consentSink = defaultConsentSink, ai, recipeSourc
           </section>
         </Card>
       )}
+      <Card>
+        <section className={s.card} aria-labelledby="h-stores" data-testid="stores-link-card">
+          <h2 id="h-stores">Stores and aisles</h2>
+          <p className={s.muted}>Set up the shops you use and where things are, so your shopping list can follow the aisles.</p>
+          <p><Link href="/settings/stores">Manage stores and aisles</Link></p>
+        </section>
+      </Card>
       <AiUsageSection />
       <ExclusionsSection sink={consentSink} />
       <PantrySection />

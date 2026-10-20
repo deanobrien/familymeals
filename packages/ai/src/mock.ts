@@ -5,10 +5,12 @@ import tagFx from '../fixtures/tag-suggestion.json' with { type: 'json' };
 import planFx from '../fixtures/plan-constraints.json' with { type: 'json' };
 import subsFx from '../fixtures/substitutions.json' with { type: 'json' };
 import scanFx from '../fixtures/pantry-scan.json' with { type: 'json' };
+import listFx from '../fixtures/shopping-list-scan.json' with { type: 'json' };
 import { planRequestToConstraints } from './plan.js';
 import { AiError } from './errors.js';
 import { DEFAULT_IMAGE_LIMITS, prepareImage, prepareImages } from './image.js';
 import { PantryScanSchema, SCAN_MAX_IMAGES, normaliseScan, type PantryScanContext } from './pantry-scan.js';
+import { SHOPPING_SCAN_MAX_IMAGES, ShoppingListScanSchema, normaliseShoppingListScan, type ShoppingListScanContext } from './shopping-list-scan.js';
 import type { AiProvider, CallContext, ImageInput, MatchCandidate, SubstitutionRequest, TaggableRecipe } from './provider.js';
 import {
   IngredientMatchSchema, PlanRequestSchema, ReceiptParseSchema, RecipeExtractionSchema,
@@ -132,6 +134,14 @@ export class MockAiProvider implements AiProvider {
       if (it.dates.bestBefore) it.dates.bestBefore = resolve(it.dates.bestBefore);
     }
     return normaliseScan(PantryScanSchema.parse(raw), count);
+  }
+
+  /** Deterministic sample handwritten list (11 lines: quantities, a note, a crossed-out line, an illegible one). */
+  async scanShoppingList(images: ImageInput[], _context: ShoppingListScanContext = {}, ctx?: CallContext) {
+    await this.pre('scanShoppingList', ctx);
+    let count = images.length;
+    if (this.o.validateImages) count = (await prepareImages(images, { ...DEFAULT_IMAGE_LIMITS, maxImages: SHOPPING_SCAN_MAX_IMAGES })).length;
+    return normaliseShoppingListScan(ShoppingListScanSchema.parse(clone(listFx)), count);
   }
 
   async ping() {

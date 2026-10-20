@@ -11,6 +11,7 @@ export * from './schemas.js';
 export { SYSTEM, recipePrompt } from './prompts.js';
 export * from './errors.js';
 export * from './pantry-scan.js';
+export * from './shopping-list-scan.js';
 export * from './usage.js';
 export * from './image.js';
 export * from './provider.js';

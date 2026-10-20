@@ -4,6 +4,17 @@ import type { CommandResult, LogEntry, Requirement, ShoppingState } from './engi
 export interface ListMeta {
   /** recipeId -> title, for the "from plan" provenance popover. Merged on every generate. */
   recipeTitles: Record<string, string>;
+  /** The active list this data belongs to (D263). A client that knows its list id sends it back with every sync. */
+  listId?: string;
+  listName?: string;
+}
+
+/** One of the household's shopping lists. Exactly one is active (the list you shop from); the rest are archived. */
+export interface ShoppingListInfo {
+  id: string;
+  name: string;
+  status: 'active' | 'archived';
+  updatedAt: string;
 }
 
 export interface SnapshotDto {
