@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { resolveRequestAuth } from '../../../lib/server/auth/request-auth';
 import { runExtraction, type ExtractInput } from '../../../lib/server/import/pipeline';
+import { imageStoreFor } from '../../../lib/server/images';
 import { recipeSinkFor } from '../../../lib/server/import/sink';
 
 export const runtime = 'nodejs';
@@ -51,7 +52,7 @@ export async function POST(req: Request) {
   if (who.auth.readOnly) return bad('This household is read-only while it is pending deletion.', 403);
   input.owner = { userId: who.auth.userId, householdId: who.auth.householdId };
 
-  const out = await runExtraction(input, { sink: recipeSinkFor(who.auth) });
+  const out = await runExtraction(input, { sink: recipeSinkFor(who.auth), images: imageStoreFor(who.auth) });
   if (!out.ok) {
     return NextResponse.json({ error: out.error, ...(out.uploadId ? { uploadId: out.uploadId } : {}) }, { status: out.status });
   }

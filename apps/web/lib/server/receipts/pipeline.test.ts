@@ -256,3 +256,29 @@ describe('default mock AI provider (AI_PROVIDER=mock)', () => {
     await expect(prepareImage(new Uint8Array([1, 2, 3, 4]))).rejects.toMatchObject({ code: 'UNSUPPORTED_IMAGE_TYPE' });
   });
 });
+
+describe('receipt photo storage (D190)', () => {
+  const noop = { get: async () => undefined, signedUrl: async () => undefined, finishUpload: async () => {}, sweep: async () => {} };
+  it('keeps the photo in the receipt-images bucket and records its path on the receipt', async () => {
+    const { deps } = makeDeps(parseFromExpected(expected('r1-weekly-shop')), LISTS['r1-weekly-shop']);
+    const stored: string[] = [];
+    let n = 0;
+    deps.newId = () => `cccccccc-dddd-4eee-8fff-00000000000${++n}`;
+    deps.images = {
+      backend: 'supabase',
+      put: async (kind, id, file) => { const p = `hh/${kind}/${id}/${file}`; stored.push(p); return p; },
+      ...noop,
+    };
+    const rec = await processReceiptUpload(deps, { bytes: image('r1-weekly-shop') });
+    expect(rec.id).toBe('cccccccc-dddd-4eee-8fff-000000000001');
+    expect(rec.imagePaths).toEqual(['hh/receipt/cccccccc-dddd-4eee-8fff-000000000001/receipt.jpg']);
+    expect(stored).toHaveLength(1);
+  });
+  it('carries on without a photo when storage fails, and stores nothing in local mode', async () => {
+    const { deps } = makeDeps(parseFromExpected(expected('r1-weekly-shop')), LISTS['r1-weekly-shop']);
+    deps.images = { backend: 'supabase', put: async () => { throw new Error('boom'); }, ...noop };
+    expect((await processReceiptUpload(deps, { bytes: image('r1-weekly-shop') })).imagePaths).toBeUndefined();
+    const { deps: local } = makeDeps(parseFromExpected(expected('r1-weekly-shop')), LISTS['r1-weekly-shop']);
+    expect((await processReceiptUpload(local, { bytes: image('r1-weekly-shop') })).imagePaths).toBeUndefined();
+  });
+});

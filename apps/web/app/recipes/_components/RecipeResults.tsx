@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { EmptyState, RecipeCard, RecipeGrid, useToast, type RecipeView as ViewMode } from '@fr/ui';
+import { imageSrc } from '../../../lib/server/images/paths';
 import { recipeQueryToParams, type RecipeQuery } from '../../../lib/recipes/schema';
 import { costPerServing, totalMinutes, type RecipeView } from '../../../lib/recipes/types';
 import { toggleFavouriteAction } from '../actions';
@@ -65,7 +66,7 @@ export function RecipeResults({ items, total, page, pageCount, query, view, hasA
             key={r.id}
             title={r.title}
             href={`/recipes/${r.id}`}
-            imageUrl={r.imageUrl}
+            imageUrl={imageSrc(r.imageUrl)}
             totalMinutes={totalMinutes(r)}
             costPerServingPence={costPerServing(r)}
             tags={r.tags}

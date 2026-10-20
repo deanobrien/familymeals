@@ -48,6 +48,7 @@ export function receiptToRpc(r: ReceiptRecord): { p_receipt: Row; p_lines: Row[]
   return {
     p_receipt: {
       id: r.id, retailer: r.retailer ?? null, purchasedOn: r.date ?? null, totalPence: r.totalPence ?? null,
+      ...(r.imagePaths?.length ? { imagePaths: r.imagePaths } : {}),
       status: r.status === 'reconciled' ? 'reconciled' : 'parsed', reconciledAt: r.status === 'reconciled' ? (r.reconciliation?.at ?? new Date().toISOString()) : null,
       reviewState: {
         computedPence: r.computedPence, imageName: r.imageName ?? null, createdAt: r.createdAt,
@@ -84,6 +85,7 @@ export function receiptFromRpc(householdId: string, bundle: Row | null): Receipt
     ...(optNum(r.total_pence) !== undefined ? { totalPence: optNum(r.total_pence)! } : {}),
     computedPence: Number(review.computedPence ?? 0),
     ...(optStr(review.imageName) ? { imageName: String(review.imageName) } : {}),
+    ...(Array.isArray(r.image_paths) && r.image_paths.length ? { imagePaths: r.image_paths.map(String) } : {}),
     createdAt: toIso(review.createdAt ?? r.created_at),
     status: r.status === 'reconciled' ? 'reconciled' : 'needs_review',
     lines: ((bundle?.lines as Row[] | undefined) ?? []).map(lineFromRow),

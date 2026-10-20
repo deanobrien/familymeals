@@ -75,7 +75,19 @@ Dashboard > Authentication > URL Configuration: Site URL `https://<host>` and re
 
 ## 6. Storage
 
-Private buckets `recipe-images` and `receipt-images` (10 MiB limit; jpeg/png/webp/heic), created by migration `...001000_storage.sql`. Object path `<household_id>/recipes/<recipe_id>/<image_id>.jpg` or `<household_id>/receipts/<receipt_id>/<page>.jpg`; access = active membership of the household in the first path segment; clients use signed URLs. **The web app does not use these buckets yet**: uploaded photos are local files under `APP_DATA_DIR` (`/home/data` on App Service), which is why `ALLOW_LOCAL_FILE_STORE=true` is needed in production. Moving uploads to Storage is on the roadmap.
+Private buckets `recipe-images` and `receipt-images` (10 MiB limit; jpeg/png/webp/heic), created by migration `...001000_storage.sql`; `db push` is the whole cloud setup (afterwards Dashboard > Storage should show both as **Private**; never add public policies). Access = active membership of the household named by the first path segment (select / insert / update / delete policies; owner-decision write locks for pending-deletion households apply).
+
+**Used by the web app since ST1 (D190-D196).** Object paths `<household_id>/<kind>/<id>/<file>`:
+
+| Bucket | Path | Holds | Lifetime |
+|---|---|---|---|
+| `recipe-images` | `<hh>/page/<uploadId>/page-N.jpg` | photo pages of a recipe import (review-screen previews, source of the cover) | deleted when the recipe is saved; abandoned ones after 24 h (cleanup job) |
+| `recipe-images` | `<hh>/cover/<uploadId>/cover.jpg` | the recipe's cover (`recipes.cover_image_path`; the recipe's `imageUrl` IS this path) | until the recipe is deleted (archived) or the cover is replaced |
+| `receipt-images` | `<hh>/receipt/<receiptId>/receipt.jpg` | the receipt photo (`receipts.image_paths`) | 90 days after confirmation, or when the receipt / household is deleted |
+
+Code: `apps/web/lib/server/images/` (`ImageStore` interface; `LocalImageStore` for dev / mock mode; `SupabaseImageStore` through the caller's own client; `paths.ts` for the path rules and `imageSrc()`; `cleanup.ts`). Browsers never get a public URL: components render `/api/images/<path>` (`imageSrc()`), and `app/api/images/[...path]/route.ts` checks the session (cookie or Android bearer token), the household in the path and Storage RLS, then 302s to a 5-minute signed URL. Another household's or a missing object is a 404. During import the review screen's previews use `/api/uploads/<id>/<file>`, which does the same in Supabase mode.
+
+Cleanup: `storage_cleanup_queue` is filled by DB triggers (recipe / receipt / image-row deletes, cover replacement, **recipe archive** which releases the cover, household purge) and by `enqueue_stale_uploads()` / `purge_old_receipt_images()`; it never queues an object a live row still references (a duplicated recipe shares its cover). `POST /api/jobs/storage-cleanup` (header `x-cron-secret`) runs all three and deletes the objects through the Storage API; scheduling is in [DEPLOY-APP-SERVICE.md](DEPLOY-APP-SERVICE.md) section 4b. Migration: `20261020002100_st1_storage_uploads.sql`.
 
 ## 7. Generating types
 

@@ -8,6 +8,8 @@ import { getPriceStore } from '../prices/store';
 import { getIngredientCatalogue } from '../refdata/catalogue';
 import { getShoppingStore } from '../shopping/store';
 import { createSupabaseReceiptRepository, useSupabaseBackend } from '../supabase/backend';
+import { sessionImageStore } from '../images';
+import { imageSrc } from '../images/paths';
 import type { ReceiptRepository } from './ports';
 import { getPantryService } from '../pantry/deps';
 import { ensureDemoReceipts, getMemoryServices } from './memory';
@@ -41,6 +43,7 @@ export async function getPipelineDeps(): Promise<PipelineDeps> {
     // Extras the shopper adds to the pantry go to the household's pantry service (D103); prices to the household's store.
     purchases: new ShoppingPurchaseSink(ctx.householdId, shopping, getPriceStore(), new PantryServiceReceiptPort(ctx.householdId, getPantryService(ctx.householdId))),
     newId: () => randomUUID(),
+    ...(useSupabaseBackend() ? { images: await sessionImageStore() } : {}),
     now: () => new Date(),
   };
 }
@@ -57,7 +60,7 @@ export async function getReview(receiptId: string) {
   const review = await loadReview(deps, receiptId);
   if (!review) return undefined;
   const receipt = await deps.receipts.get(deps.householdId, receiptId);
-  return { review, reconciliation: receipt?.reconciliation, imageName: receipt?.imageName };
+  return { review, reconciliation: receipt?.reconciliation, imageName: receipt?.imageName, photoUrl: imageSrc(receipt?.imagePaths?.[0]) };
 }
 
 export type UploadResult = { ok: true; receiptId: string } | { ok: false; error: string };
