@@ -3,7 +3,7 @@
 import { randomUUID } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
-import { createConfirmedUser, userClient } from './support/live.js';
+import { createConfirmedUser, signIn, userClient } from './support/live.js';
 
 type Row = Record<string, unknown>;
 
@@ -78,4 +78,50 @@ test('shopping_command_log events reach the other member, never another househol
   expect(member.events).toHaveLength(1);
 
   for (const c of [c1, c2, cb]) await c.removeAllChannels();
+});
+
+// RT1 (D200-D203): live = the server confirmed the postgres_changes listener (not merely a joined channel). A tick made
+// by member A right after member B's page loads (i.e. while B is still joining/confirming) must show on B within 2 s of
+// B going live, without a reload. Repeated 20x to catch the join->confirm gap race.
+test('a tick made right after the other member subscribes appears without reload within 2s (20x)', async ({ browser }) => {
+  test.setTimeout(10 * 60_000);
+  const RUNS = 20;
+  const a = await createConfirmedUser('rt1-a');
+  const b = await createConfirmedUser('rt1-b');
+  const ca = await userClient(a);
+  const cb = await userClient(b);
+  const { data: hh } = await ca.from('households').insert({ name: 'RT1 home' }).select('id').single();
+  const hid = hh!.id as string;
+  const { data: inv } = await ca.rpc('create_invitation', { p_household_id: hid });
+  expect((await cb.rpc('accept_invitation', { p_token: (Array.isArray(inv) ? inv[0] : inv).token })).error).toBeNull();
+  const { data: list } = await ca.from('shopping_lists').insert({ household_id: hid, name: 'Weekly' }).select('id').single();
+  const names = Array.from({ length: RUNS }, (_, i) => `rtitem${String(i).padStart(2, '0')}`);
+  const { data: items, error } = await ca
+    .from('shopping_list_items')
+    .insert(names.map((n) => ({ shopping_list_id: list!.id, household_id: hid, display_name: n, quantity_kind: 'exact', quantity_value: 1, unit: 'item', original_text: '1' })))
+    .select('id, display_name');
+  expect(error).toBeNull();
+  const idOf = new Map((items ?? []).map((i) => [i.display_name as string, i.id as string]));
+
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  try {
+    await signIn(page, b);
+    const slowest: number[] = [];
+    for (const name of names) {
+      await page.goto('/shopping');
+      await expect(page.getByTestId('shopping-root')).toHaveAttribute('data-hydrated', 'true');
+      // Tick immediately: B is joining / awaiting the listener confirmation right now.
+      const tick = await ca.rpc('record_purchase', { p_event_id: randomUUID(), p_item_id: idOf.get(name)!, p_mode: 'tick' });
+      expect(tick.data.status).toBe('applied');
+      await expect(page.getByTestId('shopping-root')).toHaveAttribute('data-live', 'true', { timeout: 30_000 });
+      const live = Date.now();
+      await expect(page.getByRole('checkbox', { name: new RegExp(`^${name}`, 'i') })).toHaveCount(0, { timeout: 2000 });
+      slowest.push(Date.now() - live);
+    }
+    expect(slowest).toHaveLength(RUNS);
+  } finally {
+    await ctx.close();
+    for (const c of [ca, cb]) await c.removeAllChannels();
+  }
 });

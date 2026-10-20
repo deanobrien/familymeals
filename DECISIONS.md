@@ -525,3 +525,19 @@ Screenshots at 768 and 820 show the bottom bar with the 4-column plan grid fitti
 ## D164 "Offline shopper loses the race" flake was a test race, not an app bug (B1)
 
 Instrumenting the controller showed that in failing runs B's replay reached the server BEFORE A's tick (A's tick was still queued behind an in-flight poll sync; the spec's "A confirmed" check, `pending-badge` count 0, is vacuous because the badge only decorates list rows, not Purchased rows). B legitimately won and A got the "Another shopper already bought" toast; the spec only looked at B. Server idempotency and conflict reporting behaved correctly (the first command to reach the server wins and the loser is always told). Fix: both race specs now wait for the first shopper's `sync-status` to read "All changes saved" (server-confirmed) before the other reconnects / is checked. Was failing about 1 run in 10; 30/30 stable after.
+
+## D200 RT1: "live" means the postgres_changes listener is server-confirmed, not "channel joined"
+
+LV1 found that `createSupabaseLiveFeed` reported `live` at the channel's `SUBSCRIBED` status, slightly before the server activates the `postgres_changes` listener (it confirms with a realtime `system` message, `extension: 'postgres_changes', status: 'ok'`). The controller stopped polling at that point, so a row committed in the gap was delivered to nobody and waited for the next sync. Now `SUBSCRIBED` only arms a confirm timer (10 s; unconfirmed -> tear down, backoff, retry); the feed reports `live` on the `ok` system message, and a non-ok postgres_changes system message is a failure (down + retry). The controller keeps polling until `live`. `ControllerState.live` / `data-live` on `shopping-root` expose it for tests.
+
+## D201 RT1: two cursor catch-ups after every confirmation; duplicate application is impossible
+
+On every transition to `live` (first connect and every resubscribe) the controller syncs from its cursor immediately (anything committed before the listener existed) and again after `CATCHUP_AGAIN_MS` (1.5 s, closes the race with a commit that landed while the confirmation was in flight). Both are plain `sync()`s: cursor-based, serialised, and `clientIngest` ignores entries at or below the cursor, so overlapping catch-ups, events and polls apply each log row exactly once (unit-tested). Going down cancels the pending second catch-up and resumes the 4 s poll.
+
+## D202 RT1: heartbeat, tab sleep/resume, offline->online
+
+While live the feed emits a catch-up hint every 30 s (heartbeat); a heartbeat gap above 2.5x the interval means the tab or laptop slept, so it reconnects immediately (no backoff) because the socket is probably dead. `online` and tab-visible events reconnect immediately if the feed is down and otherwise request a catch-up. Reconnects always go back through D200 (confirmed before live) and D201 (two catch-ups).
+
+## D203 RT1: token refresh
+
+The feed subscribes to `client.auth.onAuthStateChange`; on `TOKEN_REFRESHED` / `SIGNED_IN` it calls `client.realtime.setAuth(access_token)` (so per-event RLS uses the renewed JWT) and requests a catch-up. Unsubscribed on stop. No migrations. Live proof: `e2e/live/realtime.live.spec.ts` ticks as member A immediately after member B's page loads, 20 times, and B shows it without reload within 2 s of going live.
