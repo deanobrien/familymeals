@@ -156,7 +156,7 @@ function build(id: string, input: RecipeInput, prev: RecipeView | null, now: str
       id: randomUUID(),
       name: i.name,
       // Keep the canonical match across edits when the form does not send it back (same name = same line).
-      ingredientId: i.ingredientId ?? prev?.ingredients.find((p) => p.name === i.name)?.ingredientId,
+      ingredientId: i.ingredientId === null ? undefined : i.ingredientId || prev?.ingredients.find((p) => p.name === i.name)?.ingredientId,
       quantity: clone(i.quantity),
       preparation: i.preparation || undefined,
       optional: i.optional,

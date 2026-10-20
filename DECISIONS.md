@@ -595,3 +595,27 @@ The scheme `familyrecipes` (already in `app.json`) now has a landing route `app/
 ## D215 Opt-in live checks against the local stack (M3)
 
 Two checks need `pnpm exec supabase start` and are not part of `pnpm test`: `node scripts/verify-mobile-bearer.mjs <web url>` (the three Bearer endpoints incl. 401/403) and `pnpm --filter @fr/mobile test:live` (`jest.live.config.js`; SupabaseDataSource over real RPCs, RLS and Realtime with a second client acting as the web writer). Both create `*.fr-live.test` users and refuse a non-local URL. Neither has been run against the hosted project.
+
+## D220 Ingredient links for form-created recipes: the problem and the shape (lane IL1)
+
+Recipes typed in the form carried no `ingredientId` (only seed and imported lines were matched). Cost already falls back to an exact name/alias match at read time (`calc/index.ts toEngineLines`), but nothing else does: the planner (D132) fails safe on unmatched lines when allergies are set, pantry and shopping key off ids, and an ambiguous or near-miss name was never offered to the person. IL1 links lines on save, lets the person choose, and backfills. Matching stays the engine `IngredientMatcher` (exact name/alias, no guessing); `lib/server/recipes/ingredient-links.ts` is the single module (`suggestLink`, `searchCatalogue`, `resolveLinks`), pure over an `IngredientCatalogue`, unit-tested with a synthetic catalogue for true ambiguity.
+
+## D221 Resolution rules on save (server-side, `saveRecipeAction`)
+
+Per line, in order: (1) an `ingredientId` that exists in the catalogue is a manual/kept choice and wins; (2) `null` = explicit "not in list", stored unlinked and never re-matched; (3) otherwise a line whose name equals (case-insensitive) a line of the previous version keeps that line link (re-match happens ONLY for new or renamed lines, so manual choices survive edits); (4) a new/changed line is matched now: exactly one match links it, an ambiguous name or unknown name stays unlinked and the candidates (ambiguous ids, or engine near-miss suggestions) are returned in `SaveResult.links` and offered by the form. The typed name is tried as written and as `parseIngredientLine` reads it, so "400g chopped tomatoes" typed into the name still matches. `RecipeInput.ingredients[].ingredientId` became `string | null | undefined` (absent = carry over as before, for imports/duplicate).
+
+## D222 Form: inline "Matched to: X" control
+
+Each ingredient row has an `IngredientLinkControl` (button "Matched to: X" / "Pick a match (n possible|suggested)" / "Not matched yet" / "Not in the ingredient list"; opens a panel with the candidates, a search box over names and aliases (`searchIngredientsAction`, ranked exact > prefix > word-prefix > substring, alias just below name), "Not in list" and "Match automatically"). The name field previews the match on blur (`previewIngredientLinksAction`, read-only); editing the name resets the link. Saved lines show their stored link (display names passed from the edit page because the catalogue is server-only) and an unlinked SAVED line is not re-matched until asked, because it may be a deliberate "not in list". The recipe detail page shows an "n of m ingredients are not linked" notice with "Re-match ingredients" and "Choose matches" (edit).
+
+## D223 save_recipe learns an explicit unlink (migration 20261020002300)
+
+The RPC always carried the previous same-name line id over when the JSON sent no usable id, so "not in list" could not be stored (the link returned on the next save). The function is redefined with ONE change: a line whose JSON has the key `ingredientId` with null or empty stays unlinked and is never carried over; no key still carries over; a valid id still wins. The in-memory repository mirrors it (`null` = unlinked, absent = carry over). Verified on PGlite against the real migrations (`recipe-links.pglite.test.ts`).
+
+## D224 Cost, nutrition, planner pick the links up with no further change
+
+They already read `ingredientId`; linked lines now exist. Note: `calc` still name-matches UNLINKED lines at read time, so a "not in list" line whose name happens to match the catalogue is still costed and counted for nutrition by name (the planner and pantry use only the stored id). Making calc honour an explicit unlink would need the unlinked state persisted per line, which the schema does not have; accepted for now.
+
+## D225 Backfill: Re-match ingredients (per recipe, whole household, SQL one-off)
+
+`lib/server/recipes/rematch.ts` (`rematchRecipe`, `rematchAllRecipes`) links only lines that have NO link, re-sends existing links unchanged, saves only recipes that gained a link, and reports linked/ambiguous/unmatched counts. It works through `RecipeRepository`, so memory and Supabase behave alike and printed nutrition/allergens are carried. Surfaces: `rematchRecipeAction` (detail page button), `rematchAllRecipesAction` (library page "Re-match ingredients in all recipes"), both refused for read-only households. It does not remember "not in list" (no persisted flag), so an explicit unlink is re-linked if the name matches exactly. Existing Supabase data: migration 20261020002301 is an idempotent, exact-only backfill (a NULL line is linked only when its lower-cased trimmed name equals exactly one ingredient name/alias; ambiguous and plural-only names are left for the app action; changed recipes lose their nutrition cache). There is no TS script: the workspace has no TS runner outside Next/vitest, and the action plus the SQL cover memory and Supabase.

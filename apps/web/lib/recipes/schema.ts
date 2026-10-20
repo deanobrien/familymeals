@@ -37,7 +37,8 @@ export const quantitySchema = z
 
 export const ingredientInputSchema = z.object({
   name: z.string().trim().min(1, 'Ingredient name is required').max(120),
-  ingredientId: z.string().trim().max(64).optional(),
+  /** Canonical id; null = explicit "not in the ingredient list" (never re-matched, never carried over); absent = carry over. */
+  ingredientId: z.string().trim().max(64).nullable().optional(),
   quantity: quantitySchema,
   preparation: z.string().trim().max(200).optional(),
   optional: z.boolean(),
@@ -95,7 +96,7 @@ export interface RecipeInput {
   tags: string[];
   ingredients: Array<{
     name: string;
-    ingredientId?: string | undefined;
+    ingredientId?: string | null | undefined;
     quantity: Quantity;
     preparation?: string | undefined;
     optional: boolean;

@@ -21,6 +21,7 @@ import { deleteRecipeAction, duplicateRecipeAction, toggleFavouriteAction } from
 import styles from '../recipes.module.css';
 import { CostPanel } from './CostPanel';
 import { NutritionPanel } from './NutritionPanel';
+import { UnlinkedNotice } from './RematchButtons';
 
 interface DetailProps {
   recipe: RecipeView;
@@ -165,6 +166,7 @@ export function RecipeDetail({ recipe, calc, justDuplicated = false, householdId
               </li>
             ))}
           </ul>
+          <UnlinkedNotice recipeId={recipe.id} unlinked={recipe.ingredients.filter((i) => !i.ingredientId).length} total={recipe.ingredients.length} />
         </section>
 
         <section aria-labelledby="method-h">
