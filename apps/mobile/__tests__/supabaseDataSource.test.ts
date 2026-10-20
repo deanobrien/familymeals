@@ -115,7 +115,7 @@ describe('SupabaseDataSource: shopping list', () => {
     ds.setOnline(false);
     backend.offline = true;
     const ev = await ds.tickItem(HH, ids.eggs);
-    expect(JSON.parse(kv.data.get(`fr.shopping.v1.pending.${HH}`) as string)).toHaveLength(1);
+    expect(JSON.parse(kv.data.get(`fr.shopping.v2.pending.${HH}`) as string)).toHaveLength(1);
 
     // App restart with no signal: fresh instance, same AsyncStorage.
     const restarted = make();
@@ -132,7 +132,7 @@ describe('SupabaseDataSource: shopping list', () => {
     expect(backend.rpcCalls).toHaveLength(1);
     expect(backend.rpcCalls[0]?.args.p_event_id).toBe(ev.id);
     expect(restarted.pendingCount()).toBe(0);
-    expect(kv.data.has(`fr.shopping.v1.pending.${HH}`)).toBe(false);
+    expect(kv.data.has(`fr.shopping.v2.pending.${HH}`)).toBe(false);
     await expect(restarted.flushPending()).resolves.toBe(0);
     expect(backend.tables.purchase_events).toHaveLength(1);
     expect((await restarted.getShoppingList(HH)).items.find((i) => i.id === ids.eggs)).toMatchObject({ ticked: true });
@@ -172,30 +172,30 @@ describe('SupabaseDataSource: shopping list', () => {
   it('catches up from the log cursor without refetching items', async () => {
     const { ds, backend } = setup();
     await ds.getShoppingList(HH);
-    const itemSelects = backend.selects.shopping_list_items;
+    const snapshots = backend.snapshotCalls;
     backend.otherUserTick(ids.eggs, uid(5001));
     backend.otherUserPurchase(ids.flour, uid(5002), 400, 'g');
     const s = await ds.getShoppingList(HH);
-    expect(backend.selects.shopping_list_items).toBe(itemSelects); // incremental, not a new snapshot
+    expect(backend.snapshotCalls).toBe(snapshots); // incremental (list_seq log query), not a new snapshot
     expect(s.items.find((i) => i.id === ids.eggs)?.ticked).toBe(true);
     const flour = s.items.find((i) => i.id === ids.flour);
     expect(flour?.ticked).toBe(false);
     expect(flour?.quantity).toMatchObject({ value: 0.6, unit: 'kg' }); // 1 kg - 400 g still outstanding
   });
 
-  it('falls back to a full snapshot for log entries it cannot replay', async () => {
+  it('replays engine-written commands from the web (add_item) off the log, no snapshot', async () => {
     const { ds, backend } = setup();
     await ds.getShoppingList(HH);
-    const before = backend.selects.shopping_list_items ?? 0;
-    // Web app edits an item and logs an 'edit' command.
-    backend.tables.shopping_list_items!.find((i) => i.id === ids.salt)!.display_name = 'Sea salt';
-    backend.tables.shopping_command_log!.push({
-      seq: 99, command_id: uid(5003), household_id: HH, shopping_list_id: uid(200), command_type: 'edit',
-      command: {}, status: 'applied', reason: null, result: {}, created_by: USER_SAM, created_at: '2026-10-03T00:00:00Z',
-    });
+    const snapshots = backend.snapshotCalls;
+    backend.appendLog(
+      uid(5003),
+      'add',
+      { type: 'add_item', itemId: uid(77), displayName: 'Bread', category: 'Bakery', aisle: 'Bakery', at: '2026-10-19T09:00:00Z', actor: USER_SAM },
+      { status: 'applied', type: 'add_item', itemId: uid(77) },
+    );
     const s = await ds.getShoppingList(HH);
-    expect(backend.selects.shopping_list_items).toBe(before + 1);
-    expect(s.items.map((i) => i.displayName)).toContain('Sea salt');
+    expect(backend.snapshotCalls).toBe(snapshots);
+    expect(s.items.map((i) => i.displayName)).toContain('Bread');
   });
 
   it('undoes a tick through void_purchase', async () => {
@@ -265,11 +265,12 @@ describe('OfflineStore', () => {
   it('drops corrupt entries instead of throwing', async () => {
     const kv = memoryKv();
     const store = new OfflineStore(kv);
-    kv.data.set(`fr.shopping.v1.pending.${HH}`, '{not json');
+    kv.data.set(`fr.shopping.v2.pending.${HH}`, '{not json');
     await expect(store.loadPending(HH)).resolves.toEqual([]);
-    kv.data.set(`fr.shopping.v1.pending.${HH}`, JSON.stringify([{ nope: 1 }, { commandId: 'a', type: 'tick' }]));
+    kv.data.set(`fr.shopping.v2.pending.${HH}`, JSON.stringify([{ nope: 1 }, { commandId: 'a', type: 'tick' }]));
     await expect(store.loadPending(HH)).resolves.toHaveLength(1);
-    kv.data.set(`fr.shopping.v1.snapshot.${HH}`, '[]');
+    kv.data.set(`fr.shopping.v2.active.${HH}`, JSON.stringify({ listId: uid(200) }));
+    kv.data.set(`fr.shopping.v2.list.${uid(200)}`, '[]');
     await expect(store.loadSnapshot(HH)).resolves.toBeNull();
   });
 });

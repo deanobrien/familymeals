@@ -4,10 +4,9 @@
  * Run at server start by `instrumentation.ts` (fail fast with a readable message in the App Service log stream) and
  * summarised, without detail, by `/api/health`.
  *
- * Refused in production: mock auth (no Supabase env), the mock AI provider, the in-memory demo data backend, a missing
- * or weak APP_SECRET, and the local-file store (uploaded photos; AI settings are Supabase since S2, D126) unless explicitly allowed
- * with ALLOW_LOCAL_FILE_STORE=true (first test deploy only; data then lives under APP_DATA_DIR, default /home/data,
- * which App Service persists).
+ * Refused in production: mock auth (no Supabase env), the mock AI provider, the in-memory demo data backend, and a missing
+ * or weak APP_SECRET. Uploaded images live in Supabase Storage (private buckets, ST1 D190); the local-file store is a
+ * dev / mock-mode implementation only, so the old ALLOW_LOCAL_FILE_STORE opt-in is gone (a leftover setting is ignored).
  */
 export interface ProdEnv {
   NODE_ENV?: string;
@@ -17,6 +16,7 @@ export interface ProdEnv {
   APP_SECRET?: string;
   AI_PROVIDER?: string;
   AI_ALLOW_MOCK_IN_PRODUCTION?: string;
+  /** Legacy (pre-ST1): ignored. */
   ALLOW_LOCAL_FILE_STORE?: string;
   SUPABASE_DATA_CONTEXT?: string;
   NEXT_PUBLIC_SITE_URL?: string;
@@ -24,10 +24,6 @@ export interface ProdEnv {
 
 export function isProduction(env: ProdEnv = process.env as ProdEnv): boolean {
   return env.NODE_ENV === 'production';
-}
-
-export function localFileStoreAllowed(env: ProdEnv = process.env as ProdEnv): boolean {
-  return env.ALLOW_LOCAL_FILE_STORE?.trim().toLowerCase() === 'true';
 }
 
 /** Returns human-readable problems; empty when not production or when everything required is present. */
@@ -51,11 +47,6 @@ export function productionConfigProblems(env: ProdEnv = process.env as ProdEnv):
   }
   if (env.SUPABASE_DATA_CONTEXT === 'service') {
     p.push('SUPABASE_DATA_CONTEXT=service is a development-only fallback: remove it.');
-  }
-  if (!localFileStoreAllowed(env)) {
-    p.push(
-      'Uploaded recipe photos still use local files (not Supabase Storage yet; AI provider settings moved to Supabase in S2, D126). For a first test deploy set ALLOW_LOCAL_FILE_STORE=true (data goes to APP_DATA_DIR, default /home/data); otherwise wait for Supabase Storage uploads.',
-    );
   }
   return p;
 }

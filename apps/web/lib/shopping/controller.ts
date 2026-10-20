@@ -37,6 +37,8 @@ export interface ControllerState {
   /** Items (and undo targets) with a local change the server has not confirmed yet. */
   pendingItemIds: ReadonlySet<Uuid>;
   pendingCount: number;
+  /** Realtime listener confirmed by the server (RT1); false while polling. */
+  live: boolean;
 }
 
 export interface ControllerDeps {
@@ -51,7 +53,13 @@ export interface ControllerDeps {
   live?: LiveFeed;
   setInterval?: (fn: () => void, ms: number) => unknown;
   clearInterval?: (h: unknown) => void;
+  /** One-shot timers for the second post-subscribe catch-up (tests inject fakes). */
+  setTimeout?: (fn: () => void, ms: number) => unknown;
+  clearTimeout?: (h: unknown) => void;
 }
+
+/** Second catch-up after the listener is confirmed: closes the race with a commit that landed during confirmation (D201). */
+export const CATCHUP_AGAIN_MS = 1500;
 
 /** Poll interval: always in mock mode; with Realtime only while the channel is down (fallback). */
 export const POLL_MS = 4000;
@@ -67,6 +75,7 @@ export class ShoppingController {
   private running: Promise<void> | undefined;
   private again = false;
   private timer: unknown;
+  private catchupTimer: unknown;
   private liveStatus: LiveStatus | 'none' = 'none';
   private readonly now: () => string;
   private cleanup: Array<() => void> = [];
@@ -93,7 +102,7 @@ export class ShoppingController {
         if (e) pendingItemIds.add(e.shoppingListItemId);
       }
     }
-    return { client, view, meta, status, pendingItemIds, pendingCount: client.pending.length };
+    return { client, view, meta, status, pendingItemIds, pendingCount: client.pending.length, live: this.liveStatus === 'live' };
   }
 
   private set(client: ClientState, meta = this.state.meta, status = this.state.status): void {
@@ -260,10 +269,21 @@ export class ShoppingController {
   private onLiveStatus(status: LiveStatus): void {
     const was = this.liveStatus;
     this.liveStatus = status;
+    if ((was === 'live') !== (status === 'live')) this.set(this.state.client); // re-derive: state.live
     if (status === 'live') {
+      // Listener confirmed by the server. Anything committed before that moment was never pushed to us: fetch it from
+      // the cursor now, and once more shortly after (D201). Keep polling until this point, never before.
       this.stopPolling();
-      if (was !== 'live') void this.sync();
+      if (was !== 'live') {
+        void this.sync();
+        this.clearCatchup();
+        this.catchupTimer = (this.deps.setTimeout ?? ((fn, ms) => setTimeout(fn, ms)))(() => {
+          this.catchupTimer = undefined;
+          void this.sync();
+        }, CATCHUP_AGAIN_MS);
+      }
     } else {
+      this.clearCatchup();
       this.startPolling();
     }
   }
@@ -289,8 +309,15 @@ export class ShoppingController {
     this.timer = undefined;
   }
 
+  private clearCatchup(): void {
+    if (this.catchupTimer === undefined) return;
+    (this.deps.clearTimeout ?? ((h: unknown) => clearTimeout(h as ReturnType<typeof setTimeout>)))(this.catchupTimer);
+    this.catchupTimer = undefined;
+  }
+
   stop(): void {
     this.stopPolling();
+    this.clearCatchup();
     this.liveStatus = 'none';
     for (const c of this.cleanup) c();
     this.cleanup = [];

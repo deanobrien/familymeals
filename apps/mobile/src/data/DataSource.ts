@@ -16,6 +16,8 @@ export interface DataSource {
   getSession(): Promise<UserSession | null>;
   signIn(email: string, password: string): Promise<UserSession>;
   signOut(): Promise<void>;
+  /** Finish sign-in from a `familyrecipes://auth/callback` deep link (tokens or PKCE code). Throws on an error link. */
+  completeAuthLink?(url: string): Promise<UserSession | null>;
   /** Bearer token for the web app's server endpoints (recipe extraction). Null when signed out. */
   getAccessToken(): Promise<string | null>;
 
@@ -44,6 +46,11 @@ export interface DataSource {
   /** The store this phone last shopped at (null = group by category). */
   getSelectedStoreId?(householdId: Uuid): Promise<string | null>;
   setSelectedStoreId?(householdId: Uuid, storeId: string | null): Promise<void>;
+  /**
+   * Live hint while a household's list is on screen (Supabase Realtime, with a poll only while it is down).
+   * `onChange` means "re-read via getShoppingList"; returns the stop function. Absent in mock mode.
+   */
+  watchShopping?(householdId: Uuid, onChange: () => void): () => void;
   /** Connectivity hint from NetInfo; when false the data source does not attempt to deliver. */
   setOnline?(online: boolean): void;
 }
