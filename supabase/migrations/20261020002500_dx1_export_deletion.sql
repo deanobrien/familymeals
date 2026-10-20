@@ -6,10 +6,9 @@
 --   request/cancel_account_deletion + my_account_deletion (authenticated): leave every shared household now,
 --                             schedule sole-member households for deletion, ledger an 'account' subject (D253)
 --   purchase_events           append-only trigger also allows the account-purge anonymisation shape (D254)
---   storage_cleanup_queue     + 'local-uploads' pseudo-bucket (legacy local photo store) + last_attempt_at backoff;
---                             recipe_versions delete enqueues local upload folders (D255)
 --   jobs_* RPCs (service_role ONLY, called by /api/jobs/purge): due household purges + deletion-ledger replay,
---                             account purges, storage cleanup claim/complete/fail, status (D256, D257)
+--                             account purges, status counts (D256, D257). Storage objects are removed by ST1's
+--                             cleanup (claim_storage_cleanup / runStorageCleanup, D190/D195), which the purge job calls.
 
 -- New enum value: only referenced inside plpgsql bodies (resolved at run time), never in this file's DML.
 alter type public.deletion_subject add value if not exists 'account';
@@ -282,54 +281,23 @@ end
 $$;
 
 -- ---------------------------------------------------------------------------
--- storage_cleanup_queue: legacy local photo store + retry backoff
+-- invitations: accepted_by is ON DELETE SET NULL, but the 0002 CHECK required (accepted_at is null) = (accepted_by
+-- is null), so deleting ANY account that had accepted an invitation failed (found by the DX1 live purge test).
+-- Keep "accepted_by implies accepted_at"; allow accepted_at with a NULL accepted_by (the acceptor's account is gone).
 -- ---------------------------------------------------------------------------
 do $$
 declare c text;
 begin
   for c in select k.conname from pg_constraint k
-            where k.conrelid = 'public.storage_cleanup_queue'::regclass and k.contype = 'c'
-              and pg_get_constraintdef(k.oid) ilike '%bucket%recipe-images%'
+            where k.conrelid = 'public.invitations'::regclass and k.contype = 'c'
+              and pg_get_constraintdef(k.oid) ilike '%accepted_at IS NULL%=%accepted_by IS NULL%'
   loop
-    execute format('alter table public.storage_cleanup_queue drop constraint %I', c);
+    execute format('alter table public.invitations drop constraint %I', c);
   end loop;
 end
 $$;
-alter table public.storage_cleanup_queue
-  add constraint storage_cleanup_queue_bucket_chk check (bucket in ('recipe-images', 'receipt-images', 'local-uploads')),
-  add column last_attempt_at timestamptz;
-
--- Upload ids of the legacy local photo store ('/api/uploads/<uuid>/<file>') referenced by a recipe version.
-create or replace function public.recipe_version_local_uploads(p_corrected jsonb, p_paths text[])
-returns setof text
-language sql immutable
-set search_path = ''
-as $$
-  select distinct (regexp_match(x, '^/api/uploads/([0-9a-fA-F-]{36})/'))[1]
-    from unnest(array_append(coalesce(p_paths, '{}'), p_corrected ->> 'imageUrl')) x
-   where x ~ '^/api/uploads/[0-9a-fA-F-]{36}/'
-$$;
-revoke all on function public.recipe_version_local_uploads(jsonb, text[]) from public, anon;
-
-create or replace function public.recipe_versions_enqueue_local_cleanup()
-returns trigger
-language plpgsql security definer
-set search_path = ''
-as $$
-declare u text;
-begin
-  for u in select public.recipe_version_local_uploads(old.corrected, old.source_image_paths) loop
-    -- another surviving version may still use the same upload (e.g. after duplicate): keep it then
-    if not exists (select 1 from public.recipe_versions v
-                    where v.household_id = old.household_id and v.id <> old.id and u in (select public.recipe_version_local_uploads(v.corrected, v.source_image_paths))) then
-      perform public.enqueue_storage_cleanup('local-uploads', u, old.household_id, 'recipe_version_deleted');
-    end if;
-  end loop;
-  return null;
-end
-$$;
-create trigger recipe_versions_enqueue_local_cleanup after delete on public.recipe_versions
-  for each row execute function public.recipe_versions_enqueue_local_cleanup();
+alter table public.invitations
+  add constraint invitations_accepted_by_chk check (accepted_by is null or accepted_at is not null);
 
 -- ---------------------------------------------------------------------------
 -- Job RPCs: service role ONLY (the /api/jobs/purge route, behind JOBS_SECRET).
@@ -444,53 +412,7 @@ begin
 end
 $$;
 
--- Claims up to p_limit pending cleanup rows (attempt counter bumped; exponential-ish backoff by attempts).
-create or replace function public.jobs_claim_storage_cleanup(p_limit integer default 100, p_max_attempts integer default 8)
-returns table (id uuid, bucket text, object_path text, attempts integer)
-language plpgsql security definer
-set search_path = ''
-as $$
-begin
-  return query
-  update public.storage_cleanup_queue q
-     set attempts = q.attempts + 1, last_attempt_at = now()
-   where q.id in (
-     select c.id from public.storage_cleanup_queue c
-      where c.processed_at is null and c.attempts < p_max_attempts
-        and (c.last_attempt_at is null or c.last_attempt_at < now() - make_interval(mins => 5 * c.attempts * c.attempts))
-      order by c.enqueued_at
-      limit greatest(p_limit, 1)
-      for update skip locked)
-  returning q.id, q.bucket, q.object_path, q.attempts;
-end
-$$;
-
-create or replace function public.jobs_complete_storage_cleanup(p_ids uuid[])
-returns integer
-language plpgsql security definer
-set search_path = ''
-as $$
-declare n int;
-begin
-  update public.storage_cleanup_queue set processed_at = now(), last_error = null
-   where id = any (p_ids) and processed_at is null;
-  get diagnostics n = row_count;
-  return n;
-end
-$$;
-
-create or replace function public.jobs_fail_storage_cleanup(p_id uuid, p_error text)
-returns void
-language plpgsql security definer
-set search_path = ''
-as $$
-begin
-  update public.storage_cleanup_queue set last_error = left(coalesce(p_error, 'failed'), 1000)
-   where id = p_id and processed_at is null;
-end
-$$;
-
--- Counts for monitoring/alerting (no ids, no paths).
+-- Counts for monitoring/alerting (no ids, no paths). The queue itself is processed by ST1's claim_storage_cleanup.
 create or replace function public.jobs_status(p_max_attempts integer default 8)
 returns jsonb
 language plpgsql stable security definer
@@ -515,16 +437,9 @@ revoke all on function public.jobs_purge_due(integer) from public, anon, authent
 revoke all on function public.jobs_due_account_deletions(integer) from public, anon, authenticated;
 revoke all on function public.jobs_prepare_account_purge(uuid) from public, anon, authenticated;
 revoke all on function public.jobs_complete_account_purge(uuid) from public, anon, authenticated;
-revoke all on function public.jobs_claim_storage_cleanup(integer, integer) from public, anon, authenticated;
-revoke all on function public.jobs_complete_storage_cleanup(uuid[]) from public, anon, authenticated;
-revoke all on function public.jobs_fail_storage_cleanup(uuid, text) from public, anon, authenticated;
 revoke all on function public.jobs_status(integer) from public, anon, authenticated;
-revoke all on function public.recipe_versions_enqueue_local_cleanup() from public, anon, authenticated;
 grant execute on function public.jobs_purge_due(integer) to service_role;
 grant execute on function public.jobs_due_account_deletions(integer) to service_role;
 grant execute on function public.jobs_prepare_account_purge(uuid) to service_role;
 grant execute on function public.jobs_complete_account_purge(uuid) to service_role;
-grant execute on function public.jobs_claim_storage_cleanup(integer, integer) to service_role;
-grant execute on function public.jobs_complete_storage_cleanup(uuid[]) to service_role;
-grant execute on function public.jobs_fail_storage_cleanup(uuid, text) to service_role;
 grant execute on function public.jobs_status(integer) to service_role;

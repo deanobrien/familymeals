@@ -22,16 +22,6 @@ export function supabasePurgeJobDb(admin: SupabaseClient): PurgeJobDb {
     async completeAccount(userId) {
       await call('jobs_complete_account_purge', { p_user_id: userId });
     },
-    async claimCleanup(limit) {
-      const rows = await call<{ id: string; bucket: string; object_path: string }[]>('jobs_claim_storage_cleanup', { p_limit: limit });
-      return (rows ?? []).map((r) => ({ id: r.id, bucket: r.bucket, objectPath: r.object_path }));
-    },
-    async completeCleanup(ids) {
-      await call('jobs_complete_storage_cleanup', { p_ids: ids });
-    },
-    async failCleanup(id, error) {
-      await call('jobs_fail_storage_cleanup', { p_id: id, p_error: error });
-    },
     async status() {
       const r = await call<Record<string, unknown>>('jobs_status', {});
       const out: Record<string, number> = {};

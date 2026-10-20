@@ -29,6 +29,13 @@ export function supabaseExportRows(client: SupabaseClient): ExportRowReader {
   }
   return {
     async select(spec, filter) {
+      if (spec.rpc) {
+        const hid = filter.eq.household_id;
+        if (!hid || filter.in || Object.keys(filter.eq).length !== 1) return [];
+        const { data, error } = await client.rpc(spec.rpc, { p_household_id: hid });
+        if (error) throw new Error(`export read failed for ${spec.table}`);
+        return Array.isArray(data) ? (data as Row[]) : [];
+      }
       if (!filter.in) return page(spec, filter);
       const out: Row[] = [];
       for (let i = 0; i < filter.in.values.length; i += IN_CHUNK) {

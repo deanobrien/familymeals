@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { POST, GET } from '../../../app/api/jobs/purge/route';
-import type { ObjectRemover } from '../objects/port';
 import { runPurgeJob, type PurgeJobDb } from './purge-job';
 import { checkJobsSecret, MIN_JOBS_SECRET_LENGTH } from './secret';
 
@@ -70,22 +69,8 @@ function fakeDb(over: Partial<PurgeJobDb> = {}): PurgeJobDb & { calls: string[] 
     async completeAccount(id) {
       calls.push(`complete:${id}`);
     },
-    async claimCleanup() {
-      calls.push('claim');
-      return [
-        { id: 'q1', bucket: 'recipe-images', objectPath: 'h/recipes/1.jpg' },
-        { id: 'q2', bucket: 'recipe-images', objectPath: 'h/recipes/2.jpg' },
-        { id: 'q3', bucket: 'receipt-images', objectPath: 'h/receipts/1.jpg' },
-        { id: 'q4', bucket: 'local-uploads', objectPath: '33333333-3333-4333-8333-333333333333' },
-      ];
-    },
-    async completeCleanup(ids) {
-      calls.push(`completeCleanup:${ids.join(',')}`);
-    },
-    async failCleanup(id) {
-      calls.push(`fail:${id}`);
-    },
     async status() {
+      calls.push('status');
       return { cleanupPending: 0 };
     },
     ...over,
@@ -93,50 +78,42 @@ function fakeDb(over: Partial<PurgeJobDb> = {}): PurgeJobDb & { calls: string[] 
   return Object.assign(db, { calls });
 }
 
-const okRemover = (seen: string[]): ObjectRemover => ({
-  async remove(paths) {
-    seen.push(...paths);
-    return { removed: paths, failed: [] };
-  },
-});
-
 describe('runPurgeJob', () => {
-  it('purges households before accounts, skips blocked accounts, deletes objects per bucket', async () => {
+  it('purges households, then accounts (blocked skipped), then storage, then status', async () => {
     const db = fakeDb();
     const deleted: string[] = [];
-    const seen: string[] = [];
     const out = await runPurgeJob({
       db,
       deleteAuthUser: async (id) => {
         deleted.push(id);
         return 'deleted';
       },
-      removers: { 'recipe-images': okRemover(seen), 'receipt-images': okRemover(seen) },
+      storageCleanup: async () => {
+        db.calls.push('storage');
+        return { deleted: 3, failed: 0 };
+      },
     });
     expect(db.calls[0]).toBe('purgeDue');
-    expect(db.calls.indexOf('purgeDue')).toBeLessThan(db.calls.indexOf('dueAccounts'));
+    expect(db.calls.indexOf('dueAccounts')).toBeLessThan(db.calls.indexOf('storage'));
+    expect(db.calls.indexOf('storage')).toBeLessThan(db.calls.indexOf('status'));
     expect(deleted).toEqual(['u-ready', 'u-replay']);
     expect(db.calls).not.toContain('complete:u-blocked');
     expect(out.households).toEqual({ purged: 2, replayed: 1 });
     expect(out.accounts).toEqual({ deleted: 1, replayed: 1, blocked: 1, failed: 0 });
-    expect(seen).toEqual(['h/recipes/1.jpg', 'h/recipes/2.jpg', 'h/receipts/1.jpg']);
-    expect(db.calls).toContain('completeCleanup:q1,q2');
-    expect(db.calls).toContain('fail:q4'); // no local remover on this instance: left for later, not marked done
-    expect(out.storage).toEqual({ removed: 3, failed: 0, skipped: 1 });
+    expect(out.storage).toEqual({ deleted: 3, failed: 0 });
     expect(out.ok).toBe(true);
-    // counts only: no ids or paths in the result
-    expect(JSON.stringify(out)).not.toMatch(/u-ready|recipes\/1|q1/);
+    expect(JSON.stringify(out)).not.toMatch(/u-ready|u-replay/); // counts only
   });
 
   it('a failed auth deletion leaves the ledger pending (retried next run) and reports not ok', async () => {
-    const db = fakeDb({ claimCleanup: async () => [] });
+    const db = fakeDb();
     const out = await runPurgeJob({
       db,
       deleteAuthUser: async (id) => {
         if (id === 'u-ready') throw new Error('500');
         return 'not_found';
       },
-      removers: {},
+      storageCleanup: async () => ({ deleted: 0, failed: 0 }),
     });
     expect(db.calls).not.toContain('complete:u-ready');
     expect(db.calls).toContain('complete:u-replay');
@@ -145,33 +122,24 @@ describe('runPurgeJob', () => {
     expect(out.errors).toEqual(['accounts']);
   });
 
-  it('storage removal failures are recorded per row and the run is not ok', async () => {
-    const db = fakeDb({ dueAccounts: async () => [] });
-    const out = await runPurgeJob({
-      db,
-      deleteAuthUser: async () => 'deleted',
-      removers: {
-        'recipe-images': { remove: async (paths) => ({ removed: [paths[0]!], failed: [{ path: paths[1]!, error: 'boom' }] }) },
-        'receipt-images': okRemover([]),
-        'local-uploads': okRemover([]),
-      },
-    });
-    expect(db.calls).toContain('completeCleanup:q1');
-    expect(db.calls).toContain('fail:q2');
-    expect(out.storage).toEqual({ removed: 3, failed: 1, skipped: 0 });
-    expect(out.ok).toBe(false);
-  });
-
-  it('a household step failure does not stop the other steps', async () => {
+  it('storage failures (or a throwing cleanup) mark the run not ok but never stop the other steps', async () => {
+    const out1 = await runPurgeJob({ db: fakeDb({ dueAccounts: async () => [] }), deleteAuthUser: async () => 'deleted', storageCleanup: async () => ({ deleted: 1, failed: 2 }) });
+    expect(out1.storage).toEqual({ deleted: 1, failed: 2 });
+    expect(out1.errors).toEqual(['storage']);
     const db = fakeDb({
       purgeDue: async () => {
         throw new Error('db down');
       },
       dueAccounts: async () => [],
-      claimCleanup: async () => [],
     });
-    const out = await runPurgeJob({ db, deleteAuthUser: async () => 'deleted', removers: {} });
-    expect(out.errors).toEqual(['households']);
-    expect(out.status).toEqual({ cleanupPending: 0 });
+    const out2 = await runPurgeJob({
+      db,
+      deleteAuthUser: async () => 'deleted',
+      storageCleanup: async () => {
+        throw new Error('storage down');
+      },
+    });
+    expect(out2.errors).toEqual(['households', 'storage']);
+    expect(out2.status).toEqual({ cleanupPending: 0 });
   });
 });

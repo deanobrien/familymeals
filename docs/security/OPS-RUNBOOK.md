@@ -35,7 +35,7 @@ Avoid long locks: `create index concurrently` (outside transaction), batch backf
      a. BEFORE restoring, export the live ledger (SQL editor / psql): `\copy (select * from public.deletion_ledger) to 'ledger-YYYYMMDD.csv' csv header` (private; delete within 14 days).
      b. Restore.
      c. Load the CSV into a temp table `tmp_ledger` and add missing rows: `insert into public.deletion_ledger select * from tmp_ledger t where not exists (select 1 from public.deletion_ledger l where l.id = t.id);`
-     d. Call the purge job (`POST /api/jobs/purge` with `x-jobs-secret`, DEPLOY-APP-SERVICE.md 3c). `jobs_purge_due` re-purges every existing household the ledger marks purged (`households.replayed`) and accounts the ledger marks deleted are deleted from Auth again (`accounts.replayed`); queued storage objects are removed. Repeat until both replay counts are 0.
+     d. Call the purge job (`POST /api/jobs/purge` with `x-jobs-secret`, DEPLOY-APP-SERVICE.md 3c). `jobs_purge_due` re-purges every existing household the ledger marks purged (`households.replayed`) and accounts the ledger marks deleted are deleted from Auth again (`accounts.replayed`); queued storage objects are removed by the same run (ST1's cleanup). Repeat until both replay counts are 0.
      e. If the live DB is gone (no step a), use the newest weekly ledger export: schedule `deletion_ledger` CSV exports alongside the bucket copies above.
   5. Re-point app env vars (URL, keys, JWT secret caveats) and run the E2E smoke suite.
   6. Record duration, issues, and fixes in `docs/restore-drills.md`.
@@ -53,7 +53,7 @@ Pre-flight: main green (lint, types, unit, RLS, E2E); SECURITY-CHECKLIST items f
 Feature flags (env) for AI features: `AI_ENABLED`, per-feature toggles for quick disable.
 
 ## 5. Monitoring and alerts
-- Purge job (DX1): alert on failed Logic App runs. The response `status` reports `cleanupPending`, `cleanupStuck` (rows that failed 8 attempts: investigate `storage_cleanup_queue.last_error`), `cleanupOldestMinutes` (alert if > 60), `householdsPendingDeletion`, `accountsPendingDeletion`; `accounts.blocked` > 0 means a requested account still owns a shared household or a cancelled sole household.
+- Purge job (DX1): alert on failed Logic App runs. The response `status` reports `cleanupPending`, `cleanupStuck` (rows that failed 8 attempts: investigate `storage_cleanup_queue.last_error`; ST1 section 4b), `cleanupOldestMinutes` (alert if > 60), `householdsPendingDeletion`, `accountsPendingDeletion`; `accounts.blocked` > 0 means a requested account still owns a shared household or a cancelled sole household.
 - Uptime check on `/api/health` (checks DB connectivity, no secrets) every 1 min.
 - Error monitoring (scrubbed), Vercel function error rate/latency, Supabase dashboard (CPU, connections, disk, egress).
 - Alerts: 5xx rate > 2% for 5 min; DB disk > 80%; auth failure spike; storage cleanup queue age > 1 h; AI spend threshold (below).

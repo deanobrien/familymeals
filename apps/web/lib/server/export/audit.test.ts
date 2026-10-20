@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { archivePathFor, isSafeObjectPath, parseObjectRef } from '../objects/port';
+import { imageStoreReader } from '../objects/stores';
 import { EXPORT_LINK_TTL_MS, EXPORT_RATE_WINDOW_MS, MAX_DOWNLOADS, memoryExportAudit, resetMemoryExportAudit } from './audit';
 
 const H = '11111111-1111-4111-8111-111111111111';
@@ -57,6 +58,25 @@ describe('object refs', () => {
       expect(parseObjectRef(bad, H, 'recipe-images')).toBeNull();
     }
     expect(isSafeObjectPath(`${H}/recipes/x y.jpg`, H)).toBe(false);
+  });
+
+  it('reads ST1 storage paths and local refs through the ImageStore; wrong bucket or foreign layout gives null', async () => {
+    const got: string[] = [];
+    const store = {
+      backend: 'supabase' as const,
+      async get(kind: string, id: string, file: string) {
+        got.push(`${kind}/${id}/${file}`);
+        return new Uint8Array([1]);
+      },
+    } as unknown as import('../images/store').ImageStore;
+    const r = imageStoreReader(store);
+    const id = '44444444-4444-4444-8444-444444444444';
+    expect(await r.read({ kind: 'storage', bucket: 'recipe-images', path: `${H}/cover/${id}/cover.jpg` })).toEqual(new Uint8Array([1]));
+    expect(await r.read({ kind: 'storage', bucket: 'receipt-images', path: `${H}/receipt/${id}/receipt.jpg` })).not.toBeNull();
+    expect(await r.read({ kind: 'storage', bucket: 'recipe-images', path: `${H}/receipt/${id}/receipt.jpg` })).toBeNull();
+    expect(await r.read({ kind: 'storage', bucket: 'recipe-images', path: `${H}/recipes/x/1.jpg` })).toBeNull();
+    expect(await r.read({ kind: 'local', uploadId: id, file: 'page-2.jpg' })).not.toBeNull();
+    expect(got).toEqual([`cover/${id}/cover.jpg`, `receipt/${id}/receipt.jpg`, `page/${id}/page-2.jpg`]);
   });
 
   it('maps refs to archive paths without the household prefix', () => {

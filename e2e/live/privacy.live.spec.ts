@@ -84,6 +84,11 @@ test('export: owner gets the household, a member only their own data; nothing fr
   await mc.from('consent_records').insert({ household_id: hid, consent_type: 'allergy_data', wording_version: 'v1' });
   await mc.storage.from('recipe-images').upload(`${hid}/recipes/${memberRecipe}/1.jpg`, JPEG, { contentType: 'image/jpeg' });
   await mc.from('recipe_images').insert({ recipe_id: memberRecipe, household_id: hid, storage_path: `${hid}/recipes/${memberRecipe}/1.jpg`, mime_type: 'image/jpeg' });
+  // ST1 layout cover (<hh>/cover/<id>/cover.jpg), read back through ImageStore by the export
+  const coverId = crypto.randomUUID();
+  const coverPath = `${hid}/cover/${coverId}/cover.jpg`;
+  expect((await oc.storage.from('recipe-images').upload(coverPath, JPEG, { contentType: 'image/jpeg' })).error).toBeNull();
+  expect((await oc.from('recipes').update({ cover_image_path: coverPath }).eq('id', ownerRecipe)).error).toBeNull();
   const xhid = await household(xc, 'Outsider home');
   await recipe(xc, xhid, 'Outsider secret');
 
@@ -96,6 +101,7 @@ test('export: owner gets the household, a member only their own data; nothing fr
   expect(hx.json('data/consents.json').consent_records).toEqual([]); // the member's consent is theirs alone
   expect(hx.json('data/account.json')).toMatchObject({ user_id: owner.id, email: owner.email, role: 'owner' });
   expect(hx.files.get(`images/recipe-images/recipes/${memberRecipe}/1.jpg`)).toEqual(new Uint8Array(JPEG));
+  expect(hx.files.get(`images/recipe-images/cover/${coverId}/cover.jpg`)).toEqual(new Uint8Array(JPEG));
   const manifest = hx.json('manifest.json');
   expect(manifest.counts.recipes).toBe(2);
   expect(manifest.missingImages).toEqual([]);
@@ -167,6 +173,8 @@ test('deletion: grace + cancel in the UI, account deletion, then the purge job r
   await dialog.getByLabel('Your password').fill('Not-The-Password-1');
   await dialog.getByRole('button', { name: 'Delete household' }).click();
   await expect(dialog.getByRole('alert')).toContainText('password was not correct');
+  // React resets the form after each server action: both fields are typed again
+  await dialog.getByLabel(/Type the household name/).fill('Doomed home');
   await dialog.getByLabel('Your password').fill(owner.password);
   await dialog.getByRole('button', { name: 'Delete household' }).click();
   await expect(o.page.getByTestId('data-notice')).toContainText('Household deletion scheduled');

@@ -1,20 +1,16 @@
 /**
- * Storage abstraction used by data export and the purge job (DX1, D255). Pure types + ref parsing; no I/O here.
+ * Image references for data export (DX1, D255). Pure types + ref parsing; no I/O here.
  *
- * Images live in one of two places while the move to Supabase Storage (lane ST1) is in flight:
- *  - Supabase Storage: private buckets `recipe-images` / `receipt-images`, object path `<household_id>/...`
- *    (stored in recipe_images.storage_path, recipes.cover_image_path, receipts.image_paths)
- *  - the legacy local photo store: `/api/uploads/<uploadId>/<cover.jpg|page-N.jpg>` (recipe_versions.corrected.imageUrl
- *    / source_image_paths), files under APP_DATA_DIR/uploads/<uploadId>/
+ * Exported image references come from:
+ *  - Supabase Storage (ST1, D190): private buckets `recipe-images` / `receipt-images`, object path `<household_id>/...`
+ *    (recipes.cover_image_path, recipe_images.storage_path, recipe_versions.source_image_paths, receipts.image_paths)
+ *  - the dev / mock local store: `/api/uploads/<uploadId>/<cover.jpg|page-N.jpg>` (recipe_versions.corrected.imageUrl)
  *
- * Export reads through an `ObjectReader`; the purge job deletes through an `ObjectRemover` per bucket. ST1 (or any
- * later storage lane) plugs in by implementing these interfaces; callers never touch a concrete store directly.
+ * Export reads through an `ObjectReader` (stores.ts adapts ST1's `ImageStore`). Deleting objects is ST1's queue-driven
+ * cleanup, not this port.
  */
 export const STORAGE_BUCKETS = ['recipe-images', 'receipt-images'] as const;
 export type StorageBucket = (typeof STORAGE_BUCKETS)[number];
-/** Pseudo-bucket in storage_cleanup_queue for the legacy local photo store (object_path = upload id). */
-export const LOCAL_UPLOADS_BUCKET = 'local-uploads';
-export type CleanupBucket = StorageBucket | typeof LOCAL_UPLOADS_BUCKET;
 
 export type ObjectRef =
   | { kind: 'storage'; bucket: StorageBucket; path: string }
@@ -24,18 +20,6 @@ export interface ObjectReader {
   /** Bytes of the object, or null when it does not exist / is not readable by the caller. Never throws for "missing". */
   read(ref: ObjectRef): Promise<Uint8Array | null>;
 }
-
-export interface RemoveResult {
-  removed: string[];
-  failed: { path: string; error: string }[];
-}
-
-export interface ObjectRemover {
-  /** Deletes objects by path. Deleting something that does not exist counts as removed (idempotent). */
-  remove(paths: string[]): Promise<RemoveResult>;
-}
-
-export type ObjectRemovers = Partial<Record<CleanupBucket, ObjectRemover>>;
 
 const UUID = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
 const LOCAL_RE = new RegExp(`^/api/uploads/(${UUID})/((?:page-\\d{1,2}|cover)\\.jpg)$`);

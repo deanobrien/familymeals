@@ -1,6 +1,8 @@
 import 'server-only';
 import type { HouseholdContext } from '../auth/household-context';
-import { compositeReader, localUploadsReader, supabaseObjectReader } from '../objects/stores';
+import { LocalImageStore } from '../images/local-store';
+import { SupabaseImageStore } from '../images/supabase-store';
+import { compositeReader, imageStoreReader, supabaseObjectReader } from '../objects/stores';
 import { memoryExportAudit, supabaseExportAudit, type BeginResult, type ExportAudit } from './audit';
 import { exportEntries, type ExportRowReader } from './builder';
 import { memoryExportRows, supabaseExportRows } from './sources';
@@ -40,8 +42,15 @@ export async function downloadExport(ctx: Ctx, id: string): Promise<Response | n
 
   const rows: ExportRowReader =
     ctx.mode === 'supabase' ? supabaseExportRows(ctx.supabase) : memoryExportRows({ id: membership.id, name: membership.name });
+  // ST1's ImageStore (D190): Supabase Storage as the signed-in user; local files in dev / mock mode.
   const objects =
-    ctx.mode === 'supabase' ? compositeReader(supabaseObjectReader(ctx.supabase), localUploadsReader()) : localUploadsReader();
+    ctx.mode === 'supabase'
+      ? compositeReader(
+          imageStoreReader(new SupabaseImageStore(ctx.supabase, exp.householdId)),
+          supabaseObjectReader(ctx.supabase),
+          imageStoreReader(new LocalImageStore()),
+        )
+      : imageStoreReader(new LocalImageStore());
   const { entries, summary } = exportEntries(
     { scope: exp.scope, householdId: exp.householdId, userId: ctx.user.id, email: ctx.user.email, mode: ctx.mode },
     { rows, objects },

@@ -2366,7 +2366,6 @@ export type Database = {
           enqueued_at: string;
           household_id: string | null;
           id: string;
-          last_attempt_at: string | null;
           last_error: string | null;
           object_path: string;
           processed_at: string | null;
@@ -2379,7 +2378,6 @@ export type Database = {
           enqueued_at?: string;
           household_id?: string | null;
           id?: string;
-          last_attempt_at?: string | null;
           last_error?: string | null;
           object_path: string;
           processed_at?: string | null;
@@ -2391,7 +2389,6 @@ export type Database = {
           enqueued_at?: string;
           household_id?: string | null;
           id?: string;
-          last_attempt_at?: string | null;
           last_error?: string | null;
           object_path?: string;
           processed_at?: string | null;
@@ -2502,17 +2499,7 @@ export type Database = {
       is_household_member: { Args: { hid: string }; Returns: boolean };
       is_household_owner: { Args: { hid: string }; Returns: boolean };
       is_household_writable: { Args: { hid: string }; Returns: boolean };
-      jobs_claim_storage_cleanup: {
-        Args: { p_limit?: number; p_max_attempts?: number };
-        Returns: {
-          attempts: number;
-          bucket: string;
-          id: string;
-          object_path: string;
-        }[];
-      };
       jobs_complete_account_purge: { Args: { p_user_id: string }; Returns: undefined };
-      jobs_complete_storage_cleanup: { Args: { p_ids: string[] }; Returns: number };
       jobs_due_account_deletions: {
         Args: { p_limit?: number };
         Returns: {
@@ -2520,7 +2507,6 @@ export type Database = {
           user_id: string;
         }[];
       };
-      jobs_fail_storage_cleanup: { Args: { p_error: string; p_id: string }; Returns: undefined };
       jobs_prepare_account_purge: { Args: { p_user_id: string }; Returns: string };
       jobs_purge_due: { Args: { p_limit?: number }; Returns: Json };
       jobs_status: { Args: { p_max_attempts?: number }; Returns: Json };
@@ -2558,10 +2544,6 @@ export type Database = {
         Returns: boolean;
       };
       recipe_facets: { Args: { p_household_id: string }; Returns: Json };
-      recipe_version_local_uploads: {
-        Args: { p_corrected: Json; p_paths: string[] };
-        Returns: string[];
-      };
       recipe_view_json: { Args: { p_recipe_id: string; p_user_id: string }; Returns: Json };
       record_data_export_download: {
         Args: {

@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseAdminClient } from '../../../../lib/server/auth/admin';
 import { readPublicEnv } from '../../../../lib/supabase/env';
+import { runStorageCleanup, type CleanupDb } from '../../../../lib/server/images/cleanup';
 import { checkJobsSecret } from '../../../../lib/server/jobs/secret';
 import { runPurgeJob } from '../../../../lib/server/jobs/purge-job';
 import { supabaseDeleteAuthUser, supabasePurgeJobDb } from '../../../../lib/server/jobs/supabase-db';
-import { localFileStoreAllowed } from '../../../../lib/server/config/production';
-import { localUploadsRemover, supabaseBucketRemover } from '../../../../lib/server/objects/stores';
-import type { ObjectRemovers } from '../../../../lib/server/objects/port';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,7 +15,8 @@ const NO_STORE = { 'cache-control': 'no-store' };
  * POST /api/jobs/purge (DX1, D256): scheduled deletion work. Public to middleware (no user session) but refuses
  * every request without the JOBS_SECRET header (`x-jobs-secret`); with JOBS_SECRET unset the endpoint is disabled
  * (503). Uses the service-role client: this job is the one sanctioned non-user path (D100), and it never takes ids
- * from the request. Idempotent; safe to call as often as every few minutes. Returns counts only.
+ * from the request. Storage objects are removed by ST1's queue-driven cleanup (the same code as
+ * /api/jobs/storage-cleanup), so scheduling this endpoint alone is enough. Idempotent; returns counts only.
  */
 export async function POST(req: Request) {
   const auth = checkJobsSecret(req.headers);
@@ -28,15 +27,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, skipped: 'no_supabase_backend' }, { status: 200, headers: NO_STORE });
   }
   const admin = createSupabaseAdminClient();
-  const removers: ObjectRemovers = {
-    'recipe-images': supabaseBucketRemover(admin, 'recipe-images'),
-    'receipt-images': supabaseBucketRemover(admin, 'receipt-images'),
-  };
-  // The legacy local photo store only exists where it is allowed (dev, or a first test deploy with ALLOW_LOCAL_FILE_STORE).
-  if (process.env.NODE_ENV !== 'production' || localFileStoreAllowed()) removers['local-uploads'] = localUploadsRemover();
-
   const started = Date.now();
-  const result = await runPurgeJob({ db: supabasePurgeJobDb(admin), deleteAuthUser: supabaseDeleteAuthUser(admin), removers });
+  const result = await runPurgeJob({
+    db: supabasePurgeJobDb(admin),
+    deleteAuthUser: supabaseDeleteAuthUser(admin),
+    storageCleanup: async () => {
+      const s = await runStorageCleanup(admin as unknown as CleanupDb);
+      return { deleted: s.deleted, failed: s.failed };
+    },
+  });
   return NextResponse.json({ ...result, durationMs: Date.now() - started }, { status: result.ok ? 200 : 500, headers: NO_STORE });
 }
 

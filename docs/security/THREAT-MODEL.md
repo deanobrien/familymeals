@@ -95,11 +95,11 @@ Images are untrusted input: a photo may contain text such as "ignore instruction
 |---|---|---|---|---|
 | X1 | Export leaks another household's or member's data | I | Built as the signed-in user (RLS); member scope narrows to own rows; other user ids -> "another member"; no emails but the requester's; AI keys, invitations, logs never read; secret-looking columns dropped generically | `builder.test.ts`; live export spec (outsider / member / owner) |
 | X2 | Export link reuse / IDOR | S/I | Link = unguessable id + same signed-in user (RLS on `data_export_requests`), 1 h, 5 downloads, access re-checked; foreign/expired = same 404 | live spec (member opens owner's link: 404) |
-| X3 | Export used for scraping / DoS | D | 1 per user, household, scope per 24 h (SQL, lock-serialised); streamed, nothing stored | PGlite 010, live spec |
+| X3 | Export used for scraping / DoS | D | 1 per user, household, scope per 24 h (SQL, lock-serialised); streamed, nothing stored | PGlite 011, live spec |
 | X4 | Forged deletion (CSRF, stolen session) | S/T | Server actions (origin-checked) + typed confirmation + current password re-auth; 14-day grace, owner cancel; `/api/export` requires JSON | live spec (wrong name / password refused) |
 | X5 | Purge endpoint abuse | E/D | `JOBS_SECRET` (>= 32 chars, constant-time compare; unset = disabled 503); no ids from the request; idempotent; counts-only response; service role only inside the job | `jobs.test.ts`, live spec (401) |
-| X6 | Deleted data reappears after a backup restore | I | Deletion ledger replay in every job run + OPS-RUNBOOK restore steps | PGlite 010, live spec (restored household purged again) |
-| X7 | Owner shortens the grace to wipe others' data instantly | T | `request_household_deletion` clamps end-user grace to >= 14 days | PGlite 010 |
+| X6 | Deleted data reappears after a backup restore | I | Deletion ledger replay in every job run + OPS-RUNBOOK restore steps | PGlite 011, live spec (restored household purged again) |
+| X7 | Owner shortens the grace to wipe others' data instantly | T | `request_household_deletion` clamps end-user grace to >= 14 days | PGlite 011 |
 
 ## 3. Priority order (risk x effort)
 1. R3/R2 (RLS completeness and IDOR) — automated matrix tests in `tests/rls/` are release-blocking.

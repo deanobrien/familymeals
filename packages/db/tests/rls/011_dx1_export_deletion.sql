@@ -1,5 +1,5 @@
 -- DX1 (migration 20261020002500): export audit/rate limit, account deletion, grace clamp, purge job RPCs,
--- deletion-ledger replay after a restore, storage cleanup claim/complete/fail, local-upload enqueue.
+-- deletion-ledger replay after a restore, job status counts. (Storage queue processing is ST1: 010_st1_storage_uploads.sql.)
 begin;
 
 insert into auth.users (id, email) values
@@ -61,7 +61,6 @@ select tests.throws($$ select public.jobs_purge_due() $$, '42501', 'users cannot
 select tests.throws($$ select * from public.jobs_due_account_deletions() $$, '42501', 'users cannot list account deletions');
 select tests.throws($$ select public.jobs_prepare_account_purge('c0000000-0000-4000-8000-000000000003') $$, '42501',
                     'users cannot prepare account purges');
-select tests.throws($$ select * from public.jobs_claim_storage_cleanup() $$, '42501', 'users cannot claim cleanup rows');
 select tests.throws($$ select public.jobs_status() $$, '42501', 'users cannot read job status');
 
 -- ===================== account deletion =====================
@@ -99,6 +98,11 @@ select tests.is((select count(*) from public.person_profiles where user_id = 'c0
 select tests.ok((select created_by = 'c0000000-0000-4000-8000-000000000003' from public.purchase_events),
                 'purchase not anonymised until the job runs');
 
+-- Carol joined Alice home through an invitation (accepted_by = carol): her deletion must not trip the CHECK.
+insert into public.invitations (household_id, role, token_hash, invited_by, expires_at, accepted_at, accepted_by) values
+  ('aa000000-0000-4000-8000-0000000000aa', 'member', repeat('ab', 32), 'a0000000-0000-4000-8000-000000000001',
+   now() + interval '1 day', now(), 'c0000000-0000-4000-8000-000000000003');
+
 -- ===================== purge job (service role) =====================
 select set_config('role', 'service_role', true);
 select tests.ok((public.jobs_purge_due() ->> 'purged')::int = 0, 'nothing due yet');
@@ -110,21 +114,14 @@ update public.deletion_ledger set requested_at = now() - interval '15 days', sch
  where subject_type::text = 'account' and purged_at is null and cancelled_at is null;
 insert into storage.objects (bucket_id, name) values
   ('recipe-images', 'cc000000-0000-4000-8000-0000000000cc/recipes/x/1.jpg');
-insert into public.recipes (id, household_id, title) values
-  ('c1000000-0000-4000-8000-000000000001', 'cc000000-0000-4000-8000-0000000000cc', 'Soup');
-insert into public.recipe_versions (recipe_id, household_id, version_no, corrected) values
-  ('c1000000-0000-4000-8000-000000000001', 'cc000000-0000-4000-8000-0000000000cc', 1,
-   '{"imageUrl": "/api/uploads/12345678-1234-4123-8123-123456789abc/cover.jpg"}');
 
 select set_config('role', 'service_role', true);
 select tests.ok((public.jobs_purge_due() ->> 'purged')::int = 1, 'due household purged');
 select tests.is((select count(*) from public.households where id = 'cc000000-0000-4000-8000-0000000000cc'), 0, 'household gone');
 select tests.is((select count(*) from public.storage_cleanup_queue
-                  where bucket = 'local-uploads' and object_path = '12345678-1234-4123-8123-123456789abc'), 1,
-                'legacy local upload enqueued when the recipe version is deleted');
-select tests.is((select count(*) from public.storage_cleanup_queue
                   where bucket = 'recipe-images' and reason = 'household_purged'), 1, 'storage object enqueued');
 select tests.ok((public.jobs_purge_due() ->> 'purged')::int = 0, 'purge is idempotent');
+select tests.ok((public.jobs_status() ->> 'cleanupPending')::int >= 1, 'status counts the queued object');
 
 select tests.ok((select user_id = 'c0000000-0000-4000-8000-000000000003' and not replay from public.jobs_due_account_deletions()),
                 'account now due');
@@ -137,6 +134,12 @@ select set_config('role', 'service_role', true);
 select public.jobs_complete_account_purge('c0000000-0000-4000-8000-000000000003');
 select tests.is((select count(*) from public.jobs_due_account_deletions()), 0, 'no accounts due after completion');
 select tests.is((select count(*) from public.purchase_events), 1, 'purchase history survives');
+select tests.ok((select accepted_by is null and accepted_at is not null from public.invitations where token_hash = repeat('ab', 32)),
+                'accepted invitation survives with the acceptor anonymised');
+select tests.reset_actor();
+select tests.throws($$ update public.invitations set accepted_by = 'a0000000-0000-4000-8000-000000000001', accepted_at = null
+                      where token_hash = repeat('ab', 32) $$, '23514', 'accepted_by still implies accepted_at');
+select set_config('role', 'service_role', true);
 
 -- blocked cases
 select tests.ok(public.jobs_prepare_account_purge('a0000000-0000-4000-8000-000000000001') = 'blocked_household',
@@ -153,16 +156,6 @@ select tests.is((select count(*) from public.households where id = 'cc000000-000
 select tests.ok((select replay from public.jobs_due_account_deletions()
                   where user_id = 'c0000000-0000-4000-8000-000000000003'), 'restored account listed for re-deletion');
 
--- ===================== storage cleanup claim / complete / fail =====================
-select tests.is((select count(*) from public.jobs_claim_storage_cleanup(1)), 1, 'claims one row');
-select tests.ok((select count(*) from public.jobs_claim_storage_cleanup(100)) >= 1, 'claims the rest');
-select tests.is((select count(*) from public.jobs_claim_storage_cleanup(100)), 0, 'claimed rows back off');
-select public.jobs_fail_storage_cleanup((select id from public.storage_cleanup_queue where bucket = 'local-uploads'), 'boom');
-select tests.is(public.jobs_complete_storage_cleanup(array(select id from public.storage_cleanup_queue where bucket <> 'local-uploads')),
-                (select count(*) from public.storage_cleanup_queue where bucket <> 'local-uploads'), 'rows completed');
-select tests.ok((public.jobs_status() ->> 'cleanupPending')::int = 1, 'one row still pending (failed once)');
-select tests.ok((select last_error = 'boom' and attempts = 1 from public.storage_cleanup_queue where bucket = 'local-uploads'),
-                'failure recorded');
 
 -- purchase_events anonymisation shape: the display name can only be filled while the actor is nulled
 select tests.reset_actor();

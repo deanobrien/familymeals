@@ -1,31 +1,26 @@
 import 'server-only';
-import { existsSync, rmSync } from 'node:fs';
-import { join } from 'node:path';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { dataDir } from '../ai/secret';
-import { getUploadFiles } from '../uploads/dev-store';
-import {
-  isUploadId,
-  type ObjectReader,
-  type ObjectRef,
-  type ObjectRemover,
-  type RemoveResult,
-  type StorageBucket,
-} from './port';
+import { parseImagePath } from '../images/paths';
+import type { ImageStore } from '../images/store';
+import type { ObjectReader, ObjectRef } from './port';
 
 /**
- * Concrete stores behind the DX1 storage port (port.ts). Supabase Storage reads use whatever client the caller passes
- * (export: the signed-in user's client, so Storage RLS decides); removals use the service-role client and are only
- * constructed by the purge job.
+ * Readers behind the DX1 export port (port.ts). Images are read through ST1's `ImageStore` (D190): the Supabase store
+ * uses the signed-in user's client (Storage RLS decides), the local store serves dev / mock `/api/uploads/...` refs.
+ * Deletion is NOT here: objects are removed by ST1's queue-driven cleanup (`runStorageCleanup`), which the purge job
+ * calls.
  */
-export function supabaseObjectReader(client: SupabaseClient): ObjectReader {
+export function imageStoreReader(store: ImageStore): ObjectReader {
   return {
     async read(ref: ObjectRef) {
-      if (ref.kind !== 'storage') return null;
       try {
-        const { data, error } = await client.storage.from(ref.bucket).download(ref.path);
-        if (error || !data) return null;
-        return new Uint8Array(await data.arrayBuffer());
+        if (ref.kind === 'local') {
+          const kind = ref.file === 'cover.jpg' ? 'cover' : 'page';
+          return (await store.get(kind, ref.uploadId, ref.file)) ?? null;
+        }
+        const p = parseImagePath(ref.path);
+        if (!p || (p.kind === 'receipt' ? 'receipt-images' : 'recipe-images') !== ref.bucket) return null;
+        return (await store.get(p.kind, p.id, p.file)) ?? null;
       } catch {
         return null;
       }
@@ -33,13 +28,21 @@ export function supabaseObjectReader(client: SupabaseClient): ObjectReader {
   };
 }
 
-/** Legacy local photo store (`/api/uploads/<id>/<file>`). */
-export function localUploadsReader(): ObjectReader {
+/**
+ * Fallback for in-household storage paths that are not in ST1's `<hh>/<kind>/<id>/<file>` layout (e.g. recipe_images
+ * rows written by other tools): a plain download as the caller.
+ */
+export function supabaseObjectReader(client: SupabaseClient): ObjectReader {
   return {
     async read(ref: ObjectRef) {
-      if (ref.kind !== 'local') return null;
-      const data = getUploadFiles().read(ref.uploadId, ref.file);
-      return data ? new Uint8Array(data) : null;
+      if (ref.kind !== 'storage' || parseImagePath(ref.path)) return null;
+      try {
+        const { data, error } = await client.storage.from(ref.bucket).download(ref.path);
+        if (error || !data) return null;
+        return new Uint8Array(await data.arrayBuffer());
+      } catch {
+        return null;
+      }
     },
   };
 }
@@ -53,51 +56,6 @@ export function compositeReader(...readers: ObjectReader[]): ObjectReader {
         if (out) return out;
       }
       return null;
-    },
-  };
-}
-
-const BATCH = 100;
-
-export function supabaseBucketRemover(admin: SupabaseClient, bucket: StorageBucket): ObjectRemover {
-  return {
-    async remove(paths: string[]): Promise<RemoveResult> {
-      const out: RemoveResult = { removed: [], failed: [] };
-      for (let i = 0; i < paths.length; i += BATCH) {
-        const chunk = paths.slice(i, i + BATCH);
-        try {
-          // Storage answers success for paths that do not exist, so retries are idempotent.
-          const { error } = await admin.storage.from(bucket).remove(chunk);
-          if (error) for (const p of chunk) out.failed.push({ path: p, error: error.message.slice(0, 200) });
-          else out.removed.push(...chunk);
-        } catch (e) {
-          for (const p of chunk) out.failed.push({ path: p, error: (e as Error).message.slice(0, 200) });
-        }
-      }
-      return out;
-    },
-  };
-}
-
-/** Deletes `<APP_DATA_DIR>/uploads/<uploadId>/` folders (object_path = upload id). */
-export function localUploadsRemover(root: string = join(dataDir(), 'uploads')): ObjectRemover {
-  return {
-    async remove(paths: string[]): Promise<RemoveResult> {
-      const out: RemoveResult = { removed: [], failed: [] };
-      for (const id of paths) {
-        if (!isUploadId(id)) {
-          out.failed.push({ path: id, error: 'not an upload id' });
-          continue;
-        }
-        try {
-          const dir = join(root, id.toLowerCase());
-          if (existsSync(dir)) rmSync(dir, { recursive: true, force: true });
-          out.removed.push(id);
-        } catch (e) {
-          out.failed.push({ path: id, error: (e as Error).message.slice(0, 200) });
-        }
-      }
-      return out;
     },
   };
 }

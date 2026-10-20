@@ -29,6 +29,8 @@ export interface TableSpec {
   order: string[];
   household: RowSource | null;
   member: RowSource | null;
+  /** Table has no SELECT grant: read through this member-checked RPC `(p_household_id) -> jsonb array` instead. */
+  rpc?: string;
 }
 
 const H = { kind: 'household' } as const;
@@ -73,7 +75,8 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
 
   { table: 'ingredient_prices', file: 'prices.json', key: 'ingredient_prices', order: ID, household: H, member: self('created_by') },
   { table: 'product_packs', file: 'prices.json', key: 'product_packs', order: ID, household: H, member: self('created_by') },
-  { table: 'household_product_snapshots', file: 'prices.json', key: 'product_snapshots', order: ['barcode'], household: H, member: self('linked_by') },
+  // RPC-only table (X2, D187): a shared product cache of the household, not personal data -> household scope only.
+  { table: 'household_product_snapshots', file: 'prices.json', key: 'product_snapshots', order: ['barcode'], household: H, member: null, rpc: 'household_product_snapshots' },
 
   { table: 'ai_usage', file: 'ai_usage.json', key: 'ai_usage', order: ID, household: H, member: self('user_id') },
 ];
