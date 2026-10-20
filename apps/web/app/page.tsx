@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { Badge, Card, ErrorState, Skeleton, formatPence } from '@fr/ui';
-import { basketLabel, defaultDashboardSource, relativeDay } from '../lib/dashboard/source';
+import { basketLabel, defaultDashboardSource } from '../lib/dashboard/source';
 import type { DashboardData } from '../lib/dashboard/types';
 import s from '../lib/dashboard/dashboard.module.css';
 import { MakeNow } from './make-now';
 import { RestockBanner } from './restock-banner';
+import { ActivityFeed } from './notifications/activity-feed';
 
 type State =
   | { status: 'loading' }
@@ -64,8 +65,7 @@ function Loading() {
 }
 
 function Dashboard({ data }: { data: DashboardData }) {
-  const { plannedMeals, plannedSlots, basket, shopping, tasks, activity } = data;
-  const now = new Date();
+  const { plannedMeals, plannedSlots, basket, shopping, tasks } = data;
   const pct = shopping.total ? Math.round((shopping.done / shopping.total) * 100) : 0;
 
   return (
@@ -185,21 +185,8 @@ function Dashboard({ data }: { data: DashboardData }) {
       </Card>
 
       <Card>
-        <section className={s.card} aria-labelledby="h-act">
-          <h2 id="h-act">Recent activity</h2>
-          {activity.length === 0 ? (
-            <p className={s.muted}>No household activity yet.</p>
-          ) : (
-            <ul className={s.list}>
-              {activity.map((a) => (
-                <li key={a.id}>
-                  <strong>{a.actor}</strong> {a.text}{' '}
-                  <span className={s.muted}>({relativeDay(a.at, now)})</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        {/* Real household activity, derived from the shopping log, plans, recipes and members (P1-C, D387). */}
+        <ActivityFeed limit={8} />
       </Card>
     </div>
     </>

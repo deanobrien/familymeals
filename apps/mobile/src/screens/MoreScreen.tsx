@@ -5,6 +5,7 @@ import { MIN_TAP, Muted, Text, useStyles } from './ui';
 
 /** Entries of the "More" tab (keeps the bottom bar at four items; other lanes add their rows here). */
 export const MORE_ENTRIES: ReadonlyArray<{ key: string; title: string; hint: string; href: string }> = [
+  { key: 'notifications', title: 'Notifications and activity', hint: 'Your notifications and what the household has been doing', href: '/notifications' },
   { key: 'plan', title: 'Meal planner', hint: 'Plan the week, or describe it and review a proposal', href: '/plan' },
   { key: 'pantry', title: 'Pantry', hint: 'What you have in, expiry dates, use what you have', href: '/pantry' },
   { key: 'pantry-scan', title: 'Scan groceries', hint: 'Photos or barcodes into your pantry', href: '/pantry/scan' },

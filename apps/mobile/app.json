@@ -31,6 +31,12 @@
             "text/*"
           ]
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#2E7D32"
+        }
       ]
     ],
     "android": {

@@ -80,6 +80,12 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
   { table: 'household_product_snapshots', file: 'prices.json', key: 'product_snapshots', order: ['barcode'], household: H, member: null, rpc: 'household_product_snapshots' },
 
   { table: 'ai_usage', file: 'ai_usage.json', key: 'ai_usage', order: ID, household: H, member: self('user_id') },
+
+  // P1-C (D380): a member's own notification choices and their notification centre. RLS only shows each member their own
+  // rows, so the household scope is "the requester's own" too. Push device tokens are NOT exported (EXCLUDED_TABLES).
+  { table: 'notification_settings', file: 'notifications.json', key: 'settings', order: ['household_id', 'user_id'], household: self('user_id'), member: self('user_id') },
+  { table: 'notification_preferences', file: 'notifications.json', key: 'preferences', order: ['type'], household: self('user_id'), member: self('user_id') },
+  { table: 'notifications', file: 'notifications.json', key: 'notifications', order: ID, household: self('user_id'), member: self('user_id') },
 ];
 
 export const EXCLUDED_TABLES: readonly string[] = [
@@ -91,6 +97,10 @@ export const EXCLUDED_TABLES: readonly string[] = [
   'storage_cleanup_queue',
   'deletion_ledger',
   'data_export_requests',
+  // P1-C: push endpoints are credentials for a device, delivery attempts and the job cursor are internal.
+  'notification_devices',
+  'notification_delivery_attempts',
+  'notification_job_state',
 ];
 
 /** Derived/search columns that carry no information of their own. */

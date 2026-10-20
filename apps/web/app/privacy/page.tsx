@@ -47,6 +47,14 @@ export default function PrivacyPage() {
           permission first. We use it only to filter your meal plans and warn you about conflicts.
         </li>
         <li>
+          <em>Notifications (only if you turn them on):</em> your notification choices and quiet hours, the
+          notifications we have shown you and whether you have read them, and, for push, a token for each browser or
+          phone you switch on. We use them only to send you the reminders and household updates you chose. Push
+          messages say what kind of update it is (for example &ldquo;Food to use soon&rdquo;) and never include allergy
+          details, receipt contents or item names, because they can appear on a locked screen. You can turn push off on
+          any device, or change what you get, in Settings &gt; Notifications; notifications are deleted after 90 days.
+        </li>
+        <li>
           <em>Basic technical records:</em> for example which pages errored, so we can keep the
           service safe. We do not put the content of your recipes, receipts or health information in
           these records.
@@ -74,6 +82,12 @@ export default function PrivacyPage() {
           <em>Open Food Facts:</em> when you scan a barcode, the barcode number (not your name, account or household) is sent to
           Open Food Facts to look the product up. Product data &copy; Open Food Facts contributors, ODbL; see{' '}
           <a href="/about/sources">Data sources</a>.
+        </li>
+        <li>
+          <em>Push delivery:</em> to deliver a push we pass the generic message and your device&rsquo;s push token to
+          the push service of your device: Expo and Google Firebase Cloud Messaging for the Android app, or your
+          browser&rsquo;s push service (for example Google, Mozilla, Microsoft or Apple) for the website. They see the
+          token and the generic text, not your account details.
         </li>
         <li>We never sell your data or use it for advertising.</li>
       </ul>

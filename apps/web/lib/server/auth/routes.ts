@@ -48,6 +48,8 @@ export const BEARER_API_PREFIXES: readonly string[] = [
   // P1-B (D370, D378): recipe from a web link; soft dislikes under /api/settings/.
   '/api/import/',
   '/api/settings/',
+  // P1-C notifications (D380): centre, activity feed, settings, device registration, test.
+  '/api/notifications',
 ];
 
 export function acceptsBearer(pathname: string, authorization: string | null | undefined): boolean {

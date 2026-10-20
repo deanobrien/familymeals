@@ -2692,6 +2692,20 @@ export type Database = {
     };
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string };
+      activity_events: {
+        Args: { p_household_id: string; p_limit?: number; p_since: string; p_until: string };
+        Returns: {
+          actor_id: string;
+          actor_name: string;
+          at: string;
+          household_id: string;
+          id: string;
+          list_id: string;
+          ref_id: string;
+          subject: string;
+          type: string;
+        }[];
+      };
       apply_shopping_command: {
         Args: {
           p_command: Json;
@@ -2716,6 +2730,10 @@ export type Database = {
       };
       cancel_account_deletion: { Args: Record<PropertyKey, never>; Returns: boolean };
       cancel_household_deletion: { Args: { p_household_id: string }; Returns: undefined };
+      complete_test_push: {
+        Args: { p_invalid_device_ids?: string[]; p_notification_id: string; p_sent: boolean };
+        Returns: undefined;
+      };
       copy_store_layout: { Args: { p_from_store: string; p_household_id: string; p_to_store: string }; Returns: number };
       create_invitation: {
         Args: {
@@ -2773,8 +2791,42 @@ export type Database = {
           user_id: string;
         }[];
       };
+      jobs_expiry_candidates: {
+        Args: { p_until: string };
+        Returns: {
+          category: string;
+          display_name: string;
+          expires_on: string;
+          household_id: string;
+          item_id: string;
+          source: string;
+        }[];
+      };
+      jobs_notification_recipients: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          expiry_lead_days: number;
+          household_id: string;
+          morning_hour: number;
+          prefs: Json;
+          quiet_enabled: boolean;
+          quiet_end: string;
+          quiet_start: string;
+          time_zone: string;
+          user_id: string;
+        }[];
+      };
       jobs_prepare_account_purge: { Args: { p_user_id: string }; Returns: string };
       jobs_purge_due: { Args: { p_limit?: number }; Returns: Json };
+      jobs_recent_shoppers: {
+        Args: { p_since: string };
+        Returns: {
+          household_id: string;
+          last_at: string;
+          list_id: string;
+          user_id: string;
+        }[];
+      };
       jobs_status: { Args: { p_max_attempts?: number }; Returns: Json };
       list_receipts: { Args: { p_household_id: string }; Returns: Json };
       list_recipes: {
@@ -2797,6 +2849,7 @@ export type Database = {
       member_leave: { Args: { p_household_id: string }; Returns: undefined };
       metric_base_factor: { Args: { u: Database['public']['Enums']['unit'] }; Returns: number };
       my_account_deletion: { Args: Record<PropertyKey, never>; Returns: string };
+      notification_type_is_valid: { Args: { p_type: string }; Returns: boolean };
       planner_household_profile: { Args: { p_household_id: string }; Returns: Json };
       purge_household: { Args: { p_household_id: string }; Returns: undefined };
       quantity_is_valid: {
@@ -2839,12 +2892,17 @@ export type Database = {
         Returns: Json;
       };
       refresh_recipe_search: { Args: { p_recipe_id: string }; Returns: undefined };
+      register_push_device: {
+        Args: { p_channel: string; p_household_id: string; p_keys?: Json; p_label?: string; p_platform: string; p_token: string };
+        Returns: string;
+      };
       replace_pantry_items: { Args: { p_household_id: string; p_items: Json }; Returns: undefined };
       request_account_deletion: { Args: Record<PropertyKey, never>; Returns: string };
       request_household_deletion: {
         Args: { p_grace?: string; p_household_id: string };
         Returns: string;
       };
+      request_test_notification: { Args: { p_household_id: string }; Returns: string };
       save_household_ai_settings: {
         Args: { p_config: Json; p_household_id: string; p_keys: Json; p_provider: string };
         Returns: undefined;
@@ -2929,6 +2987,7 @@ export type Database = {
         Args: { u: Database['public']['Enums']['unit'] };
         Returns: Database['public']['Enums']['dimension'];
       };
+      unregister_push_device: { Args: { p_token: string }; Returns: number };
       void_purchase: { Args: { p_event_id: string; p_void_id: string }; Returns: Json };
     };
     Enums: {
