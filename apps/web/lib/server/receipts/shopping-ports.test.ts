@@ -30,6 +30,20 @@ describe('receipts <-> shopping list', () => {
     expect(l).toMatchObject({ ingredientId: lentilsId, outstanding: { value: 500, unit: 'g' } });
   });
 
+  it('an item with no canonical id is resolved by exact name so its receipt price can be recorded (LT1 D231)', async () => {
+    const cat = getIngredientCatalogue();
+    const ctx = { converter: cat.converter };
+    const repo = new InMemoryShoppingRepository(ctx);
+    await repo.submit(HH, { type: 'add_item', commandId: 'n1', actor: 'u', at, itemId: 'i-typed', displayName: 'Red lentils', category: 'Dry goods', quantity: { kind: 'exact', value: 500, unit: 'g', originalText: '500 g' } });
+    await repo.submit(HH, { type: 'add_item', commandId: 'n2', actor: 'u', at, itemId: 'i-odd', displayName: 'Grandma special', category: 'Other', quantity: { kind: 'exact', value: 1, unit: 'item', originalText: '1' } });
+    const resolve = (name: string) => { const m = cat.matcher.match(name); return m.status === 'matched' ? m.ingredientId : undefined; };
+    const plain = await new ShoppingOutstandingSource(repo, ctx, cat.get).list(HH);
+    expect(plain.find((i) => i.shoppingListItemId === 'i-typed')!.ingredientId).toBeUndefined();
+    const items = await new ShoppingOutstandingSource(repo, ctx, cat.get, resolve).list(HH);
+    expect(items.find((i) => i.shoppingListItemId === 'i-typed')!.ingredientId).toBe(cat.matcher.match('red lentils').ingredientId);
+    expect(items.find((i) => i.shoppingListItemId === 'i-odd')!.ingredientId).toBeUndefined(); // no guessing
+  });
+
   it('confirmed purchases tick items (incompatible units fall back to a tick) and record receipt prices', async () => {
     const { cat, ctx, repo, lentilsId } = await setup();
     const prices = new InMemoryPriceStore([]);

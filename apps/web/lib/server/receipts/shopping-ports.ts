@@ -17,6 +17,12 @@ export class ShoppingOutstandingSource implements OutstandingItemsSource {
     private readonly repo: ShoppingRepository,
     private readonly ctx: EngineContext,
     private readonly ingredient: (id: string) => CanonicalIngredient | undefined,
+    /**
+     * Exact name/alias lookup for list items that carry no canonical id (a hand-typed recipe line, a manual add). Without
+     * it such an item can never receive a receipt price observation, so a household's own receipts would not change
+     * its recipe costs (found by the live suite, LT1 D231). Never guesses: only an exact catalogue match counts.
+     */
+    private readonly resolveName?: (name: string) => string | undefined,
   ) {}
 
   async list(householdId: string): Promise<OutstandingItem[]> {
@@ -24,12 +30,13 @@ export class ShoppingOutstandingSource implements OutstandingItemsSource {
     return deriveAll(state, this.ctx)
       .filter((v) => !v.item.removed && !v.noLongerNeeded && v.outstanding > 0)
       .map((v) => {
-        const ing = v.item.ingredientId ? this.ingredient(v.item.ingredientId) : undefined;
+        const ingredientId = v.item.ingredientId ?? this.resolveName?.(v.item.displayName);
+        const ing = ingredientId ? this.ingredient(ingredientId) : undefined;
         return {
           shoppingListItemId: v.item.id,
           name: (ing?.name ?? v.item.displayName).toLowerCase(),
           aliases: ing ? [...ing.aliases, v.item.displayName.toLowerCase()] : [],
-          ...(v.item.ingredientId ? { ingredientId: v.item.ingredientId } : {}),
+          ...(ingredientId ? { ingredientId } : {}),
           ...(ing?.form ? { form: ing.form } : {}),
           ...(v.quantified
             ? { outstanding: { kind: 'exact' as const, value: v.outstanding, originalText: '', ...(v.unit ? { unit: v.unit } : {}) } }

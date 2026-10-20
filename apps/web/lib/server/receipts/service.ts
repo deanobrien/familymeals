@@ -36,7 +36,10 @@ export async function getPipelineDeps(): Promise<PipelineDeps> {
     userId: ctx.userId,
     prepareImage: async (bytes) => (await prepareImage(bytes)).data,
     parser: { parseReceipt: (image) => provider.parseReceipt(image, { householdId: ctx.householdId }) },
-    outstanding: new ShoppingOutstandingSource(shopping, { converter: catalogue.converter }, catalogue.get),
+    outstanding: new ShoppingOutstandingSource(shopping, { converter: catalogue.converter }, catalogue.get, (name) => {
+      const m = catalogue.matcher.match(name);
+      return m.status === 'matched' ? m.ingredientId : undefined;
+    }),
     receipts: receiptRepository(),
     // Extras the shopper adds to the pantry go to the household's pantry service (D103); prices to the household's store.
     purchases: new ShoppingPurchaseSink(ctx.householdId, shopping, getPriceStore(), new PantryServiceReceiptPort(ctx.householdId, getPantryService(ctx.householdId))),
