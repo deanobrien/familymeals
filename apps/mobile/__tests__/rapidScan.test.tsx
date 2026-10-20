@@ -3,12 +3,18 @@ import { Linking } from 'react-native';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { AppProvider, useApp } from '@/data/AppContext';
 import { MockDataSource } from '@/data/mockDataSource';
+import { ServerApiProvider } from '@/data/ServerApiContext';
 import CaptureScreen from '@/screens/CaptureScreen';
+import PantryScanScreen from '@/screens/pantryScan/PantryScanScreen';
 import { createProductClient, type ProductClient, type ProductSummary } from '@/lib/productApi';
+import type { ServerApi } from '@/lib/serverApi';
 
-jest.mock('expo-router', () => ({ useRouter: () => ({ replace: jest.fn(), push: jest.fn() }) }));
+const mockPush = jest.fn();
+jest.mock('expo-router', () => ({ useRouter: () => ({ replace: jest.fn(), push: mockPush }) }));
 jest.mock('expo-image-picker', () => ({ launchImageLibraryAsync: jest.fn() }));
 jest.mock('expo-image-manipulator', () => ({ manipulateAsync: jest.fn(), SaveFormat: { JPEG: 'jpeg' } }));
+jest.mock('expo-haptics', () => ({ impactAsync: jest.fn(async () => undefined), ImpactFeedbackStyle: { Light: 'light' } }));
+jest.mock('expo-keep-awake', () => ({ activateKeepAwakeAsync: jest.fn(async () => undefined), deactivateKeepAwake: jest.fn(async () => undefined) }));
 jest.setTimeout(60000);
 const cameraProps: { current: { onBarcodeScanned?: (e: { data: string; type?: string }) => void } | null } = { current: null };
 jest.mock('expo-camera', () => ({
@@ -41,20 +47,43 @@ function fakeClient(answer: ProductClient['lookupBatch']) {
   return client;
 }
 
+const api: ServerApi = {
+  configured: true,
+  get: async () => ({ hits: [] }) as never,
+  post: async () => ({ lines: [] }) as never,
+  postForm: async () => { throw new Error('unused'); },
+  webUrl: () => null,
+  authHeaders: async () => ({}),
+};
+
 async function openRapid(client: ProductClient) {
   await render(
     <AppProvider dataSource={new MockDataSource()}>
-      <SetHousehold>
-        <CaptureScreen productClient={client} />
-      </SetHousehold>
+      <ServerApiProvider api={api}>
+        <SetHousehold>
+          <PantryScanScreen initialMode="barcodes" productClient={client} />
+        </SetHousehold>
+      </ServerApiProvider>
     </AppProvider>,
   );
-  await fireEvent.press(await screen.findByTestId('open-rapid', {}, { timeout: 8000 }));
   await fireEvent.press(await screen.findByTestId('rapid-start', {}, { timeout: 8000 }));
 }
 
-describe('continuous barcode scanning on the capture screen', () => {
-  it('tallies camera reads with the shared debounce, looks codes up in the background, and hands the tally to the web review', async () => {
+describe('continuous barcode scanning (Scan groceries > Barcodes)', () => {
+  it('the capture screen sends "Scan many barcodes" to the pantry scan, where the tally is reviewed on the phone', async () => {
+    mockPush.mockReset();
+    await render(
+      <AppProvider dataSource={new MockDataSource()}>
+        <SetHousehold>
+          <CaptureScreen productClient={fakeClient(async () => ({ ok: false, fatal: false, message: 'x' }))} />
+        </SetHousehold>
+      </AppProvider>,
+    );
+    await fireEvent.press(await screen.findByTestId('open-rapid', {}, { timeout: 8000 }));
+    expect(mockPush).toHaveBeenCalledWith('/pantry/scan?mode=barcodes');
+  });
+
+  it('tallies camera reads with the shared debounce, looks codes up in the background, and reviews on the phone (no web hand-off)', async () => {
     // Real time keeps flowing (waitFor needs it); the test only adds an offset to jump past the same-code cool-down.
     const realNow = Date.now.bind(Date);
     let offset = 0;
@@ -95,9 +124,16 @@ describe('continuous barcode scanning on the capture screen', () => {
     await fireEvent.press(screen.getByTestId('rapid-undo'));
     expect(screen.getByTestId('rapid-counter')).toHaveTextContent('3 items scanned');
 
-    // Review on the web: the tally travels in the link.
+    // Review stays on the phone: one row per product with the tallied count (a summary without the full record is unmatched).
     await fireEvent.press(screen.getByTestId('rapid-review'));
-    expect(open).toHaveBeenCalledWith(`http://web.test/pantry/scan?mode=rapid&codes=${encodeURIComponent(`${BEANS}x2,${FUSILLI}x1`)}`);
+    expect(await screen.findByTestId('scan-review', {}, { timeout: 8000 })).toBeTruthy();
+    expect(screen.getAllByTestId('scan-row')).toHaveLength(2);
+    expect(screen.getAllByTestId('row-count').map((c) => c.props.value)).toEqual(['2', '1']);
+    expect(open).not.toHaveBeenCalled();
+
+    // Back to scanning keeps the tally.
+    await fireEvent.press(screen.getByTestId('scan-back'));
+    expect(await screen.findByTestId('rapid-counter', {}, { timeout: 8000 })).toHaveTextContent('3 items scanned');
     jest.restoreAllMocks();
   });
 
@@ -111,6 +147,13 @@ describe('continuous barcode scanning on the capture screen', () => {
     await fireEvent.press(screen.getByTestId('rapid-add'));
     expect(screen.getByTestId('rapid-counter')).toHaveTextContent('1 item scanned');
     expect(screen.getByText('Looking up...')).toBeTruthy(); // a network failure keeps it pending, never an error row
+    // Reviewing while the lookup is pending: the row can be counted or named, and blocks confirm until it is.
+    await fireEvent.press(screen.getByTestId('rapid-review'));
+    expect(await screen.findByTestId('row-looking-up', {}, { timeout: 8000 })).toBeTruthy();
+    expect(screen.getByTestId('scan-confirm').props.accessibilityState).toMatchObject({ disabled: true });
+    await fireEvent.press(screen.getByTestId('row-name-myself'));
+    await fireEvent.changeText(screen.getByTestId('row-name'), 'beans');
+    await waitFor(() => expect(screen.getByTestId('scan-confirm').props.accessibilityState).toMatchObject({ disabled: false }));
   });
 });
 

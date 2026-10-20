@@ -32,12 +32,12 @@ Standing rule (D310): every web feature also ships on Android unless a reason is
 | Recipe create / edit + ingredient matching | ✅ | ✅ | none (P0-B: form, "Matched to" picker, duplicates, copy, delete) |
 | Photo import full review/edit | ✅ | ✅ | none (P0-B: full on-phone review, same corrections as web) |
 | Discover | ✅ | ✅ | none (P0-B; "Add to plan" hands off to the web planner until P0-C ships the Android planner) |
-| Meal planner manual + prompt chips | ✅ | ❌ | build on Android |
+| Meal planner manual + prompt chips | ✅ | ✅ | P0-C (D341); needs device check. Discover "Add to plan" still opens the web planner (`/plan?add=`): wiring it to the Android planner is a follow-up |
 | Shopping list live / offline / aisles | ✅ | ✅ | none |
-| Multi-list + handwritten list scan | ✅ | ⚠️ | server endpoint only, no Android UI |
-| Pantry stock / expiry / use-what-I-have / photo-video scan | ✅ | ❌ | build on Android |
-| Barcode scanning | ✅ continuous | ⚠️ | tally only, review on web |
-| Receipts | ✅ | ❌ | build on Android |
+| Multi-list + handwritten list scan | ✅ | ✅ | P0-C (D346) |
+| Pantry stock / expiry / use-what-I-have / photo-video scan | ✅ | ⚠️ | P0-C (D342-D343): all but video frames (web-only, native module) and min stock (PR1 not merged) |
+| Barcode scanning | ✅ continuous | ✅ | P0-C (D344): review + confirm on the phone, haptics, keep-awake; device check |
+| Receipts | ✅ | ✅ | P0-C (D345) |
 | Settings: preferences / allergy consent / store aisles | ✅ | ✅ | P0-A (D325): preferences, allergy consent (same wording), AI provider note; store aisles via AS1; Android persists to the DB, the web preferences/allergy form does not yet (see HANDOVER) |
 | Data export + account/household deletion | ✅ | ✅ | P0-A (D322, D326): export via bearer + share sheet, household and account deletion with the web confirmations, cancel, countdown; account deletion 2 taps from Settings (Play blocker cleared, pending device check) |
 | Home dashboard, privacy/sources pages | ✅ | ⚠️ | privacy + sources open the web pages from Settings (D325); dashboard still to build |

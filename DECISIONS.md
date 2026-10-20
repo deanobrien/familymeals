@@ -798,6 +798,40 @@ Every feature available in the web app must also ship in the Android app (`apps/
 
 **PROPOSED exception - awaiting owner confirmation:** Settings -> AI provider (endpoint/key) is web-only. It is a one-off owner admin task and typing API keys on a phone adds little.
 
+
+
+## D340 Android parity API: thin JSON routes over the same server logic (P0-C)
+
+The phone is a client of the web server's logic, never a second copy of it. `apps/web/lib/server/api/handle.ts` (`withApi`) resolves the caller (web cookie, or `Authorization: Bearer <Supabase access token>` + household membership, D102), refuses writes for read-only households (403 `READ_ONLY`), and runs the handler inside `runWithDataContext` (D213) with the `{ error: { code, message, retryable } }` envelope. Routes added: `/api/plan` (+ `week`, `save`, `approve`, `parse`, `solve`, `propose`, `generate-shopping`, `ideas`, `ideas/draft`), `/api/pantry` (+ `ingredients`, `scan` made bearer-capable, `scan/preview`, `scan/confirm`), `/api/receipts` (+ `[id]`, `[id]/confirm`, `[id]/photo`), `/api/shopping/lists`, `/api/shopping/scan/preview`, `/api/shopping/scan/confirm`. `BEARER_API_PREFIXES` opts the families in. Where a service was bound to the cookie-only `getAppContext()` it now takes an explicit identity. The app side is `src/lib/serverApi.ts` (`ServerApi`, `ServerApiError`) plus per-feature clients with defensive parsers (the app never imports `@fr/ai` or `@fr/plan-orchestrator`); mock mode (no `EXPO_PUBLIC_API_BASE_URL`) shows "needs the server" through `ServerScreen`, it does not pretend.
+
+## D341 Android meal planner (P0-C)
+
+`/plan` (reached from the More tab): the week is a vertical day list (one-handed, not a 7-column grid) with slot editing (add / swap / move / duplicate, servings, eating out, leftovers, notes), reuse of a previous week, save draft and approve (server violations shown). Prompt planning mirrors web: "Understand my request" (the single AI call) -> editable constraint chips -> propose/solve -> review (constraint report, unmet explanations, re-imposed exclusions, gaps with "Find ideas") -> approve -> explicit "Generate shopping list". Weekly cost and nutrition keep the "unknown is never 0" rule. The D242 consent notice shows when exclusions are withheld. Hard exclusions are enforced by the server, not the app.
+
+## D342 Android pantry (P0-C)
+
+`/pantry`: stock by category, expiry badges (text, not colour alone), stale-item confirm, add / edit / correct / remove with ingredient search, post-purchase mode and stale-days settings, pending purchase adjustments, expiring, leftovers and "Use what I have". Minimum stock and restock suggestions (D280-D289) are NOT built on Android because lane PR1 has not merged into this branch; add them when it lands (web and Android together, D310).
+
+## D343 Android pantry photo scan (P0-C)
+
+`/pantry/scan` > Photos: up to 10 photos (PhotoCapture) -> `POST /api/pantry/scan` (now Bearer-capable and authenticated; previously it had no auth call) -> review rows (match / ambiguous / unmatched with picker or free text, counts, pack size, use-by / best-before, close-up re-scan, opt-in shelf-life estimate) -> merge preview -> confirm. Confirm is the only write. The pure review-row state, wire types and shelf-life table moved from `apps/web/lib/pantry` into `packages/engine/src/pantry/scan-review.ts` (web re-exports it, its tests are unchanged and green) so web and phone build the same commit payload; engine tests added. Limitation: video frame extraction stays web-only (needs a native module on the phone); photos cover the use case.
+
+## D344 Continuous barcode review and confirm on the phone (P0-C)
+
+"Scan many barcodes" no longer hands over to the web (supersedes the Android half of D274): after scanning, the tally becomes review rows (same engine helpers, product lookups through `POST /api/products`), with matching, pack size, optional dates, merge preview and confirm on the phone, linking scanned products on confirm exactly as web. Each COUNTED read gives a haptic tap (`expo-haptics`, vibration fallback), never one per repeat of the same pack, and the screen is kept awake (`expo-keep-awake`) while the camera session runs and released on pause or unmount. Decode speed, autofocus and haptic feel need a real phone.
+
+## D345 Android receipts (P0-C)
+
+`/receipts` and `/receipts/[id]`: list, capture one photo, review (retailer, date, printed vs computed total with a discrepancy warning, lines missing price), per-line confident matches PRE-SELECTED but only sent when the user confirms them, candidates and "pick another list item", quantity edits, extras with "also add to pantry", skip. Confirm sends only the explicitly confirmed `LineDecision`s (as web), then shows the summary. The receipt photo is fetched by `GET /api/receipts/[id]/photo` through the caller's own image store and displayed with the Authorization header (`ServerApi.authHeaders()`).
+
+## D346 Android shopping lists sheet and handwritten list scan (P0-C)
+
+Shopping screen: a lists sheet (switch / new / rename / archive) over `/api/shopping/lists`, shown only when the server API is configured, followed by a re-read of the active list. `/shopping-scan`: up to 4 photos -> `/api/shopping/scan` -> review (transcription vs parsed rows, edit / remove / add) -> destination (current list or a new named list) -> preview -> confirm. A single `batchId` per review session makes retries idempotent (D266).
+
+## D347 Navigation: a More tab keeps the bottom bar at five items or fewer (P0-C)
+
+Tabs are Recipes, Shopping, Capture, Settings (P0-A), More (five, the maximum). More lists Meal planner, Pantry, Scan groceries, Receipts, Handwritten list scan and Households (`MORE_ENTRIES` in `MoreScreen.tsx`); other lanes append rows there. Feature screens are stack routes under `apps/mobile/app` with their own titles. Shared pieces: `PhotoCapture`, `IngredientPicker`, `ServerApiContext`.
+
 ## D320 Android auth links: implicit flow, `familyrecipes://auth/callback`, no separate web fallback page (P0-A)
 
 Sign-up, resend-confirmation and forgot-password pass `emailRedirectTo` / `redirectTo` = `familyrecipes://auth/callback` (D214). The mobile Supabase client now sets `flowType: 'implicit'` explicitly: the link carries the tokens in the URL fragment, so it works after an app restart (PKCE would need a code verifier that may be gone). `type=recovery` in the fragment marks a password-reset link: the callback routes to `/reset-password`, otherwise to a pending invitation or the household picker. Expired / used / rejected links all read as the web's "expired or already used" text (`mapLinkError`) with buttons for sign-in and a new reset link. **Web fallback** is deliberately not a page: Supabase confirms the address when the link is clicked, whatever the redirect does, so on a device without the app the person simply signs in with their password (the sign-up screen says so). Owner step: add `familyrecipes://auth/callback` to Auth > URL Configuration > Redirect URLs. A web bounce page that re-opens the app is a possible follow-up.

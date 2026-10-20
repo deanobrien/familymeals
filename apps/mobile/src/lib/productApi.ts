@@ -3,7 +3,8 @@
  * user's Supabase access token; the Open Food Facts lookup, its User-Agent and its rate limits stay on the server.
  */
 
-import type { BatchEntry, BatchOutcome, BatchRequest } from '@fr/engine/pantry';
+import type { BatchEntry, BatchOutcome, BatchRequest, ScanLookupLike } from '@fr/engine/pantry';
+import { parseScanLookup, type ReviewProduct } from './pantryScanApi';
 
 export const PRODUCT_ATTRIBUTION = 'Product data © Open Food Facts contributors, ODbL';
 
@@ -31,6 +32,8 @@ export interface ProductSummary {
   /** Canonical ingredient suggestion, if any (display only; the pantry add happens on the web). */
   ingredientName?: string;
   sourceUrl: string;
+  /** The same lookup as pantry-scan review input (pack size, categories, the server's ingredient match), D344. */
+  review?: ScanLookupLike<ReviewProduct>;
 }
 
 export interface ProductClient {
@@ -84,7 +87,13 @@ export function summariseProduct(body: unknown): ProductSummary {
     nutrition: lines,
     ...(match && typeof match.name === 'string' ? { ingredientName: match.name } : {}),
     sourceUrl: src,
+    ...withReview(body),
   };
+}
+
+function withReview(body: unknown): { review?: ScanLookupLike<ReviewProduct> } {
+  const review = parseScanLookup(body);
+  return review ? { review } : {};
 }
 
 export function createProductClient(opts: {

@@ -14,7 +14,7 @@ import {
 import { createImportClient, type ExtractionOutcome, type ImportClient } from '@/lib/importApi';
 import { createProductClient, type ProductClient } from '@/lib/productApi';
 import BarcodeLookup from './BarcodeLookup';
-import RapidBarcodeScan from './RapidBarcodeScan';
+import { useRouter } from 'expo-router';
 import ImportReviewScreen from './ImportReviewScreen';
 import { Button, EmptyState, ErrorText, Loading, Muted, Text, useStyles } from './ui';
 
@@ -44,7 +44,8 @@ export default function CaptureScreen({
     [productClient, ds],
   );
   const [barcodeMode, setBarcodeMode] = useState(false);
-  const [rapidMode, setRapidMode] = useState(false);
+  // Continuous barcode scanning lives in Scan groceries (/pantry/scan), where the tally is reviewed and confirmed (D344).
+  const router = useRouter();
   const [permission, requestPermission] = useCameraPermissions();
   const camera = useRef<CameraView>(null);
   const [cameraOn, setCameraOn] = useState(false);
@@ -103,8 +104,6 @@ export default function CaptureScreen({
 
   if (busy) return <Loading label="Reading your recipe. This can take a moment" />;
 
-  if (rapidMode) return <RapidBarcodeScan client={products} householdId={householdId} onClose={() => setRapidMode(false)} />;
-
   if (barcodeMode) return <BarcodeLookup client={products} householdId={householdId} onClose={() => setBarcodeMode(false)} />;
 
   if (outcome) {
@@ -151,7 +150,7 @@ export default function CaptureScreen({
           }}
         />
       )}
-      <Button title="Scan many barcodes" onPress={() => setRapidMode(true)} testID="open-rapid" variant="secondary" />
+      <Button title="Scan many barcodes" onPress={() => router.push('/pantry/scan?mode=barcodes')} testID="open-rapid" variant="secondary" />
       <Button title="Scan a product barcode" onPress={() => setBarcodeMode(true)} testID="open-barcode" variant="secondary" />
       <Button title="Choose from library" onPress={pick} disabled={full} testID="pick-image" variant="secondary" />
 

@@ -1,30 +1,39 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Linking, ScrollView, TextInput, Vibration, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, TextInput, Vibration, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import {
-  createLookupTracker, decrement, emptyRapid, increment, normaliseRetailCode, sight, toSeedParam, totalCount, undo,
-  type LookupState, type LookupTracker, type RapidState,
-} from '@fr/engine/pantry';
+import * as Haptics from 'expo-haptics';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
+import { decrement, increment, normaliseRetailCode, sight, totalCount, undo } from '@fr/engine/pantry';
 import { RETAIL_BARCODE_TYPES } from '@/lib/barcode';
-import { PRODUCT_ATTRIBUTION, type ProductClient, type ProductSummary } from '@/lib/productApi';
+import { PRODUCT_ATTRIBUTION } from '@/lib/productApi';
+import type { RapidSession } from './pantryScan/useRapidSession';
 import { Button, ErrorText, Muted, Text, useStyles, useTheme } from './ui';
 
+export const KEEP_AWAKE_TAG = 'fr-rapid-scan';
+
+/** One short tap per COUNTED read (never per repeat of the same pack). Falls back to a vibration if haptics are unavailable. */
+function tick() {
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => Vibration.vibrate(40));
+}
+
 /**
- * Continuous barcode scanning (BS1): expo-camera keeps firing `onBarcodeScanned`; each event goes through the same
+ * Continuous barcode scanning (BS1, D344): expo-camera keeps firing `onBarcodeScanned`; each event goes through the same
  * debounce / tally as the web (`@fr/engine/pantry`): the same pack in view counts once, moving away and back counts again.
- * Lookups run in the background through POST /api/products (never blocking the camera). The app writes nothing: "Review on
- * the web" opens /pantry/scan with this tally handed over in the link, and the web review (matching, pack sizes, allergens,
- * dates, merge preview, confirm) takes over. Not done on Android (needs a native module): beep and keep-awake.
+ * Lookups run in the background (the session's tracker, POST /api/products) and never block the camera. Each counted
+ * read gives a haptic tick, and the screen is kept awake while the camera is running and not paused. "Review" hands the
+ * tally to the phone's own review (matching, pack sizes, dates, merge preview, confirm); nothing is written here.
  */
 export default function RapidBarcodeScan({
-  client,
-  householdId,
+  session,
+  onReview,
   onClose,
+  closeLabel = 'Back',
   now = Date.now,
 }: {
-  client: ProductClient;
-  householdId: string;
+  session: RapidSession;
+  onReview: () => void;
   onClose: () => void;
+  closeLabel?: string;
   now?: () => number;
 }) {
   const styles = useStyles();
@@ -32,41 +41,28 @@ export default function RapidBarcodeScan({
   const [permission, requestPermission] = useCameraPermissions();
   const [cameraOn, setCameraOn] = useState(false);
   const [paused, setPaused] = useState(false);
-  const [state, setState] = useState<RapidState>(emptyRapid);
-  const [lookups, setLookups] = useState<ReadonlyMap<string, LookupState<ProductSummary>>>(new Map());
   const [manual, setManual] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const ref = useRef<RapidState>(state);
-  const tracker = useRef<LookupTracker<ProductSummary> | null>(null);
-  const pausedRef = useRef(false);
-  pausedRef.current = paused;
+  const { state, lookups, commit, ref } = session;
+  const live = cameraOn && !!permission?.granted && !paused;
 
-  const getTracker = useCallback(() => {
-    tracker.current ??= createLookupTracker<ProductSummary>({
-      post: (req) => client.lookupBatch(householdId, req),
-      onChange: setLookups,
-    });
-    return tracker.current;
-  }, [client, householdId]);
-
-  useEffect(() => () => { tracker.current?.stop(); tracker.current = null; }, []);
-
-  const commit = useCallback((next: RapidState) => {
-    ref.current = next;
-    setState(next);
-    for (const i of next.items) getTracker().request(i.barcode);
-  }, [getTracker]);
+  // Keep the screen on only while the camera session is live; released on pause, on leaving and on unmount.
+  useEffect(() => {
+    if (!live) return undefined;
+    activateKeepAwakeAsync(KEEP_AWAKE_TAG).catch(() => undefined);
+    return () => { deactivateKeepAwake(KEEP_AWAKE_TAG).catch(() => undefined); };
+  }, [live]);
 
   function onScanned(event: { data: string; type?: string }) {
-    if (pausedRef.current) return;
+    if (paused) return;
     const code = normaliseRetailCode(event.data, event.type);
     if (!code) return;
     const r = sight(ref.current, code, now());
     if (r.counted) {
-      Vibration.vibrate(40);
+      tick();
       commit(r.state);
     } else {
-      ref.current = r.state; // `seen` bookkeeping only
+      session.note(r.state);
     }
   }
 
@@ -80,7 +76,6 @@ export default function RapidBarcodeScan({
   }
 
   const total = totalCount(state);
-  const reviewUrl = client.webUrl(`/pantry/scan?mode=rapid&codes=${encodeURIComponent(toSeedParam(state.items))}`);
   const labelFor = (code: string): string => {
     const st = lookups.get(code);
     if (st?.state === 'done') return st.value.name;
@@ -94,7 +89,7 @@ export default function RapidBarcodeScan({
       <Text style={styles.title} accessibilityRole="header">
         Scan many barcodes
       </Text>
-      <Muted>Point at each barcode in turn. Scan the same product again to add another. Nothing is added to your pantry here: finish on the web.</Muted>
+      <Muted>Point at each barcode in turn. Scan the same product again to add another. Nothing is added until you review and confirm.</Muted>
 
       {cameraOn && permission?.granted && (
         <View style={{ height: 260, marginVertical: 12 }}>
@@ -158,10 +153,14 @@ export default function RapidBarcodeScan({
       <Button title="Add" variant="secondary" testID="rapid-add" onPress={addManual} disabled={manual.trim() === ''} />
       <ErrorText message={error} />
 
-      {reviewUrl && (
-        <Button title="Review on the web" testID="rapid-review" disabled={total === 0} onPress={() => void Linking.openURL(reviewUrl)} />
-      )}
-      <Button title="Back to recipe capture" variant="secondary" onPress={onClose} testID="rapid-close" />
+      <Button
+        title={total === 0 ? 'Review' : `Review ${state.items.length} ${state.items.length === 1 ? 'product' : 'products'}`}
+        testID="rapid-review"
+        accessibilityHint="Check the scanned products, add dates, then add them to your pantry"
+        disabled={total === 0}
+        onPress={() => { setCameraOn(false); onReview(); }}
+      />
+      <Button title={closeLabel} variant="secondary" onPress={onClose} testID="rapid-close" />
     </ScrollView>
   );
 }

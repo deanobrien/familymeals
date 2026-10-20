@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { resolveRequestAuth } from '../../../../lib/server/auth/request-auth';
 import { runShoppingListScan } from '../../../../lib/server/shopping/list-scan';
+import { runWithDataContext } from '../../../../lib/server/supabase/request-data-context';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -40,7 +41,8 @@ export async function POST(req: Request) {
   if (!who.ok) return NextResponse.json({ error: { code: 'UNAUTHENTICATED', message: who.message, retryable: false } }, { status: who.status });
   if (who.auth.readOnly) return bad('This household is read-only while it is pending deletion.', 403);
 
-  const out = await runShoppingListScan({ images });
+  // Bearer callers have no cookies: the AI settings store must use the context verified above (D213).
+  const out = await runWithDataContext(who.auth.dataContext, () => runShoppingListScan({ images }));
   if (!out.ok) return NextResponse.json({ error: out.error }, { status: out.status });
   return NextResponse.json({ rows: out.rows, warnings: out.warnings, ...(out.title ? { title: out.title } : {}), ...(out.provider ? { provider: out.provider } : {}) });
 }

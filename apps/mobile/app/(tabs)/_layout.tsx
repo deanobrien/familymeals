@@ -18,6 +18,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="shopping" options={{ title: 'Shopping', tabBarAccessibilityLabel: 'Shopping tab' }} />
       <Tabs.Screen name="capture" options={{ title: 'Capture', tabBarAccessibilityLabel: 'Capture recipe tab' }} />
       <Tabs.Screen name="settings" options={{ title: 'Settings', tabBarAccessibilityLabel: 'Settings tab' }} />
+      <Tabs.Screen name="more" options={{ title: 'More', tabBarAccessibilityLabel: 'More: planner, pantry, receipts' }} />
     </Tabs>
   );
 }
