@@ -21,7 +21,8 @@
         {
           "photosPermission": "Allow Family Recipes to pick recipe and receipt photos."
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "android": {
       "package": "uk.ac.northumbria.familyrecipes",
@@ -38,7 +39,10 @@
               "pathPrefix": "/invite"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ],
       "adaptiveIcon": {
@@ -63,6 +67,13 @@
         "projectId": "ac0b4769-5441-42ec-b2ca-c9ff09f79393"
       }
     },
-    "owner": "suremedia111"
+    "owner": "suremedia111",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/ac0b4769-5441-42ec-b2ca-c9ff09f79393",
+      "fallbackToCacheTimeout": 0
+    }
   }
 }

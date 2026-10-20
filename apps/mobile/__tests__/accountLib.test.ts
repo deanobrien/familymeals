@@ -168,9 +168,9 @@ describe('small helpers', () => {
     expect(webUrl('/privacy', undefined)).toBeNull();
   });
   it('device preferences default to metric / en-GB, round-trip and survive junk', async () => {
-    expect(await loadDevicePrefs()).toEqual({ units: 'metric', locale: 'en-GB' });
-    await saveDevicePrefs({ units: 'imperial', locale: 'en-IE' });
-    expect(await loadDevicePrefs()).toEqual({ units: 'imperial', locale: 'en-IE' });
+    expect(await loadDevicePrefs()).toEqual({ units: 'metric', locale: 'en-GB', scanSound: true });
+    await saveDevicePrefs({ units: 'imperial', locale: 'en-IE', scanSound: false });
+    expect(await loadDevicePrefs()).toEqual({ units: 'imperial', locale: 'en-IE', scanSound: false });
   });
   it('recognises a recovery link by its type', () => {
     expect(parseAuthLink('familyrecipes://auth/callback#access_token=A&refresh_token=R&type=recovery')).toMatchObject({ kind: 'tokens', type: 'recovery' });

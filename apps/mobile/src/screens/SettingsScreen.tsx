@@ -182,6 +182,16 @@ function PreferencesSection({ household, onSaved }: { household: HouseholdSummar
         testID="pref-units"
       />
       <Muted style={{ marginBottom: 8 }}>Display only, on this phone. Your recipes keep their original quantities.</Muted>
+      <Segmented
+        label="Scan sound"
+        value={device.scanSound ? 'on' : 'off'}
+        onChange={(v) => setDevice((d) => ({ ...d, scanSound: v === 'on' }))}
+        options={[
+          { value: 'on', label: 'Beep on each scan' },
+          { value: 'off', label: 'Silent' },
+        ]}
+        testID="pref-scan-sound"
+      />
       <ErrorText message={error} />
       <Notice message={saved ? 'Preferences saved' : null} testID="prefs-saved" />
       <Button title={busy ? 'Saving...' : 'Save preferences'} onPress={save} disabled={busy} testID="pref-save" />

@@ -100,11 +100,8 @@ export default function RecipeDetailScreen() {
     load();
   };
 
-  const addToPlan = () => {
-    const url = recipes.webUrl(`/plan?add=${recipe.id}`);
-    if (url) void Linking.openURL(url);
-    else setNotice('The meal planner opens on the web app for now.');
-  };
+  // The in-app planner (P0-C) opens with this recipe waiting for a slot (D353).
+  const addToPlan = () => router.push({ pathname: '/plan', params: { add: recipe.id } });
 
   const edit = () => router.push({ pathname: '/recipe/edit/[id]', params: { id: recipe.id } });
 

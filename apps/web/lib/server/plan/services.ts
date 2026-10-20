@@ -176,13 +176,14 @@ export async function loadPlanServices(householdId: string): Promise<PlanService
     // exclusions apply only while consent is active, otherwise they are withheld and the consent notice counts them.
     const saved = peekMemorySettings(householdId);
     if (saved) {
-      const { weeklyBudgetPence: _old, ...rest } = svc.household;
-      svc.household = {
-        ...rest,
+      const next = {
+        ...svc.household,
         defaultServings: saved.defaultServings,
-        ...(saved.weeklyBudgetPence === null ? {} : { weeklyBudgetPence: saved.weeklyBudgetPence }),
         hardExclusions: saved.consentActive ? saved.exclusions.map((ingredientName) => ({ ingredientName, kind: 'allergy' as const })) : [],
       };
+      if (saved.weeklyBudgetPence === null) delete next.weeklyBudgetPence;
+      else next.weeklyBudgetPence = saved.weeklyBudgetPence;
+      svc.household = next;
       svc.withheldExclusions = saved.withheldExclusions;
     }
   }

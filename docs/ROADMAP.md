@@ -31,14 +31,14 @@ Standing rule (D310): every web feature also ships on Android unless a reason is
 | Recipes browse / detail | ✅ | ✅ | none (P0-B: search, filters, sort, collections, favourites, covers, household-default servings, cost + nutrition panels; needs a device check) |
 | Recipe create / edit + ingredient matching | ✅ | ✅ | none (P0-B: form, "Matched to" picker, duplicates, copy, delete) |
 | Photo import full review/edit | ✅ | ✅ | none (P0-B: full on-phone review, same corrections as web) |
-| Discover | ✅ | ✅ | none (P0-B; "Add to plan" hands off to the web planner until P0-C ships the Android planner) |
-| Meal planner manual + prompt chips | ✅ | ✅ | P0-C (D341); needs device check. Discover "Add to plan" still opens the web planner (`/plan?add=`): wiring it to the Android planner is a follow-up |
+| Discover | ✅ | ✅ | none (P0-B; "Add to plan" now opens the in-app planner with the recipe waiting for a slot, P0-D D353) |
+| Meal planner manual + prompt chips | ✅ | ✅ | P0-C (D341); needs device check. Discover / recipe "Add to plan" opens this planner (P0-D, D353) |
 | Shopping list live / offline / aisles | ✅ | ✅ | none |
 | Multi-list + handwritten list scan | ✅ | ✅ | P0-C (D346) |
 | Pantry stock / expiry / use-what-I-have / photo-video scan | ✅ | ⚠️ | P0-C (D342-D343): all but video frames (web-only, native module) and min stock (PR1 not merged) |
-| Barcode scanning | ✅ continuous | ✅ | P0-C (D344): review + confirm on the phone, haptics, keep-awake; device check |
+| Barcode scanning | ✅ continuous | ✅ | P0-C (D344): review + confirm on the phone, haptics, keep-awake; P0-D (D354): short beep per counted read on both (Settings "Scan sound", default on; silent mode respected); device check |
 | Receipts | ✅ | ✅ | P0-C (D345) |
-| Settings: preferences / allergy consent / store aisles | ✅ | ✅ | P0-A (D325): preferences, allergy consent (same wording), AI provider note; store aisles via AS1; Android persists to the DB, the web preferences/allergy form does not yet (see HANDOVER) |
+| Settings: preferences / allergy consent / store aisles | ✅ | ✅ | P0-A (D325): preferences, allergy consent (same wording), AI provider note; store aisles via AS1; web and Android now persist through one shared server module (P0-D, D350-D352: owner-only preferences, consent gate, withdraw consent keeps the list but stops it applying, notice counts it); units/locale are display-only per device; scan sound is a per-device setting on both |
 | Data export + account/household deletion | ✅ | ✅ | P0-A (D322, D326): export via bearer + share sheet, household and account deletion with the web confirmations, cancel, countdown; account deletion 2 taps from Settings (Play blocker cleared, pending device check) |
 | Home dashboard, privacy/sources pages | ✅ | ⚠️ | privacy + sources open the web pages from Settings (D325); dashboard still to build |
 | Settings -> AI provider | ✅ | - | proposed web-only (D310, awaiting owner confirmation) |
@@ -49,8 +49,8 @@ All durations are **estimates**, not commitments.
 
 ### Phase 0 - Finish the release (~1 wk + 2-3 wks parity)
 
-- Real-device APK test; scan beep / keep-awake / haptics.
-- Hourly purge Logic App (D259); Expo OTA updates; App Insights alerts.
+- Real-device APK test (scan beep, keep-awake and haptics are built; hearing/feeling them needs a phone).
+- Hourly purge Logic App (D259). **Built by P0-D, owner steps remain:** Expo OTA updates (D354: `eas update --channel preview`; first needs one new build) and Application Insights + two alerts (D355: DEPLOY-APP-SERVICE.md 3d).
 - Parity catch-up in 3 lanes:
   - **P0-A** account and household, including account deletion first (Play blocker).
   - **P0-B** recipe create/edit, full import review, discover, cost/nutrition panels, household servings.

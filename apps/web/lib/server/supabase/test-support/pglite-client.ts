@@ -21,7 +21,7 @@ class Builder implements PromiseLike<Res> {
   private cols = '*';
   private rows: Row[] = [];
   private values: Row = {};
-  private wheres: Array<{ col: string; op: 'eq' | 'neq' | 'in' | 'gt'; val: unknown }> = [];
+  private wheres: Array<{ col: string; op: 'eq' | 'neq' | 'in' | 'gt' | 'is'; val: unknown }> = [];
   private orders: string[] = [];
   private lo?: number;
   private hi?: number;
@@ -74,6 +74,11 @@ class Builder implements PromiseLike<Res> {
     this.wheres.push({ col, op: 'gt', val });
     return this;
   }
+  /** `.is(col, null)` = IS NULL (the only form the repositories use). */
+  is(col: string, val: null | boolean) {
+    this.wheres.push({ col, op: 'is', val });
+    return this;
+  }
   in(col: string, val: unknown[]) {
     this.wheres.push({ col, op: 'in', val });
     return this;
@@ -103,6 +108,7 @@ class Builder implements PromiseLike<Res> {
         params.push(w.val);
         return `${q(w.col)} = any($${params.length})`;
       }
+      if (w.op === 'is') return `${q(w.col)} is ${w.val === null ? 'null' : w.val ? 'true' : 'false'}`;
       params.push(w.val);
       return `${q(w.col)} ${w.op === 'eq' ? '=' : w.op === 'gt' ? '>' : '<>'} $${params.length}`;
     });

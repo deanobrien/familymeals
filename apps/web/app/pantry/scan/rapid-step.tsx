@@ -5,14 +5,14 @@ import { normaliseRetailCode, totalCount, type LookupState } from '@fr/engine/pa
 import { Button, Card, CardBody, Input } from '@fr/ui';
 import { CAMERA_MESSAGES, classifyCameraError, openRearCamera, type CameraSession } from '../../../lib/products/camera';
 import { createDecoder, type DecoderKind, type FrameDecoder } from '../../../lib/products/decoder';
-import { createScanFeedback, createScreenWake, type ScanFeedback, type ScreenWake } from '../../../lib/products/scan-feedback';
+import { SCAN_SOUND_KEY, createScanFeedback, createScreenWake, type ScanFeedback, type ScreenWake } from '../../../lib/products/scan-feedback';
 import { ROI_HEIGHT, ROI_WIDTH, startFrameLoop, type DrawCanvas } from '../../../lib/products/scan-loop';
 import { PRODUCT_ATTRIBUTION } from '../../../lib/products/types';
 import type { ProductLookupDto } from '../../../lib/products/types';
 import s from './scan.module.css';
 import type { RapidSession } from './use-rapid-session';
 
-const SOUND_KEY = 'fr.rapidscan.sound';
+const SOUND_KEY = SCAN_SOUND_KEY;
 const last4 = (code: string) => code.slice(-4);
 
 /** The line the tally shows for a code, in whatever state its lookup is. */

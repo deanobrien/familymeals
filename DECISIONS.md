@@ -854,7 +854,7 @@ The consent wording, allergen list, withheld-consent notice and the shared auth/
 
 ## D325 Android settings persist to the database; privacy pages are web links (P0-A)
 
-Default servings and weekly budget are saved to `households` (owner only; RLS decides, a member sees them locked). Allergies / foods to avoid are `household_exclusions` rows (`term`, kind `allergy`) with an `allergy_data` consent record for the signed-in member (same wording and checkbox, version v1; required before saving; "remove all" deletes the rows and withdraws consent); the planner already reads them (`planner_household_profile`) and Settings shows the withheld-consent count. Units and locale are display-only and stay on the device, like the web's "display only". NOTE for the web lane: the web preferences and allergy forms still end in `TODO(Supabase)` and do not save; the Android screens are the first to use the real tables. Privacy notice and data-sources pages open the web pages (one source of truth; the privacy draft still has owner TBDs). AI provider settings stay web-only (D310 proposed exception): Settings shows "Manage AI provider on the website." with a link.
+Default servings and weekly budget are saved to `households` (owner only; RLS decides, a member sees them locked). Allergies / foods to avoid are `household_exclusions` rows (`term`, kind `allergy`) with an `allergy_data` consent record for the signed-in member (same wording and checkbox, version v1; required before saving; "remove all" deletes the rows and withdraws consent); the planner already reads them (`planner_household_profile`) and Settings shows the withheld-consent count. Units and locale are display-only and stay on the device, like the web's "display only". (Superseded by D350: both platforms now use one server module and Android goes through `/api/settings`.) Privacy notice and data-sources pages open the web pages (one source of truth; the privacy draft still has owner TBDs). AI provider settings stay web-only (D310 proposed exception): Settings shows "Manage AI provider on the website." with a link.
 
 ## D326 Deletion on Android: same confirmations, two taps (P0-A)
 
@@ -883,3 +883,27 @@ Opens at the household default (fallback 4); the per-member, per-recipe override
 ## D335 Documented gaps (P0-B)
 
 "Add to plan" opens the web planner (`/plan?add=<id>`) until lane P0-C ships the Android planner. "Review in Settings" (consent notice) opens the web settings until P0-A. Recipe duplicate on Android opens the form prefilled (no cover, no verbatim original text) instead of a server copy.
+
+## D350 One settings module for web and Android (P0-D)
+
+`apps/web/lib/server/settings/service.ts` is the only place that validates and writes household preferences and the allergy list (`savePreferences`, `saveDietary`, `withdrawConsent`, `removeAllDietary`, `loadSettings`). It takes a caller (verified user + household, the caller's own Supabase client or null in mock mode, read-only flag) and a store: `SupabaseSettingsStore` (households, household_exclusions, consent_records under RLS: only an owner updates the household row, consent rows are own-rows-only, consent is recorded before exclusions) or `MemorySettingsStore`. Web server actions and `GET/POST /api/settings` (Bearer, `BEARER_API_PATHS`) both call it; `SupabaseAccountSource` on Android dropped its direct table code and calls the route (no fallback, as D330). Exclusions are written as `kind: allergy` with `consent_recorded_at` so the existing planner RPC applies them only while the recorder's consent is active. No migration. Tested against the real migrations in PGlite (`settings.pglite.test.ts`; the PGlite client double gained `.is(col, null)`).
+
+## D351 Withdrawing consent keeps the list but stops it applying (P0-D)
+
+New "Withdraw consent" action (web and Android): sets `withdrawn_at` on the member's allergy_data consent, leaves the exclusion rows, so `planner_household_profile` withholds them and the consent notice (planner, discover, settings, Android planner/discover) counts them; ticking the box and saving again re-applies them. "Remove all" still deletes the rows and withdraws. Mock mode mirrors this: after the first save, the in-memory settings drive the mock planner profile (servings, budget, exclusions only while consented) and the withheld count; until then the demo profile and the e2e seed endpoint behave as before.
+
+## D352 Units and locale stay display-only per device (P0-D)
+
+Not stored on the household (D325): web keeps them in the `fr_display` cookie (`units|locale`, validated on read, one year, not httpOnly: it is not sensitive), Android in AsyncStorage. Servings and weekly budget are household values (owner only).
+
+## D353 Android hand-offs are in-app (P0-D)
+
+Recipe detail / Discover "Add to plan" opens `/plan?add=<recipeId>` inside the app: the planner shows "Choose a slot for <title>" with Cancel and the first empty slot tapped receives the recipe (default servings, unsaved until Save/Approve as any edit). "Review in Settings" on the planner and Discover consent notices opens the Settings tab (the allergy section is on that screen). Supersedes the web links of D335.
+
+## D354 OTA updates and scan sound (P0-D)
+
+expo-updates with `updates.url` = `https://u.expo.dev/<projectId>`, `runtimeVersion: { policy: 'appVersion' }`, channel per EAS profile (preview, production); nothing was published (needs the owner's Expo login). Scan beep: expo-audio, generated 80 ms 1320 Hz WAV bundled as an asset, `playsInSilentMode: false`, mixes with other audio, setting "Scan sound" default on (AsyncStorage on Android; the web's existing Web Audio beep now also has a Settings checkbox on the shared localStorage key). jest mocks expo-audio globally.
+
+## D355 Application Insights through OpenTelemetry, opt-in (P0-D)
+
+`instrumentation.ts` -> `lib/server/monitoring.ts` -> `useAzureMonitor` only when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set, never throws, never loaded otherwise (tests, e2e, dev). Request metadata, failures and dependency timings only (no bodies, headers or cookies); incoming `/api/health`, `/_next/`, `/auth/`, `/api/images/`, `/invite/` and outgoing Supabase `/auth/v1/` are not traced; console capture limited to errors; non-HTTP instrumentations off; live metrics off. The packages are in `serverExternalPackages`. Owner steps (workspace-based resource in UK West, app setting, 5xx alert and availability test on `/api/health` e-mailing the owner): DEPLOY-APP-SERVICE.md 3d. Not verified against a real resource.

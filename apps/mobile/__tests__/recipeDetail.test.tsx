@@ -1,5 +1,4 @@
 import React from 'react';
-import { Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import RecipeDetailScreen from '@/screens/RecipeDetailScreen';
@@ -206,24 +205,14 @@ describe('RecipeDetailScreen: links, actions', () => {
     expect(router.back).not.toHaveBeenCalled();
   });
 
-  it('edits, duplicates (opens the form prefilled) and hands "Add to plan" to the web planner', async () => {
-    const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-    const api = createMockRecipesApi();
-    api.webUrl = (p) => `http://web.test${p}`;
-    await mountScreen(<RecipeDetailScreen />, { api });
+  it('edits, duplicates (opens the form prefilled) and opens the in-app planner for "Add to plan"', async () => {
+    await mountScreen(<RecipeDetailScreen />);
     await fireEvent.press(await screen.findByTestId('edit-recipe'));
     expect(router.push).toHaveBeenCalledWith({ pathname: '/recipe/edit/[id]', params: { id: 'r-1' } });
     await fireEvent.press(screen.getByTestId('duplicate-recipe'));
     expect(router.push).toHaveBeenCalledWith({ pathname: '/recipe/new', params: { from: 'r-1' } });
     await fireEvent.press(screen.getByTestId('add-to-plan'));
-    expect(open).toHaveBeenCalledWith('http://web.test/plan?add=r-1');
-    open.mockRestore();
-  });
-
-  it('says so when the planner link is not available', async () => {
-    await mountScreen(<RecipeDetailScreen />);
-    await fireEvent.press(await screen.findByTestId('add-to-plan'));
-    expect(await screen.findByTestId('notice')).toHaveTextContent(has('The meal planner opens on the web app for now.'));
+    expect(router.push).toHaveBeenCalledWith({ pathname: '/plan', params: { add: 'r-1' } });
   });
 
   it('shows times, source and tags', async () => {

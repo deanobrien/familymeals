@@ -5,11 +5,21 @@ import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { decrement, increment, normaliseRetailCode, sight, totalCount, undo } from '@fr/engine/pantry';
 import { RETAIL_BARCODE_TYPES } from '@/lib/barcode';
+import { loadDevicePrefs } from '@/lib/devicePrefs';
+import { playScanBeep } from '@/lib/scanSound';
 import { PRODUCT_ATTRIBUTION } from '@/lib/productApi';
 import type { RapidSession } from './pantryScan/useRapidSession';
 import { Button, ErrorText, Muted, Text, useStyles, useTheme } from './ui';
 
 export const KEEP_AWAKE_TAG = 'fr-rapid-scan';
+
+function useScanSound() {
+  const on = React.useRef(true);
+  useEffect(() => {
+    void loadDevicePrefs().then((p) => { on.current = p.scanSound; });
+  }, []);
+  return on;
+}
 
 /** One short tap per COUNTED read (never per repeat of the same pack). Falls back to a vibration if haptics are unavailable. */
 function tick() {
@@ -45,6 +55,8 @@ export default function RapidBarcodeScan({
   const [error, setError] = useState<string | null>(null);
   const { state, lookups, commit, ref } = session;
   const live = cameraOn && !!permission?.granted && !paused;
+  // "Scan sound" (Settings, default on): a short beep per counted read; silent mode is respected by the audio session.
+  const soundOn = useScanSound();
 
   // Keep the screen on only while the camera session is live; released on pause, on leaving and on unmount.
   useEffect(() => {
@@ -60,6 +72,7 @@ export default function RapidBarcodeScan({
     const r = sight(ref.current, code, now());
     if (r.counted) {
       tick();
+      if (soundOn.current) playScanBeep();
       commit(r.state);
     } else {
       session.note(r.state);

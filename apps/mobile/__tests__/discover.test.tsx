@@ -75,16 +75,13 @@ describe('DiscoverScreen', () => {
     expect(await screen.findByText('Could not reach the server.')).toBeTruthy();
   });
 
-  it('shows the consent notice (a count only) with a link to review it on the web', async () => {
-    const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+  it('shows the consent notice (a count only) with a button to the in-app Settings', async () => {
     const api = createMockRecipesApi();
     api.discoverFilters = async () => ({ categories: [], areas: [], sourceLabel: 'TheMealDB', withheld: 2 });
-    api.webUrl = (p) => `http://web.test${p}`;
     await mountScreen(<DiscoverScreen importClient={importClient()} />, { api });
     expect(await screen.findByTestId('consent-notice')).toHaveTextContent(has("2 allergy exclusions aren't being applied because consent hasn't been given"));
     await fireEvent.press(screen.getByTestId('consent-review'));
-    expect(open).toHaveBeenCalledWith('http://web.test/settings#h-diet');
-    open.mockRestore();
+    expect(router.push).toHaveBeenCalledWith('/(tabs)/settings');
   });
 
   it('"Surprise me" searches a random category and saves nothing by itself', async () => {

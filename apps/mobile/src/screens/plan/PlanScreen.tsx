@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { BackHandler, Pressable, ScrollView, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ServerScreen } from '@/data/ServerApiContext';
 import { consentNoticeText, createPlanClient, describeError, type PlanClient } from '@/lib/planApi';
 import { addDays, dateShort, dayShort, todayIso, weekDates, weekLabel } from '@/lib/plan/dates';
@@ -34,6 +34,10 @@ const titleOf = (e: PlanEntry, recipes: ReadonlyMap<string, RecipeLite>) =>
 
 export function PlanWeek({ client }: { client: PlanClient }) {
   const router = useRouter();
+  const { add } = useLocalSearchParams<{ add?: string }>();
+  // A recipe handed over from its detail / Discover "Add to plan": the next empty slot tapped receives it.
+  const [addId, setAddId] = useState<string | null>(null);
+  useEffect(() => { if (typeof add === 'string' && /^[\w-]{1,64}$/.test(add)) setAddId(add); }, [add]);
   const styles = useStyles();
   const theme = useTheme();
   const [page, setPage] = useState<PlanPage | null>(null);
@@ -180,9 +184,16 @@ export function PlanWeek({ client }: { client: PlanClient }) {
         </Notice>
       ) : null}
 
+      {addId ? (
+        <Notice tone="info" testID="add-pending" text={`Choose a slot for ${recipes.get(addId)?.title ?? 'this recipe'}.`}>
+          <Button title="Cancel" variant="secondary" onPress={() => { setAddId(null); router.setParams({ add: undefined }); }} testID="add-cancel" />
+        </Notice>
+      ) : null}
+
       {consent ? (
         <View testID="consent-notice" accessibilityRole="alert" style={styles.banner}>
-          <Text>{`${consent} - review in Settings on the web app (allergies section).`}</Text>
+          <Text>{`${consent} - `}</Text>
+          <Button title="Review in Settings" variant="secondary" onPress={() => router.push('/(tabs)/settings')} testID="consent-review" />
         </View>
       ) : null}
 
@@ -243,7 +254,13 @@ export function PlanWeek({ client }: { client: PlanClient }) {
                   testID={`slot-${date}-${mealType}`}
                   accessibilityRole="button"
                   accessibilityLabel={`Add meal to ${label} on ${dayShort(date)}`}
-                  onPress={() => setView({ name: 'pick', slot, mode: 'add' })}
+                  onPress={() => {
+                    if (addId) {
+                      apply(setRecipe(doc, slot, addId, page.defaultServings));
+                      setAddId(null);
+                      router.setParams({ add: undefined });
+                    } else setView({ name: 'pick', slot, mode: 'add' });
+                  }}
                   style={{ minHeight: MIN_TAP, justifyContent: 'center' }}
                 >
                   <Muted>{`${label}: + Add meal`}</Muted>

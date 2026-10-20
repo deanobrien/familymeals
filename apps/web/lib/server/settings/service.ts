@@ -39,8 +39,7 @@ async function guard(caller: SettingsCaller, write: boolean, fn: (s: SettingsSto
     await fn(store);
     return { ok: true, settings: await store.get(caller.householdId, caller.userId) };
   } catch (e) {
-    if (e instanceof SettingsError) return { ok: false, error: e.code };
-    return { ok: false, error: 'unknown' };
+    if (e instanceof SettingsError) return { ok: false, error: e.code };    return { ok: false, error: 'unknown' };
   }
 }
 

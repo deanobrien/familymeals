@@ -101,7 +101,6 @@ export default function DiscoverScreen({ importClient }: { importClient?: Import
   if (busy && !result) return <Loading label="Looking for recipes" />;
 
   const notice = options ? consentNoticeText(options.withheld) : null;
-  const settingsUrl = recipes.webUrl('/settings#h-diet');
 
   return (
     <ScrollView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled" testID="discover">
@@ -111,7 +110,7 @@ export default function DiscoverScreen({ importClient }: { importClient?: Import
       {notice && (
         <Section testID="consent-notice">
           <Text accessibilityRole="alert">{notice}.</Text>
-          {settingsUrl && <Button title="Review in Settings (web)" variant="secondary" onPress={() => void Linking.openURL(settingsUrl)} testID="consent-review" />}
+          <Button title="Review in Settings" variant="secondary" onPress={() => router.push('/(tabs)/settings')} testID="consent-review" />
         </Section>
       )}
       <Muted>Find new recipes to try. Nothing is added until you review and save it.</Muted>

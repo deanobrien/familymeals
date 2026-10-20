@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useTransition, type FormEvent } from 'react';
+import { useEffect, useState, useTransition, type FormEvent } from 'react';
 import { Badge, Button, Card, Checkbox, ConfirmDialog, Input, Select, useToast } from '@fr/ui';
 import s from '../../lib/dashboard/dashboard.module.css';
 import { AiProviderSection } from './ai-provider-section';
@@ -12,6 +12,7 @@ import type { AiSettingsView } from './ai-actions';
 import type { HouseholdSettings } from '../../lib/server/settings/types';
 import { removeAllDietaryAction, saveDietaryAction, savePreferencesAction, withdrawConsentAction } from './settings-actions';
 import { DEFAULT_DISPLAY_PREFS, type DisplayPrefs } from './display-prefs';
+import { SCAN_SOUND_KEY } from '../../lib/products/scan-feedback';
 import {
   COMMON_EXCLUSIONS,
   CONSENT_CHECKBOX_LABEL,
@@ -95,6 +96,23 @@ function PreferencesSection({ initial, isOwner }: { initial: SettingsInitial | u
   });
   const [errors, setErrors] = useState<Errors>({});
   const [pending, startTransition] = useTransition();
+  // Scan sound is a per-browser setting (like the Android app's): read after mount, applied immediately.
+  const [scanSound, setScanSound] = useState(true);
+  useEffect(() => {
+    try {
+      setScanSound(window.localStorage.getItem(SCAN_SOUND_KEY) !== 'off');
+    } catch {
+      /* default on */
+    }
+  }, []);
+  const changeScanSound = (on: boolean) => {
+    setScanSound(on);
+    try {
+      window.localStorage.setItem(SCAN_SOUND_KEY, on ? 'on' : 'off');
+    } catch {
+      /* not persisted */
+    }
+  };
 
   const set = (k: keyof PreferencesInput) => (v: string) => setValues((p) => ({ ...p, [k]: v }));
 
@@ -166,6 +184,7 @@ function PreferencesSection({ initial, isOwner }: { initial: SettingsInitial | u
           hint="Optional."
           error={errors.weeklyBudget}
         />
+        <Checkbox label="Beep when a barcode is scanned" checked={scanSound} onChange={(e) => changeScanSound(e.target.checked)} />
         {!isOwner && <p className={s.muted}>Only a household owner can change the servings and budget.</p>}
         {errors.form && (
           <p role="alert" style={{ margin: 0, color: 'var(--fr-danger)' }}>
