@@ -294,8 +294,10 @@ export interface LookupTracker<T> {
  * for products it already knows (household snapshots, cache) and queues the rest against Open Food Facts' rate limit.
  */
 export function createLookupTracker<T>(opts: TrackerOptions<T>): LookupTracker<T> {
-  const schedule = opts.schedule ?? ((fn, ms) => setTimeout(fn, ms));
-  const cancel = opts.cancel ?? ((h) => clearTimeout(h as ReturnType<typeof setTimeout>));
+  // This package has no DOM / Node typings: reach the platform timers through globalThis.
+  const timers = globalThis as unknown as { setTimeout(fn: () => void, ms: number): unknown; clearTimeout(h: unknown): void };
+  const schedule = opts.schedule ?? ((fn, ms) => timers.setTimeout(fn, ms));
+  const cancel = opts.cancel ?? ((h) => timers.clearTimeout(h));
   const pollMs = opts.pollMs ?? 1500;
   const maxBackoff = opts.maxBackoffMs ?? 10_000;
   const maxBatch = opts.maxBatch ?? 25;

@@ -63,7 +63,7 @@ describe('continuous barcode scanning on the capture screen', () => {
       results: Object.fromEntries(req.codes.map((c) => [c, c === BEANS ? { status: 'done' as const, lookup: summary(BEANS, 'Hearth & Field Baked Beans') } : { status: 'notfound' as const }])),
     }));
     jest.spyOn(Date, 'now').mockImplementation(() => realNow() + offset);
-    const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     await openRapid(client);
 
     // The camera fires many events for the same pack, plus a QR code and a misread: one item.

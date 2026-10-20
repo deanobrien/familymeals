@@ -51,6 +51,4 @@
 .stepper { display: flex; align-items: center; gap: var(--fr-space-2); flex: none; }
 .count { min-width: 2.5rem; text-align: center; font-weight: 700; font-size: var(--fr-text-lg); }
 .doneBar { position: sticky; bottom: calc(var(--fr-nav-h, 0px) + var(--fr-space-2)); z-index: 5; display: flex; flex-wrap: wrap; gap: var(--fr-space-3); align-items: center; padding: var(--fr-space-3); border-radius: var(--fr-radius-md); background: var(--fr-surface); border: 1px solid var(--fr-border); box-shadow: var(--fr-shadow-md); }
-.lookupRow { display: flex; flex-wrap: wrap; gap: var(--fr-space-3); align-items: center; }
-.entry { display: flex; flex-direction: column; gap: var(--fr-space-3); }
 @media (prefers-reduced-motion: reduce) { .flash { animation-duration: 1ms; } .focusRing { animation-duration: 1ms; } }

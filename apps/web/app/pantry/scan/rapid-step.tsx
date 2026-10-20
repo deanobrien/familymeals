@@ -211,6 +211,16 @@ export function RapidStep({ session, onDone, onCancel }: Props) {
               Point the camera at each barcode, one after another: it beeps and adds each one. Scan the same product again
               to add another. Nothing is added to your pantry until you review and confirm.
             </p>
+            <details data-testid="rapid-tips">
+              <summary style={{ minHeight: 'var(--fr-target)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>Tips for fast scanning</summary>
+              <ul className={s.muted} style={{ margin: 0, paddingLeft: '1.25rem' }}>
+                <li>Hold the barcode inside the dashed box, about a hand's width from the phone, in good light. Use Torch if your phone has it.</li>
+                <li>Each product beeps and flashes once. Keep scanning: names fill in on their own and never slow the camera.</li>
+                <li>Three of the same tin? Scan it three times, or press + on its line. Wrong one? Undo last.</li>
+                <li>Keep the screen awake and the phone upright; Pause stops reading while you tidy the list.</li>
+                <li>Barcodes carry no dates. Add dates later in the review, or photograph a date for the ones that matter.</li>
+              </ul>
+            </details>
             {session.restored && state.items.length > 0 && (
               <p role="note" className={s.info} data-testid="rapid-restored">We kept your {total} scanned {total === 1 ? 'item' : 'items'} from before the page reloaded.</p>
             )}
