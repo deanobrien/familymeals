@@ -57,7 +57,9 @@ export function useStoreMode(opts: {
   const [storeId, setStoreId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [learn, setLearnState] = useState(false);
-  const [ticks, setTicks] = useState<string[]>([]);
+  // a ref, not state: ticks can land faster than a re-render, and none may be lost
+  const ticksRef = useRef<string[]>([]);
+  const setTicks = (t: string[]) => { ticksRef.current = t; };
   const [suggestion, setSuggestion] = useState<StoreMode['suggestion']>(null);
   const [pendingCount, setPendingCount] = useState(0);
 
@@ -192,13 +194,13 @@ export function useStoreMode(opts: {
     if (!learn || !store) return;
     const aisle = resolveAisle(view.item, store.id, book.aisles, book.placements);
     if (!aisle) return;
-    const next = [...ticks, aisle.id];
+    const next = [...ticksRef.current, aisle.id];
     setTicks(next);
     const current = sortedAisles(store.id, book.aisles).map((a) => a.id);
     const s = suggestRouteOrder(current, next.map((aisleId) => ({ aisleId })));
     const label = (id: string) => book.aisles.find((a) => a.id === id)?.label ?? '';
     setSuggestion(s.changed ? { order: s.order, labels: s.order.map(label) } : null);
-  }, [learn, store, book, ticks]);
+  }, [learn, store, book]);
 
   const applySuggestion = useCallback(async () => {
     if (!store || !suggestion) return;

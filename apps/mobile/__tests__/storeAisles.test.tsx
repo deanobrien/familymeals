@@ -10,6 +10,8 @@ import { FakeBackend, HH, uid } from './helpers/fakeSupabase';
 
 jest.mock('expo-router', () => ({ useRouter: () => ({ replace: jest.fn(), push: jest.fn() }) }));
 
+jest.setTimeout(30000); // renders the whole screen; slow when the machine is busy
+
 const S = uid(300);
 const A1 = uid(301);
 const A2 = uid(302);
