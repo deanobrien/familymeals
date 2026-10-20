@@ -55,3 +55,15 @@
 .chip:focus-visible { outline: 2px solid var(--fr-focus); outline-offset: 2px; }
 .pickerEmpty { color: var(--fr-text-muted); margin: 0; }
 .newAisle { display: grid; grid-template-columns: 1fr auto; gap: var(--fr-space-2); align-items: end; }
+
+/* SL1: scan entry, list switcher */
+.listBar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--fr-space-3); margin: var(--fr-space-3) 0; }
+.listName { font-weight: 600; font-size: var(--fr-text-lg); min-width: 0; overflow-wrap: anywhere; }
+.scanLink { flex: none; }
+@media (max-width: 640px) {
+  .scanLink { width: 100%; order: -1; }
+}
+.listsSection { display: grid; gap: var(--fr-space-2); }
+.listsHeading { margin: 0; font-size: var(--fr-text-base); }
+.listsHint { color: var(--fr-text-muted); font-size: var(--fr-text-sm); }
+.listsError { color: var(--fr-danger); margin: 0; }

@@ -6,7 +6,7 @@ import { chromium, type FullConfig } from '@playwright/test';
  */
 const WARM = [
   '/', '/recipes', '/recipes/new', '/recipes/00000000-0000-4000-8000-000000000001', '/recipes/import',
-  '/recipes/discover', '/plan', '/shopping', '/pantry', '/receipts', '/household', '/settings', '/privacy', '/sign-in', '/sign-up',
+  '/recipes/discover', '/plan', '/shopping', '/shopping/scan', '/pantry', '/receipts', '/household', '/settings', '/privacy', '/sign-in', '/sign-up',
 ];
 
 /**

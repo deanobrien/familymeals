@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardBody, Checkbox, EmptyState, ShoppingCategoryHeader, formatPence, useToast } from '@fr/ui';
 import type { ItemView, Quantity } from '../../lib/shopping/engine';
@@ -11,17 +12,18 @@ import type { Notice, Transport } from '../../lib/shopping/controller';
 import { useShopping } from '../../lib/shopping/use-shopping';
 import { createSupabaseLiveFeed, type LiveFeed, type RealtimeClientLike } from '../../lib/shopping/live';
 import { createSupabaseBrowserClient } from '../../lib/supabase/browser';
-import { AISLES, type SnapshotDto } from '../../lib/shopping/types';
+import { AISLES, type ShoppingListInfo, type SnapshotDto } from '../../lib/shopping/types';
 import { generateShoppingFromPlan, snapshotShopping, syncShopping } from './actions';
 import { ItemFormSheet, PartialSheet, type ItemFormValues } from './forms';
 import { ItemRow } from './item-row';
 import { AislePickerSheet, LearnToggle, RouteSuggestion, StoreSelector } from './store-ui';
 import { useStoreMode } from './use-store-mode';
 import { emptyStoreBook, type StoreBook } from '../../lib/shopping/engine';
+import { ListsSheet } from './lists-sheet';
 import styles from './shopping.module.css';
 
 const transport: Transport = {
-  sync: (commands, cursor) => syncShopping(commands, cursor),
+  sync: (commands, cursor, listId) => syncShopping(commands, cursor, listId),
   snapshot: () => snapshotShopping(),
 };
 
@@ -30,8 +32,10 @@ const AISLE_ORDER: string[] = [...AISLES];
 /** "1" -> "Aisle 1"; named aisles ("Frozen") are shown as they are. */
 const aisleTitle = (label: string): string => (/^\d+[a-z]?$/i.test(label) ? `Aisle ${label}` : label);
 
-export function ShoppingClient({ initial, planId, approvedPlanId, actorId, prices, realtimeHouseholdId, storeBook, householdId }: {
+export function ShoppingClient({ initial, lists = [], planId, approvedPlanId, actorId, prices, realtimeHouseholdId, storeBook, householdId }: {
   initial: SnapshotDto;
+  /** The household's lists (SL1): the active one first, then archived ones. */
+  lists?: ShoppingListInfo[];
   /** /shopping?plan=<id>: build the list from that approved plan once. */
   planId?: string;
   /** The household's latest approved plan (for the empty-state button). */
@@ -50,6 +54,7 @@ export function ShoppingClient({ initial, planId, approvedPlanId, actorId, price
   const [showCompleted, setShowCompleted] = useState(false);
   const [partialFor, setPartialFor] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [listsOpen, setListsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -210,6 +215,13 @@ export function ShoppingClient({ initial, planId, approvedPlanId, actorId, price
 
   return (
     <div data-hydrated={mounted} data-live={state.live ? 'true' : 'false'} data-testid="shopping-root" data-store={activeStore?.id ?? ''} className={activeStore ? styles.instore : undefined}>
+      <div className={styles.listBar}>
+        <Link href="/shopping/scan" className={`fr-btn fr-btn--primary fr-btn--lg ${styles.scanLink}`} data-testid="scan-list-link">
+          <span aria-hidden="true">📷</span> Scan a handwritten list
+        </Link>
+        <span className={styles.listName} data-testid="list-name">{state.meta.listName ?? 'Shopping list'}</span>
+        <Button variant="secondary" size="sm" onClick={() => setListsOpen(true)} data-testid="lists-button">Lists</Button>
+      </div>
       <StoreSelector mode={storeMode} />
       <div className={styles.toolbar}>
         <Button onClick={() => { setEditingId(null); setFormOpen(true); }}>Add item</Button>
@@ -248,10 +260,17 @@ export function ShoppingClient({ initial, planId, approvedPlanId, actorId, price
         <EmptyState
           icon="cart"
           title="Your list is empty"
-          description="Add an item, or build the list from your meal plan."
-          action={approvedPlanId
-            ? <Button variant="secondary" onClick={() => router.push(`/shopping?plan=${encodeURIComponent(approvedPlanId)}`)}>Generate from plan</Button>
-            : <Button variant="secondary" onClick={() => router.push('/plan')}>Plan your week first</Button>}
+          description="Add an item, scan a handwritten list, or build the list from your meal plan."
+          action={
+            <>
+              <Link href="/shopping/scan" className="fr-btn fr-btn--primary fr-btn--md" data-testid="empty-scan-link">
+                <span aria-hidden="true">📷</span> Scan a handwritten list
+              </Link>
+              {approvedPlanId
+                ? <Button variant="secondary" onClick={() => router.push(`/shopping?plan=${encodeURIComponent(approvedPlanId)}`)}>Generate from plan</Button>
+                : <Button variant="secondary" onClick={() => router.push('/plan')}>Plan your week first</Button>}
+            </>
+          }
         />
       )}
 
@@ -315,6 +334,14 @@ export function ShoppingClient({ initial, planId, approvedPlanId, actorId, price
         onSubmit={submitPartial}
       />
       <AislePickerSheet mode={storeMode} view={byId(placingId)} onClose={() => setPlacingId(null)} />
+      <ListsSheet
+        open={listsOpen}
+        onOpenChange={setListsOpen}
+        lists={lists}
+        currentName={state.meta.listName ?? 'Shopping list'}
+        flush={() => controller.sync()}
+        onChanged={() => router.refresh()}
+      />
       <ItemFormSheet
         open={formOpen}
         onOpenChange={(o) => { setFormOpen(o); if (!o) setEditingId(null); }}

@@ -2680,6 +2680,8 @@ export type Database = {
         Returns: Json;
       };
       shopping_item_outstanding: { Args: { p_item_id: string }; Returns: number };
+      shopping_list_activate: { Args: { p_household_id: string; p_list_id: string }; Returns: string };
+      shopping_list_create: { Args: { p_household_id: string; p_list_id?: string; p_name: string }; Returns: string };
       shopping_list_snapshot: { Args: { p_household_id: string }; Returns: Json };
       transfer_ownership: {
         Args: { p_household_id: string; p_new_owner_member_id: string };
