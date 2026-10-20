@@ -42,6 +42,12 @@ export default function ShoppingListScreen() {
     return () => sub.remove();
   }, [refresh]);
 
+  // Live updates while this screen is mounted: Realtime hints (and a poll only while the feed is down) re-read the list.
+  useEffect(() => {
+    if (!householdId || !ds.watchShopping) return undefined;
+    return ds.watchShopping(householdId, () => void refresh());
+  }, [ds, householdId, refresh]);
+
   async function act(fn: () => Promise<unknown>) {
     setActionError(null);
     try {

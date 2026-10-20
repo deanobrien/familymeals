@@ -21,6 +21,8 @@ pnpm dev:live                     # app on http://localhost:3131 against the loc
 pnpm test:e2e:live                # opt-in live-supabase Playwright project (e2e/live/, own dev server on 3133); 20/20 pass
 ```
 
+Uploaded photos (recipe covers, import pages, receipt photos) use private Supabase Storage through `ImageStore` when `DATA_BACKEND=supabase` (ST1, D190-D196; `POST /api/jobs/storage-cleanup` with `CRON_SECRET` does cleanup; see docs/DEPLOY-APP-SERVICE.md 4b); local files only in dev / mock mode.
+
 Regenerate `packages/db/src/database.types.ts` after each migration (D141). `supabase/seed.sql` is generated: `pnpm --filter @fr/refdata build:sql-seed` (D145). Auth locally: email confirmation on (read the link in Mailpit), minimum password 10. Another local Supabase project (golfbook) owns 543xx, hence 554xx; never stop its containers. Deploy: `scripts/package-appservice.ps1` -> `dist/appservice.zip` (D150-D154; start `node apps/web/server.js`, health `/api/health`).
 
 Other commands: `pnpm --filter @fr/mobile test`, `pnpm mobile:export` (Android bundle check), `pnpm --filter @fr/db test` (all migrations + RLS on in-process PGlite), `pnpm exec supabase <cmd>` (CLI; the local stack needs Docker), `scripts/package-appservice.ps1` (builds `dist/appservice.zip` for Azure; PowerShell, Windows). Every change must leave build, test, typecheck and lint green.

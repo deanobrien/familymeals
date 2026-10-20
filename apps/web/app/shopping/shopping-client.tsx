@@ -195,7 +195,7 @@ export function ShoppingClient({ initial, planId, approvedPlanId, actorId, price
   const hasAnything = live.length > 0 || history.length > 0;
 
   return (
-    <div data-hydrated={mounted} data-testid="shopping-root">
+    <div data-hydrated={mounted} data-live={state.live ? 'true' : 'false'} data-testid="shopping-root">
       <div className={styles.toolbar}>
         <Button onClick={() => { setEditingId(null); setFormOpen(true); }}>Add item</Button>
         <Checkbox
