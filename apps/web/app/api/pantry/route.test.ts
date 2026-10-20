@@ -158,3 +158,53 @@ describe('leftovers', () => {
     expect((await errorOf(await post({ action: 'leftovers', title: 'x', portionsCooked: 'a', portionsEaten: 1 }))).message).toBe('Portions must be whole numbers.');
   });
 });
+
+describe('minimum stock (PR1, D280-D289)', () => {
+  type RV = import('../../../lib/restock/types').RestockView;
+  type RB = import('../../../lib/restock/types').RestockBannerData;
+  const restockView = async () => ((await (await GET(new Request(`http://t/api/pantry?householdId=${H}&part=restock`))).json()) as { restock: RV }).restock;
+  const banner = async () => ((await (await GET(new Request(`http://t/api/pantry?householdId=${H}&part=banner`))).json()) as { banner: RB }).banner;
+
+  it('set minimum -> running low -> banner -> add to list -> covered; snooze, settings and remove', async () => {
+    const tom = allItems(await view()).find((i) => i.name === 'tinned tomatoes')!;
+    expect((await post({ action: 'setMinimum', ingredientId: tom.ingredientId, unit: 'can', min: 6 })).status).toBe(200);
+    let r = await restockView();
+    expect(r.suggestions[0]).toMatchObject({ name: 'tinned tomatoes', quantityLabel: '4 cans' });
+    expect(r.pars[0]).toMatchObject({ belowMin: true, available: 2 });
+    expect((await banner()).items).toMatchObject([{ name: 'tinned tomatoes', quantityLabel: '4 cans' }]);
+
+    expect((await post({ action: 'addRestock' })).status).toBe(200);
+    r = await restockView();
+    expect(r.suggestions).toEqual([]);
+    expect((await banner()).items).toEqual([]);
+
+    const parId = r.pars[0]!.id;
+    expect((await post({ action: 'snoozeRestock', id: parId, days: 7 })).status).toBe(200);
+    expect((await post({ action: 'restockSettings', autoAdd: true })).status).toBe(200);
+    expect((await restockView()).settings.autoAdd).toBe(true);
+    expect((await post({ action: 'removeMinimum', id: parId })).status).toBe(200);
+    expect((await restockView()).pars).toEqual([]);
+  });
+
+  it('refuses bad input with the web messages; unknown ids and missing fields', async () => {
+    expect((await errorOf(await post({ action: 'setMinimum', name: 'x', unit: 'item', min: 0 }))).message).toBe('The minimum must be more than zero.');
+    expect((await errorOf(await post({ action: 'setMinimum', unit: 'item', min: 2 }))).message).toBe('Choose an ingredient or type a name.');
+    expect((await post({ action: 'removeMinimum' })).status).toBe(400);
+    expect((await post({ action: 'removeMinimum', id: 'nope' })).status).toBe(422);
+    expect((await post({ action: 'restockSettings' })).status).toBe(400);
+  });
+
+  it('auto-add mode adds restock items after a pantry write', async () => {
+    const tom = allItems(await view()).find((i) => i.name === 'tinned tomatoes')!;
+    await post({ action: 'setMinimum', ingredientId: tom.ingredientId, unit: 'can', min: 6 });
+    await post({ action: 'restockSettings', autoAdd: true });
+    expect((await post({ action: 'add', name: 'rice', value: 1, unit: 'kg' })).status).toBe(200);
+    expect((await restockView()).suggestions).toEqual([]); // the list now covers it
+  });
+
+  it('a read-only household can read but not change minimums', async () => {
+    outcome = { ok: true, auth: { userId: 'u', householdId: H, readOnly: true, dataContext: null, defaultServings: 4 } };
+    expect((await post({ action: 'setMinimum', name: 'x', unit: 'item', min: 2 })).status).toBe(403);
+    expect((await GET(new Request(`http://t/api/pantry?householdId=${H}&part=restock`))).status).toBe(200);
+  });
+});

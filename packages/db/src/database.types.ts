@@ -1106,6 +1106,100 @@ export type Database = {
           },
         ];
       };
+      pantry_par_levels: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          display_name: string;
+          enabled: boolean;
+          household_id: string;
+          id: string;
+          ingredient_id: string | null;
+          min_value: number;
+          pack_unit: Database['public']['Enums']['unit'] | null;
+          pack_value: number | null;
+          restock_to_value: number | null;
+          snoozed_until: string | null;
+          unit: Database['public']['Enums']['unit'];
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          display_name: string;
+          enabled?: boolean;
+          household_id: string;
+          id?: string;
+          ingredient_id?: string | null;
+          min_value: number;
+          pack_unit?: Database['public']['Enums']['unit'] | null;
+          pack_value?: number | null;
+          restock_to_value?: number | null;
+          snoozed_until?: string | null;
+          unit: Database['public']['Enums']['unit'];
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          display_name?: string;
+          enabled?: boolean;
+          household_id?: string;
+          id?: string;
+          ingredient_id?: string | null;
+          min_value?: number;
+          pack_unit?: Database['public']['Enums']['unit'] | null;
+          pack_value?: number | null;
+          restock_to_value?: number | null;
+          snoozed_until?: string | null;
+          unit?: Database['public']['Enums']['unit'];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'pantry_par_levels_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'pantry_par_levels_ingredient_id_fkey';
+            columns: ['ingredient_id'];
+            isOneToOne: false;
+            referencedRelation: 'ingredients';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      restock_settings: {
+        Row: {
+          auto_add: boolean;
+          household_id: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          auto_add?: boolean;
+          household_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          auto_add?: boolean;
+          household_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'restock_settings_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: true;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       pantry_settings: {
         Row: {
           household_id: string;

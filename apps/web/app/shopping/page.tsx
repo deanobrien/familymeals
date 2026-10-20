@@ -2,7 +2,9 @@ import { getAppContext } from '../../lib/server/context';
 import { getMealPlanStore } from '../../lib/server/plan/repository';
 import { loadPriceBook } from '../../lib/server/shopping/price-book';
 import { getShoppingStore, shoppingUsesRealtime } from '../../lib/server/shopping/store';
+import { getRestockService } from '../../lib/server/restock/deps';
 import { getStoreBook } from '../../lib/server/stores/store';
+import { RestockBanner } from '../restock-banner';
 import { ShoppingClient } from './shopping-client';
 
 export const metadata = { title: 'Shopping list' };
@@ -16,10 +18,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
   const initial = await store.snapshot(ctx.householdId);
   const lists = await store.listLists(ctx.householdId);
   const storeBook = await getStoreBook().book(ctx.householdId);
+  const restockBanner = await getRestockService(ctx.householdId).getBanner(ctx.householdId).catch(() => null);
   const latestApproved = (await getMealPlanStore().list(ctx.householdId)).find((d) => d.status === 'approved');
   return (
     <>
       <h1>Shopping list</h1>
+      <RestockBanner initial={restockBanner} />
       <ShoppingClient
         // A different list (switched, or started by a scan) is a fresh client: new controller, cursor and pending state.
         key={initial.meta.listId ?? 'none'}

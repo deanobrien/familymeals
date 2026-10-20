@@ -20,6 +20,8 @@ export class PantryServiceReceiptPort {
   constructor(
     private readonly householdId: string,
     private readonly pantry: Pick<PantryService, 'addPurchased'>,
+    /** PR1: runs after stock was added (auto-restock hook). Never throws. */
+    private readonly onChanged?: () => Promise<void>,
   ) {}
 
   async addToPantry(entries: PantryEntry[]): Promise<void> {
@@ -28,5 +30,6 @@ export class PantryServiceReceiptPort {
       this.householdId,
       entries.map((e) => ({ name: e.name, ...toPantryAmount(e.quantity) })),
     );
+    await this.onChanged?.();
   }
 }

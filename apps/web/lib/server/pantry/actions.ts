@@ -5,6 +5,7 @@ import type { ActionResult, IngredientHit, LeftoverView, PantrySettings } from '
 import { getAppContext } from '../context';
 import type { ScanCommitRow, ScanPreviewLine } from '../../pantry/scan-types';
 import { getCurrentHouseholdId, getPantryService } from './deps';
+import { autoRestockAfterPantryChange } from '../restock/deps';
 import { linkScannedProducts } from '../products/link';
 import type { AddItemInput, CorrectItemInput, LeftoverInput } from './service';
 
@@ -13,7 +14,10 @@ async function mutate(run: (hh: string) => Promise<ActionResult>): Promise<Actio
   if (ctx.readOnly) return { ok: false, error: 'This household is read-only while it is pending deletion.' };
   try {
     const res = await run(ctx.householdId);
-    if (res.ok) revalidatePath('/pantry');
+    if (res.ok) {
+      revalidatePath('/pantry');
+      await autoRestockAfterPantryChange(ctx.householdId, ctx.userId); // PR1: no-op unless the household turned auto-add on
+    }
     return res;
   } catch {
     return { ok: false, error: 'Something went wrong. Please try again.' };

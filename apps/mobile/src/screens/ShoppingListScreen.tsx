@@ -8,6 +8,7 @@ import { emptyStoreBook, orderForStore, resolveAisle, sortedAisles, type StoreBo
 import { useServerApi } from '@/data/ServerApiContext';
 import type { ShoppingListItem } from '@/viewModels';
 import { ShoppingListsBar } from './ShoppingListsSheet';
+import { RestockBannerCard } from './pantry/Restock';
 import { Button, EmptyState, ErrorState, ErrorText, Loading, MIN_TAP, Muted, Text, Toast, useStyles } from './ui';
 
 type Row = { kind: 'header'; key: string; label: string } | { kind: 'item'; key: string; item: ShoppingListItem; aisle: string | null | undefined };
@@ -152,6 +153,7 @@ export default function ShoppingListScreen() {
           onChanged={refresh}
         />
       )}
+      {api.configured && <RestockBannerCard api={api} householdId={householdId} version={syncVersion} onAdded={refresh} />}
       {pending.size > 0 && (
         <View style={styles.banner}>
           <Text style={styles.pending} testID="pending-banner">

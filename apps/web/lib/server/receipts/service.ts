@@ -15,6 +15,7 @@ import type { ReceiptRepository } from './ports';
 import { getPantryService } from '../pantry/deps';
 import { ensureDemoReceipts, getMemoryServices } from './memory';
 import { PantryServiceReceiptPort } from './pantry-port';
+import { autoRestockAfterPantryChange } from '../restock/deps';
 import { ShoppingOutstandingSource, ShoppingPurchaseSink } from './shopping-ports';
 import { confirmReceipt, loadReview, processReceiptUpload, ReceiptError, type PipelineDeps } from './pipeline';
 
@@ -61,7 +62,7 @@ export async function getPipelineDeps(identity?: PipelineIdentity): Promise<Pipe
     }),
     receipts: receiptRepository(),
     // Extras the shopper adds to the pantry go to the household's pantry service (D103); prices to the household's store.
-    purchases: new ShoppingPurchaseSink(ctx.householdId, shopping, getPriceStore(), new PantryServiceReceiptPort(ctx.householdId, getPantryService(ctx.householdId))),
+    purchases: new ShoppingPurchaseSink(ctx.householdId, shopping, getPriceStore(), new PantryServiceReceiptPort(ctx.householdId, getPantryService(ctx.householdId), () => autoRestockAfterPantryChange(ctx.householdId, ctx.userId))),
     newId: () => randomUUID(),
     ...(ctx.images ? { images: ctx.images } : {}),
     now: () => new Date(),
