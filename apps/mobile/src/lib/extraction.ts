@@ -45,15 +45,29 @@ export const defaultRotator: Rotator = async (img) => {
 export async function prepareForUpload(
   images: CapturedImage[],
   resize: Resizer = defaultResizer,
+  /** The route's own limit: recipe 6 (default), pantry scan 10, handwritten list 4, receipt 1. */
+  max: number = MAX_IMAGES,
 ): Promise<UploadImage[]> {
   if (images.length === 0) throw new Error('No images captured');
-  if (images.length > MAX_IMAGES) throw new Error(`At most ${MAX_IMAGES} images per recipe`);
+  if (images.length > max) throw new Error(`At most ${max} images at a time`);
   const out: UploadImage[] = [];
   for (let i = 0; i < images.length; i++) {
     const r = await resize(images[i] as CapturedImage);
     out.push({ ...r, name: `page-${i + 1}.jpg`, mimeType: 'image/jpeg' });
   }
   return out;
+}
+
+/**
+ * Multipart body for the scan endpoints (`/api/pantry/scan`, `/api/shopping/scan`, `/api/receipts`): `householdId`,
+ * optional extra text fields (e.g. `focus`), and each photo under `field` (default `images`).
+ */
+export function buildImagesForm(householdId: string, images: UploadImage[], extra: Record<string, string> = {}, field = 'images'): FormData {
+  const form = new FormData();
+  form.append('householdId', householdId);
+  for (const [k, v] of Object.entries(extra)) form.append(k, v);
+  for (const img of images) form.append(field, { uri: img.uri, name: img.name, type: img.mimeType } as unknown as Blob);
+  return form;
 }
 
 /** Multipart body for the server extraction endpoint (React Native file-part shape). Field names match the web route. */

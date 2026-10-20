@@ -1,4 +1,5 @@
 import 'server-only';
+import { effectiveNodeEnv } from '../../e2e-mode';
 import { resetRecipeRepository } from '../../recipes/factory';
 import { resetPantryServices } from '../pantry/deps';
 import { resetPlanServices } from '../plan/services';
@@ -7,17 +8,20 @@ import { getPriceStore } from '../prices/store';
 import { getProductSnapshotStore } from '../products/store';
 import { resetMemoryServices } from '../receipts/memory';
 import { getShoppingRepository } from '../shopping/repository';
+import { getMemoryStoreBook } from '../stores/repository';
+import { resetMemoryExportAudit } from '../export/audit';
 
 /**
  * Dev/e2e-only reset of every in-memory store (DECISIONS D36). Never available in production: the route
  * handlers call devToolsAllowed() first and answer 404 otherwise.
  */
-export function devToolsAllowed(env: { NODE_ENV?: string | undefined } = process.env): boolean {
-  return env.NODE_ENV !== 'production';
+export function devToolsAllowed(env: Parameters<typeof effectiveNodeEnv>[0] = process.env): boolean {
+  return effectiveNodeEnv(env) !== 'production';
 }
 
 export function resetInMemoryStores(): string[] {
   getShoppingRepository().reset();
+  getMemoryStoreBook().reset();
   resetPlanServices();
   resetPantryServices();
   resetMemoryServices();
@@ -25,5 +29,6 @@ export function resetInMemoryStores(): string[] {
   resetRecipeCalculators();
   getProductSnapshotStore().reset();
   resetRecipeRepository();
-  return ['shopping', 'plans', 'pantry', 'receipts', 'prices', 'products', 'recipes'];
+  resetMemoryExportAudit();
+  return ['shopping', 'stores', 'plans', 'pantry', 'receipts', 'prices', 'products', 'recipes', 'exports'];
 }

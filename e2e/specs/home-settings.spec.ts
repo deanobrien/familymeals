@@ -42,14 +42,33 @@ test('settings: validation, consent required, export and delete flows', async ({
   await page.getByRole('button', { name: 'Save dietary information' }).click();
   await expect(page.getByText('Dietary information saved')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Request data export' }).click();
-  await expect(page.getByRole('button', { name: 'Export requested' })).toBeDisabled();
+  // Export (DX1): demo mode exports the in-memory recipe library as a zip, rate limited per scope.
+  await page.getByRole('button', { name: 'Export whole household' }).click();
+  const link = page.getByTestId('export-download');
+  await expect(link).toBeVisible();
+  const href = await link.getAttribute('href');
+  expect(href).toMatch(/^\/api\/export\/[0-9a-f-]{36}$/);
+  const zip = await page.request.get(href!);
+  expect(zip.status()).toBe(200);
+  expect(zip.headers()['content-type']).toBe('application/zip');
+  expect(zip.headers()['content-disposition']).toMatch(/^attachment; filename="family-recipes-export-\d{8}\.zip"$/);
+  const body = await zip.body();
+  expect(body.subarray(0, 2).toString()).toBe('PK');
+  for (const name of ['README.txt', 'manifest.json', 'data/recipes.json', 'recipes.csv']) expect(body.includes(name)).toBe(true);
+  await page.getByRole('button', { name: 'Export whole household' }).click();
+  await expect(page.getByTestId('export-error')).toContainText('one export every 24 hours');
+  expect((await page.request.get('/api/export/00000000-0000-4000-8000-000000000000')).status()).toBe(404);
 
+  // Household deletion needs typed name + password; demo mode cannot delete (needs Supabase).
   await page.getByRole('button', { name: 'Delete household' }).first().click();
   const dialog = page.getByRole('dialog');
-  await expect(dialog).toContainText('14 days');
+  await expect(dialog).toContainText('14-day grace period');
+  await dialog.getByLabel(/Type the household name/).fill('The Smiths (A)');
+  await dialog.getByLabel('Your password').fill('not-used-in-mock-mode');
   await dialog.getByRole('button', { name: 'Delete household' }).click();
-  await expect(page.getByRole('button', { name: 'Deletion scheduled' })).toBeDisabled();
+  await expect(dialog.getByRole('alert')).toContainText('unavailable in local mock mode');
+  await dialog.getByRole('button', { name: 'Keep household' }).click();
+  await expect(page.getByRole('button', { name: 'Delete my account' })).toBeVisible();
 });
 
 test('privacy notice renders and marks TBD items', async ({ page }) => {

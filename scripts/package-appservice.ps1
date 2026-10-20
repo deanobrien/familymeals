@@ -24,6 +24,7 @@ param(
   [switch]$SkipInstall
 )
 $ErrorActionPreference = 'Stop'
+if ($env:E2E_PRODUCTION_BUILD) { throw 'Refusing to package: E2E_PRODUCTION_BUILD is set (it disables CSP/HSTS and relaxes production guards). Unset it and rerun.' }
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $dist = Join-Path $repo 'dist'
 $zip = Join-Path $dist 'appservice.zip'

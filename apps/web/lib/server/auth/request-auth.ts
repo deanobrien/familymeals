@@ -5,10 +5,10 @@ import 'server-only';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { readPublicEnv, resolveAuthMode } from '../../supabase/env';
 import type { DataContext } from '../supabase/backend';
-import { getHouseholdContext } from './household-context';
+import { getHouseholdContext, type HouseholdContext } from './household-context';
 import { loadMemberships } from './household-service';
 import { MOCK_SANDBOX_PATTERN } from './mock';
-import { isReadOnly, isUuid, type HouseholdSummary } from './memberships';
+import { isReadOnly, isUuid, pickActiveMembership, type HouseholdSummary } from './memberships';
 
 export interface RequestAuth {
   userId: string;
@@ -17,6 +17,8 @@ export interface RequestAuth {
   readOnly: boolean;
   /** The caller's own client + household for the Supabase repositories; null in mock-auth demo mode. */
   dataContext: DataContext | null;
+  /** The chosen household's default serving count (the recipe detail opens at this). */
+  defaultServings: number;
 }
 
 export type AuthOutcome = { ok: true; auth: RequestAuth } | { ok: false; status: 400 | 401 | 403; message: string };
@@ -75,11 +77,67 @@ export async function resolveBearerAuth(token: string, requestedHouseholdId: str
         userId: data.user.id,
         householdId: chosen.id,
         readOnly: isReadOnly(chosen),
+        defaultServings: chosen.defaultServings,
         dataContext: { client, householdId: chosen.id, userId: data.user.id },
       },
     };
   } catch {
     return fail(401, 'Your sign-in was not accepted. Please sign in again.');
+  }
+}
+
+/** The slice of a household context the export service needs (`HouseholdContext` minus cookie-only parts). */
+export type BearerHouseholdContext = Pick<HouseholdContext, 'user' | 'household' | 'role' | 'isOwner' | 'readOnly' | 'memberships' | 'supabase' | 'mode'>;
+
+export type ContextOutcome =
+  | { ok: true; ctx: BearerHouseholdContext; dataContext: DataContext }
+  | { ok: false; status: 400 | 401 | 403; message: string };
+
+/**
+ * Like `resolveBearerAuth` but yields the full household context (user email, every membership, the caller's own client) for
+ * services written against `HouseholdContext` (data export, P0-A / D322). The token is verified with `auth.getUser(token)`
+ * and everything afterwards runs as that user under RLS. With no household named, the oldest membership is used when
+ * `inferFirst` is set (the download call, which is authorised by the export row and the memberships, not by one household);
+ * otherwise a multi-household caller must say which household.
+ */
+const failCtx = (status: 400 | 401 | 403, message: string): Extract<ContextOutcome, { ok: false }> => ({ ok: false, status, message });
+
+export async function resolveBearerHouseholdContext(
+  token: string,
+  requestedHouseholdId: string | undefined,
+  deps: BearerDeps = defaultDeps(),
+  opts: { inferFirst?: boolean } = {},
+): Promise<ContextOutcome> {
+  try {
+    const client = deps.clientFor(token);
+    const { data, error } = await client.auth.getUser(token);
+    if (error || !data.user) return failCtx(401, 'Your sign-in was not accepted. Please sign in again.');
+    const memberships = await loadMemberships(client, data.user.id);
+    if (!memberships.ok) return failCtx(403, 'Your households could not be checked.');
+    let chosen: HouseholdSummary | AuthOutcome;
+    if ((requestedHouseholdId === undefined || requestedHouseholdId === '') && opts.inferFirst) {
+      const first = pickActiveMembership(memberships.data, undefined);
+      chosen = first ?? fail(400, 'You are not in a household yet.');
+    } else {
+      chosen = pick(memberships.data, requestedHouseholdId);
+    }
+    if ('ok' in chosen) return chosen as Extract<ContextOutcome, { ok: false }>;
+    return {
+      ok: true,
+      ctx: {
+        user: { id: data.user.id, email: data.user.email ?? null },
+        household: chosen,
+        role: chosen.role,
+        isOwner: chosen.role === 'owner',
+        readOnly: isReadOnly(chosen),
+        memberships: memberships.data,
+        supabase: client,
+        mode: 'supabase',
+      },
+      dataContext: { client, householdId: chosen.id, userId: data.user.id },
+    };
+  } catch {
+    return failCtx(401, 'Your sign-in was not accepted. Please sign in again.');
   }
 }
 
@@ -100,6 +158,7 @@ export async function resolveRequestAuth(req: Request, requestedHouseholdId?: st
       userId: ctx.user.id,
       householdId: chosen.id,
       readOnly: isReadOnly(chosen),
+      defaultServings: chosen.defaultServings,
       dataContext: ctx.mode === 'supabase' ? { client: ctx.supabase, householdId: chosen.id, userId: ctx.user.id } : null,
     },
   };

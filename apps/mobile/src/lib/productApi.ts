@@ -3,6 +3,9 @@
  * user's Supabase access token; the Open Food Facts lookup, its User-Agent and its rate limits stay on the server.
  */
 
+import type { BatchEntry, BatchOutcome, BatchRequest, ScanLookupLike } from '@fr/engine/pantry';
+import { parseScanLookup, type ReviewProduct } from './pantryScanApi';
+
 export const PRODUCT_ATTRIBUTION = 'Product data © Open Food Facts contributors, ODbL';
 
 export class ProductApiError extends Error {
@@ -29,11 +32,15 @@ export interface ProductSummary {
   /** Canonical ingredient suggestion, if any (display only; the pantry add happens on the web). */
   ingredientName?: string;
   sourceUrl: string;
+  /** The same lookup as pantry-scan review input (pack size, categories, the server's ingredient match), D344. */
+  review?: ScanLookupLike<ReviewProduct>;
 }
 
 export interface ProductClient {
   readonly configured: boolean;
   lookup(householdId: string, barcode: string): Promise<ProductSummary>;
+  /** Continuous scanning (BS1): POST /api/products. Known products answer at once, the rest are queued server side; poll with the still-pending codes. Never throws. */
+  lookupBatch(householdId: string, req: BatchRequest): Promise<BatchOutcome<ProductSummary>>;
   webUrl(path: string): string | null;
 }
 
@@ -80,7 +87,13 @@ export function summariseProduct(body: unknown): ProductSummary {
     nutrition: lines,
     ...(match && typeof match.name === 'string' ? { ingredientName: match.name } : {}),
     sourceUrl: src,
+    ...withReview(body),
   };
+}
+
+function withReview(body: unknown): { review?: ScanLookupLike<ReviewProduct> } {
+  const review = parseScanLookup(body);
+  return review ? { review } : {};
 }
 
 export function createProductClient(opts: {
@@ -93,6 +106,31 @@ export function createProductClient(opts: {
   return {
     configured: !!base,
     webUrl: (path) => (base ? `${base}${path.startsWith('/') ? '' : '/'}${path}` : null),
+    async lookupBatch(householdId, req) {
+      if (!base) return { ok: false, fatal: true, message: 'Barcode lookup is not set up (EXPO_PUBLIC_API_BASE_URL is empty).' };
+      const token = await opts.getToken();
+      const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      try {
+        const res = await doFetch(`${base}/api/products`, { method: 'POST', headers, body: JSON.stringify({ ...req, householdId }) });
+        if (res.status === 401 || res.status === 403) return { ok: false, fatal: true, message: 'The server did not accept your sign-in. Sign in again, or use the web app.' };
+        const json = (await res.json().catch(() => null)) as { results?: Record<string, BatchEntry<unknown>> } | null;
+        if (!res.ok || !json?.results || !isObj(json.results)) return { ok: false, fatal: false, message: `HTTP ${res.status}` };
+        const results: Record<string, BatchEntry<ProductSummary>> = {};
+        for (const [code, e] of Object.entries(json.results)) {
+          if (e.status === 'done') {
+            try {
+              results[code] = { status: 'done', lookup: summariseProduct(e.lookup) };
+            } catch {
+              results[code] = { status: 'error', error: { code: 'bad_response', message: 'The server returned an unexpected response.', retryable: false } };
+            }
+          } else results[code] = e as BatchEntry<ProductSummary>;
+        }
+        return { ok: true, results };
+      } catch {
+        return { ok: false, fatal: false, message: 'network' };
+      }
+    },
     async lookup(householdId, barcode) {
       if (!base) throw new ProductApiError('Barcode lookup is not set up (EXPO_PUBLIC_API_BASE_URL is empty).', 0, false);
       const token = await opts.getToken();

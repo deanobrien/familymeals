@@ -20,6 +20,8 @@ import { SupabaseRestockRepository } from './restock-repository';
 import type { RestockRepository } from '../restock/repository';
 import { SupabaseReceiptRepository } from './receipt-repository';
 import { SupabaseShoppingRepository } from './shopping-repository';
+import { SupabaseStoreBookRepository } from './store-book-repository';
+import type { StoreBookRepository } from '../stores/repository';
 import { SupabaseHouseholdProfile, SupabasePurchaseEventSource } from './household-sources';
 import type { EngineContext } from '../../shopping/engine';
 import type { ShoppingRepository } from '../shopping/repository';
@@ -173,4 +175,9 @@ export function createSupabasePurchaseEventSource(resolve: () => Promise<DataCon
 }
 export function createSupabaseHouseholdProfile(resolve: () => Promise<DataContext> = getDataContext): Pick<SupabaseHouseholdProfile, 'load' | 'favourites'> {
   return lazy((c) => new SupabaseHouseholdProfile(c.client, c.householdId), resolve);
+}
+
+// ---- lane AS1 (D290-D293): stores, aisles and placements ----
+export function createSupabaseStoreBookRepository(resolve: () => Promise<DataContext> = getDataContext): StoreBookRepository {
+  return lazy((c) => new SupabaseStoreBookRepository(c.client, c.userId), resolve);
 }

@@ -12,6 +12,8 @@
  * Pure module (no next/headers) so it also runs in middleware.
  */
 
+import { effectiveNodeEnv } from '../e2e-mode';
+
 type HeaderSource = { get(name: string): string | null };
 export interface PublicOriginInput {
   headers?: HeaderSource | null;
@@ -35,7 +37,7 @@ export function configuredOrigin(env: PublicOriginEnv = process.env as PublicOri
   if (!raw) return null;
   try {
     const u = new URL(raw);
-    const prod = env.NODE_ENV === 'production';
+    const prod = effectiveNodeEnv(env) === 'production';
     if (u.protocol !== 'https:' && !(u.protocol === 'http:' && !prod)) return null;
     if (!u.hostname) return null;
     return u.origin;
@@ -51,7 +53,7 @@ function first(v: string | null | undefined): string {
 export function publicOrigin(req?: PublicOriginInput | null, env: PublicOriginEnv = process.env as PublicOriginEnv): string {
   const configured = configuredOrigin(env);
   if (configured) return configured;
-  const prod = env.NODE_ENV === 'production';
+  const prod = effectiveNodeEnv(env) === 'production';
 
   const fHost = first(req?.headers?.get('x-forwarded-host'));
   const fProto = first(req?.headers?.get('x-forwarded-proto'));

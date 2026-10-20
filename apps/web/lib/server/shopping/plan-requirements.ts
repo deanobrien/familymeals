@@ -3,6 +3,7 @@ import { aggregateRequirements, type AggregateInput } from '@fr/engine/aggregate
 import type { RecipeRepository } from '../../recipes/repository';
 import type { RecipeView } from '../../recipes/types';
 import type { PlanDoc } from '../../plan/types';
+import { aisleForCategory } from '../../shopping/aisles';
 import type { PlanRequirements } from '../../shopping/types';
 
 /** One planned recipe meal (the planner's PlannedMeal / MealRef shape, reduced). */
@@ -12,32 +13,7 @@ export interface MealToShop {
   servings: number;
 }
 
-/** refdata category -> shopping aisle (walk-round-the-shop order lives in AISLES). */
-const AISLE_BY_CATEGORY: Record<string, string> = {
-  fruit_veg: 'Fruit & veg',
-  meat_poultry: 'Meat & fish',
-  fish_seafood: 'Meat & fish',
-  meat_alternatives: 'Meat & fish',
-  dairy_eggs: 'Dairy & eggs',
-  dairy_alternatives: 'Dairy & eggs',
-  bakery: 'Bakery',
-  tinned_jarred: 'Tins & jars',
-  sauces_condiments: 'Tins & jars',
-  oils_vinegars: 'Tins & jars',
-  sweeteners_spreads: 'Tins & jars',
-  world_foods: 'Tins & jars',
-  pasta_rice_grains: 'Dry goods',
-  baking: 'Dry goods',
-  cereals: 'Dry goods',
-  nuts_seeds: 'Dry goods',
-  snacks: 'Dry goods',
-  herbs_spices: 'Herbs & spices',
-  frozen: 'Frozen',
-  drinks: 'Drinks',
-};
-
-export const aisleForCategory = (category: string | undefined): string =>
-  (category && AISLE_BY_CATEGORY[category]) || 'Other';
+export { aisleForCategory };
 
 /** Planned meals of a saved plan (recipe slots only), with the planner's plannedMealId convention. */
 export function mealsOfPlan(doc: PlanDoc): MealToShop[] {

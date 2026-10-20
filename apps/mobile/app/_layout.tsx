@@ -16,9 +16,20 @@ function Navigator() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="sign-in" options={{ title: 'Sign in', headerShown: false }} />
       <Stack.Screen name="auth/callback" options={{ title: 'Signing in', headerShown: false }} />
+      <Stack.Screen name="sign-up" options={{ title: 'Create account' }} />
+      <Stack.Screen name="forgot-password" options={{ title: 'Reset password' }} />
+      <Stack.Screen name="reset-password" options={{ title: 'New password' }} />
+      <Stack.Screen name="invite/[token]" options={{ title: 'Invitation' }} />
+      <Stack.Screen name="household/index" options={{ title: 'Household' }} />
+      <Stack.Screen name="household/new" options={{ title: 'New household' }} />
+      <Stack.Screen name="your-data" options={{ title: 'Your data' }} />
+      <Stack.Screen name="delete-account" options={{ title: 'Delete account' }} />
       <Stack.Screen name="households" options={{ title: 'Households' }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="recipe/[id]" options={{ title: 'Recipe' }} />
+      <Stack.Screen name="recipe/new" options={{ title: 'New recipe' }} />
+      <Stack.Screen name="recipe/edit/[id]" options={{ title: 'Edit recipe' }} />
+      <Stack.Screen name="discover" options={{ title: 'Discover recipes' }} />
     </Stack>
   );
 }

@@ -19,7 +19,7 @@ const PNG = new Uint8Array(
   Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64'),
 );
 const H = 'aa000000-0000-4000-8000-0000000000aa';
-const who = (userId: string, householdId = H): AuthOutcome => ({ ok: true, auth: { userId, householdId, readOnly: false, dataContext: null } });
+const who = (userId: string, householdId = H): AuthOutcome => ({ ok: true, auth: { userId, householdId, readOnly: false, dataContext: null, defaultServings: 4 } });
 
 function extractReq(householdId: string | undefined, authorization = 'Bearer good') {
   const form = new FormData();
@@ -51,7 +51,7 @@ describe('POST /api/extract and /api/extract/save accept a bearer-authenticated 
   });
 
   it('refuses writes while the household is pending deletion', async () => {
-    outcome = { ok: true, auth: { userId: 'u', householdId: H, readOnly: true, dataContext: null } };
+    outcome = { ok: true, auth: { userId: 'u', householdId: H, readOnly: true, dataContext: null, defaultServings: 4 } };
     expect((await extract(extractReq(H))).status).toBe(403);
   });
 

@@ -10,6 +10,7 @@ import { ingredientMatcher, ingredientParser } from '../import/engine-adapter';
 import { RepositoryRecipeSink } from '../import/sink';
 import { putUpload, type UploadOwner } from '../import/upload-store';
 import { getRecipeRepository } from '../../recipes/factory';
+import type { RecipeRepository } from '../../recipes/repository';
 import { createExclusionResolver, textHitsAllergenGroups } from '../plan/exclusions';
 import { getIngredientCatalogue, type IngredientCatalogue } from '../refdata/catalogue';
 import { getRecipeSource } from './source';
@@ -169,6 +170,7 @@ export type DraftOutcome =
  */
 export async function startDiscoverDraft(
   id: string, owner: UploadOwner, household: Pick<Household, 'hardExclusions'>, source: RecipeSource = getRecipeSource(),
+  repo: RecipeRepository = getRecipeRepository(),
 ): Promise<DraftOutcome> {
   try {
     const r = await source.byId(id);
@@ -187,7 +189,7 @@ export async function startDiscoverDraft(
     if (r.imageUrl) draft.coverImageRef = r.imageUrl;
     const rec = putUpload([], r.title, owner);
     rec.draft = draft;
-    const existing = await new RepositoryRecipeSink(getRecipeRepository()).list();
+    const existing = await new RepositoryRecipeSink(repo).list();
     return { ok: true, uploadId: rec.id, draft, existing };
   } catch (e) {
     return failure(e);

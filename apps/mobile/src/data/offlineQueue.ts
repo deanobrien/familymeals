@@ -93,6 +93,25 @@ export class OfflineStore {
     }
   }
 
+  /** Small per-household values (AS1): the cached store book and the selected store. */
+  async loadValue<T>(householdId: string, name: string): Promise<T | null> {
+    try {
+      const raw = await this.kv.getItem(`${this.prefix}${name}.${householdId}`);
+      return raw ? (JSON.parse(raw) as T) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async saveValue(householdId: string, name: string, value: unknown): Promise<void> {
+    try {
+      if (value === null || value === undefined) await this.kv.removeItem(`${this.prefix}${name}.${householdId}`);
+      else await this.kv.setItem(`${this.prefix}${name}.${householdId}`, JSON.stringify(value));
+    } catch {
+      /* cache only */
+    }
+  }
+
   async clear(householdId: string): Promise<void> {
     await this.kv.removeItem(this.pendingKey(householdId));
     await this.kv.removeItem(this.legacyPendingKey(householdId));

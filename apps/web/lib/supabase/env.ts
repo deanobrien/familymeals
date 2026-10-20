@@ -10,6 +10,8 @@
  *  - 'mock'         env missing and NODE_ENV !== 'production': local dev/CI without a Supabase stack.
  *  - 'unconfigured' env missing and NODE_ENV === 'production': mock auth is REFUSED; protected routes return 503.
  */
+import { effectiveNodeEnv } from '../e2e-mode';
+
 export type AuthMode = 'supabase' | 'mock' | 'unconfigured';
 
 export interface PublicSupabaseEnv {
@@ -28,7 +30,12 @@ export function defaultEnv(): EnvSource {
   return {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    NODE_ENV: process.env.NODE_ENV,
+    NODE_ENV: effectiveNodeEnv({
+      NODE_ENV: process.env.NODE_ENV,
+      E2E_PRODUCTION_BUILD: process.env.E2E_PRODUCTION_BUILD,
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      DATA_BACKEND: process.env.DATA_BACKEND,
+    }),
   };
 }
 
@@ -41,7 +48,7 @@ export function readPublicEnv(env: EnvSource = defaultEnv()): PublicSupabaseEnv 
 
 export function resolveAuthMode(env: EnvSource = defaultEnv()): AuthMode {
   if (readPublicEnv(env)) return 'supabase';
-  return env.NODE_ENV === 'production' ? 'unconfigured' : 'mock';
+  return effectiveNodeEnv(env) === 'production' ? 'unconfigured' : 'mock';
 }
 
 /** Throws unless real Supabase env is present. */

@@ -31,6 +31,17 @@ export async function secondSession(browser: Browser, householdId?: string): Pro
   return { context, page };
 }
 
+/**
+ * From a recipe detail page, open the editor. A click on "Edit" immediately after the save redirect can be swallowed
+ * while the detail page is still settling (seen in dev and prod builds, FL1), so retry the click until the editor shows.
+ */
+export async function openRecipeEditor(page: Page): Promise<void> {
+  await expect(async () => {
+    if (!/\/edit$/.test(page.url())) await page.getByRole('link', { name: 'Edit', exact: true }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Edit recipe' })).toBeVisible({ timeout: 10_000 });
+  }).toPass({ timeout: 60_000 });
+}
+
 export interface PlanEntry { recipeId: string; servings: number; }
 
 /** Seed library recipe ids (packages/refdata seeds, also used by the shopping spec). */

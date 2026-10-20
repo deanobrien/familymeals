@@ -10,3 +10,4 @@ export { OffProduct, OffProductResponse, OffSearchResponse } from './off/schema'
 export { MockProductSource, type MockProductOptions } from './mock';
 export { OFF_FIXTURES, FIXTURE_CODES } from './fixtures';
 export { StoredProduct, parseStoredProduct } from './stored';
+export { eanModules, renderEanGray, placeOnCanvas, grayToRgba, type RenderedBitmap, type RenderOptions } from './ean13-render';

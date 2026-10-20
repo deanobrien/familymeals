@@ -40,7 +40,8 @@ async function generate(page: Page) {
   const planId = await seedPlan(page);
   await page.goto(`/shopping?plan=${planId}`);
   await expect(tickBox(page, 'Onion')).toBeVisible();
-  await expect(page).toHaveURL(/\/shopping$/);
+  // router.replace refetches the page's RSC: slow on a cold, loaded dev server (FL1).
+  await expect(page).toHaveURL(/\/shopping$/, { timeout: 45_000 });
   await expect(page.getByTestId('shopping-root')).toHaveAttribute('data-hydrated', 'true');
 }
 
@@ -154,7 +155,7 @@ test.describe('shopping list', () => {
     const smaller = await seedPlan(page, [{ recipeId: CHICKPEA_STEW, servings: 4 }]); // no pasta, no carrots
     await page.goto(`/shopping?plan=${smaller}`);
     await expect(page.getByTestId('shopping-root')).toHaveAttribute('data-hydrated', 'true');
-    await expect(page).toHaveURL(/\/shopping$/);
+    await expect(page).toHaveURL(/\/shopping$/, { timeout: 45_000 });
     const bought = page.getByTestId('purchase-row').filter({ hasText: 'Pasta' });
     await expect(bought).toContainText('Bought, no longer needed');
     await expect(tickBox(page, 'Carrot')).toHaveCount(0); // un-bought plan items are dropped
@@ -170,7 +171,7 @@ test.describe('shopping list', () => {
     await expect(page.getByTestId('pending-badge')).toBeVisible();
     await expect(page.getByTestId('sync-status')).toHaveAttribute('data-status', 'offline');
     await context.setOffline(false);
-    await expect(page.getByTestId('pending-badge')).toHaveCount(0, { timeout: 15_000 });
+    await expect(page.getByTestId('pending-badge')).toHaveCount(0, { timeout: 30_000 });
     await expect(page.getByTestId('sync-status')).toHaveAttribute('data-status', 'synced');
     // Survives a reload: the purchase is on the server.
     await page.reload();
@@ -190,7 +191,7 @@ test.describe('shopping list', () => {
       await Promise.all([tickBox(a, 'Onion').click(), tickBox(b, 'Onion').click()]);
 
       const conflicts = (p: Page) => p.getByRole('alert').filter({ hasText: 'Another shopper already bought Onion' });
-      await expect.poll(async () => (await conflicts(a).count()) + (await conflicts(b).count()), { timeout: 15_000 }).toBe(1);
+      await expect.poll(async () => (await conflicts(a).count()) + (await conflicts(b).count()), { timeout: 30_000 }).toBe(1);
       for (const p of [a, b]) {
         await expect(p.getByTestId('purchase-row').filter({ hasText: 'Onion' })).toHaveCount(1);
         await expect(p.getByTestId('sync-status')).toHaveText('All changes saved'); // confirmed by the server, not just optimistic
@@ -222,7 +223,7 @@ test.describe('shopping list', () => {
       await expect(a.getByTestId('sync-status')).toHaveText('All changes saved');
 
       await ctxB.setOffline(false);
-      await expect(b.getByRole('alert').filter({ hasText: 'Another shopper already bought Carrot' })).toBeVisible({ timeout: 15_000 });
+      await expect(b.getByRole('alert').filter({ hasText: 'Another shopper already bought Carrot' })).toBeVisible({ timeout: 30_000 });
       await expect(b.getByTestId('purchase-row').filter({ hasText: 'Carrot' })).toHaveCount(1);
       await expect(a.getByRole('alert').filter({ hasText: 'already bought' })).toHaveCount(0);
     } finally {
@@ -240,7 +241,7 @@ test.describe('shopping list', () => {
       await generate(a);
       const b = await open(ctxB, household);
       await tickBox(a, 'Red pepper').click();
-      await expect(tickBox(b, 'Red pepper')).toHaveCount(0, { timeout: 15_000 });
+      await expect(tickBox(b, 'Red pepper')).toHaveCount(0, { timeout: 30_000 });
       await expect(b.getByTestId('purchase-row').filter({ hasText: 'Red pepper' })).toBeVisible();
     } finally {
       await ctxA.close();

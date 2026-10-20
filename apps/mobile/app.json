@@ -10,18 +10,59 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      ["expo-camera", { "cameraPermission": "Allow Family Recipes to photograph recipes and receipts." }],
-      ["expo-image-picker", { "photosPermission": "Allow Family Recipes to pick recipe and receipt photos." }]
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Family Recipes to photograph recipes and receipts."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Family Recipes to pick recipe and receipt photos."
+        }
+      ]
     ],
     "android": {
       "package": "uk.ac.northumbria.familyrecipes",
       "versionCode": 1,
       "allowBackup": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "family-recipes-dean-cph4g5cuh9fmhhfy.ukwest-01.azurewebsites.net",
+              "pathPrefix": "/invite"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#2E7D32"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "ac0b4769-5441-42ec-b2ca-c9ff09f79393"
       }
     },
-    "experiments": { "typedRoutes": true }
+    "owner": "suremedia111"
   }
 }

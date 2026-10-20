@@ -19,6 +19,11 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
           If that address has an unconfirmed account, a new confirmation email is on its way.
         </p>
       ) : null}
+      {sp.deleted === '1' ? (
+        <p role="status" data-testid="account-deletion-notice">
+          Your account is scheduled for deletion. It is removed at the next scheduled clean-up, normally within 24 hours.
+        </p>
+      ) : null}
       <LinkErrorAndResend serverCode={typeof sp.error === 'string' ? sp.error : undefined} next={next} />
       <form action={signInAction} style={formStyle}>
         <input type="hidden" name="next" value={next} />

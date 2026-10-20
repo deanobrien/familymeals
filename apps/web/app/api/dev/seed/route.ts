@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import type { Quantity } from '@fr/domain';
 import { getAppContext } from '../../../../lib/server/context';
 import { devToolsAllowed } from '../../../../lib/server/dev/reset';
+import { getPlanServicesFor } from '../../../../lib/server/plan/services';
 import { getPlanStore } from '../../../../lib/server/plan/repository';
 import { getIngredientCatalogue } from '../../../../lib/server/refdata/catalogue';
 import { getShoppingRepository } from '../../../../lib/server/shopping/repository';
@@ -22,6 +23,7 @@ const DAYS = ['2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05', '2026-11-0
  * POST /api/dev/seed - e2e fixtures for the CURRENT (cookie-selected) household. 404 in production.
  *  { kind: 'approved-plan', entries?: [{ recipeId, servings }] } -> { planId }
  *  { kind: 'shopping-item', name, value?, unit? } -> { itemId }
+ *  { kind: 'withheld-exclusions', count } -> mock mode: pretend `count` allergy exclusions are withheld (consent notice)
  */
 export async function POST(req: NextRequest) {
   if (!devToolsAllowed()) return NextResponse.json({ error: 'not_found' }, { status: 404 });
@@ -52,6 +54,11 @@ export async function POST(req: NextRequest) {
       ...(quantity ? { quantity } : {}),
     });
     return NextResponse.json({ ok: r.result.status === 'applied', itemId });
+  }
+
+  if (body.kind === 'withheld-exclusions' && typeof body.count === 'number' && body.count >= 0 && body.count <= 99) {
+    getPlanServicesFor(ctx.householdId).withheldExclusions = Math.floor(body.count);
+    return NextResponse.json({ ok: true });
   }
 
   return NextResponse.json({ error: 'bad_request' }, { status: 400 });

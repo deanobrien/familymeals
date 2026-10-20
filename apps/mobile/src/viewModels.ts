@@ -27,6 +27,9 @@ export interface ShoppingListItem {
   displayName: string;
   quantity: Quantity;
   aisle: string;
+  /** Canonical ingredient link and list category, when known (store aisle ordering, AS1). */
+  ingredientId?: Uuid;
+  category?: string;
   /** True once a PurchaseEvent has been recorded (locally or on the server). */
   ticked: boolean;
   /** True when a ticked item has a purchase that can be undone. */
@@ -36,6 +39,8 @@ export interface ShoppingListItem {
 export interface UserSession {
   userId: Uuid;
   email: string;
+  /** Set by `completeAuthLink` for a password-recovery link: go on to choose a new password. */
+  recovery?: boolean;
 }
 
 /** A shopping command the server rejected (or could not apply). Surfaced to the user as a toast. */

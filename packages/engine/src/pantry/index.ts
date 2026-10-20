@@ -7,3 +7,5 @@ export * from './purchases';
 export * from './expiry';
 export * from './suggest';
 export * from './restock';
+export * from './rapid-scan';
+export * from './scan-review';

@@ -47,7 +47,8 @@ jobs:
       - name: Install Playwright Chromium
         run: pnpm --filter @fr/e2e exec playwright install --with-deps chromium
       # No Supabase variables are set, so the app runs in mock-auth mode.
-      - run: pnpm test:e2e
+      # Production build (`next build && next start`, E2E_PRODUCTION_BUILD=1, D241): no cold dev compiles, so no timing flakes.
+      - run: pnpm test:e2e:prod
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@v4

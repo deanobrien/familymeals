@@ -1,5 +1,7 @@
 import type { PurchaseEvent, Uuid } from '@fr/domain';
+import type { PlacementTargetType, StoreBook } from '@fr/engine/shopping';
 import type { Household, Recipe, ShoppingConflict, ShoppingListItem, UserSession } from '@/viewModels';
+import type { AccountSource } from './accountSource';
 
 export interface ShoppingListState {
   items: ShoppingListItem[];
@@ -12,6 +14,8 @@ export interface ShoppingListState {
  * (EXPO_PUBLIC_SUPABASE_URL set) both implement it; screens never know which one they have.
  */
 export interface DataSource {
+  /** Sign-up, households, invitations, settings and the data-lifecycle actions (P0-A; see accountSource.ts). */
+  readonly account: AccountSource;
   getSession(): Promise<UserSession | null>;
   signIn(email: string, password: string): Promise<UserSession>;
   signOut(): Promise<void>;
@@ -38,6 +42,13 @@ export interface DataSource {
   pendingCount(): number;
   /** Drain server rejections of this device's own commands (for toasts). */
   takeConflicts(): ShoppingConflict[];
+  /** Stores, aisles and placements (AS1). Falls back to the on-device cache when the server cannot be reached. */
+  getStoreBook?(householdId: Uuid): Promise<StoreBook>;
+  /** Place an item's ingredient (or name) in a store aisle; `aisleId = null` clears it. Needs a connection. */
+  setPlacement?(householdId: Uuid, storeId: Uuid, target: { targetType: PlacementTargetType; targetKey: string }, aisleId: Uuid | null): Promise<void>;
+  /** The store this phone last shopped at (null = group by category). */
+  getSelectedStoreId?(householdId: Uuid): Promise<string | null>;
+  setSelectedStoreId?(householdId: Uuid, storeId: string | null): Promise<void>;
   /**
    * Live hint while a household's list is on screen (Supabase Realtime, with a poll only while it is down).
    * `onChange` means "re-read via getShoppingList"; returns the stop function. Absent in mock mode.

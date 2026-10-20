@@ -10,7 +10,8 @@ import type { ListMeta, SnapshotDto, SyncResponse } from './types';
 
 /** Server round trips (server actions in the app; fakes in tests). */
 export interface Transport {
-  sync(commands: Command[], cursor: number): Promise<SyncResponse>;
+  /** `listId` = the list this client is showing (D263): the server refuses to mix it up with another list. */
+  sync(commands: Command[], cursor: number, listId?: string): Promise<SyncResponse>;
   snapshot(): Promise<SnapshotDto>;
 }
 
@@ -191,7 +192,7 @@ export class ShoppingController {
           this.set(this.state.client, undefined, 'syncing');
         }
         const sent = this.state.client;
-        const res = await this.deps.transport.sync(sent.pending, sent.cursor);
+        const res = await this.deps.transport.sync(sent.pending, sent.cursor, this.state.meta.listId);
         this.ingest(res);
         if (this.state.client.needsResync) {
           const snap = await this.deps.transport.snapshot();

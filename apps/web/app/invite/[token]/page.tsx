@@ -58,6 +58,11 @@ export default async function InvitePage({
           </p>
         </>
       )}
+      <p>
+        <a href={`familyrecipes://invite/${token}`} data-testid="open-in-app">
+          Open this invitation in the Android app
+        </a>
+      </p>
     </main>
   );
 }

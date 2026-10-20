@@ -66,9 +66,21 @@ export function parseCommand(raw: unknown): Command | null {
  */
 export async function syncList(
   repo: ShoppingRepository, householdId: string, rawCommands: unknown[], cursor: number, sessionActor?: string,
+  /** The list the client is showing (SL1, D263). When the household's active list is another one (someone switched or
+   *  started a new list) the client's pending commands were meant for a different list: they are dropped and the new
+   *  list is returned as a snapshot, never applied to or replayed against the wrong list. */
+  expectedListId?: string | null,
 ): Promise<SyncResponse> {
   const results: SyncResponse['results'] = [];
   const dropped: string[] = [];
+  if (expectedListId) {
+    const current = await repo.activeListId(householdId);
+    if (current !== expectedListId) {
+      for (const raw of rawCommands.slice(0, MAX_COMMANDS)) if (isObj(raw) && str(raw.commandId, 64)) dropped.push(raw.commandId);
+      const snapshot = await repo.snapshot(householdId);
+      return { cursor: snapshot.cursor, entries: [], snapshot, results, dropped, meta: snapshot.meta };
+    }
+  }
   for (const raw of rawCommands.slice(0, MAX_COMMANDS)) {
     const cmd = parseCommand(raw);
     if (!cmd) {

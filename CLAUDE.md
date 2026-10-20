@@ -18,7 +18,7 @@ Local Supabase (verified by LV1, D140-D149; needs Docker, works on 20.10.7 with 
 ```
 pnpm exec supabase start          # ports 554xx (API :55421, Studio :55423, Mailpit :55424); applies all migrations + supabase/seed.sql
 pnpm dev:live                     # app on http://localhost:3131 against the local stack (DATA_BACKEND=supabase, mock AI)
-pnpm test:e2e:live                # opt-in live-supabase Playwright project (e2e/live/, own dev server on 3133); 20/20 pass
+pnpm test:e2e:live                # opt-in live-supabase Playwright project (e2e/live/, own dev server on 3133); 32/32 pass (LV1 20, ST1 2, RT1 1, LT1 9)
 ```
 
 Uploaded photos (recipe covers, import pages, receipt photos) use private Supabase Storage through `ImageStore` when `DATA_BACKEND=supabase` (ST1, D190-D196; `POST /api/jobs/storage-cleanup` with `CRON_SECRET` does cleanup; see docs/DEPLOY-APP-SERVICE.md 4b); local files only in dev / mock mode.
@@ -43,6 +43,7 @@ See [docs/HANDOVER.md](docs/HANDOVER.md) section "Current state" (kept up to dat
 ## Conventions
 
 - **Decisions**: every non-obvious choice is logged in [DECISIONS.md](DECISIONS.md) as `## D<n> title`. Each lane/agent reserves a block of ten (e.g. D120-D129) so parallel lanes never collide; before adding decisions read the file's headings and pick an unused block (D1-D15 foundation, D20-D26 owner decisions, D27-D38 integration, D40-D42 AI settings, D50-D58 S1, D60-D66 C1, D70-D76 M2, D80-D92 P2/R2, D100-D105 integrator pass 3, D120-D129 S2, D130-D134 PL2, D150-D154 deploy prep). Newer lanes continue from D155 / D160+.
+- **Web <-> Android parity** (owner decision, 2026-10-20, D310): every feature available in the web app must also ship in the Android app (`apps/mobile`) unless there is a good reason, which must be recorded in [DECISIONS.md](DECISIONS.md). Every feature lane is briefed and accepted as web + Android, and lane reports state Android status per feature. Current gaps: [docs/ROADMAP.md](docs/ROADMAP.md) parity matrix.
 - **Git**: lanes work on branches `prj018/<lane>` in worktrees and are merged by an integrator; main branch is `main` on GitHub. Agents make LOCAL commits only; **never push** unless the owner says so. Merge the integration branch into yours before reporting. LF line endings (`.gitattributes`); on Windows git may warn about CRLF, ignore.
 - **Secrets**: never commit secrets or write secret values into docs, comments, tests or chat. Names and locations of every secret are in HANDOVER section 5. `.env*` is git-ignored except `.env.example`; `apps/web/.data/`, `.data-e2e/`, `dist/` are git-ignored.
 - **Ports**: web dev 3100; parallel dev servers / e2e runs pick another port via `E2E_PORT` (3101-3199); local Supabase uses 54321-54329.

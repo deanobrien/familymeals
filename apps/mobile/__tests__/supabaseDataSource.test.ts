@@ -29,7 +29,7 @@ const ids = { milk: uid(1), eggs: uid(2), flour: uid(3), salt: uid(4) };
 describe('SupabaseDataSource: auth, households, recipes', () => {
   it('signs in/out and exposes the access token for the web API', async () => {
     const { ds } = setup();
-    await expect(ds.signIn('dean@example.com', 'wrong')).rejects.toThrow('Invalid login credentials');
+    await expect(ds.signIn('dean@example.com', 'wrong')).rejects.toThrow('That email and password did not match');
     await expect(ds.signIn('dean@example.com', 'secret1')).resolves.toMatchObject({ userId: USER_ME });
     await expect(ds.getAccessToken()).resolves.toBe('access-token-123');
     await expect(ds.getSession()).resolves.toMatchObject({ email: 'dean@example.com' });

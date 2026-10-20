@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { createFakeSupabase } from '../supabase/test-support/fake-client';
 import { sameOwner } from '../import/pipeline';
 import { acceptsBearer } from './routes';
-import { bearerToken, resolveBearerAuth, type BearerDeps } from './request-auth';
+import { bearerToken, resolveBearerAuth, resolveBearerHouseholdContext, type BearerDeps } from './request-auth';
 
 const U = 'a0000000-0000-4000-8000-000000000001';
 const H1 = 'aa000000-0000-4000-8000-0000000000aa';
@@ -22,7 +22,7 @@ function deps(opts: { user?: string | null; households?: ReturnType<typeof row>[
       const fake = createFakeSupabase(() => ({ data: opts.households ?? [] }));
       return {
         auth: {
-          getUser: async (t: string) => (opts.user && t === 'good' ? { data: { user: { id: opts.user } }, error: null } : { data: { user: null }, error: { message: 'bad jwt' } }),
+          getUser: async (t: string) => (opts.user && t === 'good' ? { data: { user: { id: opts.user, email: 'dean@example.com' } }, error: null } : { data: { user: null }, error: { message: 'bad jwt' } }),
         },
         from: (table: string) => fake.client.from(table),
       } as unknown as SupabaseClient;
@@ -43,8 +43,17 @@ describe('bearer token parsing and middleware pass-through (D102)', () => {
     expect(acceptsBearer('/api/extract/save', 'Bearer t')).toBe(true);
     expect(acceptsBearer('/api/extract', null)).toBe(false);
     expect(acceptsBearer('/api/extract', 'Basic t')).toBe(false);
-    expect(acceptsBearer('/api/pantry/scan', 'Bearer t')).toBe(false); // not opted in
+    expect(acceptsBearer('/api/pantry/scan', 'Bearer t')).toBe(true); // Android parity API (D340)
+    expect(acceptsBearer('/api/admin', 'Bearer t')).toBe(false); // not opted in
     expect(acceptsBearer('/recipes', 'Bearer t')).toBe(false);
+  });
+  it('middleware lets a bearer request through to the recipe, catalogue and discover APIs (and nothing else under /api)', () => {
+    for (const p of ['/api/recipes', '/api/recipes/abc', '/api/recipes/abc/favourite', '/api/recipes/duplicates', '/api/catalogue/search', '/api/catalogue/match', '/api/discover/filters', '/api/discover/search', '/api/discover/draft']) {
+      expect(acceptsBearer(p, 'Bearer t')).toBe(true);
+      expect(acceptsBearer(p, null)).toBe(false);
+    }
+    expect(acceptsBearer('/api/plan', 'Bearer t')).toBe(true); // Android parity API (D340)
+    expect(acceptsBearer('/api/jobs/purge', 'Bearer t')).toBe(false);
   });
 });
 
@@ -55,6 +64,7 @@ describe('resolveBearerAuth', () => {
     expect(out).toMatchObject({ ok: true, auth: { userId: U, householdId: H1, readOnly: false } });
     if (!out.ok) throw new Error('unreachable');
     expect(out.auth.dataContext).toMatchObject({ householdId: H1, userId: U });
+    expect(out.auth.defaultServings).toBe(4);
     expect(seen).toEqual(['good']);
   });
   it('rejects a token the auth server does not accept', async () => {
@@ -79,6 +89,43 @@ describe('resolveBearerAuth', () => {
   it('a client that throws is an authentication failure, not a 500', async () => {
     const out = await resolveBearerAuth('good', H1, { clientFor: () => { throw new Error('boom'); } });
     expect(out).toMatchObject({ ok: false, status: 401 });
+  });
+});
+
+describe('data export is Bearer-capable (P0-A, D322)', () => {
+  it('middleware lets a bearer request through to the export routes only', () => {
+    expect(acceptsBearer('/api/export', 'Bearer t')).toBe(true);
+    expect(acceptsBearer('/api/export/0b6d3f0e-1111-4222-8333-444455556666', 'Bearer t')).toBe(true);
+    expect(acceptsBearer('/api/export', null)).toBe(false);
+    expect(acceptsBearer('/api/export/x', 'Basic t')).toBe(false);
+    expect(acceptsBearer('/api/jobs/purge', 'Bearer t')).toBe(false); // jobs keep their own secret
+  });
+});
+
+describe('resolveBearerHouseholdContext', () => {
+  it('verifies the token and yields the caller context (email, every membership, the caller client)', async () => {
+    const seen: string[] = [];
+    const out = await resolveBearerHouseholdContext('good', H2, deps({ user: U, households: [row(H1), row(H2)], seenTokens: seen }));
+    expect(out).toMatchObject({ ok: true, ctx: { user: { id: U, email: 'dean@example.com' }, household: { id: H2 }, role: 'member', isOwner: false, readOnly: false, mode: 'supabase' } });
+    if (!out.ok) throw new Error('unreachable');
+    expect(out.ctx.memberships.map((m) => m.id)).toEqual([H1, H2]);
+    expect(out.dataContext).toMatchObject({ householdId: H2, userId: U });
+    expect(seen).toEqual(['good']);
+  });
+  it('a multi-household caller must name one, except for the download call which falls back to the oldest', async () => {
+    const d = () => deps({ user: U, households: [row(H1), row(H2)] });
+    expect(await resolveBearerHouseholdContext('good', undefined, d())).toMatchObject({ ok: false, status: 400 });
+    expect(await resolveBearerHouseholdContext('good', undefined, d(), { inferFirst: true })).toMatchObject({ ok: true, ctx: { household: { id: H1 } } });
+  });
+  it('rejects a forged token, a foreign household and a malformed id; a caller with no household cannot infer one', async () => {
+    expect(await resolveBearerHouseholdContext('forged', H1, deps({ user: U, households: [row(H1)] }))).toMatchObject({ ok: false, status: 401 });
+    expect(await resolveBearerHouseholdContext('good', H2, deps({ user: U, households: [row(H1)] }))).toMatchObject({ ok: false, status: 403 });
+    expect(await resolveBearerHouseholdContext('good', 'nope', deps({ user: U, households: [row(H1)] }))).toMatchObject({ ok: false, status: 400 });
+    expect(await resolveBearerHouseholdContext('good', undefined, deps({ user: U, households: [] }), { inferFirst: true })).toMatchObject({ ok: false, status: 400 });
+  });
+  it('flags a household pending deletion as read-only and a thrown client as an authentication failure', async () => {
+    expect(await resolveBearerHouseholdContext('good', H1, deps({ user: U, households: [row(H1, 'pending_deletion')] }))).toMatchObject({ ok: true, ctx: { readOnly: true } });
+    expect(await resolveBearerHouseholdContext('good', H1, { clientFor: () => { throw new Error('boom'); } })).toMatchObject({ ok: false, status: 401 });
   });
 });
 

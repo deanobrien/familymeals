@@ -60,6 +60,7 @@ export function createResolvingProvider(resolve: () => AiProvider | Promise<AiPr
     suggestIngredientMatches: via('suggestIngredientMatches'),
     suggestSubstitutions: via('suggestSubstitutions'),
     scanPantry: via('scanPantry'),
+    scanShoppingList: via('scanShoppingList'),
     ping: async () => {
       const p = await resolve();
       if (!p.ping) throw new AiError('BAD_REQUEST', 'provider has no ping');

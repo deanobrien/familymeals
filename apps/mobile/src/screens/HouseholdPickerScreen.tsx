@@ -3,7 +3,7 @@ import { FlatList, Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import type { Household } from '@/viewModels';
 import { useApp } from '@/data/AppContext';
-import { EmptyState, ErrorState, Loading, Muted, Text, useStyles } from './ui';
+import { Button, EmptyState, ErrorState, Loading, Muted, Text, useStyles } from './ui';
 
 export default function HouseholdPickerScreen() {
   const { ds, setHouseholdId } = useApp();
@@ -33,7 +33,10 @@ export default function HouseholdPickerScreen() {
         data={households}
         keyExtractor={(h) => h.id}
         ListEmptyComponent={
-          <EmptyState title="You are not in a household yet." hint="Ask a household owner to invite you, or create one on the web." />
+          <EmptyState
+            title="You are not in a household yet."
+            hint="Create one for your family, or open an invitation link from a household owner."
+          />
         }
         renderItem={({ item }) => (
           <Pressable
@@ -49,6 +52,12 @@ export default function HouseholdPickerScreen() {
             <Muted>{item.memberCount} members</Muted>
           </Pressable>
         )}
+      />
+      <Button
+        title={households.length === 0 ? 'Create a household' : 'Create another household'}
+        variant={households.length === 0 ? 'primary' : 'secondary'}
+        onPress={() => router.push('/household/new')}
+        testID="create-household"
       />
     </View>
   );

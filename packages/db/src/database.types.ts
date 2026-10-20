@@ -125,6 +125,60 @@ export type Database = {
           },
         ];
       };
+      data_export_requests: {
+        Row: {
+          bytes: number | null;
+          counts: Json | null;
+          download_count: number;
+          error: string | null;
+          expires_at: string;
+          household_id: string;
+          id: string;
+          last_downloaded_at: string | null;
+          requested_at: string;
+          scope: string;
+          status: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          bytes?: number | null;
+          counts?: Json | null;
+          download_count?: number;
+          error?: string | null;
+          expires_at: string;
+          household_id: string;
+          id?: string;
+          last_downloaded_at?: string | null;
+          requested_at?: string;
+          scope: string;
+          status?: string;
+          user_id?: string;
+        };
+        Update: {
+          bytes?: number | null;
+          counts?: Json | null;
+          download_count?: number;
+          error?: string | null;
+          expires_at?: string;
+          household_id?: string;
+          id?: string;
+          last_downloaded_at?: string | null;
+          requested_at?: string;
+          scope?: string;
+          status?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'data_export_requests_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       deletion_ledger: {
         Row: {
           cancelled_at: string | null;
@@ -2342,6 +2396,133 @@ export type Database = {
         };
         Relationships: [];
       };
+      store_aisles: {
+        Row: {
+          created_at: string;
+          household_id: string;
+          id: string;
+          label: string;
+          sort_order: number;
+          store_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          household_id: string;
+          id?: string;
+          label: string;
+          sort_order?: number;
+          store_id: string;
+        };
+        Update: {
+          created_at?: string;
+          household_id?: string;
+          id?: string;
+          label?: string;
+          sort_order?: number;
+          store_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'store_aisles_store_id_household_id_fkey';
+            columns: ['store_id', 'household_id'];
+            isOneToOne: false;
+            referencedRelation: 'stores';
+            referencedColumns: ['id', 'household_id'];
+          },
+        ];
+      };
+      store_placements: {
+        Row: {
+          aisle_id: string;
+          created_by: string | null;
+          household_id: string;
+          id: string;
+          store_id: string;
+          target_key: string;
+          target_type: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          aisle_id: string;
+          created_by?: string | null;
+          household_id: string;
+          id?: string;
+          store_id: string;
+          target_key: string;
+          target_type: string;
+          updated_at?: string;
+        };
+        Update: {
+          aisle_id?: string;
+          created_by?: string | null;
+          household_id?: string;
+          id?: string;
+          store_id?: string;
+          target_key?: string;
+          target_type?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'store_placements_aisle_id_store_id_fkey';
+            columns: ['aisle_id', 'store_id'];
+            isOneToOne: false;
+            referencedRelation: 'store_aisles';
+            referencedColumns: ['id', 'store_id'];
+          },
+          {
+            foreignKeyName: 'store_placements_store_id_household_id_fkey';
+            columns: ['store_id', 'household_id'];
+            isOneToOne: false;
+            referencedRelation: 'stores';
+            referencedColumns: ['id', 'household_id'];
+          },
+        ];
+      };
+      stores: {
+        Row: {
+          chain: string | null;
+          created_at: string;
+          created_by: string | null;
+          household_id: string;
+          id: string;
+          name: string;
+          notes: string | null;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          chain?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          household_id: string;
+          id?: string;
+          name: string;
+          notes?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          chain?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          household_id?: string;
+          id?: string;
+          name?: string;
+          notes?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'stores_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       shopping_list_item_progress: {
@@ -2387,7 +2568,18 @@ export type Database = {
         Returns: Json;
       };
       backfill_pantry_purchase_mode: { Args: Record<PropertyKey, never>; Returns: number };
+      begin_data_export: {
+        Args: { p_household_id: string; p_scope: string };
+        Returns: {
+          allowed: boolean;
+          expires_at: string;
+          export_id: string;
+          retry_after: string;
+        }[];
+      };
+      cancel_account_deletion: { Args: Record<PropertyKey, never>; Returns: boolean };
       cancel_household_deletion: { Args: { p_household_id: string }; Returns: undefined };
+      copy_store_layout: { Args: { p_from_store: string; p_household_id: string; p_to_store: string }; Returns: number };
       create_invitation: {
         Args: {
           p_email?: string;
@@ -2400,6 +2592,10 @@ export type Database = {
           invitation_id: string;
           token: string;
         }[];
+      };
+      delete_product_snapshot: {
+        Args: { p_barcode: string; p_household_id: string };
+        Returns: undefined;
       };
       enqueue_storage_cleanup: {
         Args: { p_bucket: string; p_household_id: string; p_path: string; p_reason: string };
@@ -2417,7 +2613,6 @@ export type Database = {
         Returns: Json;
       };
       fr_norm_ingredient: { Args: { p: string }; Returns: string };
-      delete_product_snapshot: { Args: { p_barcode: string; p_household_id: string }; Returns: undefined };
       fr_norm_title: { Args: { p: string }; Returns: string };
       get_household_ai_settings: { Args: { p_household_id: string }; Returns: Json };
       get_receipt: { Args: { p_household_id: string; p_receipt_id: string }; Returns: Json };
@@ -2429,9 +2624,21 @@ export type Database = {
       household_price_observations: { Args: { p_household_id: string }; Returns: Json };
       household_product_snapshots: { Args: { p_household_id: string }; Returns: Json };
       household_purchase_records: { Args: { p_household_id: string }; Returns: Json };
+      household_store_book: { Args: { p_household_id: string }; Returns: Json };
       is_household_member: { Args: { hid: string }; Returns: boolean };
       is_household_owner: { Args: { hid: string }; Returns: boolean };
       is_household_writable: { Args: { hid: string }; Returns: boolean };
+      jobs_complete_account_purge: { Args: { p_user_id: string }; Returns: undefined };
+      jobs_due_account_deletions: {
+        Args: { p_limit?: number };
+        Returns: {
+          replay: boolean;
+          user_id: string;
+        }[];
+      };
+      jobs_prepare_account_purge: { Args: { p_user_id: string }; Returns: string };
+      jobs_purge_due: { Args: { p_limit?: number }; Returns: Json };
+      jobs_status: { Args: { p_max_attempts?: number }; Returns: Json };
       list_receipts: { Args: { p_household_id: string }; Returns: Json };
       list_recipes: {
         Args: {
@@ -2452,6 +2659,7 @@ export type Database = {
       };
       member_leave: { Args: { p_household_id: string }; Returns: undefined };
       metric_base_factor: { Args: { u: Database['public']['Enums']['unit'] }; Returns: number };
+      my_account_deletion: { Args: Record<PropertyKey, never>; Returns: string };
       planner_household_profile: { Args: { p_household_id: string }; Returns: Json };
       purge_household: { Args: { p_household_id: string }; Returns: undefined };
       quantity_is_valid: {
@@ -2466,6 +2674,16 @@ export type Database = {
       };
       recipe_facets: { Args: { p_household_id: string }; Returns: Json };
       recipe_view_json: { Args: { p_recipe_id: string; p_user_id: string }; Returns: Json };
+      record_data_export_download: {
+        Args: {
+          p_bytes?: number;
+          p_counts?: Json;
+          p_error?: string;
+          p_export_id: string;
+          p_ok: boolean;
+        };
+        Returns: undefined;
+      };
       record_price_observations: {
         Args: { p_household_id: string; p_items: Json };
         Returns: number;
@@ -2485,6 +2703,7 @@ export type Database = {
       };
       refresh_recipe_search: { Args: { p_recipe_id: string }; Returns: undefined };
       replace_pantry_items: { Args: { p_household_id: string; p_items: Json }; Returns: undefined };
+      request_account_deletion: { Args: Record<PropertyKey, never>; Returns: string };
       request_household_deletion: {
         Args: { p_grace?: string; p_household_id: string };
         Returns: string;
@@ -2498,7 +2717,13 @@ export type Database = {
         Returns: undefined;
       };
       save_product_snapshot: {
-        Args: { p_barcode: string; p_household_id: string; p_ingredient_id: string | null; p_retrieved_at: string; p_snapshot: Json };
+        Args: {
+          p_barcode: string;
+          p_household_id: string;
+          p_ingredient_id: string;
+          p_retrieved_at: string;
+          p_snapshot: Json;
+        };
         Returns: undefined;
       };
       save_receipt: {
@@ -2551,6 +2776,8 @@ export type Database = {
         Returns: Json;
       };
       shopping_item_outstanding: { Args: { p_item_id: string }; Returns: number };
+      shopping_list_activate: { Args: { p_household_id: string; p_list_id: string }; Returns: string };
+      shopping_list_create: { Args: { p_household_id: string; p_list_id?: string; p_name: string }; Returns: string };
       shopping_list_snapshot: { Args: { p_household_id: string }; Returns: Json };
       transfer_ownership: {
         Args: { p_household_id: string; p_new_owner_member_id: string };
@@ -2588,7 +2815,7 @@ export type Database = {
         | 'sulphites'
         | 'tree_nuts';
       consent_type: 'allergy_data' | 'dietary_restrictions';
-      deletion_subject: 'household' | 'member';
+      deletion_subject: 'household' | 'member' | 'account';
       diet_category: 'meat' | 'fish' | 'vegetarian' | 'vegan';
       dimension: 'mass' | 'volume' | 'count';
       exclusion_kind: 'allergy' | 'intolerance' | 'avoid';
@@ -2782,7 +3009,7 @@ export const Constants = {
         'tree_nuts',
       ],
       consent_type: ['allergy_data', 'dietary_restrictions'],
-      deletion_subject: ['household', 'member'],
+      deletion_subject: ['household', 'member', 'account'],
       diet_category: ['meat', 'fish', 'vegetarian', 'vegan'],
       dimension: ['mass', 'volume', 'count'],
       exclusion_kind: ['allergy', 'intolerance', 'avoid'],
