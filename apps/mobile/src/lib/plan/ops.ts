@@ -1,6 +1,6 @@
 // Ported from apps/web/lib/plan/ops.ts, cost.ts and nutrition.ts (same rules and the same unit-test cases): pure,
 // immutable edits of a PlanDoc plus the honest cost / nutrition summaries (unknown stays unknown, never 0).
-import { summariseWeek, type PlannedMealNutrition, type WeeklyNutritionSummary } from '@fr/engine/nutrition';
+import { summariseVariety, summariseWeek, type PlannedMealNutrition, type VarietySummary, type WeeklyNutritionSummary } from '@fr/engine/nutrition';
 import { addDays } from './dates';
 import type { MealType, PlanDoc, PlanEntry, RecipeLite, SlotRef } from './types';
 
@@ -157,4 +157,28 @@ export function weekNutrition(doc: PlanDoc, recipes: ReadonlyMap<string, RecipeL
   if (list.length === 0) return null;
   const summary = summariseWeek(list);
   return { summary, meals: list.length, mealsWithoutNutrition: summary.mealsWithoutNutrition.length };
+}
+
+// ---- variety ("5 a day", D376) ----
+export interface WeekVariety {
+  summary: VarietySummary;
+  meals: number;
+}
+
+/** Fruit/veg portions, protein kinds and plant count for the planned recipe meals (engine summariseVariety; an estimate). */
+export function weekVariety(doc: PlanDoc, recipes: ReadonlyMap<string, RecipeLite>): WeekVariety | null {
+  const meals = Object.entries(doc.entries).flatMap(([key, e]) => {
+    if (e.kind !== 'recipe') return [];
+    const r = recipes.get(e.recipeId);
+    return [{ id: key, date: parseKey(key).date, ...(r ? { title: r.title } : {}), variety: r?.variety ?? null }];
+  });
+  if (meals.length === 0) return null;
+  return { summary: summariseVariety(meals), meals: meals.length };
+}
+
+/** Same over cooked meals (P1-A cooking log); null when none. */
+export function cookedVariety(cooked: readonly { date: string; recipeId: string }[], recipes: ReadonlyMap<string, RecipeLite>): WeekVariety | null {
+  if (cooked.length === 0) return null;
+  const meals = cooked.map((c, i) => ({ id: `c${i}`, date: c.date, variety: recipes.get(c.recipeId)?.variety ?? null }));
+  return { summary: summariseVariety(meals), meals: meals.length };
 }

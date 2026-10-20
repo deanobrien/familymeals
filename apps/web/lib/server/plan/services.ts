@@ -180,6 +180,11 @@ export async function loadPlanServices(householdId: string): Promise<PlanService
         ...svc.household,
         defaultServings: saved.defaultServings,
         hardExclusions: saved.consentActive ? saved.exclusions.map((ingredientName) => ({ ingredientName, kind: 'allergy' as const })) : [],
+        // Soft dislikes (P1-B, D378): independent of allergy consent.
+        members: svc.household.members.map(({ dislikes: _old, ...m }) => {
+          const terms = saved.members.find((x) => x.memberId === m.id)?.terms ?? [];
+          return terms.length ? { ...m, dislikes: terms } : m;
+        }),
       };
       if (saved.weeklyBudgetPence === null) delete next.weeklyBudgetPence;
       else next.weeklyBudgetPence = saved.weeklyBudgetPence;

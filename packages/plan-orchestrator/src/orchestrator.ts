@@ -54,6 +54,12 @@ export function violatesExclusions(ingredientNames: string[], exclusions: string
   return hits;
 }
 
+/** Members who dislike something in this recipe (name, canonical name or unmatched line contains one of their terms). Soft only. */
+export function dislikedByMembers(c: Pick<Candidate, 'ingredientNames' | 'canonicalNames' | 'unmatchedLines'>, members: readonly Member[]): string[] {
+  const names = [...c.ingredientNames, ...(c.canonicalNames ?? []), ...(c.unmatchedLines ?? [])];
+  return members.filter((m) => (m.dislikes?.length ?? 0) > 0 && violatesExclusions(names, m.dislikes!).length > 0).map((m) => m.id);
+}
+
 export type MemberResolution =
   | { name: string; status: 'ok'; member: Member }
   | { name: string; status: 'unknown' }
@@ -165,7 +171,7 @@ export class PlanOrchestrator {
     });
     const candidates: Candidate[] = raw
       .filter((c) => violatesExclusions(c.ingredientNames, terms).length === 0)
-      .map((c) => ({ ...c, favouriteOf: favRecipes.get(c.id) }));
+      .map((c) => ({ ...c, favouriteOf: favRecipes.get(c.id), dislikedBy: dislikedByMembers(c, hh.members) }));
 
     const brief = { tags: constraints.includeTags, excludeIngredients: terms };
     if (candidates.length === 0) {
@@ -181,7 +187,9 @@ export class PlanOrchestrator {
     const costs = await this.d.costs.costRecipes(householdId, candidates.map((c) => c.id), servings);
     for (const c of candidates) c.costPence = costs[c.id] ?? null;
 
-    const res = await this.d.solver.solve(constraints, candidates, { weekStart, servings, memberLabels });
+    // Names for the report: members who have dislikes are labelled too (ids never reach a user-facing sentence).
+    const labelled = { ...Object.fromEntries(hh.members.filter((m) => m.dislikes?.length).map((m) => [m.id, m.displayName])), ...memberLabels };
+    const res = await this.d.solver.solve(constraints, candidates, { weekStart, servings, memberLabels: labelled });
     for (const r of res.report) if (!r.met) unmet.push({ kind: 'solver', detail: `${r.constraint}: ${r.detail}` });
     const gaps: RecipeGap[] = res.slots.filter((s) => s.recipeId === null).map((s) => ({
       date: s.date, mealType: s.mealType, reason: s.note ?? 'No suitable saved recipe for this slot.', suggestionBrief: brief,

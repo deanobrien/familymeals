@@ -6,6 +6,7 @@ import { Badge, Card, ErrorState, Skeleton, formatPence } from '@fr/ui';
 import { basketLabel, defaultDashboardSource, relativeDay } from '../lib/dashboard/source';
 import type { DashboardData } from '../lib/dashboard/types';
 import s from '../lib/dashboard/dashboard.module.css';
+import { MakeNow } from './make-now';
 import { RestockBanner } from './restock-banner';
 
 type State =
@@ -81,6 +82,7 @@ function Dashboard({ data }: { data: DashboardData }) {
         <span className={s.tileSub}>Photo, video or barcode fills your pantry</span>
       </Link>
     </div>
+    <MakeNow limit={3} />
     <div className={s.grid}>
       <Card>
         <section className={s.card} aria-labelledby="h-plan">

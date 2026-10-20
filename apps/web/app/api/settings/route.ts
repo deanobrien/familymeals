@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { apiError, bodyHousehold, guarded, isRecord, json, queryHousehold, readJson } from '../../../lib/server/api/bearer-route';
-import { loadSettings, removeAllDietary, saveDietary, savePreferences, withdrawConsent, type SettingsCaller, type SettingsResult } from '../../../lib/server/settings/service';
+import { loadSettings, removeAllDietary, saveDietary, saveDislikes, savePreferences, withdrawConsent, type SettingsCaller, type SettingsResult } from '../../../lib/server/settings/service';
 import type { RequestAuth } from '../../../lib/server/auth/request-auth';
 
 export const runtime = 'nodejs';
@@ -36,6 +36,7 @@ export async function GET(req: Request) {
  * POST /api/settings { householdId?, action, ... } -> { settings }
  *  action 'preferences' { defaultServings, weeklyBudget (pounds string), currency?, locale?, units? } (owner)
  *  action 'dietary' { tags: string[], consent: boolean }   action 'withdraw_consent'   action 'remove_all'
+ *  action 'dislikes' { memberId, terms: string[] } (soft dislikes, P1-B: own list, or anyone's for the owner; no consent)
  */
 export async function POST(req: Request) {
   const body = await readJson(req);
@@ -48,6 +49,8 @@ export async function POST(req: Request) {
         return respond(await savePreferences(caller, { currency: 'GBP', locale: 'en-GB', units: 'metric', ...body, weeklyBudget: body.weeklyBudget ?? '' }));
       case 'dietary':
         return respond(await saveDietary(caller, { tags: body.tags, consent: body.consent === true }));
+      case 'dislikes':
+        return respond(await saveDislikes(caller, { memberId: body.memberId, terms: body.terms }));
       case 'withdraw_consent':
         return respond(await withdrawConsent(caller));
       case 'remove_all':

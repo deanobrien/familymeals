@@ -45,6 +45,7 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
   { table: 'household_members', file: 'household.json', key: 'members', order: ID, household: H, member: self('user_id') },
   { table: 'person_profiles', file: 'dietary.json', key: 'person_profiles', order: ID, household: H, member: self('user_id') },
   { table: 'household_exclusions', file: 'dietary.json', key: 'exclusions', order: ID, household: H, member: self('created_by') },
+  { table: 'member_dislikes', file: 'dietary.json', key: 'member_dislikes', order: ID, household: H, member: self('member_user_id') },
   { table: 'consent_records', file: 'consents.json', key: 'consent_records', order: ID, household: self('user_id'), member: self('user_id') },
 
   { table: 'recipes', file: 'recipes.json', key: 'recipes', order: ID, household: H, member: self('created_by') },

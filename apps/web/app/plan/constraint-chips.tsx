@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import type { PlanRequest } from '@fr/domain';
 import { Button } from '@fr/ui';
 import {
@@ -14,6 +15,8 @@ interface Props {
   onChange: (next: PlanRequest) => void;
   /** Household hard exclusions: always applied, shown locked. */
   locked: string[];
+  /** Soft dislikes per member (P1-B): shown read-only, avoided where possible, edited in Settings. */
+  dislikes?: { memberName: string; terms: string[] }[];
   memberNames: string[];
   /** Messages about the request (unknown / ambiguous member names). */
   notes: string[];
@@ -32,7 +35,7 @@ function Chip({ label, onRemove, removeLabel, locked }: { label: string; onRemov
 }
 
 /** The AI's reading of the prompt as editable chips (D133). Edits only change the request; nothing is solved until the user says so. */
-export function ConstraintChips({ request, onChange, locked, memberNames, notes }: Props) {
+export function ConstraintChips({ request, onChange, locked, dislikes = [], memberNames, notes }: Props) {
   const [term, setTerm] = useState('');
   const [dietCat, setDietCat] = useState<Diet>('vegetarian');
   const [kind, setKind] = useState<TargetKind>('percent');
@@ -70,6 +73,16 @@ export function ConstraintChips({ request, onChange, locked, memberNames, notes 
           <Button variant="secondary" size="sm" onClick={() => onChange(setDietTarget(request, dietCat, kind, Number(amount)))}>Set diet target</Button>
         </div>
       </section>
+
+      {dislikes.length > 0 && (
+        <section aria-label="Dislikes" data-testid="dislike-chips">
+          <h4>Dislikes (soft)</h4>
+          <ul className="plan__chiplist">
+            {dislikes.flatMap((d) => d.terms.map((t) => <Chip key={`dis-${d.memberName}-${t}`} label={`${d.memberName}: ${t}`} locked />))}
+          </ul>
+          <p className="plan__muted">Avoided where possible, never a rule. This is a preference, not an allergy. Change it in <Link href="/settings#h-dislikes">Settings</Link>.</p>
+        </section>
+      )}
 
       <section aria-label="Exclusions">
         <h4>Exclusions</h4>

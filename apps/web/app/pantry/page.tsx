@@ -4,6 +4,7 @@ import { autoRestockAfterPantryChange, getRestockService } from '../../lib/serve
 import { getAppContext } from '../../lib/server/context';
 import { AddItem } from './add-item';
 import { MinimumsPanel, RunningLowPanel } from './restock';
+import { MakeNow } from '../make-now';
 import { LeftoversPanel, PendingPurchases, UseWhatIHave } from './insights';
 import { ExpiringPanel, SettingsPanel, StalePrompts, StockList } from './stock';
 import s from './pantry.module.css';
@@ -43,6 +44,7 @@ export default async function PantryPage() {
       <StalePrompts items={view.staleItems} />
       <PendingPurchases pending={view.pending} mode={view.settings.purchaseMode} />
       <ExpiringPanel items={view.expiring} />
+      <MakeNow limit={6} />
       <UseWhatIHave suggestions={view.suggestions} />
       <AddItem />
       <StockList view={view} pars={restock.pars} />

@@ -5,7 +5,7 @@ import {
   type ExclusionRules, type InferredDiet, type RecipeSource, type SourceRecipe,
 } from '@fr/recipe-sources';
 import { termMatches } from '@fr/engine/planner';
-import type { Household, RecipeIdeaNeed } from '@fr/plan-orchestrator';
+import { dislikedByMembers, type Household, type RecipeIdeaNeed } from '@fr/plan-orchestrator';
 import { ingredientMatcher, ingredientParser } from '../import/engine-adapter';
 import { RepositoryRecipeSink } from '../import/sink';
 import { putUpload, type UploadOwner } from '../import/upload-store';
@@ -29,7 +29,12 @@ export interface DiscoverCard {
   attribution: { publisher: string; url: string; id: string };
   youtubeUrl?: string;
   creativeCommons?: string;
+  /** Household members who dislike something in this recipe (soft: it is sorted lower, never hidden; P1-B D379). */
+  dislikedBy?: string[];
 }
+
+/** The household as Discover needs it: hard exclusions (filter) and members' soft dislikes (sort lower, P1-B D379). */
+export type DiscoverHousehold = Pick<Household, 'hardExclusions'> & { members?: Household['members'] };
 
 export interface DiscoverFilters { q?: string; area?: string; category?: string; ingredient?: string }
 
@@ -43,7 +48,7 @@ export type DiscoverOutcome =
 const MAX_CARDS = 12;
 
 /** Household hard exclusions + extras -> the rules the filter enforces (names resolved server-side, D132). */
-export function buildRules(household: Pick<Household, 'hardExclusions'>, extra: ExtraExclusions = {}, cat: IngredientCatalogue = getIngredientCatalogue()): { rules: ExclusionRules; active: boolean } {
+export function buildRules(household: DiscoverHousehold, extra: ExtraExclusions = {}, cat: IngredientCatalogue = getIngredientCatalogue()): { rules: ExclusionRules; active: boolean } {
   const terms = [...new Set([...household.hardExclusions.map((x) => x.ingredientName), ...(extra.terms ?? [])].map((t) => t.trim()).filter(Boolean))];
   const allergens = [...new Set((extra.allergens ?? []).map((t) => t.trim()).filter(Boolean))];
   const resolved = createExclusionResolver(cat)({ terms, allergens });
@@ -97,16 +102,22 @@ function failure(e: unknown): { ok: false; message: string } {
 }
 
 /** Run the exclusion filter over a pool and turn the survivors into cards. */
-function finish(pool: SourceRecipe[], household: Pick<Household, 'hardExclusions'>, extra: ExtraExclusions, sourceLabel: string, accept?: (d: InferredDiet) => boolean, cat = getIngredientCatalogue()): DiscoverOutcome {
+function finish(pool: SourceRecipe[], household: DiscoverHousehold, extra: ExtraExclusions, sourceLabel: string, accept?: (d: InferredDiet) => boolean, cat = getIngredientCatalogue()): DiscoverOutcome {
   const { rules, active } = buildRules(household, extra, cat);
   const dietOf = (r: SourceRecipe) => inferDiet(r, categoryResolver(cat)).diet;
   const seen = new Set<string>();
   const unique = pool.filter((r) => (seen.has(r.id) ? false : (seen.add(r.id), true)));
   const safe = filterByExclusions(unique, rules, dietOf, active);
   const kept = accept ? safe.kept.filter((r) => accept(dietOf(r))) : safe.kept;
+  // Soft dislikes (P1-B, D379): sorted LOWER, never filtered out. Array.sort is stable, so the source order is kept within a tier.
+  const members = household.members ?? [];
+  const nameOf = new Map(members.map((m) => [m.id, m.displayName]));
+  const ranked = kept
+    .map((r) => ({ r, dis: dislikedByMembers({ ingredientNames: [r.title, ...r.ingredients.map((i) => i.name)] }, members) }))
+    .sort((a, b) => a.dis.length - b.dis.length);
   return {
     ok: true,
-    cards: kept.slice(0, MAX_CARDS).map((r) => toCard(r, cat)),
+    cards: ranked.slice(0, MAX_CARDS).map(({ r, dis }) => ({ ...toCard(r, cat), ...(dis.length ? { dislikedBy: dis.map((id) => nameOf.get(id) ?? 'Someone') } : {}) })),
     withheld: safe.withheld,
     withheldUnverifiable: safe.withheldUnverifiable,
     exclusionsActive: active,
@@ -115,7 +126,7 @@ function finish(pool: SourceRecipe[], household: Pick<Household, 'hardExclusions
 }
 
 export async function discoverSearch(
-  filters: DiscoverFilters, household: Pick<Household, 'hardExclusions'>, extra: ExtraExclusions = {}, source: RecipeSource = getRecipeSource(),
+  filters: DiscoverFilters, household: DiscoverHousehold, extra: ExtraExclusions = {}, source: RecipeSource = getRecipeSource(),
 ): Promise<DiscoverOutcome> {
   try {
     const pool = await source.search(filters.q ?? '', {
@@ -147,7 +158,7 @@ const acceptsDiet = (want: RecipeIdeaNeed['criteria']['dietCategory']) => (d: In
 
 /** "Find ideas" for a planner shortfall. Exclusions are re-derived here from the household; the client adds, never removes. */
 export async function discoverIdeas(
-  criteria: RecipeIdeaNeed['criteria'], household: Pick<Household, 'hardExclusions'>, extra: ExtraExclusions = {}, source: RecipeSource = getRecipeSource(),
+  criteria: RecipeIdeaNeed['criteria'], household: DiscoverHousehold, extra: ExtraExclusions = {}, source: RecipeSource = getRecipeSource(),
 ): Promise<DiscoverOutcome> {
   try {
     const cats = categoriesFor(criteria);
@@ -169,7 +180,7 @@ export type DraftOutcome =
  * (no images) under the caller's identity and saved by /api/extract/save after the user has reviewed it.
  */
 export async function startDiscoverDraft(
-  id: string, owner: UploadOwner, household: Pick<Household, 'hardExclusions'>, source: RecipeSource = getRecipeSource(),
+  id: string, owner: UploadOwner, household: DiscoverHousehold, source: RecipeSource = getRecipeSource(),
   repo: RecipeRepository = getRecipeRepository(),
 ): Promise<DraftOutcome> {
   try {

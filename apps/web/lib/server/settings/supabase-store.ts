@@ -8,7 +8,7 @@ type Row = Record<string, unknown>;
 function fail(e: unknown): never {
   const code = (e as { code?: string } | null)?.code;
   if (code === '42501' || code === 'PGRST301') throw new SettingsError('forbidden');
-  if (code === '23514' || code === '22P02' || code === '23503') throw new SettingsError('invalid_input');
+  if (code === '23514' || code === '22P02' || code === '23503' || code === '22023') throw new SettingsError('invalid_input');
   throw new SettingsError('unknown');
 }
 
@@ -39,10 +39,12 @@ export class SupabaseSettingsStore implements SettingsStore {
   ) {}
 
   async get(householdId: string, userId: string): Promise<HouseholdSettings> {
-    const [h, ex, consent] = await Promise.all([
+    const [h, ex, consent, mem, dis] = await Promise.all([
       run<Row>(this.db.from('households').select('default_servings, weekly_budget_pence').eq('id', householdId).maybeSingle()),
       run<Row[]>(this.db.from('household_exclusions').select('id, term').eq('household_id', householdId).order('created_at', { ascending: true })),
       run<Row[]>(activeConsent(this.db, householdId, userId)),
+      run<Row[]>(this.db.from('household_members').select('user_id, role, display_name, joined_at').eq('household_id', householdId).eq('status', 'active').order('joined_at', { ascending: true })),
+      run<Row[]>(this.db.from('member_dislikes').select('member_user_id, term').eq('household_id', householdId).order('term', { ascending: true })),
     ]);
     if (!h) throw new SettingsError('forbidden');
     let withheld = 0;
@@ -57,8 +59,24 @@ export class SupabaseSettingsStore implements SettingsStore {
       weeklyBudgetPence: typeof h.weekly_budget_pence === 'number' ? h.weekly_budget_pence : null,
       exclusions: (ex ?? []).map((r) => (typeof r.term === 'string' ? r.term : '')).filter(Boolean),
       consentActive: (consent ?? []).length > 0,
+      members: (mem ?? []).map((m) => {
+        const id = String(m.user_id);
+        return {
+          memberId: id,
+          displayName: (typeof m.display_name === 'string' && m.display_name.trim()) || 'Household member',
+          isSelf: id === userId,
+          terms: (dis ?? []).filter((d) => d.member_user_id === id).map((d) => String(d.term)),
+        };
+      }),
+      canEditAllDislikes: (mem ?? []).some((m) => m.user_id === userId && m.role === 'owner'),
       withheldExclusions: withheld,
     };
+  }
+
+  /** Replaces one member's soft dislikes in a single transaction (the function runs as the caller; RLS is the authority). */
+  async saveDislikes(householdId: string, _actorUserId: string, memberId: string, terms: string[]): Promise<void> {
+    const { error } = await this.db.rpc('set_member_dislikes', { p_household_id: householdId, p_member_user_id: memberId, p_terms: terms });
+    if (error) fail(error);
   }
 
   async savePreferences(householdId: string, prefs: { defaultServings: number; weeklyBudgetPence: number | null }): Promise<void> {

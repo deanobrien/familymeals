@@ -57,6 +57,11 @@ export function IdeaResults({ result, testId = 'discover-results' }: { result: D
                   <h3 style={{ margin: 0 }}>{c.title}</h3>
                   <p className="fr-muted" style={{ margin: 0 }}>{[c.area, c.category].filter(Boolean).join(' · ')}</p>
                   <div><Badge data-testid="diet-badge">{DIET_LABEL[c.diet]}</Badge></div>
+                  {c.dislikedBy && c.dislikedBy.length > 0 && (
+                    <p className="fr-muted" style={{ margin: 0, fontSize: '0.8125rem' }} data-testid="card-dislike">
+                      {c.dislikedBy.join(' and ')} {c.dislikedBy.length === 1 ? "doesn't" : "don't"} like something in this (just a preference).
+                    </p>
+                  )}
                   <p className="fr-muted" style={{ margin: 0, fontSize: '0.8125rem' }} data-testid="card-attribution">
                     Source: <a href={c.attribution.url} target="_blank" rel="noopener noreferrer">{c.attribution.publisher}</a>
                   </p>

@@ -12,6 +12,7 @@ export type ConstraintKind =
   | 'diet_proportion'
   | 'budget'
   | 'favourites'
+  | 'dislikes'
   | 'quick_meals'
   | 'include_tags'
   | 'variety'
@@ -143,6 +144,10 @@ export function buildEvaluation(
     if (p.isFavourite[ci]) {
       const who = c.favouritedBy.filter((m) => k.favouritesOf.includes(m)).map((m) => p.labels.members?.[m] ?? m);
       reasons.push(`Favourite of ${who.join(', ')}`);
+    }
+    if (p.dislikeCount[ci]! > 0) {
+      const who = [...new Set(c.dislikedBy)].map((m) => p.labels.members?.[m] ?? m);
+      reasons.push(`Has something ${who.join(' and ')} ${who.length === 1 ? "doesn't" : "don't"} like (soft preference)`);
     }
     if (s.quickMaxMinutes !== undefined) {
       if (c.totalMinutes !== null && c.totalMinutes <= s.quickMaxMinutes) {
@@ -391,6 +396,22 @@ export function buildEvaluation(
       explanation = `${st.favourites} of ${possible} possible ${who} favourites used; the rest were traded off against other constraints.`;
     }
     report.push({ id: 'favourites', kind: 'favourites', hard: false, status, target: `${possible}`, actual: `${st.favourites}`, explanation });
+  }
+
+  // ---------- soft dislikes (never hard: a disliked ingredient is avoided where possible, not excluded) ----------
+  if (p.dislikeCount.some((n) => n > 0)) {
+    if (st.dislikes === 0) {
+      report.push({
+        id: 'dislikes', kind: 'dislikes', hard: false, status: 'met', target: '0', actual: '0',
+        explanation: 'No planned meal has something a household member dislikes.',
+      });
+    } else {
+      const meals = p.plannable.filter((s) => (a[s] ?? null) !== null && p.dislikeCount[a[s]!]! > 0).length;
+      report.push({
+        id: 'dislikes', kind: 'dislikes', hard: false, status: 'partially_met', target: '0', actual: `${st.dislikes}`,
+        explanation: `${plural(meals, 'planned meal')} ${meals === 1 ? 'has' : 'have'} something a member dislikes. Dislikes are only a preference: they were avoided where the other constraints allowed.`,
+      });
+    }
   }
 
   // ---------- quick meals ----------

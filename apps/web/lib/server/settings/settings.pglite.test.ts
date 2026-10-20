@@ -4,7 +4,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { SupabaseHouseholdProfile } from '../supabase/household-sources';
 import { createPgliteSupabase, type PgliteSupabase } from '../supabase/test-support/pglite-client';
-import { removeAllDietary, saveDietary, savePreferences, withdrawConsent, loadSettings, type SettingsCaller } from './service';
+import { removeAllDietary, saveDietary, saveDislikes, savePreferences, withdrawConsent, loadSettings, type SettingsCaller } from './service';
 
 const ALICE = 'a0000000-0000-4000-8000-000000000001';
 const BOB = 'b0000000-0000-4000-8000-000000000002';
@@ -82,5 +82,52 @@ describe('settings against the real schema', () => {
     expect((await planner()).hardExclusions).toHaveLength(2);
     expect(await removeAllDietary(as(ALICE))).toMatchObject({ ok: true, settings: { exclusions: [], consentActive: false, withheldExclusions: 0 } });
     expect((await planner()).hardExclusions).toEqual([]);
+  });
+});
+
+// P1-B (D378): soft per-person dislikes through the real schema (RLS as the signed-in user).
+describe('soft dislikes against the real schema', () => {
+  const memberOf = async (id: string) => {
+    const r = await loadSettings(as(ALICE));
+    if (!r.ok) throw new Error(r.error);
+    return r.settings.members.find((m) => m.memberId === id)!;
+  };
+
+  it('lists every member with their terms, and says who may edit what', async () => {
+    const r = await loadSettings(as(ALICE));
+    expect(r).toMatchObject({ ok: true, settings: { canEditAllDislikes: true } });
+    if (r.ok) expect(r.settings.members.map((m) => [m.memberId, m.isSelf])).toEqual([[ALICE, true], [BOB, false]]);
+    await pg.actAs(BOB);
+    expect(await loadSettings(as(BOB))).toMatchObject({ ok: true, settings: { canEditAllDislikes: false } });
+    await pg.actAs(ALICE);
+  });
+
+  it('a member saves their own dislikes (normalised, de-duplicated); everyone sees them; the planner gets them', async () => {
+    await pg.actAs(BOB);
+    const r = await saveDislikes(as(BOB), { memberId: BOB, terms: [' Mushrooms ', 'olives', 'mushrooms'] });
+    expect(r).toMatchObject({ ok: true });
+    await pg.actAs(ALICE);
+    expect((await memberOf(BOB)).terms.sort()).toEqual(['mushrooms', 'olives']);
+    const p = await planner();
+    expect(p.members.find((m) => m.id === BOB)?.dislikes?.sort()).toEqual(['mushrooms', 'olives']);
+    expect(p.members.find((m) => m.id === ALICE)?.dislikes).toBeUndefined();
+    // soft: dislikes are never exclusions and need no consent
+    expect(p.hardExclusions.map((e) => e.ingredientName)).not.toContain('mushrooms');
+  });
+
+  it('a member cannot change another member\'s list, but the owner can', async () => {
+    await pg.actAs(BOB);
+    expect(await saveDislikes(as(BOB), { memberId: ALICE, terms: ['x'] })).toEqual({ ok: false, error: 'forbidden' });
+    await pg.actAs(ALICE);
+    expect(await saveDislikes(as(ALICE), { memberId: BOB, terms: ['liver'] })).toMatchObject({ ok: true });
+    expect((await memberOf(BOB)).terms).toEqual(['liver']);
+  });
+
+  it('validates input with field errors, refuses non-members and read-only households, and an empty list clears', async () => {
+    expect(await saveDislikes(as(ALICE), { memberId: ALICE, terms: ['ok', '123!'] })).toMatchObject({ ok: false, error: 'invalid_input', fieldErrors: { terms: expect.any(String) } });
+    expect(await saveDislikes(as(ALICE), { memberId: 'c0000000-0000-4000-8000-000000000003', terms: ['x'] })).toMatchObject({ ok: false, error: 'invalid_input' });
+    expect(await saveDislikes(as(ALICE, true), { memberId: ALICE, terms: ['x'] })).toEqual({ ok: false, error: 'read_only' });
+    expect(await saveDislikes(as(ALICE), { memberId: BOB, terms: [] })).toMatchObject({ ok: true });
+    expect((await memberOf(BOB)).terms).toEqual([]);
   });
 });

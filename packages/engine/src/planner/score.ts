@@ -12,6 +12,8 @@ export interface PlanStats {
   costedMeals: number;
   uncostedMeals: number;
   favourites: number;
+  /** Member-dislike hits across planned meals (a meal counts once per member who dislikes something in it). */
+  dislikes: number;
   quickMisses: number;
   tagHits: number;
   repeats: number;
@@ -28,7 +30,7 @@ export function computeStats(p: Problem, a: Assignment): PlanStats {
   const uses = new Map<number, number>();
   const catCount = { meat: 0, fish: 0, vegetarian: 0, vegan: 0 };
   let filled = 0, empty = 0, cost = 0, costed = 0, uncosted = 0;
-  let fav = 0, quickMisses = 0, tags = 0, recent = 0;
+  let fav = 0, quickMisses = 0, tags = 0, recent = 0, dislikes = 0;
   for (const s of p.plannable) {
     const ci = a[s];
     if (ci === null || ci === undefined) {
@@ -45,6 +47,7 @@ export function computeStats(p: Problem, a: Assignment): PlanStats {
       cost += c.estCostPerServingPence * k.servings;
     }
     if (p.isFavourite[ci]) fav++;
+    dislikes += p.dislikeCount[ci]!;
     tags += p.tagHits[ci]!;
     if (p.isRecent[ci]) recent++;
     const max = p.slots[s]!.quickMaxMinutes;
@@ -66,7 +69,7 @@ export function computeStats(p: Problem, a: Assignment): PlanStats {
   return {
     filled, empty, dietActual, dietDistance,
     totalCostPence: cost, costedMeals: costed, uncostedMeals: uncosted,
-    favourites: fav, quickMisses, tagHits: tags, repeats, recent,
+    favourites: fav, dislikes, quickMisses, tagHits: tags, repeats, recent,
   };
 }
 
@@ -86,6 +89,7 @@ export function score(p: Problem, a: Assignment): Score {
   const imputed = st.totalCostPence + st.uncostedMeals * p.imputedCostPerServing * k.servings;
   total += (imputed / 100) * w.costTieBreakPerPound;
   total -= st.favourites * w.favourite;
+  total += st.dislikes * w.dislike;
   total += st.quickMisses * w.quickMiss;
   total -= st.tagHits * w.includeTag;
   if (k.repeats !== 'allow') total += st.repeats * w.repeat;

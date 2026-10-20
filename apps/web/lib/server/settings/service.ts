@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { exclusionsSchema, preferencesSchema } from '../../../app/settings/schema';
+import { dislikesSchema, exclusionsSchema, preferencesSchema } from '../../../app/settings/schema';
 import { MemorySettingsStore } from './memory-store';
 import { SupabaseSettingsStore } from './supabase-store';
 import { SettingsError, type HouseholdSettings, type SettingsStore } from './types';
@@ -57,6 +57,16 @@ export async function saveDietary(caller: SettingsCaller, raw: unknown): Promise
   const r = exclusionsSchema.safeParse(raw);
   if (!r.success) return { ok: false, error: 'invalid_input', fieldErrors: fieldErrors(r.error.issues) };
   return guard(caller, true, (s) => s.saveExclusions(caller.householdId, caller.userId, r.data.tags));
+}
+
+/**
+ * Replaces one member's soft dislikes (P1-B, D378). Anyone edits their own list; the household owner edits anyone's (RLS in
+ * Supabase, `canEditAllDislikes` in the view). Not health data: no consent, never filters anything, separate from `saveDietary`.
+ */
+export async function saveDislikes(caller: SettingsCaller, raw: unknown): Promise<SettingsResult> {
+  const r = dislikesSchema.safeParse(raw);
+  if (!r.success) return { ok: false, error: 'invalid_input', fieldErrors: fieldErrors(r.error.issues) };
+  return guard(caller, true, (s) => s.saveDislikes(caller.householdId, caller.userId, r.data.memberId, [...new Set(r.data.terms)]));
 }
 
 export const withdrawConsent = (caller: SettingsCaller): Promise<SettingsResult> => guard(caller, true, (s) => s.withdrawConsent(caller.householdId, caller.userId));

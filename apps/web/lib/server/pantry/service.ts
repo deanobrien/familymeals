@@ -2,7 +2,7 @@ import {
   EXPIRING_SOON_DAYS, URGENCY_DAYS, addStock, applyAdjustments, assessConfidence, confirmStock, correctStock,
   expiringSoon, exactQ, fmtQ, isExact, makeCtx, planLeftovers, planPurchaseAdjustments, rankRecipesByPantry,
   today, daysBetween,
-  type CookedBatch, type EngineCtx, type UnitConverter, type OpenSlot, type OutstandingItem, type PantryAdjustment, type PantryItem, type Uuid,
+  type CookedBatch, type EngineCtx, type UnitConverter, type OpenSlot, type OutstandingItem, type PantryAdjustment, type PantryItem, type RecipeSummary, type Uuid,
 } from '../../pantry/engine';
 import {
   UNIT_OPTIONS, categoryLabel,
@@ -203,6 +203,22 @@ export function createPantryService(deps: PantryDeps) {
         staleItems: views.filter((v) => v.view.stale).map((v) => v.view),
         expiring, suggestions, pending, leftovers,
       };
+    },
+
+    /**
+     * P1-B "What can I make now?": every library recipe ranked by pantry coverage and use of expiring stock, with the recipe
+     * lines (the caller applies the household's allergy exclusions before showing anything). Read-only.
+     */
+    async rankedRecipes(householdId: Uuid, opts: { urgencyDays?: number; coverageWeight?: number } = {}): Promise<{
+      recipes: RecipeSummary[]; ranked: ReturnType<typeof rankRecipesByPantry>; now: string;
+    }> {
+      const settings = await repo.getSettings(householdId);
+      await syncAutoPurchases(householdId, settings);
+      const items = await repo.listItems(householdId);
+      const ctx = ctxFor(settings);
+      const recipes = await deps.recipes.list(householdId);
+      const ranked = rankRecipesByPantry(recipes, items, ctx, { urgencyDays: opts.urgencyDays ?? URGENCY_DAYS, ...(opts.coverageWeight !== undefined ? { coverageWeight: opts.coverageWeight } : {}) });
+      return { recipes, ranked, now: ctx.now };
     },
 
     /**

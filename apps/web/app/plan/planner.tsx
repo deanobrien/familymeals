@@ -6,6 +6,7 @@ import { Badge, Button, Checkbox, EmptyState, IconButton, Input, SearchField, Se
 import { addDays, dateShort, dayShort, weekDates, weekLabel } from '../../lib/plan/dates';
 import { formatPence, mealCost, weekCost, weekCostLabel } from '../../lib/plan/cost';
 import { weekNutrition } from '../../lib/plan/nutrition';
+import { cookedVariety, weekVariety } from '../../lib/plan/variety';
 import {
   getEntry, markSlot, mealCount, moveEntry, removeEntry, setMealTypes, setNote, setRecipe, setServings, shiftToWeek, slotKey, swapRecipe,
 } from '../../lib/plan/ops';
@@ -13,6 +14,7 @@ import { MEAL_LABEL, MEAL_TYPES, type MealType, type PlanDoc, type PlanPageData,
 import { approvePlanAction, generateShoppingAction, loadWeekAction, savePlanAction } from './actions';
 import { PromptPanel } from './prompt-panel';
 import { WeekNutritionPanel } from './week-nutrition';
+import { WeekVarietyPanel } from './week-variety';
 import './plan.css';
 
 interface Msg { tone: 'info' | 'error'; text: string; items?: string[]; href?: string; hrefLabel?: string }
@@ -33,6 +35,8 @@ export function Planner({ data }: { data: PlanPageData }) {
   const meals = MEAL_TYPES.filter((m) => doc.mealTypes.includes(m));
   const cost = weekCost(doc, recipes);
   const nutrition = useMemo(() => weekNutrition(doc, recipes), [doc, recipes]);
+  const variety = useMemo(() => weekVariety(doc, recipes), [doc, recipes]);
+  const cookedVar = useMemo(() => (data.cooked ? cookedVariety(data.cooked, recipes) : undefined), [data.cooked, recipes]);
 
   const apply = (next: PlanDoc) => {
     setDoc(next);
@@ -208,6 +212,7 @@ export function Planner({ data }: { data: PlanPageData }) {
       <p className="plan__muted">Drag a meal to another slot to move it (hold Alt or Ctrl to duplicate). On a phone, use Edit to move, duplicate or swap.</p>
 
       <WeekNutritionPanel data={nutrition} />
+      <WeekVarietyPanel planned={variety} {...(cookedVar !== undefined ? { cooked: cookedVar } : {})} />
 
       <PromptPanel
         weekStart={doc.weekStart}
@@ -215,6 +220,7 @@ export function Planner({ data }: { data: PlanPageData }) {
         examplePrompt={data.examplePrompt}
         exclusions={data.householdExclusions}
         memberNames={data.memberNames}
+        dislikes={data.memberDislikes}
         onAccept={(next) => apply(next(doc))}
       />
 

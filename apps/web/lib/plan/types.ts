@@ -1,5 +1,5 @@
 // Client-safe plan types (no server imports). Shared by the planner UI and the server actions.
-import type { NutrientMap } from '@fr/engine/nutrition';
+import type { NutrientMap, RecipeVarietyProfile } from '@fr/engine/nutrition';
 import type { ParsedPlanRequest, PlanProposal } from '@fr/plan-orchestrator';
 
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
@@ -53,6 +53,8 @@ export interface RecipeLite {
   costPartial?: boolean;
   /** Calculated per-serving nutrition (CoFID, D61); null/undefined = not calculated. Unknown values stay unknown. */
   nutritionPerServing?: NutrientMap | null;
+  /** Per-serving fruit/veg portions, plants and protein kinds (estimate, D376); absent = not computed. */
+  variety?: RecipeVarietyProfile | null;
   /** Household hard exclusions this recipe hits (blocks planning it). */
   excludedBy: string[];
 }
@@ -65,6 +67,10 @@ export interface PlanPageData {
   householdExclusions: string[];
   defaultServings: number;
   examplePrompt: string;
+  /** Soft dislikes per member (P1-B, D378), shown as read-only chips; edited in Settings. Never allergies. */
+  memberDislikes?: { memberName: string; terms: string[] }[];
+  /** Meals cooked this week (cooking log, P1-A). Absent until that data exists: the variety panel then shows planned meals only. */
+  cooked?: { date: string; recipeId: string }[];
   /** Household member display names (the choices for the "favourites of" chip). */
   memberNames: string[];
 }

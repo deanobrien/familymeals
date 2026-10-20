@@ -77,6 +77,21 @@ export const exclusionsSchema = z
 
 export type ExclusionsInput = z.input<typeof exclusionsSchema>;
 
+/** A soft dislike (P1-B, D378): plain words like "mushrooms" or "blue cheese". Never an allergy, so no consent is involved. */
+export const dislikeTag = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .min(1, 'Enter a food')
+  .max(60, 'Keep it short, 60 characters at most')
+  .regex(/^[a-z][a-z' -]*$/, 'Use letters only');
+
+export const dislikesSchema = z.object({
+  memberId: z.string().trim().min(1).max(64),
+  terms: z.array(dislikeTag).max(30, 'Too many foods (30 at most)'),
+});
+export type DislikesInput = z.input<typeof dislikesSchema>;
+
 export const DEFAULT_PREFERENCES: PreferencesInput = {
   defaultServings: '4',
   currency: 'GBP',

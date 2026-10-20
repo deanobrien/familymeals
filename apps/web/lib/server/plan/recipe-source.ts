@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
-import type { NutrientMap } from '@fr/engine/nutrition';
+import { recipeVarietyProfile, type NutrientMap, type RecipeVarietyProfile } from '@fr/engine/nutrition';
 import type { Candidate, CandidateFilter, MealType, RecipeRepo } from '@fr/plan-orchestrator';
 import { violatesExclusions } from '@fr/plan-orchestrator';
 import { getIngredientCatalogue } from '../refdata/catalogue';
@@ -16,6 +16,8 @@ export interface PlanRecipe extends Candidate {
   costPartial?: boolean;
   /** Calculated per-serving nutrition (D61); null/undefined = not calculated. */
   nutritionPerServing?: NutrientMap | null;
+  /** P1-B (D376): per-serving fruit/veg portions, plants and protein kinds (estimate); undefined when not computed. */
+  variety?: RecipeVarietyProfile;
   ingredientLines: { name: string; quantityText: string }[];
   /** Canonical ingredient ids of matched lines (unmatched lines are absent). */
   ingredientIds?: string[];
@@ -101,6 +103,21 @@ export class InMemoryPlanRecipeSource implements PlanRecipeSource {
 const mealTypesFor = (m: MealType): MealType[] => (m === 'lunch' || m === 'dinner' ? ['lunch', 'dinner'] : [m]);
 export const QUICK_MINUTES = 30;
 
+/** Per-serving fruit/veg portions, plants and protein kinds from the recipe's matched, weighed lines (P1-B, D376). */
+export function varietyOf(r: RecipeView): RecipeVarietyProfile {
+  const cat = getIngredientCatalogue();
+  return recipeVarietyProfile(
+    r.ingredients.map((i) => ({
+      ...(i.ingredientId ? { ingredientId: i.ingredientId } : {}),
+      name: i.ingredientId ? (cat.get(i.ingredientId)?.name ?? i.name) : i.name,
+      category: i.ingredientId ? cat.get(i.ingredientId)?.category : undefined,
+      grams: i.ingredientId && i.quantity.kind === 'exact' ? (cat.grams.toGrams(i.ingredientId, i.quantity)?.grams ?? null) : null,
+      optional: i.optional,
+    })),
+    r.servings,
+  );
+}
+
 /** Library RecipeView -> PlanRecipe (cost per serving stays null when unknown, never 0). */
 export function toPlanRecipe(r: RecipeView, nutritionOf?: (r: RecipeView) => NutrientMap | null): PlanRecipe {
   const minutes = totalMinutes(r);
@@ -127,6 +144,7 @@ export function toPlanRecipe(r: RecipeView, nutritionOf?: (r: RecipeView) => Nut
     costPerServingPence: costPerServing(r),
     ...(r.cost.partial ? { costPartial: true } : {}),
     ...(nutritionOf ? { nutritionPerServing: nutritionOf(r) } : {}),
+    variety: varietyOf(r),
     favourite: r.favourite,
   };
 }

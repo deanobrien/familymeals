@@ -6,7 +6,7 @@ import { consentNoticeText, createPlanClient, describeError, type PlanClient } f
 import { addDays, dateShort, dayShort, todayIso, weekDates, weekLabel } from '@/lib/plan/dates';
 import {
   formatPence, getEntry, markSlot, mealCost, mealCount, moveEntry, removeEntry, setMealTypes, setNote, setRecipe, setServings, shiftToWeek, slotKey,
-  swapRecipe, weekCost, weekCostLabel, weekNutrition,
+  cookedVariety, swapRecipe, weekCost, weekCostLabel, weekNutrition, weekVariety,
 } from '@/lib/plan/ops';
 import { MEAL_LABEL, MEAL_TYPES, type PlanDoc, type PlanEntry, type PlanPage, type RecipeLite, type ShoppingHandoff, type SlotRef } from '@/lib/plan/types';
 import type { ServerApi } from '@/lib/serverApi';
@@ -16,6 +16,7 @@ import PromptPlanner from './PromptPlanner';
 import RecipePicker from './RecipePicker';
 import SlotEditor from './SlotEditor';
 import WeekSummary from './WeekSummary';
+import WeekVarietyPanel from './WeekVarietyPanel';
 
 type View_ = { name: 'week' } | { name: 'slot'; slot: SlotRef } | { name: 'pick'; slot: SlotRef; mode: 'add' | 'swap' };
 interface Msg { tone: 'info' | 'error'; text: string; items?: string[] }
@@ -79,6 +80,8 @@ export function PlanWeek({ client }: { client: PlanClient }) {
 
   const recipes = useMemo(() => new Map((page?.recipes ?? []).map((r) => [r.id, r])), [page?.recipes]);
   const nutrition = useMemo(() => (doc ? weekNutrition(doc, recipes) : null), [doc, recipes]);
+  const variety = useMemo(() => (doc ? weekVariety(doc, recipes) : null), [doc, recipes]);
+  const cookedVar = useMemo(() => (page?.cooked ? cookedVariety(page.cooked, recipes) : undefined), [page?.cooked, recipes]);
 
   if (!page || !doc) return loadError ? <ErrorState message={loadError} onRetry={() => void load()} /> : <Loading label="Loading meal plan" />;
 
@@ -292,6 +295,7 @@ export function PlanWeek({ client }: { client: PlanClient }) {
       ))}
 
       <WeekSummary data={nutrition} />
+      <WeekVarietyPanel planned={variety} {...(cookedVar !== undefined ? { cooked: cookedVar } : {})} />
 
       <PromptPlanner
         client={client}

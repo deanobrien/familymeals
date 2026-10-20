@@ -147,11 +147,13 @@ interface Props {
   provider?: ProviderInfo | undefined;
   /** Replaces the photo-specific intro (recipes that did not come from photos). */
   intro?: string;
+  /** Whose notes the warnings are: "the photo" (default) or "the page". */
+  noteFrom?: string;
   onSave: (draft: RecipeDraft) => Promise<{ error?: ApiError }>;
   onStartOver: () => void;
 }
 
-export function ReviewStep({ initial, existing, uploadId, provider, intro, onSave, onStartOver }: Props) {
+export function ReviewStep({ initial, existing, uploadId, provider, intro, noteFrom = 'the photo', onSave, onStartOver }: Props) {
   const [draft, setDraft] = useState<RecipeDraft>(initial);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -212,7 +214,7 @@ export function ReviewStep({ initial, existing, uploadId, provider, intro, onSav
 
       {draft.warnings.length > 0 && (
         <div role="status" data-testid="extraction-warnings">
-          {draft.warnings.map((w) => <p key={w} style={{ margin: 0 }}>Note from the photo: {w}</p>)}
+          {draft.warnings.map((w) => <p key={w} style={{ margin: 0 }}>Note from {noteFrom}: {w}</p>)}
         </div>
       )}
 
@@ -235,7 +237,14 @@ export function ReviewStep({ initial, existing, uploadId, provider, intro, onSav
                 {provider.isMock && ' (sample data, not your photo)'}
               </p>
             )}
-            {draft.source && <p data-testid="review-source" style={{ margin: 0 }}>Source: <strong>{draft.source}</strong></p>}
+            {draft.source && (
+              <p data-testid="review-source" style={{ margin: 0 }}>
+                Source: <strong>{draft.source}</strong>
+                {draft.sourceReference && /^https?:\/\//i.test(draft.sourceReference) && (
+                  <> - <a href={draft.sourceReference} target="_blank" rel="noreferrer noopener" data-testid="review-source-link">Open the original page</a></>
+                )}
+              </p>
+            )}
             {pageCount > 0 && (
               <div data-testid="cover-picker" style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                 <div style={{ width: 120, height: 120, overflow: 'hidden', borderRadius: 8, background: 'var(--fr-surface-2)', display: 'grid', placeItems: 'center' }}>

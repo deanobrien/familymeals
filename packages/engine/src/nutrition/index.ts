@@ -4,3 +4,4 @@ export { summariseWeek } from './weekly';
 export type { PlannedMealNutrition, WeeklyNutritionSummary } from './weekly';
 export { normaliseProfile } from './profile';
 export { combine, divideNutrient } from './combine';
+export * from './variety';

@@ -18,6 +18,8 @@ interface Props {
   recipes: ReadonlyMap<string, RecipeLite>;
   examplePrompt: string;
   exclusions: string[];
+  /** Soft dislikes per member, shown as read-only chips (P1-B). */
+  dislikes?: { memberName: string; terms: string[] }[];
   /** Household member display names (choices for the favourites chip). */
   memberNames: string[];
   /** Receives an updater so the parent applies the proposal to its latest doc (and marks it unsaved). */
@@ -45,7 +47,7 @@ function ideaExtra(r: PlanRequest | null): IdeaExtra {
   return { terms: r?.excludeTerms ?? [], allergens: r?.excludeAllergens ?? [], excludeDiets: r?.excludeDietCategories ?? [] };
 }
 
-export function PromptPanel({ weekStart, recipes, examplePrompt, exclusions, memberNames, onAccept }: Props) {
+export function PromptPanel({ weekStart, recipes, examplePrompt, exclusions, memberNames, dislikes, onAccept }: Props) {
   const [prompt, setPrompt] = useState(examplePrompt);
   const [result, setResult] = useState<ProposeResult | null>(null);
   const [parseError, setParseError] = useState<(ParseResult & { ok: false }) | null>(null);
@@ -134,6 +136,7 @@ export function PromptPanel({ weekStart, recipes, examplePrompt, exclusions, mem
             onChange={setRequest}
             locked={parsed.householdExclusions}
             memberNames={memberNames}
+            dislikes={dislikes}
             notes={parsed.unmet.map((u) => u.detail)}
           />
           <div>

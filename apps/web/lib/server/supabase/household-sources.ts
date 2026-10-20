@@ -99,7 +99,19 @@ export class SupabaseHouseholdProfile {
 
   async load(householdId: string): Promise<HouseholdProfile | null> {
     if (householdId !== this.householdId) return null;
-    return profileFromJson(householdId, await callRpc<ProfileJson>(this.client, 'planner_household_profile', { p_household_id: householdId }));
+    const profile = profileFromJson(householdId, await callRpc<ProfileJson>(this.client, 'planner_household_profile', { p_household_id: householdId }));
+    if (!profile || profile.members.length === 0) return profile;
+    // Soft dislikes (P1-B, D378): plain preferences visible to every member (RLS), so a direct read is enough; a failure
+    // here must never stop planning, it only means no dislikes are applied this time.
+    try {
+      const rows = await selectAll<Row>('member_dislikes', (from, to) =>
+        this.client.from('member_dislikes').select('member_user_id, term').eq('household_id', householdId).range(from, to) as unknown as PromiseLike<PgResult<Row[]>>);
+      const byMember = new Map<string, string[]>();
+      for (const r of rows) byMember.set(String(r.member_user_id), [...(byMember.get(String(r.member_user_id)) ?? []), String(r.term)]);
+      return { ...profile, members: profile.members.map((m) => (byMember.has(m.id) ? { ...m, dislikes: byMember.get(m.id)! } : m)) };
+    } catch {
+      return profile;
+    }
   }
 
   async favourites(householdId: string, memberId: string): Promise<string[]> {

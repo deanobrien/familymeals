@@ -827,6 +827,49 @@ export type Database = {
           },
         ];
       };
+      member_dislikes: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          household_id: string;
+          id: string;
+          member_user_id: string;
+          term: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          household_id: string;
+          id?: string;
+          member_user_id: string;
+          term: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          household_id?: string;
+          id?: string;
+          member_user_id?: string;
+          term?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'member_dislikes_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'member_dislikes_household_id_member_user_id_fkey';
+            columns: ['household_id', 'member_user_id'];
+            isOneToOne: false;
+            referencedRelation: 'household_members';
+            referencedColumns: ['household_id', 'user_id'];
+          },
+        ];
+      };
       meal_plans: {
         Row: {
           approved_at: string | null;
@@ -2805,6 +2848,10 @@ export type Database = {
       save_household_ai_settings: {
         Args: { p_config: Json; p_household_id: string; p_keys: Json; p_provider: string };
         Returns: undefined;
+      };
+      set_member_dislikes: {
+        Args: { p_household_id: string; p_member_user_id: string; p_terms: string[] };
+        Returns: number;
       };
       save_meal_plan: {
         Args: { p_doc: Json; p_household_id: string; p_user_id: string };

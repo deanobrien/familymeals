@@ -1,21 +1,33 @@
-import type { HouseholdSettings, SettingsStore } from './types';
+import { SettingsError, type HouseholdSettings, type MemberDislikes, type SettingsStore } from './types';
+
+/** Mock mode has no real member list: these demo members (also the planner's demo household) stand in for it. */
+export const DEMO_MEMBERS: readonly { id: string; displayName: string }[] = [
+  { id: 'm-lauren', displayName: 'Lauren' },
+  { id: 'm-sam', displayName: 'Sam' },
+];
 
 interface Entry {
   defaultServings: number;
   weeklyBudgetPence: number | null;
   exclusions: string[];
   consentActive: boolean;
+  /** memberId -> soft dislike terms (P1-B, D378). */
+  dislikes: Record<string, string[]>;
 }
 
 const g = globalThis as { __frSettingsMemory?: Map<string, Entry> };
 const map = (): Map<string, Entry> => (g.__frSettingsMemory ??= new Map());
 
-const fresh = (): Entry => ({ defaultServings: 4, weeklyBudgetPence: null, exclusions: [], consentActive: false });
+const fresh = (): Entry => ({ defaultServings: 4, weeklyBudgetPence: null, exclusions: [], consentActive: false, dislikes: {} });
+const membersOf = (e: Entry): MemberDislikes[] =>
+  DEMO_MEMBERS.map((m) => ({ memberId: m.id, displayName: m.displayName, isSelf: false, terms: [...(e.dislikes[m.id] ?? [])] }));
 const view = (e: Entry): HouseholdSettings => ({
   defaultServings: e.defaultServings,
   weeklyBudgetPence: e.weeklyBudgetPence,
   exclusions: [...e.exclusions],
   consentActive: e.consentActive,
+  members: membersOf(e),
+  canEditAllDislikes: true,
   withheldExclusions: e.consentActive ? 0 : e.exclusions.length,
 });
 
@@ -56,5 +68,9 @@ export class MemorySettingsStore implements SettingsStore {
     const e = this.entry(householdId);
     e.exclusions = [];
     e.consentActive = false;
+  }
+  async saveDislikes(householdId: string, _actorUserId: string, memberId: string, terms: string[]): Promise<void> {
+    if (!DEMO_MEMBERS.some((m) => m.id === memberId)) throw new SettingsError('invalid_input');
+    this.entry(householdId).dislikes[memberId] = [...new Set(terms)];
   }
 }

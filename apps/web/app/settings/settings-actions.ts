@@ -6,7 +6,7 @@ import { requireHouseholdContext } from '../../lib/server/auth/household-context
 import * as settings from '../../lib/server/settings/service';
 import type { SettingsCaller, SettingsResult } from '../../lib/server/settings/service';
 import { DISPLAY_PREFS_COOKIE, parseDisplayPrefs, serializeDisplayPrefs, type DisplayPrefs } from './display-prefs';
-import type { ExclusionsInput, PreferencesInput } from './schema';
+import type { DislikesInput, ExclusionsInput, PreferencesInput } from './schema';
 
 /**
  * Settings > preferences and allergies (P0-D, D350). Thin wrappers over lib/server/settings/service, the same module the
@@ -50,6 +50,11 @@ export async function savePreferencesAction(values: PreferencesInput): Promise<S
 
 export async function saveDietaryAction(values: ExclusionsInput): Promise<SettingsResult> {
   return done(await settings.saveDietary(await caller(), values));
+}
+
+/** Soft dislikes for one member (P1-B, D378): the planner chips and Discover read them, so refresh those pages too. */
+export async function saveDislikesAction(values: DislikesInput): Promise<SettingsResult> {
+  return done(await settings.saveDislikes(await caller(), values));
 }
 
 export async function withdrawConsentAction(): Promise<SettingsResult> {

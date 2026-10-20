@@ -7,6 +7,7 @@ import { Badge, Button, Card, Checkbox, ConfirmDialog, Input, Select, useToast }
 import s from '../../lib/dashboard/dashboard.module.css';
 import { AiProviderSection } from './ai-provider-section';
 import { DataSection } from './data-section';
+import { DislikesSection } from './dislikes-section';
 import type { DataSettingsView } from './data-view';
 import type { AiSettingsView } from './ai-actions';
 import type { HouseholdSettings } from '../../lib/server/settings/types';
@@ -76,6 +77,7 @@ export function SettingsView({ initial, ai, recipeSource, data }: { initial?: Se
       </Card>
       <AiUsageSection />
       <ExclusionsSection initial={initial?.settings ?? null} readOnly={data?.readOnly ?? false} />
+      <DislikesSection initial={initial?.settings ?? null} readOnly={data?.readOnly ?? false} />
       <PantrySection />
       <DataSection {...(data ? { data } : {})} />
     </div>

@@ -9,7 +9,12 @@ export type Pence = number;
 
 // ---------- data access (injected) ----------
 export interface HardExclusion { ingredientName: string; kind: 'allergy' | 'dietary' | 'dislike'; }
-export interface Member { id: string; displayName: string; }
+export interface Member {
+  id: string;
+  displayName: string;
+  /** Soft dislikes (lower-case terms): penalised by the solver, never excluded, never sent to the AI (P1-B, D378). */
+  dislikes?: string[];
+}
 export interface Household {
   id: string;
   defaultServings?: number;
@@ -34,6 +39,8 @@ export interface Candidate {
   totalMinutes?: number;
   /** Member ids who favourite this recipe (set by orchestrator; matched against PlanConstraints.favouritesOf). */
   favouriteOf?: string[];
+  /** Member ids who dislike something in this recipe (soft; set by the orchestrator from Member.dislikes). */
+  dislikedBy?: string[];
   /** Canonical ingredient ids of the matched lines (unmatched lines are absent). */
   ingredientIds?: string[];
   /** Names + aliases of the matched canonical ingredients (secondary term safety net). */

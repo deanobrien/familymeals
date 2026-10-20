@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { parseDisplayPrefs, serializeDisplayPrefs } from '../../../app/settings/display-prefs';
 import { getPlanServicesFor, loadPlanServices, resetPlanServices } from '../plan/services';
 import { resetMemorySettings } from './memory-store';
-import { loadSettings, removeAllDietary, saveDietary, savePreferences, withdrawConsent, type SettingsCaller } from './service';
+import { loadSettings, removeAllDietary, saveDietary, saveDislikes, savePreferences, withdrawConsent, type SettingsCaller } from './service';
 
 const caller = (householdId = 'h-mem'): SettingsCaller => ({ householdId, userId: 'u1', client: null, readOnly: false });
 const prefs = { currency: 'GBP', locale: 'en-GB', units: 'metric', defaultServings: '5', weeklyBudget: '' };
@@ -44,6 +44,21 @@ describe('settings in mock mode (in-memory store)', () => {
     expect((await loadPlanServices('h-mem')).withheldExclusions).toBe(3);
     await savePreferences(caller(), prefs);
     expect((await loadPlanServices('h-mem')).household.defaultServings).toBe(5);
+  });
+
+  it('soft dislikes (P1-B): saved per demo member, reach the planner profile independent of allergy consent, never become exclusions', async () => {
+    expect(await loadSettings(caller())).toMatchObject({ settings: { canEditAllDislikes: true, members: [{ memberId: 'm-lauren', terms: [] }, { memberId: 'm-sam', terms: [] }] } });
+    expect(await saveDislikes(caller(), { memberId: 'm-sam', terms: ['Mushrooms', 'olives'] })).toMatchObject({ ok: true, settings: { members: [{ terms: [] }, { terms: ['mushrooms', 'olives'] }] } });
+    const svc = await loadPlanServices('h-mem');
+    expect(svc.household.members.find((m) => m.id === 'm-sam')?.dislikes).toEqual(['mushrooms', 'olives']);
+    expect(svc.household.members.find((m) => m.id === 'm-lauren')?.dislikes).toBeUndefined();
+    expect(svc.household.hardExclusions.map((e) => e.ingredientName)).not.toContain('mushrooms');
+    expect(svc.withheldExclusions ?? 0).toBe(0);
+    // an unknown member or bad input is refused
+    expect(await saveDislikes(caller(), { memberId: 'nobody', terms: ['x'] })).toMatchObject({ ok: false, error: 'invalid_input' });
+    expect(await saveDislikes(caller(), { memberId: 'm-sam', terms: ['1'] })).toMatchObject({ ok: false, error: 'invalid_input' });
+    // other households are untouched
+    expect((await loadSettings(caller('h-other'))).ok && (await loadSettings(caller('h-other')) as { settings: { members: { terms: string[] }[] } }).settings.members.flatMap((m) => m.terms)).toEqual([]);
   });
 
   it('read-only households refuse writes', async () => {

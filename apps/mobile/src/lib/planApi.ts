@@ -44,6 +44,20 @@ export function parseDoc(v: unknown): PlanDoc | null {
   };
 }
 
+const PROTEINS = ['fish', 'meat', 'plant'] as const;
+/** Variety profile (D376): every field validated; anything malformed means "no data" (null), never invented numbers. */
+function parseVariety(v: unknown): RecipeLite['variety'] {
+  if (!isObj(v)) return null;
+  const fv = num(v.fv);
+  const pulses = num(v.pulses);
+  if (fv === undefined || pulses === undefined || fv < 0 || pulses < 0) return null;
+  const kinds = strs(v.proteins);
+  return {
+    fv, pulses, plants: strs(v.plants), proteinSources: strs(v.proteinSources),
+    proteins: PROTEINS.filter((p) => kinds.includes(p)), unweighed: Math.max(0, Math.floor(num(v.unweighed) ?? 0)),
+  };
+}
+
 function parseRecipe(v: Obj): RecipeLite | null {
   if (typeof v.id !== 'string' || typeof v.title !== 'string') return null;
   const d = diet(v.dietCategory);
@@ -55,6 +69,7 @@ function parseRecipe(v: Obj): RecipeLite | null {
     costPerServingPence: num(v.costPerServingPence) ?? null, // unknown stays null, never 0
     ...(v.costPartial === true ? { costPartial: true } : {}),
     nutritionPerServing: isObj(v.nutritionPerServing) ? (v.nutritionPerServing as unknown as RecipeLite['nutritionPerServing']) : null,
+    variety: parseVariety(v.variety),
     excludedBy: strs(v.excludedBy),
   };
 }
@@ -70,6 +85,9 @@ export function parsePage(v: unknown): PlanPage {
       .map((s) => ({ id: s.id as string, weekStart: s.weekStart as string, status: s.status === 'approved' ? ('approved' as const) : ('draft' as const) })),
     householdExclusions: strs(o.householdExclusions), defaultServings: num(o.defaultServings) ?? 4,
     examplePrompt: str(o.examplePrompt), memberNames: strs(o.memberNames), withheldExclusions: Math.max(0, Math.floor(num(o.withheldExclusions) ?? 0)),
+    ...(Array.isArray(o.cooked)
+      ? { cooked: objs(o.cooked).filter((c) => typeof c.date === 'string' && typeof c.recipeId === 'string').map((c) => ({ date: c.date as string, recipeId: c.recipeId as string })) }
+      : {}),
   };
 }
 

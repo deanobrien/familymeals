@@ -18,6 +18,7 @@ function toLite(r: PlanRecipe, exclusions: string[]): RecipeLite {
     costPerServingPence: r.costPerServingPence, costKind: r.costPerServingPence == null ? null : 'estimate',
     ...(r.costPartial ? { costPartial: true } : {}),
     nutritionPerServing: r.nutritionPerServing ?? null,
+    variety: r.variety ?? null,
     excludedBy: violatesExclusions(r.ingredientNames, exclusions),
   };
 }
@@ -36,6 +37,7 @@ export async function getPlanPageData(svc: PlanServices, weekParam?: string): Pr
     defaultServings: hh.defaultServings ?? 4,
     examplePrompt: EXAMPLE_PROMPT,
     memberNames: hh.members.map((m) => m.displayName),
+    memberDislikes: hh.members.filter((m) => m.dislikes?.length).map((m) => ({ memberName: m.displayName, terms: [...m.dislikes!] })),
   };
 }
 

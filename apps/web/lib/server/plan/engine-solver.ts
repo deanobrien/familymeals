@@ -37,6 +37,7 @@ export function toEngineCandidate(c: Candidate, servings: number): RecipeCandida
     totalMinutes: c.totalMinutes ?? null,
     estCostPerServingPence: c.costPence == null ? null : Math.round(c.costPence / Math.max(1, servings)),
     favouritedBy: c.favouriteOf ?? [],
+    dislikedBy: c.dislikedBy ?? [],
     mealTypes: c.mealTypes,
   };
 }
@@ -47,6 +48,7 @@ const KIND_LABEL: Record<string, string> = {
   diet_proportion: 'Diet mix',
   budget: 'Budget',
   favourites: 'Favourites',
+  dislikes: 'Dislikes',
   quick_meals: 'Quick meals',
   include_tags: 'Preferred tags',
   variety: 'Variety',
