@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -13,6 +13,7 @@ import {
   useToast,
 } from '@fr/ui';
 import type { RecipeCalculation } from '../../../lib/calc/types';
+import { parseStoredServings, resolveInitialServings, servingsOverrideKey } from '../../../lib/recipes/initial-servings';
 import { scaleQuantityLabel, servingsFactor } from '../../../lib/recipes/scale';
 import { totalMinutes, type RecipeView } from '../../../lib/recipes/types';
 import { deleteRecipeAction, duplicateRecipeAction, toggleFavouriteAction } from '../actions';
@@ -21,10 +22,47 @@ import { CostPanel } from './CostPanel';
 import { NutritionPanel } from './NutritionPanel';
 import { UnlinkedNotice } from './RematchButtons';
 
-export function RecipeDetail({ recipe, calc, justDuplicated = false }: { recipe: RecipeView; calc: RecipeCalculation; justDuplicated?: boolean }) {
+interface DetailProps {
+  recipe: RecipeView;
+  calc: RecipeCalculation;
+  justDuplicated?: boolean;
+  householdId?: string;
+  userId?: string;
+  /** households.default_servings; the page opens scaled to this rather than the recipe's own servings. */
+  householdServings?: number;
+}
+
+export function RecipeDetail({ recipe, calc, justDuplicated = false, householdId = '', userId = '', householdServings }: DetailProps) {
+  const householdDefault = resolveInitialServings(householdServings);
+  const overrideKey = servingsOverrideKey(householdId, userId, recipe.id);
   const router = useRouter();
   const toast = useToast();
-  const [servings, setServings] = useState(recipe.servings);
+  const [servings, setServingsState] = useState(householdDefault);
+  const [stored, setStored] = useState(false);
+
+  // Per-member, per-recipe override (localStorage; best effort). Applied right after hydration.
+  useEffect(() => {
+    try {
+      const o = parseStoredServings(window.localStorage.getItem(overrideKey));
+      if (o !== undefined) {
+        setServingsState(o);
+        setStored(true);
+      }
+    } catch {
+      /* storage unavailable: stay on the household default */
+    }
+  }, [overrideKey]);
+
+  const setServings = (n: number, remember = true) => {
+    setServingsState(n);
+    try {
+      if (remember) window.localStorage.setItem(overrideKey, String(n));
+      else window.localStorage.removeItem(overrideKey);
+    } catch {
+      /* ignore */
+    }
+    setStored(remember);
+  };
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [pending, startTransition] = useTransition();
   const factor = servingsFactor(recipe.servings, servings);
@@ -100,11 +138,18 @@ export function RecipeDetail({ recipe, calc, justDuplicated = false }: { recipe:
         <section aria-labelledby="ing-h">
           <h2 id="ing-h">Ingredients</h2>
           <div className={styles.servingsRow}>
-            <Stepper label="Servings" value={servings} min={1} max={100} onChange={setServings} />
+            <Stepper label="Servings" value={servings} min={1} max={100} onChange={(n) => setServings(n)} />
+            {servings !== householdDefault && (
+              <Button variant="ghost" size="sm" onClick={() => setServings(householdDefault, false)}>Reset to household ({householdDefault})</Button>
+            )}
             {servings !== recipe.servings && (
-              <Button variant="ghost" size="sm" onClick={() => setServings(recipe.servings)}>Reset to {recipe.servings}</Button>
+              <Button variant="ghost" size="sm" onClick={() => setServings(recipe.servings)}>Original ({recipe.servings})</Button>
             )}
           </div>
+          <p className="fr-muted" data-testid="servings-note">
+            Recipe serves {recipe.servings} · showing for {servings}
+            {servings === householdDefault && !stored ? ' (your household)' : ''}
+          </p>
           {servings !== recipe.servings && (
             <p className="fr-muted" role="status">Amounts scaled for {servings} servings and rounded for easy measuring. Pinches and to-taste items are unchanged.</p>
           )}
