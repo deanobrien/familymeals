@@ -6,6 +6,10 @@ Mock data by default; Supabase when `EXPO_PUBLIC_SUPABASE_URL` + `EXPO_PUBLIC_SU
 - Data: `src/data/DataSource.ts` (interface), `mockDataSource.ts`, `supabaseDataSource.ts` (supabase-js + `@fr/engine/shopping` offline client), `shoppingMapping.ts` (DB rows -> engine state/log), `liveFeed.ts` (Realtime hint feed), `offlineQueue.ts` (AsyncStorage), `createDataSource.ts` (env switch). Decisions D70-D76, D210-D215 in `DECISIONS.md`.
 - Import: `src/lib/importApi.ts` posts photos to the web app (`EXPO_PUBLIC_API_BASE_URL` + `/api/extract`, `/api/extract/save`) with the Supabase access token as a Bearer header. Barcode lookup: `src/lib/productApi.ts` (`/api/products/<barcode>`).
 
+## Server-backed features (D340-D347)
+
+Planner, pantry, pantry scan (photos and continuous barcodes), receipts, the shopping lists sheet and handwritten list scan call the web app's JSON API with the Supabase access token (`src/lib/serverApi.ts`, `src/data/ServerApiContext.tsx`; per-feature clients `planApi`, `pantryApi`, `pantryScanApi`, `receiptsApi`, `shoppingListsApi`, `listScanApi`). They need `EXPO_PUBLIC_API_BASE_URL` and Supabase sign-in; in mock mode the screens say so. Bottom tabs: Recipes, Shopping, Capture, More (planner, pantry, scan, receipts, list scan, households). Tests use a fake `ServerApi` via `ServerApiProvider`. Needs a real device: camera/photo flows, haptics and keep-awake while scanning barcodes, authenticated receipt photo display, TalkBack.
+
 ## Shopping sync (D210, D211)
 
 The shared list uses the same model as the web Supabase repository:

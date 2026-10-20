@@ -32,12 +32,12 @@ Standing rule (D310): every web feature also ships on Android unless a reason is
 | Recipe create / edit + ingredient matching | ✅ | ❌ | build on Android |
 | Photo import full review/edit | ✅ | ⚠️ | capture + read-only summary only |
 | Discover | ✅ | ❌ | build on Android |
-| Meal planner manual + prompt chips | ✅ | ❌ | build on Android |
+| Meal planner manual + prompt chips | ✅ | ✅ | P0-C (D341); needs device check |
 | Shopping list live / offline / aisles | ✅ | ✅ | none |
-| Multi-list + handwritten list scan | ✅ | ⚠️ | server endpoint only, no Android UI |
-| Pantry stock / expiry / use-what-I-have / photo-video scan | ✅ | ❌ | build on Android |
-| Barcode scanning | ✅ continuous | ⚠️ | tally only, review on web |
-| Receipts | ✅ | ❌ | build on Android |
+| Multi-list + handwritten list scan | ✅ | ✅ | P0-C (D346) |
+| Pantry stock / expiry / use-what-I-have / photo-video scan | ✅ | ⚠️ | P0-C (D342-D343): all but video frames (web-only, native module) and min stock (PR1 not merged) |
+| Barcode scanning | ✅ continuous | ✅ | P0-C (D344): review + confirm on the phone, haptics, keep-awake; device check |
+| Receipts | ✅ | ✅ | P0-C (D345) |
 | Settings: preferences / allergy consent / store aisles | ✅ | ⚠️ | aisle placement only |
 | Data export + account/household deletion | ✅ | ❌ | **release blocker**: Google Play requires in-app account deletion |
 | Home dashboard, privacy/sources pages | ✅ | ❌ | build on Android |
