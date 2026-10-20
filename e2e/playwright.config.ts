@@ -54,6 +54,8 @@ export default defineConfig({
     // (inert unless there is no Supabase config at all, see apps/web/lib/e2e-mode.ts).
     env: {
       RECIPE_SOURCE: 'mock',
+      // Recipe-from-link uses offline fixture pages (D370): no network; the SSRF guard still runs.
+      URL_IMPORT_SOURCE: 'mock',
       ...(PROD ? { E2E_PRODUCTION_BUILD: '1', AI_PROVIDER: 'mock', AI_ALLOW_MOCK_IN_PRODUCTION: 'true' } : {}),
     },
     timeout: PROD ? 600_000 : 180_000,

@@ -54,6 +54,7 @@ export function createResolvingProvider(resolve: () => AiProvider | Promise<AiPr
     }) as unknown as AiProvider[K];
   return {
     extractRecipe: via('extractRecipe'),
+    extractRecipeFromText: via('extractRecipeFromText'),
     parseReceipt: via('parseReceipt'),
     suggestTags: via('suggestTags'),
     parsePlanPrompt: via('parsePlanPrompt'),

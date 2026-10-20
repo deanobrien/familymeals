@@ -5,3 +5,6 @@ export { mergeExtractions } from './merge.js';
 export * from './corrections.js';
 export * from './finalise.js';
 export * from './duplicates.js';
+export * from './web/html.js';
+export * from './web/structured.js';
+export * from './web/to-extraction.js';

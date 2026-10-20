@@ -30,6 +30,7 @@ class FakeAi implements AiProvider {
   suggestSubstitutions(): never { throw new Error('unused'); }
   scanPantry(): never { throw new Error('unused'); }
   scanShoppingList(): never { throw new Error('unused'); }
+  extractRecipeFromText(): never { throw new Error('unused'); }
 }
 
 const recipes: Candidate[] = [

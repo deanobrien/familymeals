@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { RecipeDraft, RecipeSummary } from '@fr/recipe-import';
+import { LinkStep } from './link-step';
 import { UploadStep } from './upload-step';
 import { ReviewStep } from './review-step';
 
@@ -16,6 +17,8 @@ export interface Extracted {
   draft: RecipeDraft;
   existing: RecipeSummary[];
   provider?: ProviderInfo;
+  /** Set for a recipe read from a web link: 'ai' = no recipe data on the page, read from its text by AI. */
+  link?: 'structured' | 'ai';
 }
 
 async function readJson(res: Response): Promise<Record<string, unknown>> {
@@ -28,7 +31,9 @@ async function readJson(res: Response): Promise<Record<string, unknown>> {
 
 const NETWORK_ERROR: ApiError = { code: 'NETWORK', message: 'We could not reach the server. Check your connection and try again.', retryable: true };
 
-export function ImportFlow({ provider }: { provider?: ProviderInfo }) {
+const LINK_INTRO = 'Check the recipe below. It was read from the web page, and the link to the original page is kept with it. Anything marked needs a look before you save, and the dietary label is worked out from the ingredients and is not verified.';
+
+export function ImportFlow({ provider, initialUrl }: { provider?: ProviderInfo; initialUrl?: string }) {
   const router = useRouter();
   const [extracted, setExtracted] = useState<Extracted | null>(null);
 
@@ -77,16 +82,30 @@ export function ImportFlow({ provider }: { provider?: ProviderInfo }) {
   }
 
   if (extracted) {
+    const fromLink = extracted.link !== undefined;
     return (
       <ReviewStep
         initial={extracted.draft}
         existing={extracted.existing}
         uploadId={extracted.uploadId}
-        provider={extracted.provider ?? provider}
+        provider={fromLink ? undefined : (extracted.provider ?? provider)}
+        {...(fromLink ? { intro: LINK_INTRO, noteFrom: 'the page' } : {})}
         onSave={save}
         onStartOver={() => setExtracted(null)}
       />
     );
   }
-  return <UploadStep onExtract={extract} provider={provider} />;
+  return (
+    <div style={{ display: 'grid', gap: '1.5rem' }}>
+      <section aria-labelledby="link-h" style={{ display: 'grid', gap: '0.75rem', maxWidth: 720 }}>
+        <h2 id="link-h">From a web link</h2>
+        <LinkStep initialUrl={initialUrl} onRead={(e, via) => setExtracted({ ...e, link: via })} />
+      </section>
+      <section aria-labelledby="photo-h" style={{ display: 'grid', gap: '0.75rem' }}>
+        <h2 id="photo-h">From photos</h2>
+        <p>Photograph or upload up to 6 pages of a recipe card or book page. You will review everything before it is saved.</p>
+        <UploadStep onExtract={extract} provider={provider} />
+      </section>
+    </div>
+  );
 }

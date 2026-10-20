@@ -7,7 +7,7 @@ import {
   SHOPPING_LIST_SYSTEM, SHOPPING_SCAN_MAX_IMAGES, ShoppingListScanSchema, normaliseShoppingListScan, scanShoppingListPrompt,
   type ShoppingListScanContext,
 } from './shopping-list-scan.js';
-import { matchPrompt, planPrompt, recipePrompt, subsPrompt, SYSTEM, tagsPrompt } from './prompts.js';
+import { matchPrompt, planPrompt, recipePrompt, recipeTextPrompt, subsPrompt, SYSTEM, tagsPrompt } from './prompts.js';
 import type { AiProvider, CallContext, ImageInput, MatchCandidate, SubstitutionRequest, TaggableRecipe } from './provider.js';
 import {
   IngredientMatchSchema, PlanRequestSchema, ReceiptParseSchema, RecipeExtractionSchema,
@@ -74,6 +74,15 @@ export abstract class BaseAiProvider implements AiProvider {
     return this.run({
       operation: 'extractRecipe', modelKind: 'vision', system: SYSTEM.recipe, ctx,
       parts: [...prepared.map((image): PromptPart => ({ type: 'image', image })), { type: 'text', text: recipePrompt(hint, prepared.length) }],
+      schema: RecipeExtractionSchema, toolName: 'submit_recipe', toolDescription: 'Submit the extracted recipe.',
+    });
+  }
+
+  async extractRecipeFromText(text: string, hint?: string, ctx?: CallContext) {
+    await enforceLimit(this.base.limits, ctx?.householdId, 'extractRecipe');
+    return this.run({
+      operation: 'extractRecipe', modelKind: 'text', system: SYSTEM.recipeText, ctx,
+      parts: [{ type: 'text', text: recipeTextPrompt(text.slice(0, 40_000), hint) }],
       schema: RecipeExtractionSchema, toolName: 'submit_recipe', toolDescription: 'Submit the extracted recipe.',
     });
   }

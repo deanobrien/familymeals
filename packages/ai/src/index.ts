@@ -8,7 +8,7 @@ import { MockAiProvider } from './mock.js';
 import type { AiProvider } from './provider.js';
 
 export * from './schemas.js';
-export { SYSTEM, recipePrompt } from './prompts.js';
+export { SYSTEM, recipePrompt, recipeTextPrompt } from './prompts.js';
 export * from './errors.js';
 export * from './pantry-scan.js';
 export * from './shopping-list-scan.js';

@@ -34,6 +34,8 @@ export interface SubstitutionRequest {
 /** Provider-independent, server-only AI gateway. All outputs are zod-validated. */
 export interface AiProvider {
   extractRecipe(images: ImageInput[], hint?: string, ctx?: CallContext): Promise<RecipeExtraction>;
+  /** The visible text of a recipe web page (no structured data was found) -> one extracted recipe. The text is untrusted data. */
+  extractRecipeFromText(text: string, hint?: string, ctx?: CallContext): Promise<RecipeExtraction>;
   parseReceipt(image: ImageInput, ctx?: CallContext): Promise<ReceiptParse>;
   suggestTags(recipe: TaggableRecipe, ctx?: CallContext): Promise<TagSuggestion>;
   parsePlanPrompt(prompt: string, householdContext: HouseholdContext, ctx?: CallContext): Promise<PlanConstraints>;

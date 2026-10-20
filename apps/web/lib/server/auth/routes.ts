@@ -30,7 +30,7 @@ export const PUBLIC_API_PREFIXES: readonly string[] = ['/api/health', '/api/jobs
  * API routes the Android app calls with `Authorization: Bearer <supabase access token>` instead of cookies (D102).
  * Middleware lets a bearer request through; the ROUTE verifies the token (auth.getUser) and household membership.
  */
-export const BEARER_API_PATHS: readonly string[] = ['/api/extract', '/api/extract/save', '/api/shopping/scan', '/api/products', '/api/recipes', '/api/export', '/api/settings'];
+export const BEARER_API_PATHS: readonly string[] = ['/api/extract', '/api/extract/save', '/api/shopping/scan', '/api/products', '/api/recipes', '/api/export', '/api/settings', '/api/import/url'];
 
 /** Bearer-capable route families (dynamic segments), e.g. GET /api/products/<barcode> (X2, D188). */
 export const BEARER_API_PREFIXES: readonly string[] = [
@@ -45,6 +45,9 @@ export const BEARER_API_PREFIXES: readonly string[] = [
   '/api/pantry',
   '/api/receipts',
   '/api/shopping/',
+  // P1-B (D370, D378): recipe from a web link; soft dislikes under /api/settings/.
+  '/api/import/',
+  '/api/settings/',
 ];
 
 export function acceptsBearer(pathname: string, authorization: string | null | undefined): boolean {

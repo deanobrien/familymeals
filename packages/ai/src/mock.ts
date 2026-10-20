@@ -66,6 +66,15 @@ export class MockAiProvider implements AiProvider {
     return r;
   }
 
+  /** Deterministic: the sample recipe, titled from the hint when given (no text is interpreted). */
+  async extractRecipeFromText(text: string, hint?: string, ctx?: CallContext) {
+    await this.pre('extractRecipe', ctx);
+    if (!text.trim()) throw new AiError('BAD_REQUEST', 'empty page text');
+    const r = RecipeExtractionSchema.parse(clone(recipeFx));
+    if (hint?.trim()) r.title = hint.trim().slice(0, 200);
+    return r;
+  }
+
   async parseReceipt(image: ImageInput, ctx?: CallContext) {
     await this.pre('parseReceipt', ctx);
     if (this.o.validateImages) await prepareImage(image);
