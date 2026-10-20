@@ -107,6 +107,10 @@ test('a tick made right after the other member subscribes appears without reload
   const page = await ctx.newPage();
   try {
     await signIn(page, b);
+    // Warm-up (not timed): the dev server compiles /shopping and its server action on first use, which under load can
+    // exceed the 2 s budget and has nothing to do with the subscription race being tested.
+    await page.goto('/shopping');
+    await expect(page.getByTestId('shopping-root')).toHaveAttribute('data-live', 'true', { timeout: 60_000 });
     const slowest: number[] = [];
     for (const name of names) {
       await page.goto('/shopping');
