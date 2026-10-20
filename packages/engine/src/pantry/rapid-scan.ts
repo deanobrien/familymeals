@@ -212,6 +212,25 @@ export function fromSnapshot(raw: unknown): RapidState {
   return { ...empty, items };
 }
 
+/**
+ * Hand-off of a tally between devices in a URL (the Android app opens `/pantry/scan?mode=rapid&codes=<param>` to review
+ * on the web): `5009000000015x2,5009000000046x1`. Barcodes are not personal data. Validating parse; junk is dropped.
+ */
+export function toSeedParam(items: readonly RapidItem[]): string {
+  return items.slice(0, MAX_DISTINCT_PRODUCTS).map((i) => `${i.barcode}x${Math.min(i.count, MAX_PER_PRODUCT)}`).join(',');
+}
+
+export function parseSeedParam(raw: string | null | undefined): RapidItem[] {
+  if (!raw) return [];
+  return fromSnapshot({
+    v: 1,
+    items: raw.slice(0, 4000).split(',').flatMap((part) => {
+      const m = /^(\d{8}|\d{13})x(\d{1,2})$/.exec(part.trim());
+      return m && normaliseRetailCode(m[1]!) === m[1] ? [{ barcode: m[1], count: Number(m[2]) }] : [];
+    }),
+  }).items;
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 // 3. Lookup tracker
 // ---------------------------------------------------------------------------------------------------------------------

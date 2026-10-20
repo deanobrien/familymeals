@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   MAX_DISTINCT_PRODUCTS, MAX_PER_PRODUCT, MOVED_AWAY_MS, SAME_CODE_COOLDOWN_MS, createLookupTracker, decrement, emptyRapid,
-  expandUpcE, fromSnapshot, increment, normaliseRetailCode, removeItem, sight, toSnapshot, totalCount, undo,
+  expandUpcE, fromSnapshot, increment, normaliseRetailCode, parseSeedParam, removeItem, sight, toSeedParam, toSnapshot, totalCount, undo,
   type BatchOutcome, type BatchRequest, type RapidState,
 } from '../../src/pantry';
 
@@ -135,6 +135,17 @@ describe('snapshot', () => {
     expect(fromSnapshot({ v: 2, items: [] }).items).toEqual([]);
     expect(fromSnapshot({ v: 1, items: [{ barcode: 'x', count: 1 }, { barcode: BEANS, count: -1 }, { barcode: BEANS, count: 500 }, { barcode: BEANS, count: 1 }, 7] }).items)
       .toEqual([{ barcode: BEANS, count: MAX_PER_PRODUCT }]);
+  });
+});
+
+describe('seed param (app to web hand-off)', () => {
+  it('round-trips and drops junk, bad check digits and duplicates', () => {
+    const items = [{ barcode: BEANS, count: 2 }, { barcode: FUSILLI, count: 1 }];
+    expect(toSeedParam(items)).toBe(`${BEANS}x2,${FUSILLI}x1`);
+    expect(parseSeedParam(toSeedParam(items))).toEqual(items);
+    expect(parseSeedParam(`${BEANS}x2,5009000000011x1,abc,${BEANS}x5,${FUSILLI}x0,${FUSILLI}x100`)).toEqual([{ barcode: BEANS, count: 2 }]);
+    expect(parseSeedParam(undefined)).toEqual([]);
+    expect(parseSeedParam('')).toEqual([]);
   });
 });
 

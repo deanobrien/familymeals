@@ -74,7 +74,6 @@ export function RapidStep({ session, onDone, onCancel }: Props) {
   useEffect(() => {
     try { if (window.localStorage.getItem(SOUND_KEY) === 'off') setSound(false); } catch { /* default on */ }
     return () => teardown();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function teardown() {
@@ -111,12 +110,27 @@ export function RapidStep({ session, onDone, onCancel }: Props) {
       setKind(decoder.kind);
       setCaps({ torch: cam.caps.torch, tapFocus: cam.caps.tapFocus });
       setCamera('on');
-      await new Promise((r) => setTimeout(r, 0)); // the <video> mounts on the next render
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      if (!video || !canvas) { teardown(); setCamera('idle'); return; }
-      video.srcObject = cam.stream;
-      await video.play().catch(() => undefined);
+      // The <video> mounts when camera becomes 'on': the effect below attaches the stream and starts the loop.
+    } catch (e) {
+      teardown();
+      const kindOfError = (e as { kind?: string })?.kind === 'unsupported' ? 'unsupported' : classifyCameraError(e);
+      setCameraError(CAMERA_MESSAGES[kindOfError]);
+      setCamera('error');
+    }
+  }
+
+  // Once the <video> element exists (camera 'on'), attach the stream and run the frame loop.
+  useEffect(() => {
+    if (camera !== 'on') return;
+    const cam = camRef.current;
+    const decoder = decoderRef.current;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas || !cam || !decoder) return;
+    video.srcObject = cam.stream;
+    void video.play().catch(() => undefined);
+    {
+      stopLoop.current?.();
       stopLoop.current = startFrameLoop({
         video, canvas: canvas as unknown as DrawCanvas, decoder,
         isPaused: () => pausedRef.current,
@@ -132,13 +146,9 @@ export function RapidStep({ session, onDone, onCancel }: Props) {
           }
         },
       });
-    } catch (e) {
-      teardown();
-      const kindOfError = (e as { kind?: string })?.kind === 'unsupported' ? 'unsupported' : classifyCameraError(e);
-      setCameraError(CAMERA_MESSAGES[kindOfError]);
-      setCamera('error');
     }
-  }
+    // announceFor only reads refs and a setter; stopCamera / unmount stop the loop
+  }, [camera]);
 
   function stopCamera() {
     teardown();
@@ -233,7 +243,6 @@ export function RapidStep({ session, onDone, onCancel }: Props) {
                 <Button variant="secondary" size="lg" onClick={() => setPaused((p) => !p)} aria-pressed={paused} data-testid="rapid-pause">
                   {paused ? 'Resume' : 'Pause'}
                 </Button>
-                <Button variant="secondary" size="lg" onClick={session.undo} disabled={state.history.length === 0} data-testid="rapid-undo">Undo last</Button>
                 {caps.torch && (
                   <Button variant="secondary" size="lg" onClick={() => void toggleTorch()} aria-pressed={torch} data-testid="rapid-torch">
                     {torch ? 'Torch on' : 'Torch off'}
@@ -249,6 +258,11 @@ export function RapidStep({ session, onDone, onCancel }: Props) {
               {state.items.length > 0 && <> ({state.items.length} {state.items.length === 1 ? 'product' : 'products'})</>}
               {pending > 0 && <span className={s.muted}> / looking up {pending}...</span>}
             </div>
+            {state.history.length > 0 && (
+              <div className={s.actions}>
+                <Button variant="secondary" onClick={session.undo} data-testid="rapid-undo">Undo last</Button>
+              </div>
+            )}
             <p className="fr-visually-hidden" role="status" aria-live="polite" data-testid="rapid-announce">{announcement}</p>
 
             {state.items.length === 0 ? (

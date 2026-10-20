@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import type { RapidItem } from '@fr/engine/pantry';
 import { Button, Card, CardBody } from '@fr/ui';
 import { fmtNum, mergeLookup, rapidKey, rowFromDto, rowFromProduct, rowFromRapid, withCount, type ScanRow } from '../../../lib/pantry/scan-rows';
 import type { ProductLookupDto } from '../../../lib/products/types';
@@ -18,8 +19,8 @@ import s from './scan.module.css';
 type Stage = 'capture' | 'rapid' | 'scanning' | 'review' | 'done';
 type ApiError = ScanApiFailure;
 
-export function ScanFlow({ provider, startRapid = false }: { provider: ScanProviderInfo; startRapid?: boolean }) {
-  const [stage, setStage] = useState<Stage>(startRapid ? 'rapid' : 'capture');
+export function ScanFlow({ provider, startRapid = false, seed = [] }: { provider: ScanProviderInfo; startRapid?: boolean; seed?: RapidItem[] }) {
+  const [stage, setStage] = useState<Stage>(startRapid || seed.length > 0 ? 'rapid' : 'capture');
   const [images, setImages] = useState<ScanImage[]>([]);
   const [rows, setRows] = useState<ScanRow[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
@@ -33,7 +34,7 @@ export function ScanFlow({ provider, startRapid = false }: { provider: ScanProvi
 
   // Continuous barcode scanning (BS1): the session (tally + background lookups) lives here so lookups keep resolving
   // while the owner reviews, and so a refresh restores the tally.
-  const rapid = useRapidSession();
+  const rapid = useRapidSession(seed);
   const synced = useRef<Map<string, number>>(new Map());
   useEffect(() => {
     // After a page reload with a saved tally, go straight back to the scanner rather than an empty start page.

@@ -37,6 +37,7 @@ function fakeProducts(impl?: ProductClient['lookup']) {
   const client: ProductClient & { lookup: jest.Mock } = {
     configured: true,
     lookup: jest.fn(impl ?? (async () => summary)),
+    lookupBatch: jest.fn(async () => ({ ok: false as const, fatal: false, message: 'unused' })),
     webUrl: (p: string) => `http://web.test${p}`,
   };
   return client;

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   createLookupTracker, decrement, emptyRapid, fromSnapshot, increment, removeItem, sight, toSnapshot, undo,
-  type LookupState, type LookupTracker, type RapidState, type SightingResult,
+  type LookupState, type LookupTracker, type RapidItem, type RapidState, type SightingResult,
 } from '@fr/engine/pantry';
 import { postBatch } from '../../../lib/products/client';
 import type { ProductLookupDto } from '../../../lib/products/types';
@@ -37,7 +37,7 @@ export interface RapidSession {
  * each distinct code in the background through POST /api/products, and sessionStorage persistence. It lives in ScanFlow, not
  * in the camera component, so lookups keep resolving while the owner reviews, and the tally survives leaving the camera.
  */
-export function useRapidSession(): RapidSession {
+export function useRapidSession(seed: readonly RapidItem[] = []): RapidSession {
   const [state, setState] = useState<RapidState>(emptyRapid);
   const [lookups, setLookups] = useState<ReadonlyMap<string, LookupState<ProductLookupDto>>>(new Map());
   const [restored, setRestored] = useState(false);
@@ -66,7 +66,10 @@ export function useRapidSession(): RapidSession {
   useEffect(() => {
     if (!hydrated.current) {
       hydrated.current = true;
-      try {
+      if (seed.length > 0) {
+        // Handed over from the Android app (?codes=): that tally is the session.
+        commit({ ...emptyRapid(), items: seed.map((i) => ({ ...i })) });
+      } else try {
         const raw = storage()?.getItem(RAPID_STORAGE_KEY);
         if (raw) {
           const restoredState = fromSnapshot(JSON.parse(raw) as unknown);
@@ -77,6 +80,7 @@ export function useRapidSession(): RapidSession {
     // Also re-asks after React's dev-mode effect re-run stopped the tracker (idempotent for codes already asked).
     for (const i of ref.current.items) getTracker().request(i.barcode);
     return () => { tracker.current?.stop(); tracker.current = null; };
+    // seed is read once, on mount
   }, [commit, getTracker]);
 
   return {
