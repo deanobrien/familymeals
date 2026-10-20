@@ -1,4 +1,5 @@
 import type { PantryScan, PantryScanContext } from './pantry-scan.js';
+import type { ShoppingListScan, ShoppingListScanContext } from './shopping-list-scan.js';
 import type {
   HouseholdContext, IngredientMatches, PlanConstraints, ReceiptParse, RecipeExtraction, Substitutions, TagSuggestion,
 } from './schemas.js';
@@ -40,6 +41,8 @@ export interface AiProvider {
   suggestSubstitutions(req: SubstitutionRequest, ctx?: CallContext): Promise<Substitutions>;
   /** Photos / video frames of a kitchen -> de-duplicated items with counts, pack sizes and (only if legible) dates. */
   scanPantry(images: ImageInput[], context?: PantryScanContext, ctx?: CallContext): Promise<PantryScan>;
+  /** Photos of a HANDWRITTEN shopping list -> transcribed, parsed lines (never invents items or amounts; crossed-out lines flagged). */
+  scanShoppingList(images: ImageInput[], context?: ShoppingListScanContext, ctx?: CallContext): Promise<ShoppingListScan>;
   /** Optional live connectivity check (credentials + endpoint + model) used by Settings > Test connection. */
   ping?(): Promise<{ model: string }>;
 }

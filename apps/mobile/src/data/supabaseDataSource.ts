@@ -9,6 +9,8 @@ import {
   type Uuid,
 } from '@fr/domain';
 import { createQuantityConverter } from '@fr/engine/units';
+import type { PlacementTargetType, StoreBook } from '@fr/engine/shopping';
+import { isStoreBook, parseStoreBook } from '@/lib/storeBook';
 import {
   applyCommand,
   clientEnqueue,
@@ -538,6 +540,50 @@ export class SupabaseDataSource implements DataSource {
     return { items, pendingItemIds };
   }
 
+  // ---- stores and aisles (AS1, D298) ----------------------------------------------------------------------------
+
+  async getStoreBook(householdId: Uuid): Promise<StoreBook> {
+    try {
+      const res = (await this.db.rpc('household_store_book', { p_household_id: householdId })) as { data: unknown; error: { message: string } | null };
+      if (res.error) throw new Error(res.error.message);
+      const book = parseStoreBook(res.data);
+      await this.store.saveValue(householdId, 'storebook', book);
+      return book;
+    } catch {
+      const cached = await this.store.loadValue<unknown>(householdId, 'storebook'); // offline: the last book we saw
+      return isStoreBook(cached) ? cached : { stores: [], aisles: [], placements: [] };
+    }
+  }
+
+  async setPlacement(
+    householdId: Uuid,
+    storeId: Uuid,
+    target: { targetType: PlacementTargetType; targetKey: string },
+    aisleId: Uuid | null,
+  ): Promise<void> {
+    const t = this.db.from('store_placements');
+    const res = (aisleId === null
+      ? await t.delete().eq('household_id', householdId).eq('store_id', storeId).eq('target_type', target.targetType).eq('target_key', target.targetKey)
+      : await t.upsert(
+          { household_id: householdId, store_id: storeId, aisle_id: aisleId, target_type: target.targetType, target_key: target.targetKey, updated_at: this.now().toISOString() },
+          { onConflict: 'store_id,target_type,target_key' },
+        )) as { error: { message: string } | null };
+    if (res.error) throw new Error('Could not save the aisle. Check your connection and try again.');
+    const cached = await this.store.loadValue<unknown>(householdId, 'storebook');
+    if (isStoreBook(cached)) {
+      const placements = cached.placements.filter((p) => !(p.storeId === storeId && p.targetType === target.targetType && p.targetKey === target.targetKey));
+      if (aisleId) placements.push({ storeId, aisleId, ...target });
+      await this.store.saveValue(householdId, 'storebook', { ...cached, placements });
+    }
+  }
+
+  getSelectedStoreId(householdId: Uuid): Promise<string | null> {
+    return this.store.loadValue<string>(householdId, 'store');
+  }
+  setSelectedStoreId(householdId: Uuid, storeId: string | null): Promise<void> {
+    return this.store.saveValue(householdId, 'store', storeId);
+  }
+
   // ---- shopping: commands ---------------------------------------------------------------------------------------
 
   async tickItem(householdId: Uuid, itemId: Uuid): Promise<PurchaseEvent> {
@@ -766,6 +812,8 @@ function toListItem(householdId: string, v: ItemView): ShoppingListItem {
     displayName: v.item.displayName,
     quantity,
     aisle: v.item.aisle || v.item.category || 'Other',
+    ...(v.item.ingredientId ? { ingredientId: v.item.ingredientId } : {}),
+    ...(v.item.category ? { category: v.item.category } : {}),
     ticked,
     canUndo: ticked && v.activeEvents.length > 0,
   };

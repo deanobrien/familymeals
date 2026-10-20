@@ -23,7 +23,7 @@
     ".next-live/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
-    ".next-e2e-bs1/types/**/*.ts"
+    ".next-e2e-as1/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
