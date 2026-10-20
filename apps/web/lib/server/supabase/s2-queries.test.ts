@@ -115,7 +115,7 @@ describe('SupabaseShoppingRepository query shape', () => {
       ['eq', 'shopping_list_id', LIST], ['gt', 'list_seq', 7], ['order', 'list_seq', { ascending: true }], ['range', 0, 999],
     ]);
     const lists = calls.find((c) => c.kind === 'from' && c.name === 'shopping_lists')!;
-    expect(lists.ops.slice(0, 3)).toEqual([['select', 'id'], ['eq', 'household_id', HH], ['eq', 'status', 'active']]);
+    expect(lists.ops.slice(0, 3)).toEqual([['select', 'id, name'], ['eq', 'household_id', HH], ['eq', 'status', 'active']]);
   });
 });
 
