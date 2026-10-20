@@ -16,7 +16,7 @@ test('B cannot see A recipes in the library or search, and a direct URL to A rec
     const url = new URL(a.page.url()).pathname;
 
     await b.page.goto('/recipes?q=roast');
-    await expect(b.page.getByRole('heading', { name: /No recipes/ })).toBeVisible();
+    await expect(b.page.getByTestId('recipes-empty-cta')).toBeVisible(); // empty library shows the photo-import CTA (a809c4b)
     await b.page.goto('/recipes');
     await expect(b.page.getByText('Smith Sunday Roast')).toHaveCount(0);
 
