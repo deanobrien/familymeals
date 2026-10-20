@@ -12,7 +12,7 @@
 .thumbCaption { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--fr-space-1); font-size: var(--fr-text-sm); color: var(--fr-text-muted); }
 .rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--fr-space-4); }
 .rowCard { display: flex; flex-direction: column; gap: var(--fr-space-3); }
-.rowOff { opacity: 0.65; }
+.rowOff > :global(.fr-card) { border-style: dashed; background: var(--fr-surface-2); }
 .rowHead { display: flex; flex-wrap: wrap; gap: var(--fr-space-3); align-items: center; justify-content: space-between; }
 .written { font-family: var(--fr-font-display, inherit); font-style: italic; }
 .badges { display: flex; flex-wrap: wrap; gap: var(--fr-space-2); align-items: center; }

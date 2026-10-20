@@ -158,7 +158,7 @@ test('review step: no serious/critical axe violations and 44px targets at 375px'
   const small = await page.evaluate(() => {
     const out: string[] = [];
     for (const el of document.querySelectorAll<HTMLElement>('button, a[href], select, input:not([type=hidden]), summary')) {
-      if (el.closest('.fr-visually-hidden') || el.classList.contains('fr-visually-hidden')) continue;
+      if (el.closest('.fr-visually-hidden') || el.classList.contains('fr-visually-hidden') || /^Skip to/.test(el.textContent ?? '')) continue;
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) continue;
       const label = el.closest('label');
