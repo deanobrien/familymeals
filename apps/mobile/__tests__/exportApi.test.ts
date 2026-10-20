@@ -2,7 +2,6 @@ import { ExportError, createExportClient } from '@/lib/exportApi';
 
 jest.mock('expo-file-system', () => ({ File: class {}, Paths: { cache: 'cache' } }));
 jest.mock('expo-sharing', () => ({ isAvailableAsync: jest.fn(), shareAsync: jest.fn() }));
-// eslint-disable-next-line import/first
 import { downloadAndShare, exportFileName, type ExportDeps } from '@/lib/exportDownload';
 
 const H = '00000000-0000-4000-8000-000000000100';

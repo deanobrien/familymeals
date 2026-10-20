@@ -14,14 +14,27 @@ import * as ts from 'typescript';
 const mobileSrc = (rel: string) => readFileSync(fileURLToPath(new URL(`../../../mobile/src/${rel}`, import.meta.url)), 'utf8');
 
 /** Transpile and run an import-free mobile module (importing it directly would drag in the mobile tsconfig). */
-function loadMobile(rel: string): Record<string, any> {
+interface MobileErrors {
+  ACCOUNT_ERROR_MESSAGES: Record<string, string>;
+  mapAuthApiError(e: unknown): string;
+  mapDbError(e: unknown): string;
+  mapLinkError(c: string | null | undefined): string;
+}
+interface MobilePrivacy {
+  CONSENT_WORDING_V1: string;
+  CONSENT_CHECKBOX_LABEL: string;
+  CONSENT_WORDING_VERSION: string;
+  COMMON_EXCLUSIONS: readonly string[];
+  consentNoticeText(n: number): string | null;
+}
+function loadMobile<T>(rel: string): T {
   const out = ts.transpileModule(mobileSrc(rel), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
-  const mod: { exports: Record<string, any> } = { exports: {} };
+  const mod = { exports: {} as T };
   new Function('module', 'exports', out)(mod, mod.exports);
   return mod.exports;
 }
-const mobileErrors = loadMobile('lib/accountErrors.ts');
-const mobilePrivacy = loadMobile('lib/privacyText.ts');
+const mobileErrors = loadMobile<MobileErrors>('lib/accountErrors.ts');
+const mobilePrivacy = loadMobile<MobilePrivacy>('lib/privacyText.ts');
 
 describe('Android consent text equals the web text', () => {
   it('wording, checkbox label and version are verbatim', () => {
@@ -44,7 +57,7 @@ describe('Android messages and error mapping equal the web ones', () => {
   it('every message both platforms share is word for word the same', () => {
     for (const key of Object.keys(AUTH_ERROR_MESSAGES) as Array<keyof typeof AUTH_ERROR_MESSAGES>) {
       if (key in mobileErrors.ACCOUNT_ERROR_MESSAGES && key !== 'not_configured' && key !== 'mock_mode') {
-        expect(mobileErrors.ACCOUNT_ERROR_MESSAGES[key as keyof typeof mobileErrors.ACCOUNT_ERROR_MESSAGES]).toBe(AUTH_ERROR_MESSAGES[key]);
+        expect(mobileErrors.ACCOUNT_ERROR_MESSAGES[key]).toBe(AUTH_ERROR_MESSAGES[key]);
       }
     }
   });

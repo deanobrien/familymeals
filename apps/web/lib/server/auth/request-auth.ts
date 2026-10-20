@@ -97,6 +97,8 @@ export type ContextOutcome =
  * `inferFirst` is set (the download call, which is authorised by the export row and the memberships, not by one household);
  * otherwise a multi-household caller must say which household.
  */
+const failCtx = (status: 400 | 401 | 403, message: string): Extract<ContextOutcome, { ok: false }> => ({ ok: false, status, message });
+
 export async function resolveBearerHouseholdContext(
   token: string,
   requestedHouseholdId: string | undefined,
@@ -106,9 +108,9 @@ export async function resolveBearerHouseholdContext(
   try {
     const client = deps.clientFor(token);
     const { data, error } = await client.auth.getUser(token);
-    if (error || !data.user) return fail(401, 'Your sign-in was not accepted. Please sign in again.');
+    if (error || !data.user) return failCtx(401, 'Your sign-in was not accepted. Please sign in again.');
     const memberships = await loadMemberships(client, data.user.id);
-    if (!memberships.ok) return fail(403, 'Your households could not be checked.');
+    if (!memberships.ok) return failCtx(403, 'Your households could not be checked.');
     let chosen: HouseholdSummary | AuthOutcome;
     if ((requestedHouseholdId === undefined || requestedHouseholdId === '') && opts.inferFirst) {
       const first = pickActiveMembership(memberships.data, undefined);
@@ -132,7 +134,7 @@ export async function resolveBearerHouseholdContext(
       dataContext: { client, householdId: chosen.id, userId: data.user.id },
     };
   } catch {
-    return fail(401, 'Your sign-in was not accepted. Please sign in again.');
+    return failCtx(401, 'Your sign-in was not accepted. Please sign in again.');
   }
 }
 

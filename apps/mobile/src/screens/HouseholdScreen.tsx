@@ -43,7 +43,6 @@ export default function HouseholdScreen() {
     } catch (e) {
       act.setError(messageOf(e));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ds, householdId]);
 
   useEffect(() => {
