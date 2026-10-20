@@ -48,7 +48,7 @@ const OTHER = 'bb000000-0000-4000-8000-0000000000bb';
 let currentHousehold = H;
 const who = (householdId = H, readOnly = false): AuthOutcome => {
   currentHousehold = householdId;
-  return { ok: true, auth: { userId: 'user-1', householdId, readOnly, dataContext: null } };
+  return { ok: true, auth: { userId: 'user-1', householdId, readOnly, dataContext: null, defaultServings: 4 } };
 };
 
 const authz = { authorization: 'Bearer good' };

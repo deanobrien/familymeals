@@ -13,7 +13,7 @@ let H = '';
 
 beforeEach(() => {
   H = `cc${String(++n).padStart(6, '0')}-0000-4000-8000-0000000000cc`;
-  outcome = { ok: true, auth: { userId: 'u', householdId: H, readOnly: false, dataContext: null } };
+  outcome = { ok: true, auth: { userId: 'u', householdId: H, readOnly: false, dataContext: null, defaultServings: 4 } };
 });
 
 const json = (url: string, body: unknown) =>
@@ -35,7 +35,7 @@ describe('auth', () => {
   });
 
   it('read-only households can read and preview but not write', async () => {
-    outcome = { ok: true, auth: { userId: 'u', householdId: H, readOnly: true, dataContext: null } };
+    outcome = { ok: true, auth: { userId: 'u', householdId: H, readOnly: true, dataContext: null, defaultServings: 4 } };
     const w = await postList({ action: 'create', name: 'x' });
     expect(w.status).toBe(403);
     expect((await errOf(w)).code).toBe('READ_ONLY');

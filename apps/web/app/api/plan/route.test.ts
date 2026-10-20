@@ -27,7 +27,7 @@ const { EXAMPLE_PROMPT } = await import('../../../lib/server/plan/handlers');
 const WEEK = '2026-10-19';
 let n = 0;
 let H = '';
-const who = (readOnly = false): AuthOutcome => ({ ok: true, auth: { userId: 'user-1', householdId: H, readOnly, dataContext: null } });
+const who = (readOnly = false): AuthOutcome => ({ ok: true, auth: { userId: 'user-1', householdId: H, readOnly, dataContext: null, defaultServings: 4 } });
 const get = (url: string) => new Request(`http://t${url}`, { headers: { authorization: 'Bearer good' } });
 const post = (body: unknown) =>
   new Request('http://t/api/plan/x', { method: 'POST', body: JSON.stringify(body), headers: { 'content-type': 'application/json', authorization: 'Bearer good' } });

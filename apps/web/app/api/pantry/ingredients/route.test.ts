@@ -8,7 +8,7 @@ const { GET } = await import('./route');
 const H = 'aa000000-0000-4000-8000-0000000000aa';
 
 beforeEach(() => {
-  outcome = { ok: true, auth: { userId: 'u', householdId: H, readOnly: false, dataContext: null } };
+  outcome = { ok: true, auth: { userId: 'u', householdId: H, readOnly: false, dataContext: null, defaultServings: 4 } };
 });
 
 describe('GET /api/pantry/ingredients', () => {

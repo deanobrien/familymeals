@@ -12,7 +12,7 @@ let H = '';
 beforeEach(() => {
   // A fresh household per test: the in-memory pantry service is per household and seeded with the demo stock.
   H = `bb${String(++n).padStart(6, '0')}-0000-4000-8000-0000000000bb`;
-  outcome = { ok: true, auth: { userId: 'u', householdId: H, readOnly: false, dataContext: null } };
+  outcome = { ok: true, auth: { userId: 'u', householdId: H, readOnly: false, dataContext: null, defaultServings: 4 } };
 });
 
 const post = (body: Record<string, unknown>) =>
@@ -36,7 +36,7 @@ describe('auth', () => {
   });
 
   it('refuses writes for a read-only household but still reads', async () => {
-    outcome = { ok: true, auth: { userId: 'u', householdId: H, readOnly: true, dataContext: null } };
+    outcome = { ok: true, auth: { userId: 'u', householdId: H, readOnly: true, dataContext: null, defaultServings: 4 } };
     const res = await post({ action: 'add', name: 'rice', value: 1, unit: 'kg' });
     expect(res.status).toBe(403);
     expect((await errorOf(res)).code).toBe('READ_ONLY');

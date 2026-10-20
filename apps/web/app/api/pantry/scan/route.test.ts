@@ -26,7 +26,7 @@ let hhSeq = 0;
 /** A fresh household per test: the in-memory pantry is process-wide and keyed by household. */
 const freshHousehold = () => `aa000000-0000-4000-8000-${String(++hhSeq).padStart(12, '0')}`;
 let H = freshHousehold();
-const who = (householdId: string, readOnly = false): AuthOutcome => ({ ok: true, auth: { userId: 'u1', householdId, readOnly, dataContext: null } });
+const who = (householdId: string, readOnly = false): AuthOutcome => ({ ok: true, auth: { userId: 'u1', householdId, readOnly, dataContext: null, defaultServings: 4 } });
 
 function scanReq(opts: { householdId?: string; files?: number; focus?: string } = {}) {
   const form = new FormData();
