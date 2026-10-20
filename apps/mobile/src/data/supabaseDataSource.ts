@@ -31,7 +31,7 @@ import type { Household, Recipe, ShoppingConflict, ShoppingListItem, UserSession
 import { newId } from '@/lib/format';
 import type { DataSource, ShoppingListState } from './DataSource';
 import { OfflineStore } from './offlineQueue';
-import { createShoppingLiveFeed, type LiveFeed, type LiveStatus } from './liveFeed';
+import { createShoppingLiveFeed, type LiveFeed } from './liveFeed';
 import { parseAuthLink } from '@/lib/authLink';
 import { logRowToEntry, stateFromSnapshot, type LoadedList, type Row } from './shoppingMapping';
 
@@ -389,7 +389,7 @@ export class SupabaseDataSource implements DataSource {
   }
 
   private async ensureLoaded(householdId: string): Promise<HouseholdState> {
-    let h = this.households.get(householdId);
+    const h = this.households.get(householdId);
     if (!h) {
       // The list screen and the live feed's first catch-up can ask at the same time: one load.
       let loading = this.loading.get(householdId);

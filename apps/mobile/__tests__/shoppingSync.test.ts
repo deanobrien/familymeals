@@ -1,7 +1,7 @@
 import { SupabaseDataSource } from '@/data/supabaseDataSource';
 import { OfflineStore, type KeyValueStore } from '@/data/offlineQueue';
 import type { LiveFeed, LiveStatus } from '@/data/liveFeed';
-import { FakeBackend, HH, LIST, USER_SAM, uid } from './helpers/fakeSupabase';
+import { FakeBackend, HH, LIST, uid } from './helpers/fakeSupabase';
 
 function memoryKv(): KeyValueStore & { data: Map<string, string> } {
   const data = new Map<string, string>();
