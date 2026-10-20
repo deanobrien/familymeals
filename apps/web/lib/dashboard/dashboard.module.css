@@ -22,3 +22,10 @@
 .prose h2 { margin: var(--fr-space-4) 0 0; font-size: 1.15rem; }
 .prose p, .prose ul { margin: 0; }
 .tbd { background: var(--fr-warning-soft); color: var(--fr-warning); padding: 0 var(--fr-space-1); border-radius: var(--fr-radius-sm, 4px); font-weight: 600; }
+.quick { display: grid; gap: var(--fr-space-3); grid-template-columns: 1fr; margin-bottom: var(--fr-space-4); }
+@media (min-width: 720px) { .quick { grid-template-columns: repeat(2, 1fr); } }
+.tile { display: flex; flex-direction: column; gap: var(--fr-space-1); min-height: var(--fr-target); padding: var(--fr-space-4) var(--fr-space-5); border-radius: var(--fr-radius-lg); background: var(--fr-accent); color: var(--fr-accent-contrast); text-decoration: none; box-sizing: border-box; }
+.tile:focus-visible { outline: 3px solid var(--fr-focus); outline-offset: 2px; }
+.tileIcon { font-size: 1.75rem; line-height: 1; }
+.tileTitle { font-size: 1.15rem; font-weight: 700; }
+.tileSub { font-size: var(--fr-text-sm); opacity: 0.95; }
