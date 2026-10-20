@@ -12,13 +12,15 @@ const BASE = `http://localhost:${PORT}`;
 
 // Resolved once in the runner; workers inherit it through process.env (no second `supabase status`).
 if (!process.env.FR_LIVE_SUPABASE_URL) {
-  const env = localSupabaseEnv({ dataDirName: 'fr-live-e2e-data', distDir: '.next-live-e2e', siteUrl: BASE }) as Record<string, string>;
+  const env = localSupabaseEnv({ dataDirName: process.env.E2E_LIVE_DATA_NAME ?? 'fr-live-e2e-data', distDir: process.env.E2E_LIVE_DIST ?? '.next-live-e2e', siteUrl: BASE }) as Record<string, string>;
   Object.assign(process.env, env, { FR_LIVE_SUPABASE_URL: env.NEXT_PUBLIC_SUPABASE_URL });
 }
+// Local-only throwaway secret for the storage-cleanup endpoint test (D190); the workers read it from process.env.
+process.env.CRON_SECRET ??= 'live-e2e-cron-secret-not-for-production';
 const webEnv: Record<string, string> = {};
 for (const k of [
   'NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'DATA_BACKEND', 'AI_PROVIDER',
-  'APP_DATA_DIR', 'NEXT_DIST_DIR', 'NEXT_PUBLIC_SITE_URL',
+  'APP_DATA_DIR', 'NEXT_DIST_DIR', 'NEXT_PUBLIC_SITE_URL', 'CRON_SECRET',
 ]) {
   const v = process.env[k];
   if (v) webEnv[k] = v;

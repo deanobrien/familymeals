@@ -12,7 +12,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
   const { id } = await params;
   const found = await getReview(id);
   if (!found) notFound();
-  const { review, reconciliation } = found;
+  const { review, reconciliation, photoUrl } = found;
 
   return (
     <>
@@ -25,6 +25,13 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
           {review.status === 'reconciled' ? 'Reconciled' : 'Needs review'}
         </Badge>
       </p>
+
+      {photoUrl && (
+        <p>
+          <a href={photoUrl} target="_blank" rel="noopener noreferrer" data-testid="receipt-photo-link">View the receipt photo</a>
+          {' '}(kept privately; deleted 90 days after you confirm the receipt)
+        </p>
+      )}
 
       {review.status === 'reconciled' ? (
         <section aria-labelledby="done-heading">

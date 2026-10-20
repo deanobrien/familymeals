@@ -3,9 +3,15 @@
 import 'server-only';
 import { requireHouseholdContext } from '../auth/household-context';
 import type { DataContext } from './backend';
+import { scopedDataContext } from './request-data-context';
 
-/** Signed out -> /sign-in, no household -> /household/new (redirects, as everywhere else in the app). */
+/**
+ * Signed out -> /sign-in, no household -> /household/new (redirects, as everywhere else in the app). A Bearer caller
+ * (Android) has no cookies: its verified context is installed by `runWithDataContext` and wins (D213).
+ */
 export async function sessionDataContext(): Promise<DataContext> {
+  const scoped = scopedDataContext();
+  if (scoped) return scoped;
   const ctx = await requireHouseholdContext();
   if (ctx.mode !== 'supabase') {
     throw new Error('DATA_BACKEND=supabase needs real Supabase auth (mock-auth demo mode has no database client).');
