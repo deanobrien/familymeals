@@ -8,6 +8,7 @@ import {
   type PantryItemView, type PantrySettings, type PantryViewModel,
 } from '@/lib/pantryApi';
 import type { ServerApi } from '@/lib/serverApi';
+import { MakeNowSection } from '../MakeNow';
 import { Button, EmptyState, ErrorState, ErrorText, Loading, MIN_TAP, Muted, Text, Toast, useStyles } from '../ui';
 import ItemForm, { type ItemFormValues } from './ItemForm';
 import { AdjustmentsPanel, LeftoversPanel, SettingsPanel, SuggestionsPanel } from './Panels';
@@ -215,6 +216,7 @@ function PantryContent({ api, householdId }: { api: ServerApi; householdId: stri
           </Section>
         ) : null}
 
+        <MakeNowSection api={api} householdId={householdId} limit={6} onAdded={(m) => setToast(m)} />
         <SuggestionsPanel suggestions={view.suggestions} onOpen={(id) => router.push(`/recipe/${id}`)} />
 
         {view.categories.length > 0 ? (

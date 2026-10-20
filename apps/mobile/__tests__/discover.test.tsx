@@ -12,7 +12,7 @@ jest.mock('expo-router', () => require('./helpers/router').routerModule());
 const has = (s: string) => new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
 
 function importClient() {
-  const c: ImportClient & { save: jest.Mock } = { configured: true, extract: jest.fn(), save: jest.fn(async () => ({ id: 'rec-7' })), webUrl: () => null };
+  const c: ImportClient & { save: jest.Mock } = { configured: true, extract: jest.fn(), importFromUrl: jest.fn(), save: jest.fn(async () => ({ id: 'rec-7' })), webUrl: () => null };
   return c;
 }
 

@@ -216,6 +216,8 @@ describe('settings (through the web app /api/settings, D350)', () => {
       weeklyBudgetPence: 7550,
       exclusions: [{ id: 'peanuts', term: 'peanuts' }],
       consentActive: true,
+      members: [],
+      canEditAllDislikes: false,
       withheldExclusions: 2,
     });
     expect(get).toHaveBeenCalledWith('/api/settings', { householdId: H });
@@ -228,6 +230,18 @@ describe('settings (through the web app /api/settings, D350)', () => {
     expect(send).toHaveBeenLastCalledWith('POST', '/api/settings', expect.objectContaining({ weeklyBudget: '85' }));
     await src.savePreferences(H, { defaultServings: 5, weeklyBudgetPence: null });
     expect(send).toHaveBeenLastCalledWith('POST', '/api/settings', expect.objectContaining({ weeklyBudget: '' }));
+  });
+  it('reads every member\'s soft dislikes and who may edit them, and drops malformed members', async () => {
+    const { src } = makeApi({ get: async () => ({ settings: { ...server, members: [{ memberId: 'u1', displayName: 'Dean', isSelf: true, terms: ['liver', 3] }, { memberId: 'u2', terms: ['olives'] }, { displayName: 'no id' }], canEditAllDislikes: true } }) });
+    await expect(src.getSettings(H)).resolves.toMatchObject({
+      members: [{ memberId: 'u1', displayName: 'Dean', isSelf: true, terms: ['liver'] }, { memberId: 'u2', displayName: 'Household member', isSelf: false, terms: ['olives'] }],
+      canEditAllDislikes: true,
+    });
+  });
+  it('sends soft dislikes as their own action (no consent involved)', async () => {
+    const { src, send } = makeApi();
+    await src.saveDislikes(H, 'u2', ['olives', 'liver']);
+    expect(send).toHaveBeenLastCalledWith('POST', '/api/settings', { householdId: H, action: 'dislikes', memberId: 'u2', terms: ['olives', 'liver'] });
   });
   it('sends dietary, withdraw and remove-all actions; refuses exclusions without consent before calling', async () => {
     const { src, send } = makeApi();

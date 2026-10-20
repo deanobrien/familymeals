@@ -150,6 +150,7 @@ export default function CaptureScreen({
           }}
         />
       )}
+      <Button title="Import from a web link" onPress={() => router.push('/import-link')} testID="open-link-import" variant="secondary" />
       <Button title="Scan many barcodes" onPress={() => router.push('/pantry/scan?mode=barcodes')} testID="open-rapid" variant="secondary" />
       <Button title="Scan a product barcode" onPress={() => setBarcodeMode(true)} testID="open-barcode" variant="secondary" />
       <Button title="Choose from library" onPress={pick} disabled={full} testID="pick-image" variant="secondary" />

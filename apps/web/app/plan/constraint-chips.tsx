@@ -78,7 +78,7 @@ export function ConstraintChips({ request, onChange, locked, dislikes = [], memb
         <section aria-label="Dislikes" data-testid="dislike-chips">
           <h4>Dislikes (soft)</h4>
           <ul className="plan__chiplist">
-            {dislikes.flatMap((d) => d.terms.map((t) => <Chip key={`dis-${d.memberName}-${t}`} label={`${d.memberName}: ${t}`} locked />))}
+            {dislikes.flatMap((d) => d.terms.map((t) => <Chip key={`dis-${d.memberName}-${t}`} label={`${d.memberName}: ${t}`} />))}
           </ul>
           <p className="plan__muted">Avoided where possible, never a rule. This is a preference, not an allergy. Change it in <Link href="/settings#h-dislikes">Settings</Link>.</p>
         </section>

@@ -26,6 +26,8 @@ interface ServerSettings {
   weeklyBudgetPence?: number | null;
   exclusions?: string[];
   consentActive?: boolean;
+  members?: Array<{ memberId?: string; displayName?: string; isSelf?: boolean; terms?: string[] }>;
+  canEditAllDislikes?: boolean;
   withheldExclusions?: number;
 }
 
@@ -406,6 +408,13 @@ export class SupabaseAccountSource implements AccountSource {
       weeklyBudgetPence: typeof r.weeklyBudgetPence === 'number' ? r.weeklyBudgetPence : null,
       exclusions: (r.exclusions ?? []).filter((t) => typeof t === 'string' && t !== '').map((term) => ({ id: term, term })),
       consentActive: r.consentActive === true,
+      members: (r.members ?? []).filter((m) => typeof m.memberId === 'string' && m.memberId !== '').map((m) => ({
+        memberId: m.memberId as string,
+        displayName: typeof m.displayName === 'string' && m.displayName ? m.displayName : 'Household member',
+        isSelf: m.isSelf === true,
+        terms: (m.terms ?? []).filter((t) => typeof t === 'string' && t !== ''),
+      })),
+      canEditAllDislikes: r.canEditAllDislikes === true,
       withheldExclusions: Number(r.withheldExclusions ?? 0) || 0,
     };
   }
@@ -426,6 +435,10 @@ export class SupabaseAccountSource implements AccountSource {
 
   async removeAllDietary(householdId: Uuid): Promise<void> {
     await this.post(householdId, { action: 'remove_all' });
+  }
+
+  async saveDislikes(householdId: Uuid, memberId: string, terms: string[]): Promise<void> {
+    await this.post(householdId, { action: 'dislikes', memberId, terms });
   }
 
   // ---- Your data --------------------------------------------------------------------------------------------

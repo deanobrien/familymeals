@@ -85,6 +85,13 @@ export function parsePage(v: unknown): PlanPage {
       .map((s) => ({ id: s.id as string, weekStart: s.weekStart as string, status: s.status === 'approved' ? ('approved' as const) : ('draft' as const) })),
     householdExclusions: strs(o.householdExclusions), defaultServings: num(o.defaultServings) ?? 4,
     examplePrompt: str(o.examplePrompt), memberNames: strs(o.memberNames), withheldExclusions: Math.max(0, Math.floor(num(o.withheldExclusions) ?? 0)),
+    ...(Array.isArray(o.memberDislikes)
+      ? {
+          memberDislikes: objs(o.memberDislikes)
+            .filter((d) => typeof d.memberName === 'string' && strs(d.terms).length > 0)
+            .map((d) => ({ memberName: d.memberName as string, terms: strs(d.terms) })),
+        }
+      : {}),
     ...(Array.isArray(o.cooked)
       ? { cooked: objs(o.cooked).filter((c) => typeof c.date === 'string' && typeof c.recipeId === 'string').map((c) => ({ date: c.date as string, recipeId: c.recipeId as string })) }
       : {}),

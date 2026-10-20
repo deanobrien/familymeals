@@ -40,6 +40,7 @@ function fakeClient(blocking: boolean) {
   const client: ImportClient & { extract: jest.Mock; save: jest.Mock } = {
     configured: true,
     extract: jest.fn(async () => outcome()),
+    importFromUrl: jest.fn(async () => outcome()),
     save: jest.fn(async () => ({ id: 'rec-1' })),
     webUrl: (p: string) => `http://web.test${p}`,
   };

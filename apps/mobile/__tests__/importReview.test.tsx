@@ -16,6 +16,7 @@ function client() {
   const c: ImportClient & { save: jest.Mock } = {
     configured: true,
     extract: jest.fn(),
+    importFromUrl: jest.fn(),
     save: jest.fn(async () => ({ id: 'rec-9' })),
     webUrl: () => null,
   };

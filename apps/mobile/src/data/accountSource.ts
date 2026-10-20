@@ -57,10 +57,22 @@ export interface Exclusion {
   term: string;
 }
 
+/** One household member with their soft dislikes (P1-B, D378). A preference, never an allergy: no consent, never filters anything. */
+export interface MemberDislikes {
+  memberId: string;
+  displayName: string;
+  isSelf: boolean;
+  terms: string[];
+}
+
 export interface AccountSettings {
   defaultServings: number;
   weeklyBudgetPence: number | null;
   exclusions: Exclusion[];
+  /** Every active member with their soft dislikes (P1-B). */
+  members: MemberDislikes[];
+  /** The signed-in user may edit every member's dislikes (owner); otherwise only their own. */
+  canEditAllDislikes: boolean;
   /** The signed-in member has an active allergy-data consent for this household. */
   consentActive: boolean;
   /** Allergy exclusions the planner is NOT applying because the recorder's consent is missing (a count only). */
@@ -114,6 +126,8 @@ export interface AccountSource {
   withdrawConsent(householdId: Uuid): Promise<void>;
   /** Deletes every exclusion and withdraws the member's consent. */
   removeAllDietary(householdId: Uuid): Promise<void>;
+  /** Replaces one member's soft dislikes (own list, or anyone's for an owner). Not health data: no consent. */
+  saveDislikes(householdId: Uuid, memberId: string, terms: string[]): Promise<void>;
 
   // ---- Your data --------------------------------------------------------------------------------------------
   getLifecycle(householdId: Uuid): Promise<Lifecycle>;

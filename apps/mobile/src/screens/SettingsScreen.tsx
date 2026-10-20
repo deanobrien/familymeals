@@ -18,6 +18,7 @@ import {
 } from '@/lib/privacyText';
 import { openWeb, webUrl } from '@/lib/webLinks';
 import { Button, ErrorText, Loading, Muted, Text, useStyles } from './ui';
+import DislikesSection from './account/DislikesSection';
 import { Card, Checkbox, Field, NoHousehold, Notice, ReadOnlyBanner, Row, SectionTitle, Segmented, confirm, useActiveHousehold, useAction } from './account/parts';
 
 /**
@@ -80,6 +81,7 @@ export default function SettingsScreen() {
           <Row title="Switch household" onPress={() => router.replace('/households')} testID="switch-household" />
           <PreferencesSection household={household} onSaved={reload} />
           <DietarySection household={household} />
+          <DislikesSection household={household} />
         </>
       )}
 

@@ -56,6 +56,8 @@ export interface PlanPage {
   defaultServings: number;
   examplePrompt: string;
   memberNames: string[];
+  /** Soft dislikes per member (P1-B, D378): read-only chips; edited in Settings. */
+  memberDislikes?: { memberName: string; terms: string[] }[];
   /** Meals cooked this week (cooking log, P1-A); absent until that data exists. */
   cooked?: { date: string; recipeId: string }[];
   /** Allergy exclusions withheld for lack of consent: drives the consent notice (D242). */

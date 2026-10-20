@@ -22,7 +22,16 @@
           "photosPermission": "Allow Family Recipes to pick recipe and receipt photos."
         }
       ],
-      "expo-audio"
+      "expo-audio",
+      [
+        "expo-share-intent",
+        {
+          "disableIOS": true,
+          "androidIntentFilters": [
+            "text/*"
+          ]
+        }
+      ]
     ],
     "android": {
       "package": "uk.ac.northumbria.familyrecipes",

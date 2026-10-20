@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Image, ScrollView, View } from 'react-native';
+import { Image, Linking, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   applyCorrections,
@@ -175,6 +175,7 @@ export default function ImportReviewScreen({
   onBack,
   intro,
   pages,
+  noteFrom = 'the photo',
   backLabel = 'Back to photos',
   doneLabel = 'Capture another',
 }: {
@@ -186,6 +187,8 @@ export default function ImportReviewScreen({
   intro?: string;
   /** The photos the draft was read from (page order), for the cover picker. */
   pages?: CapturedImage[];
+  /** Whose notes the warnings are: "the photo" (default) or "the page". */
+  noteFrom?: string;
   backLabel?: string;
   doneLabel?: string;
 }) {
@@ -279,7 +282,7 @@ export default function ImportReviewScreen({
       {draft.warnings.length > 0 && (
         <View testID="extraction-warnings">
           {draft.warnings.map((w) => (
-            <Muted key={w}>Note from the photo: {w}</Muted>
+            <Muted key={w}>Note from {noteFrom}: {w}</Muted>
           ))}
         </View>
       )}
@@ -299,6 +302,14 @@ export default function ImportReviewScreen({
         </Muted>
       )}
       {draft.source ? <Text testID="review-source">Source: {draft.source}</Text> : null}
+      {draft.sourceReference && /^https?:\/\//i.test(draft.sourceReference) ? (
+        <Button
+          title="Open the original page"
+          variant="secondary"
+          onPress={() => void Linking.openURL(draft.sourceReference!)}
+          testID="review-source-link"
+        />
+      ) : null}
 
       {pageCount > 0 && (
         <Section testID="cover-picker">

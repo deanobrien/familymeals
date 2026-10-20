@@ -96,6 +96,17 @@ export function parseExclusionTag(v: string): { ok: true; value: string } | { ok
 
 export const MAX_EXCLUSIONS = 40;
 
+/** One soft dislike (same rules as the web `dislikeTag`, D378): lower-case letters, spaces, apostrophes, hyphens; 1-60 chars. */
+export function parseDislikeTag(v: string): { ok: true; value: string } | { ok: false; error: string } {
+  const t = v.trim().toLowerCase();
+  if (t.length < 1) return { ok: false, error: 'Enter a food' };
+  if (t.length > 60) return { ok: false, error: 'Keep it short, 60 characters at most' };
+  if (!/^[a-z][a-z' -]*$/.test(t)) return { ok: false, error: 'Use letters only' };
+  return { ok: true, value: t };
+}
+
+export const MAX_DISLIKES = 30;
+
 /** Pretty "N days left" count used by the deletion countdown. */
 export function daysLeft(iso: string, now: Date = new Date()): number {
   return Math.max(0, Math.ceil((new Date(iso).getTime() - now.getTime()) / 86_400_000));

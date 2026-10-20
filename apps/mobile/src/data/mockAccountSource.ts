@@ -19,6 +19,8 @@ interface MockHousehold extends HouseholdSummary {
   members: MemberSummary[];
   invitations: Array<PendingInvitation & { token: string }>;
   exclusions: Array<{ id: string; term: string }>;
+  /** userId -> soft dislikes (P1-B, D378). */
+  dislikes: Record<string, string[]>;
   consent: boolean;
 }
 
@@ -63,6 +65,7 @@ export class MockAccountSource implements AccountSource {
       invitations: [],
       exclusions: [],
       consent: false,
+      dislikes: {},
     });
     this.households = [
       base('hh-1', 'The Smiths', 'owner', [me('owner', 'hh-1'), other('hh-1', 1), other('hh-1', 2), other('hh-1', 3)]),
@@ -105,7 +108,7 @@ export class MockAccountSource implements AccountSource {
   }
 
   async listMemberships(): Promise<HouseholdSummary[]> {
-    return this.households.map(({ members: _m, invitations: _i, exclusions: _e, consent: _c, ...summary }) => ({ ...summary }));
+    return this.households.map(({ members: _m, invitations: _i, exclusions: _e, consent: _c, dislikes: _d, ...summary }) => ({ ...summary }));
   }
   async createHousehold(input: CreateHouseholdInput): Promise<{ id: Uuid }> {
     const id = `hh-new-${this.seq++}`;
@@ -122,6 +125,7 @@ export class MockAccountSource implements AccountSource {
       invitations: [],
       exclusions: [],
       consent: false,
+      dislikes: {},
     });
     return { id };
   }
@@ -186,7 +190,11 @@ export class MockAccountSource implements AccountSource {
 
   async getSettings(householdId: Uuid): Promise<AccountSettings> {
     const h = this.hh(householdId);
-    return { defaultServings: h.defaultServings, weeklyBudgetPence: h.weeklyBudgetPence, exclusions: h.exclusions.map((e) => ({ ...e })), consentActive: h.consent, withheldExclusions: h.consent ? 0 : h.exclusions.length };
+    return {
+      defaultServings: h.defaultServings, weeklyBudgetPence: h.weeklyBudgetPence, exclusions: h.exclusions.map((e) => ({ ...e })), consentActive: h.consent, withheldExclusions: h.consent ? 0 : h.exclusions.length,
+      members: h.members.map((m) => ({ memberId: m.userId, displayName: m.displayName, isSelf: m.isYou, terms: [...(h.dislikes[m.userId] ?? [])] })),
+      canEditAllDislikes: h.role === 'owner',
+    };
   }
   async savePreferences(householdId: Uuid, prefs: { defaultServings: number; weeklyBudgetPence: number | null }): Promise<void> {
     const h = this.owner(householdId);
@@ -206,6 +214,14 @@ export class MockAccountSource implements AccountSource {
     const h = this.hh(householdId);
     h.exclusions = [];
     h.consent = false;
+  }
+  async saveDislikes(householdId: Uuid, memberId: string, terms: string[]): Promise<void> {
+    const h = this.writable(householdId);
+    const member = h.members.find((m) => m.userId === memberId);
+    if (!member) throw new AccountError('invalid_input');
+    if (!member.isYou && h.role !== 'owner') throw new AccountError('forbidden');
+    if (terms.length > 30) throw new AccountError('invalid_input');
+    h.dislikes[memberId] = [...new Set(terms.map((t) => t.trim().toLowerCase()).filter(Boolean))];
   }
 
   async getLifecycle(householdId: Uuid): Promise<Lifecycle> {

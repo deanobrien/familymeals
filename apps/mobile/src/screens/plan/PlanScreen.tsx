@@ -304,6 +304,7 @@ export function PlanWeek({ client }: { client: PlanClient }) {
         examplePrompt={page.examplePrompt}
         exclusions={page.householdExclusions}
         memberNames={page.memberNames}
+        {...(page.memberDislikes ? { dislikes: page.memberDislikes } : {})}
         onAccept={(next) => { apply(next(doc)); setHandoff(null); }}
       />
 

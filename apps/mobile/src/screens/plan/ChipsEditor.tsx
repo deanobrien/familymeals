@@ -11,7 +11,7 @@ import { Chip, ChipRow, Field, Section, Stepper } from './parts';
 const KINDS: Array<[TargetKind, string]> = [['percent', 'Percent of meals'], ['count', 'Exactly N meals'], ['min', 'At least N meals'], ['max', 'At most N meals']];
 
 /** The AI's reading of the prompt as editable chips (D133). Edits only change the request; nothing is solved until asked. */
-export default function ChipsEditor({ request, onChange, locked, memberNames, notes }: { request: PlanRequest; onChange: (r: PlanRequest) => void; locked: string[]; memberNames: string[]; notes: string[] }) {
+export default function ChipsEditor({ request, onChange, locked, memberNames, notes, dislikes = [] }: { request: PlanRequest; onChange: (r: PlanRequest) => void; locked: string[]; memberNames: string[]; notes: string[]; /** Soft dislikes per member (P1-B): read-only, edited in Settings. */ dislikes?: { memberName: string; terms: string[] }[] }) {
   const [term, setTerm] = useState('');
   const [dietCat, setDietCat] = useState<Diet>('vegetarian');
   const [kind, setKind] = useState<TargetKind>('percent');
@@ -60,6 +60,13 @@ export default function ChipsEditor({ request, onChange, locked, memberNames, no
         <Field label="Target amount" value={amount} keyboardType="numeric" onChangeText={setAmount} />
         <Button title="Set diet target" variant="secondary" onPress={() => onChange(setDietTarget(request, dietCat, kind, Number(amount)))} />
       </Section>
+
+      {dislikes.length > 0 ? (
+        <Section title="Dislikes (soft)" testID="dislike-chips">
+          <ChipRow>{dislikes.flatMap((d) => d.terms.map((t) => <Chip key={`dis-${d.memberName}-${t}`} label={`${d.memberName}: ${t}`} />))}</ChipRow>
+          <Muted>Avoided where possible, never a rule. A preference, not an allergy. Change it in Settings.</Muted>
+        </Section>
+      ) : null}
 
       <Section title="Exclusions">
         <ChipRow>

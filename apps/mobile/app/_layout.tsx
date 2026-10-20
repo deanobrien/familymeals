@@ -1,6 +1,8 @@
 import { Stack } from 'expo-router';
+import { ShareIntentProvider } from 'expo-share-intent';
 import { StatusBar } from 'expo-status-bar';
 import { AppProvider } from '@/data/AppContext';
+import ShareIntentHandler from '@/screens/ShareIntentHandler';
 import { useTheme } from '@/screens/ui';
 
 function Navigator() {
@@ -30,15 +32,19 @@ function Navigator() {
       <Stack.Screen name="recipe/new" options={{ title: 'New recipe' }} />
       <Stack.Screen name="recipe/edit/[id]" options={{ title: 'Edit recipe' }} />
       <Stack.Screen name="discover" options={{ title: 'Discover recipes' }} />
+      <Stack.Screen name="import-link" options={{ title: 'Recipe from a link' }} />
     </Stack>
   );
 }
 
 export default function RootLayout() {
   return (
-    <AppProvider>
-      <StatusBar style="auto" />
-      <Navigator />
-    </AppProvider>
+    <ShareIntentProvider options={{ resetOnBackground: true }}>
+      <AppProvider>
+        <StatusBar style="auto" />
+        <Navigator />
+        <ShareIntentHandler />
+      </AppProvider>
+    </ShareIntentProvider>
   );
 }

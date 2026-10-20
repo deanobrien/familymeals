@@ -32,12 +32,13 @@ interface Props {
   recipes: ReadonlyMap<string, RecipeLite>;
   examplePrompt: string;
   exclusions: string[];
+  dislikes?: { memberName: string; terms: string[] }[];
   memberNames: string[];
   onAccept: (next: (doc: PlanDoc) => PlanDoc) => void;
 }
 
 /** Prompt -> "Understand my request" (the one AI call) -> editable chips -> "Propose plan" (no AI) -> review -> accept. */
-export default function PromptPlanner({ client, weekStart, recipes, examplePrompt, exclusions, memberNames, onAccept }: Props) {
+export default function PromptPlanner({ client, weekStart, recipes, examplePrompt, exclusions, memberNames, dislikes, onAccept }: Props) {
   const [prompt, setPrompt] = useState(examplePrompt);
   const [parsed, setParsed] = useState<ParsedRequest | null>(null);
   const [request, setRequest] = useState<PlanRequest | null>(null);
@@ -96,7 +97,7 @@ export default function PromptPlanner({ client, weekStart, recipes, examplePromp
 
       {request && parsed ? (
         <View>
-          <ChipsEditor request={request} onChange={setRequest} locked={parsed.householdExclusions} memberNames={memberNames} notes={parsed.notes} />
+          <ChipsEditor request={request} onChange={setRequest} locked={parsed.householdExclusions} memberNames={memberNames} notes={parsed.notes} {...(dislikes ? { dislikes } : {})} />
           <Button
             title={busy === 'solve' ? 'Planning...' : proposal ? 'Re-plan with these settings' : 'Propose a plan'}
             disabled={busy !== null}

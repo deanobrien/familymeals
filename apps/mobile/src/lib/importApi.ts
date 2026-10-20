@@ -64,11 +64,15 @@ export interface ExtractionOutcome {
   /** Recipes already in the library, used for the "looks similar" check. */
   existing: ExistingRecipe[];
   provider?: ProviderInfo;
+  /** Set for a recipe read from a web link: how it was read ('ai' = no recipe data on the page, read from its text by AI). */
+  link?: { via: 'structured' | 'ai'; sourceUrl: string };
 }
 
 export interface ImportClient {
   readonly configured: boolean;
   extract(householdId: string, images: UploadImage[]): Promise<ExtractionOutcome>;
+  /** Recipe from a web link (P1-B, D370): the SERVER fetches the page (SSRF-guarded) and returns the same draft as a photo import. */
+  importFromUrl(householdId: string, url: string): Promise<ExtractionOutcome>;
   save(outcome: ExtractionOutcome): Promise<{ id: string }>;
   /** Absolute web URL for "finish on web" / "open on web" links (null when no base URL is configured). */
   webUrl(path: string): string | null;
@@ -108,6 +112,28 @@ export function summariseDraft(draft: unknown): DraftSummary {
     issues,
     warnings,
   };
+}
+
+/** The server's { uploadId, draft, existing, provider? } body -> ExtractionOutcome (defensive: unknown parts are dropped). */
+function toOutcome(raw: unknown, status: number): ExtractionOutcome {
+  const body: Obj = isObj(raw) ? raw : {};
+  if (typeof body.uploadId !== 'string' || !isObj(body.draft)) {
+    throw new ImportApiError('The server returned an unexpected response.', status, false);
+  }
+  const existing = (Array.isArray(body.existing) ? body.existing : [])
+    .filter(isObj)
+    .filter((e) => typeof e.id === 'string' && typeof e.title === 'string')
+    .map(
+      (e): ExistingRecipe => ({
+        id: e.id as string,
+        title: e.title as string,
+        ...(Array.isArray(e.ingredientNames) ? { ingredientNames: e.ingredientNames.filter((n): n is string => typeof n === 'string') } : {}),
+        ...(Array.isArray(e.ingredientIds) ? { ingredientIds: e.ingredientIds.filter((n): n is string => typeof n === 'string') } : {}),
+      }),
+    );
+  const provider =
+    isObj(body.provider) && typeof body.provider.label === 'string' ? { label: body.provider.label, isMock: body.provider.isMock === true } : undefined;
+  return { uploadId: body.uploadId, draft: body.draft, summary: summariseDraft(body.draft), existing, ...(provider ? { provider } : {}) };
 }
 
 async function readError(res: Response): Promise<ImportApiError> {
@@ -157,24 +183,21 @@ export function createImportClient(opts: {
     async extract(householdId, images) {
       // No Content-Type header: React Native sets the multipart boundary itself.
       const res = await call('/api/extract', { method: 'POST', body: buildExtractionForm(householdId, images) });
-      const body = (await res.json()) as { uploadId?: unknown; draft?: unknown; existing?: unknown; provider?: unknown };
-      if (typeof body.uploadId !== 'string' || !isObj(body.draft)) {
-        throw new ImportApiError('The server returned an unexpected response.', res.status, false);
-      }
-      const existing = (Array.isArray(body.existing) ? body.existing : [])
-        .filter(isObj)
-        .filter((e) => typeof e.id === 'string' && typeof e.title === 'string')
-        .map(
-          (e): ExistingRecipe => ({
-            id: e.id as string,
-            title: e.title as string,
-            ...(Array.isArray(e.ingredientNames) ? { ingredientNames: e.ingredientNames.filter((n): n is string => typeof n === 'string') } : {}),
-            ...(Array.isArray(e.ingredientIds) ? { ingredientIds: e.ingredientIds.filter((n): n is string => typeof n === 'string') } : {}),
-          }),
-        );
-      const provider =
-        isObj(body.provider) && typeof body.provider.label === 'string' ? { label: body.provider.label, isMock: body.provider.isMock === true } : undefined;
-      return { uploadId: body.uploadId, draft: body.draft, summary: summariseDraft(body.draft), existing, ...(provider ? { provider } : {}) };
+      return toOutcome(await res.json(), res.status);
+    },
+    async importFromUrl(householdId, url) {
+      const res = await call('/api/import/url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ householdId, url }),
+      });
+      const body = await res.json();
+      const outcome = toOutcome(body, res.status);
+      const via = isObj(body) && body.via === 'ai' ? 'ai' : 'structured';
+      const sourceUrl = isObj(body) && typeof body.sourceUrl === 'string' ? body.sourceUrl : url;
+      // A recipe read from a page is not "read by" a photo AI provider: the provider line is for photo imports only.
+      const { provider: _provider, ...rest } = outcome;
+      return { ...rest, link: { via, sourceUrl } };
     },
     async save(outcome) {
       const res = await call('/api/extract/save', {
