@@ -135,7 +135,7 @@ If a lane's branch is merged into your checkout, its decisions are in `DECISIONS
 - With Supabase, recipe lists with price filters / cost sort load up to 10,000 recipes and cost them in the app (D58).
 - Many mock-suite e2e specs are `test.fixme` (live-Supabase flows, now covered by `e2e/live/`); 100 skipped is expected in the mock run.
 - The mock e2e suite has 2-3 load-related flaky shopping/journey failures per full run; they pass in isolation (tracked, not yet fixed).
-- LV1 open items (the live-before-confirmed Realtime gap was fixed by RT1, D200-D203): receipts, price observations and per-household AI settings have no live tests; recipes created through the form have no ingredient links.
+- LV1 open items (the live-before-confirmed Realtime gap was fixed by RT1, D200-D203): receipts, price observations and per-household AI settings have no live tests. Recipes created through the form are now linked on save (IL1, D220-D225); recipes saved before that are linked by the "Re-match ingredients" actions or migration 20261020002301.
 - Dev-only service-role fallback (`SUPABASE_DATA_CONTEXT=service`, D100) exists for scripts; production startup refuses it.
 - Photo uploads >10 MB are downscaled in the browser; Next buffers request bodies in middleware up to 10 MB by default, raised to 40 MB in `next.config.mjs` (see `claude/memories/middleware-body-limit-10mb.md`).
 - App Service internal hostname (fixed 2026-10-20): never build absolute URLs/redirects from `request.url`/Host; use `publicOrigin()` (`lib/server/site-url.ts`). Email scanners can consume one-time confirmation links (`otp_expired`); the sign-in page explains this and offers "Resend confirmation email". See `claude/memories/app-service-internal-hostname.md`.
