@@ -525,3 +525,43 @@ Screenshots at 768 and 820 show the bottom bar with the 4-column plan grid fitti
 ## D164 "Offline shopper loses the race" flake was a test race, not an app bug (B1)
 
 Instrumenting the controller showed that in failing runs B's replay reached the server BEFORE A's tick (A's tick was still queued behind an in-flight poll sync; the spec's "A confirmed" check, `pending-badge` count 0, is vacuous because the badge only decorates list rows, not Purchased rows). B legitimately won and A got the "Another shopper already bought" toast; the spec only looked at B. Server idempotency and conflict reporting behaved correctly (the first command to reach the server wins and the loser is always told). Fix: both race specs now wait for the first shopper's `sync-status` to read "All changes saved" (server-confirmed) before the other reconnects / is checked. Was failing about 1 run in 10; 30/30 stable after.
+
+## D250 Data export is built on demand and streamed; nothing is stored (DX1)
+
+`POST /api/export` only writes an audit row (`data_export_requests`, via `begin_data_export`); `GET /api/export/<id>` builds the zip while streaming it, as the signed-in user (RLS client for PostgREST and Storage). The design's private `exports/` bucket + emailed signed URL + 7-day expiry was dropped: no copy of a household's data exists outside the database, so there is nothing to expire, purge on account deletion, or leak from a bucket, and no email hook is needed. Limits: one non-failed export per (user, household, scope) per 24 h (enforced in SQL under a row lock; a failed build frees it), link valid 1 hour, at most 5 downloads, only for the requesting user, membership/ownership re-checked at download. Scopes: `member` = rows the member created plus their profile, consents, favourites, ratings and the children of those rows; `household` (owners) = everything household-scoped. Columns naming a person (`user_id`, `*_by`) become "you" / "another member"; no email but the requester's; AI settings, invitations, logs, queues and the ledger are never read (`lib/server/export/tables.ts`), and secret-looking column names are dropped generically.
+
+## D251 Own streaming zip writer, SHA-256 manifest (DX1)
+
+`lib/server/export/zip.ts`: PKZIP 2.0 (deflate for text, store for images), one entry in memory at a time, no ZIP64 (fails above 65k entries / 4 GiB rather than corrupting), UTF-8 names, path validation. Avoids a new dependency for ~150 lines; `unzip.ts` (CRC-checked) verifies archives in unit and live tests. `manifest.json` (written last) lists SHA-256 per file, row counts, images found / missing / external URLs. Checksums are not signed (would need a key users can verify; not worth it now).
+
+## D252 End users cannot shorten the 14-day grace (DX1)
+
+`request_household_deletion(p_household_id, p_grace)` accepted any `p_grace`, so an owner could purge at once and other members would get no notice period. Now `p_grace` can only lengthen it when `auth.uid()` is set; maintenance (no JWT) may still pass shorter values. Tests age the timestamps with the service role instead.
+
+## D253 Account deletion: leave now, delete later, by the job (DX1)
+
+`request_account_deletion()` (as the user, one transaction): refuses if the user is the only owner of a household that has other members (transfer first); households where they are the only member go to `pending_deletion` (14 days); every other membership is left immediately with `member_leave` effects; then an `account` ledger row (`deletion_subject` gained `account`) scheduled at the latest of those purge times (now if none). If nothing is pending the user is signed out (`/sign-in?deleted=1`). `cancel_account_deletion()` cancels only the account row: households already left stay left, scheduled households stay scheduled (owner cancels separately). The job deletes the auth user (`auth.admin.deleteUser`, service role, job only) after `jobs_prepare_account_purge` returns `ready` (`blocked_owner` / `blocked_household` are reported and retried).
+
+## D254 Purchase-history anonymisation shape (DX1)
+
+`purchase_events_append_only` additionally allows: actor columns to NULL and, only when it was NULL and `created_by` is being nulled, filling `created_by_display_name`. The job sets `created_by = null`, keeps the insert-time snapshot (owner decision A) or writes "Former member", and nulls `voided_by`. Rewriting an existing snapshot stays forbidden.
+
+## D255 Storage port for export and purge; legacy local photos as a pseudo-bucket (DX1)
+
+Export and purge talk to `lib/server/objects/port.ts` (`ObjectReader`, `ObjectRemover` per bucket, `parseObjectRef`), not to a concrete store, so lane ST1 (photos to Supabase Storage) plugs in without touching DX1. References recognised: Storage paths `<household_id>/...` in `recipe_images.storage_path`, `recipes.cover_image_path`, `recipe_versions.source_image_paths`, `receipts.image_paths`; legacy `/api/uploads/<uuid>/<file>` in `recipe_versions.corrected.imageUrl` / `source_image_paths`; external URLs are listed, not fetched. `storage_cleanup_queue.bucket` accepts `local-uploads` (object_path = upload id), enqueued by a new `recipe_versions` AFTER DELETE trigger unless another version of the household still uses the upload; the job removes those folders only where the local store is allowed. Queue rows get `last_attempt_at` and quadratic backoff, max 8 attempts.
+
+## D256 `/api/jobs/purge`: one idempotent endpoint behind JOBS_SECRET (DX1)
+
+POST only; `x-jobs-secret` (or `Authorization: Bearer`) compared in constant time over SHA-256; `JOBS_SECRET` unset or < 32 chars disables it (503, never open). `/api/jobs` is a public prefix in middleware (no session), and the route never takes ids from the request. Order: due households -> ledger replay -> accounts -> storage queue -> status. Each step is isolated (one failing does not stop the others; HTTP 500 when any failed). Response = counts only (it ends up in scheduler run history). The service role is used here and nowhere on the user request path (D100). All `jobs_*` SQL functions are `service_role` only.
+
+## D257 Deletion-ledger replay runs in every job (DX1)
+
+`jobs_purge_due` first re-purges any existing household whose ledger has a `purged_at`, and `jobs_due_account_deletions` returns accounts the ledger marks deleted that exist again (`replay = true`). The ledger is restored with the database, so the runbook (OPS-RUNBOOK section 3) exports it before a restore and re-imports missing rows afterwards; the next job run then does the replay.
+
+## D258 Destructive lifecycle actions need typed confirmation + current password (DX1)
+
+Household deletion: type the household name; account deletion: type DELETE; both: current password, checked on a throwaway non-persisting anon client whose session is then revoked with `signOut({ scope: 'local' })` (`lib/server/auth/reauth.ts`). Cancelling needs neither. Magic-link-only accounts would need a fresh-link re-auth instead (none exist today: sign-in is password-based).
+
+## D259 Scheduler: Azure Logic App, not WebJobs (DX1)
+
+App Service WebJobs are not supported for Linux code apps. Recommended: Consumption Logic App, hourly Recurrence -> HTTP POST with the secret header (secure inputs/outputs, retries, failed-run alert); alternative GitHub Actions cron (best effort, disabled after 60 idle days). Steps in DEPLOY-APP-SERVICE.md 3c. No Azure resources were created by the lane.

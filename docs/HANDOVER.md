@@ -78,6 +78,7 @@ Never commit values. If a value is lost, regenerate it as shown.
 | `NEXT_PUBLIC_SITE_URL` | public origin used in emailed links; baked into the build | same as above | the App Service default hostname |
 | Supabase database password, `SUPABASE_ACCESS_TOKEN` | needed by `supabase link` / `db push` | owner's password manager; `pnpm exec supabase login` (token) | Supabase dashboard (database password reset; account access tokens) |
 | `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, Azure OpenAI key | AI providers | preferably entered per household in Settings > AI provider (stored encrypted); or App Service setting | each provider's console |
+| `JOBS_SECRET` (>= 32 chars; use 32 random bytes hex) | authenticates the scheduler calling `POST /api/jobs/purge` (DX1, D256). Unset = purge job disabled (503) | App Service application setting **and** the Logic App HTTP header (DEPLOY-APP-SERVICE.md 3c); owner's password manager | same command as `APP_SECRET` (different value); update both places together |
 | GitHub access | pushing to the repo | owner's machine credentials | n/a |
 | Azure login | deploy | `az login --use-device-code` on the owner's personal subscription (see DEPLOY-APP-SERVICE.md section 5) | n/a |
 
@@ -109,6 +110,7 @@ NEXT_PUBLIC_SITE_URL=https://family-recipes-dean-cph4g5cuh9fmhhfy.ukwest-01.azur
 | B1 | Bug fixes found while testing | **done and merged** (D160-D164): sandbox import save (resolveRequestAuth accepts dev sandbox ids), per-household in-memory recipe libraries, 44px tap targets, 900px nav breakpoint kept, "offline shopper loses the race" flake was a spec race (not an app bug) |
 | LV1 | Live verification against a **local Supabase** (Docker) | **done and merged** (D140-D149): live suite 20/20, three bugs fixed; open items in section 9 |
 | D2 | Deploy-zip "no rebuild" fix | **done and merged** (commit "Package: stop App Service Oryx/Kudu server-side builds"): the packaging script now emits start-only `package.json` files, no lockfiles and a `.deployment` file; see DEPLOY-APP-SERVICE.md section 6. Needs a real redeploy to confirm |
+| DX1 | Data export and deletion (D250-D259, migration `20261020002500`) | **done on `prj018/dx1-export-deletion`**: Settings > Your data (streamed zip export, household deletion with countdown/cancel, account deletion), `/api/jobs/purge` behind `JOBS_SECRET`, ledger replay, storage port for ST1. Owner: set `JOBS_SECRET` + create the Logic App (DEPLOY-APP-SERVICE.md 3c). Status: security/DATA-EXPORT-DELETION.md "Status" |
 | X1 | Recipe discovery from TheMealDB | new recipe-source provider; see ROADMAP idea backlog |
 | X2 | Open Food Facts product source | new product-source provider (barcodes/pack data) |
 
@@ -124,7 +126,7 @@ If a lane's branch is merged into your checkout, its decisions are in `DECISIONS
 6. Replace the remaining local-file store (uploaded photos under `/home/data`) with Supabase Storage, then drop `ALLOW_LOCAL_FILE_STORE`.
 7. `packages/db/src/database.types.ts` is generated from the local stack (D141); regenerate after every migration (`pnpm exec supabase gen types typescript --local`, then prettier), or against the cloud project with `--project-id guzsjqoosjqxfuqrjhxu` once pushed.
 8. Run the GitHub Actions workflow (`.github/workflows/ci.yml`) once the repo has it enabled; fix anything Linux-specific.
-9. Security checklist items before inviting real users: [security/SECURITY-CHECKLIST.md](security/SECURITY-CHECKLIST.md) (custom SMTP, leaked-password protection, rate limits, AI budget caps, export/deletion UI, backups).
+9. Security checklist items before inviting real users: [security/SECURITY-CHECKLIST.md](security/SECURITY-CHECKLIST.md) (custom SMTP, leaked-password protection, rate limits, AI budget caps, backups). Export/deletion is built (DX1); before real users set `JOBS_SECRET` and the scheduled purge job (DEPLOY-APP-SERVICE.md 3c), and add member notification emails for household deletion.
 10. Remaining roadmap: [ROADMAP.md](ROADMAP.md).
 
 ## 9. Known issues and caveats

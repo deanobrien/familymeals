@@ -1,4 +1,4 @@
-> **Hosting note:** these documents were written before the hosting decision and say "Vercel" in places. The app actually runs on **Azure App Service** (Linux, Node 22; see `docs/DEPLOY-APP-SERVICE.md`); read "Vercel env vars" as "App Service application settings" and "Vercel logs/rollback" as "App Service log stream / redeploying the previous `appservice.zip`". The Supabase, RLS, privacy and AI-gateway content applies unchanged. Several controls are **designed but not yet built** (export/deletion UI beyond the SQL RPCs, AI budgets, rate limits): check `docs/ROADMAP.md` before assuming a control exists.
+> **Hosting note:** these documents were written before the hosting decision and say "Vercel" in places. The app actually runs on **Azure App Service** (Linux, Node 22; see `docs/DEPLOY-APP-SERVICE.md`); read "Vercel env vars" as "App Service application settings" and "Vercel logs/rollback" as "App Service log stream / redeploying the previous `appservice.zip`". The Supabase, RLS, privacy and AI-gateway content applies unchanged. Several controls are **designed but not yet built** (AI budgets, general rate limits; export and deletion ARE built since DX1, D250-D259, see DATA-EXPORT-DELETION.md "Status"): check `docs/ROADMAP.md` before assuming a control exists.
 
 # THREAT-MODEL.md — Family Recipe Platform
 
@@ -89,6 +89,17 @@ Images are untrusted input: a photo may contain text such as "ignore instruction
 | L2 | API abuse / expensive queries | D | Edge/middleware limiter (Upstash Redis or Vercel WAF) keyed by user id, falling back to IP; pagination caps; DB role statement timeout | Burst test; `limit>100` clamped |
 | L3 | Repudiation: who changed what | R | `created_by/updated_by` on shared tables; audit log for membership, role, deletion, export events; server logs carry request id + user id (no content) | Audit rows written for each sensitive action |
 | L4 | Secrets/PII in logs or error pages | I | Logging redaction helper (see SECURITY-CHECKLIST.md); generic client errors; Sentry `beforeSend` scrubber | Log capture test asserts no email/token/prompt text |
+
+### 2.9 Data export and deletion (DX1, built)
+| ID | Threat | Cat | Mitigation | Test |
+|---|---|---|---|---|
+| X1 | Export leaks another household's or member's data | I | Built as the signed-in user (RLS); member scope narrows to own rows; other user ids -> "another member"; no emails but the requester's; AI keys, invitations, logs never read; secret-looking columns dropped generically | `builder.test.ts`; live export spec (outsider / member / owner) |
+| X2 | Export link reuse / IDOR | S/I | Link = unguessable id + same signed-in user (RLS on `data_export_requests`), 1 h, 5 downloads, access re-checked; foreign/expired = same 404 | live spec (member opens owner's link: 404) |
+| X3 | Export used for scraping / DoS | D | 1 per user, household, scope per 24 h (SQL, lock-serialised); streamed, nothing stored | PGlite 010, live spec |
+| X4 | Forged deletion (CSRF, stolen session) | S/T | Server actions (origin-checked) + typed confirmation + current password re-auth; 14-day grace, owner cancel; `/api/export` requires JSON | live spec (wrong name / password refused) |
+| X5 | Purge endpoint abuse | E/D | `JOBS_SECRET` (>= 32 chars, constant-time compare; unset = disabled 503); no ids from the request; idempotent; counts-only response; service role only inside the job | `jobs.test.ts`, live spec (401) |
+| X6 | Deleted data reappears after a backup restore | I | Deletion ledger replay in every job run + OPS-RUNBOOK restore steps | PGlite 010, live spec (restored household purged again) |
+| X7 | Owner shortens the grace to wipe others' data instantly | T | `request_household_deletion` clamps end-user grace to >= 14 days | PGlite 010 |
 
 ## 3. Priority order (risk x effort)
 1. R3/R2 (RLS completeness and IDOR) — automated matrix tests in `tests/rls/` are release-blocking.
