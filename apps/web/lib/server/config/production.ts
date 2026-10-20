@@ -19,6 +19,7 @@ export interface ProdEnv {
   AI_ALLOW_MOCK_IN_PRODUCTION?: string;
   ALLOW_LOCAL_FILE_STORE?: string;
   SUPABASE_DATA_CONTEXT?: string;
+  NEXT_PUBLIC_SITE_URL?: string;
 }
 
 export function isProduction(env: ProdEnv = process.env as ProdEnv): boolean {
@@ -39,6 +40,9 @@ export function productionConfigProblems(env: ProdEnv = process.env as ProdEnv):
   if (env.DATA_BACKEND !== 'supabase') {
     p.push('DATA_BACKEND must be "supabase" (the in-memory demo store is not allowed in production).');
   }
+  if (!env.NEXT_PUBLIC_SITE_URL?.trim()) {
+    p.push('NEXT_PUBLIC_SITE_URL is required (https://<host>, no trailing slash). It is also baked in at BUILD time: rebuild the package after changing it.');
+  }
   const secret = env.APP_SECRET?.trim();
   if (!secret) p.push('APP_SECRET is required (at least 16 characters).');
   else if (secret.length < 16) p.push('APP_SECRET must be at least 16 characters.');
@@ -54,6 +58,40 @@ export function productionConfigProblems(env: ProdEnv = process.env as ProdEnv):
     );
   }
   return p;
+}
+
+const BAKED_NAMES = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'NEXT_PUBLIC_SITE_URL'] as const;
+
+/**
+ * Names of NEXT_PUBLIC_* settings whose RUNTIME value differs from the value inlined at BUILD time. Returns setting
+ * names only, never values. The caller reads `baked` with literal `process.env.NEXT_PUBLIC_X` (inlined by Next) and
+ * `runtime` with a dynamic key (not inlined).
+ */
+export function bakedMismatchProblems(
+  baked: Record<string, string | undefined>,
+  runtime: Record<string, string | undefined>,
+): string[] {
+  const out: string[] = [];
+  for (const name of BAKED_NAMES) {
+    if ((baked[name] ?? '').trim() !== (runtime[name] ?? '').trim()) {
+      out.push(`${name} differs between the build and the App Service setting: the browser bundle uses the build-time value. Rebuild the package with the intended value.`);
+    }
+  }
+  return out;
+}
+
+/** Production problems plus build/runtime mismatches. Node runtime only (health route, instrumentation). */
+export function allConfigProblems(): string[] {
+  const base = productionConfigProblems();
+  if (!isProduction()) return base;
+  const baked = {
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  };
+  const runtime: Record<string, string | undefined> = {};
+  for (const name of BAKED_NAMES) runtime[name] = process.env[name];
+  return [...base, ...bakedMismatchProblems(baked, runtime)];
 }
 
 export function assertProductionConfig(env: ProdEnv = process.env as ProdEnv): void {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { assertProductionConfig, productionConfigProblems } from './production';
+import { assertProductionConfig, bakedMismatchProblems, productionConfigProblems } from './production';
 import { isPublicPath } from '../auth/routes';
 
 const good = {
@@ -9,6 +9,7 @@ const good = {
   DATA_BACKEND: 'supabase',
   APP_SECRET: 'a-secret-of-16-chars-or-more',
   ALLOW_LOCAL_FILE_STORE: 'true',
+  NEXT_PUBLIC_SITE_URL: 'https://x.azurewebsites.net',
 };
 
 describe('production config', () => {
@@ -28,6 +29,24 @@ describe('production config', () => {
     expect(productionConfigProblems({ ...good, AI_PROVIDER: 'mock' })[0]).toMatch(/mock AI/);
     expect(productionConfigProblems({ ...good, ALLOW_LOCAL_FILE_STORE: undefined })[0]).toMatch(/ALLOW_LOCAL_FILE_STORE/);
     expect(() => assertProductionConfig({ NODE_ENV: 'production' })).toThrow(/Invalid production configuration/);
+  });
+});
+
+describe('site url and baked values', () => {
+  it('requires NEXT_PUBLIC_SITE_URL', () => {
+    expect(productionConfigProblems({ ...good, NEXT_PUBLIC_SITE_URL: undefined })[0]).toMatch(/NEXT_PUBLIC_SITE_URL/);
+  });
+  it('reports build/runtime mismatches by name only', () => {
+    const baked = { NEXT_PUBLIC_SUPABASE_URL: 'https://old.supabase.co', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'k', NEXT_PUBLIC_SITE_URL: 's' };
+    expect(bakedMismatchProblems(baked, baked)).toEqual([]);
+    const out = bakedMismatchProblems(baked, { ...baked, NEXT_PUBLIC_SUPABASE_URL: 'https://new.supabase.co' });
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatch(/NEXT_PUBLIC_SUPABASE_URL/);
+    expect(out[0]).not.toMatch(/supabase\.co/);
+  });
+  it('problem text never contains secret values', () => {
+    const text = productionConfigProblems({ NODE_ENV: 'production', APP_SECRET: 'short-secret-VALUE' }).join('\n');
+    expect(text).not.toMatch(/short-secret-VALUE/);
   });
 });
 

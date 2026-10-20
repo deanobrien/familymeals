@@ -162,6 +162,6 @@ Redeploying replaces wwwroot but **not** `/home/data`. Keep the previous zip (re
 ## 8. Updating, rolling back, troubleshooting
 
 - Update: rebuild the zip (section 1) then redeploy (section 5).
-- 500 on every request with "Invalid production configuration": fix the listed settings and Apply.
+- Every page shows "This site is not configured yet" (503), or the Azure health check fails: open `https://<host>/api/health`. It returns 503 JSON `{status:"misconfigured", problems:[...]}` naming each bad setting (names and guidance only, never values); the same lines are logged as `[config] ...` in the Log stream. Fix the settings and Apply. A "differs between the build and the App Service setting" problem means a NEXT_PUBLIC_* value changed after the zip was built: rebuild the zip. (Note: `SUPABASE_SERVICE_ROLE_KEY` is not read by any production code path today, so it is not validated.)
 - 502 / "application error" right after deploy: check the Log stream for the port and for Oryx output; the start command must be exactly `node apps/web/server.js` and `HOSTNAME=0.0.0.0`; raise `WEBSITES_CONTAINER_START_TIME_LIMIT` if the container is killed during first start.
 - Rotating `APP_SECRET`, the service role key or an AI key: change the app setting and restart (`security/OPS-RUNBOOK.md` section 6). Rotating `APP_SECRET` means re-entering AI keys in Settings.
