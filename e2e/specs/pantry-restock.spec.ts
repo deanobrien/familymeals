@@ -70,8 +70,10 @@ test('snooze hides a suggestion; the banner can be dismissed', async ({ page }) 
 
 test('auto-add mode puts the restock items on the shopping list without asking', async ({ page }) => {
   await setMinimum(page, 'tinned tomatoes', '6');
-  await page.getByRole('checkbox', { name: 'Automatically add restock items to the shopping list' }).check();
+  // the box reflects the saved (server) setting, so click and wait for it rather than .check()
+  await page.getByRole('checkbox', { name: 'Automatically add restock items to the shopping list' }).click();
   await expect(page.getByText('Restock items will be added', { exact: false })).toBeVisible();
+  await expect(page.getByRole('checkbox', { name: 'Automatically add restock items to the shopping list' })).toBeChecked();
   await page.goto('/shopping');
   await expect(page.getByRole('checkbox', { name: /^tinned tomatoes/ })).toBeVisible();
   await expect(page.getByTestId('restock-banner')).toHaveCount(0);

@@ -17,6 +17,7 @@ Milestones are the brief's M0-M10 ([product/BRIEF.md](product/BRIEF.md) section 
 | M10 Android | 55 | Expo app with mock and Supabase DataSource, offline queue and replay, conflict toasts, camera import, dark mode, a11y | verify on a device (camera, SecureStore, NetInfo, TalkBack); move shopping sync from `seq` to `list_seq` (D129); build/sign APK/AAB via EAS; store listing |
 | Extra: Pantry + scan | 85 | stock, expiry (use-by wins over best-before), leftovers, video/photo scan with review (P2, D80-D89) | live-model scan accuracy; shelf-life data coverage |
 | Extra: Handwritten list scan + multiple lists | 80 | photo(s) of a paper list -> reviewable lines -> add to current list (merge preview) or a new named list; several lists per household with one active, switcher, rename, put away (SL1, D260-D267) | live-model accuracy on real handwriting; Android scan screen; Realtime notice of a bare list switch; item counts / delete for archived lists |
+| Extra: Minimum pantry stock + restock | 85 | per-household par levels (min, restock-to, pack size, snooze), `restockSuggestions` (explained, pack-rounded, list-aware, stale/expired/unit-mismatch safe), Running low panel + banner on Pantry/Shopping/Home, auto-add setting, Android parity (PR1, D280-D287) | run against the local stack and a device; owner `db push` of `20261020002800`; will-run-low uses only the latest approved plan |
 | Extra: Azure deploy | 60 | standalone build, packaging script, runbook, health check, CSP | push schema to cloud, redeploy with D2 fix, smoke test (HANDOVER section 8); Supabase Storage for uploads; scale-out readiness |
 
 ## Parity matrix (web vs Android)
@@ -35,7 +36,8 @@ Standing rule (D310): every web feature also ships on Android unless a reason is
 | Meal planner manual + prompt chips | ✅ | ✅ | P0-C (D341); needs device check. Discover "Add to plan" still opens the web planner (`/plan?add=`): wiring it to the Android planner is a follow-up |
 | Shopping list live / offline / aisles | ✅ | ✅ | none |
 | Multi-list + handwritten list scan | ✅ | ✅ | P0-C (D346) |
-| Pantry stock / expiry / use-what-I-have / photo-video scan | ✅ | ⚠️ | P0-C (D342-D343): all but video frames (web-only, native module) and min stock (PR1 not merged) |
+| Pantry stock / expiry / use-what-I-have / photo-video scan | ✅ | ⚠️ | P0-C (D342-D343): all but video frames (web-only, native module) |
+| Minimum stock + restock suggestions | ✅ | ✅ | PR1 (D280-D287): set minimum, Running low (Add all / choose / snooze), banner on shopping, auto-add setting; jest with a fake server, not run on a device |
 | Barcode scanning | ✅ continuous | ✅ | P0-C (D344): review + confirm on the phone, haptics, keep-awake; device check |
 | Receipts | ✅ | ✅ | P0-C (D345) |
 | Settings: preferences / allergy consent / store aisles | ✅ | ✅ | P0-A (D325): preferences, allergy consent (same wording), AI provider note; store aisles via AS1; Android persists to the DB, the web preferences/allergy form does not yet (see HANDOVER) |

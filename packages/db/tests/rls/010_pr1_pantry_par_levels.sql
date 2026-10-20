@@ -12,8 +12,8 @@ insert into public.households (id, name, created_by) values
 insert into public.household_members (household_id, user_id, role, display_name) values
   ('aa000000-0000-4000-8000-0000000000aa', 'b0000000-0000-4000-8000-000000000002', 'member', 'Bob');
 insert into public.ingredients (id, name, slug, category, form) values
-  ('11000000-0000-4000-8000-000000000001', 'Tinned tomatoes', 'tinned-tomatoes', 'Tins', 'canned'),
-  ('11000000-0000-4000-8000-000000000002', 'Pasta', 'pasta', 'Grains', 'dried');
+  ('11000000-0000-4000-8000-000000000001', 'PR1 tinned tomatoes', 'pr1-tinned-tomatoes', 'Tins', 'canned'),
+  ('11000000-0000-4000-8000-000000000002', 'PR1 pasta', 'pr1-pasta', 'Grains', 'dried');
 
 -- ---- a member creates a minimum with a pack size and restock-to ----
 select tests.act_as('a0000000-0000-4000-8000-000000000001');
