@@ -18,12 +18,13 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    ".next-e2e-as1/types/**/*.ts",
     ".next-e2e/types/**/*.ts",
     ".next-live-e2e/types/**/*.ts",
     ".next-live/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
-    ".next-e2e-as1/types/**/*.ts"
+    ".next-e2e-p1b/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

@@ -19,6 +19,8 @@ const WARM_API: Array<{ method: 'GET' | 'POST'; path: string }> = [
   { method: 'POST', path: '/api/extract' },
   { method: 'POST', path: '/api/extract/save' },
   { method: 'POST', path: '/api/pantry/scan' },
+  { method: 'POST', path: '/api/import/url' },
+  { method: 'GET', path: '/api/pantry/make-now' },
   { method: 'POST', path: '/api/shopping/scan' },
   { method: 'GET', path: '/api/products/5000000000000' },
   { method: 'GET', path: '/api/products' },
