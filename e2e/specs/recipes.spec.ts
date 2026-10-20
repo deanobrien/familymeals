@@ -99,7 +99,7 @@ test.describe('recipe detail', () => {
     await expect(qty.first()).toHaveText('600 g');
     await expect(page.getByTestId('cost-total')).toContainText('£4.10 for 6 servings');
     await expect(page.getByTestId('cost-per-serving')).toContainText('£0.68 per serving');
-    await page.getByRole('button', { name: /Reset to 4/ }).click();
+    await page.getByRole('button', { name: "Reset to household (4)" }).click();
     await expect(qty.first()).toHaveText('400 g');
 
     // Nutrition is computed from CoFID: attribution shown, and values that depend on ingredients without data are Unknown.
@@ -122,7 +122,7 @@ test.describe('recipe detail', () => {
     // ingredients scale with servings, so per-serving values do not change
     await expect(serving.getByRole('row', { name: /Energy/ })).toHaveText(before ?? '');
     await page.getByRole('tab', { name: 'Per recipe' }).click();
-    await expect(page.getByRole('table', { name: /Nutrition per recipe \(9 servings\)/ })).toBeVisible();
+    await expect(page.getByRole('table', { name: /Nutrition per recipe \(5 servings\)/ })).toBeVisible();
   });
 
   test('unpriced ingredients are listed, cost is a lower bound, unknown nutrition is never zero, approximate amounts do not scale', async ({ page }) => {
