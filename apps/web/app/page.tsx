@@ -66,6 +66,19 @@ function Dashboard({ data }: { data: DashboardData }) {
   const pct = shopping.total ? Math.round((shopping.done / shopping.total) * 100) : 0;
 
   return (
+    <>
+    <div className={s.quick} data-testid="home-quick-actions">
+      <Link className={s.tile} href="/recipes/import" data-testid="tile-recipe-photo">
+        <span className={s.tileIcon} aria-hidden="true">📷</span>
+        <span className={s.tileTitle}>Add a recipe from a photo</span>
+        <span className={s.tileSub}>Photograph a recipe card or cookbook page</span>
+      </Link>
+      <Link className={s.tile} href="/pantry/scan" data-testid="tile-scan-groceries">
+        <span className={s.tileIcon} aria-hidden="true">🛒</span>
+        <span className={s.tileTitle}>Scan your groceries</span>
+        <span className={s.tileSub}>Photo, video or barcode fills your pantry</span>
+      </Link>
+    </div>
     <div className={s.grid}>
       <Card>
         <section className={s.card} aria-labelledby="h-plan">
@@ -185,5 +198,6 @@ function Dashboard({ data }: { data: DashboardData }) {
         </section>
       </Card>
     </div>
+    </>
   );
 }

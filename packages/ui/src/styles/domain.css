@@ -65,3 +65,15 @@
 .fr-unknown { color: var(--fr-text-muted); font-style: italic; }
 .fr-table tfoot td, .fr-table tfoot th { font-weight: 700; border-bottom: 0; }
 .fr-table__wrap { overflow-x: auto; }
+
+/* Primary capture entry points (photo import / grocery scan): floating action on mobile, CTA card for empty states. */
+.fr-fab { display: none; }
+@media (max-width: 899px) {
+  .fr-fab { display: inline-flex; position: fixed; z-index: 45; right: var(--fr-space-4); bottom: calc(var(--fr-nav-h) + var(--fr-space-4) + env(safe-area-inset-bottom)); min-height: 52px; padding: 0 var(--fr-space-5); border-radius: var(--fr-radius-full); box-shadow: var(--fr-shadow-lg); }
+  .fr-has-fab { padding-bottom: 5rem; }
+}
+.fr-cta { display: flex; flex-direction: column; align-items: flex-start; gap: var(--fr-space-3); padding: var(--fr-space-5); border: 2px solid var(--fr-accent); border-radius: var(--fr-radius-lg); background: var(--fr-accent-soft); color: var(--fr-text); margin-bottom: var(--fr-space-4); }
+.fr-cta h2 { margin: 0; font-size: var(--fr-text-xl); }
+.fr-cta p { margin: 0; color: var(--fr-text-muted); }
+.fr-cta__actions { display: flex; flex-wrap: wrap; gap: var(--fr-space-2); }
+.fr-cta__actions .fr-btn { text-decoration: none; }
