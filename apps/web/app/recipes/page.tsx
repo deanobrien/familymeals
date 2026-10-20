@@ -3,6 +3,7 @@ import { ErrorState } from '@fr/ui';
 import { getRecipeRepository } from '../../lib/recipes/factory';
 import { parseRecipeQuery } from '../../lib/recipes/schema';
 import { RecipeFilters } from './_components/RecipeFilters';
+import { RematchAllButton } from './_components/RematchButtons';
 import { RecipeResults } from './_components/RecipeResults';
 import styles from './recipes.module.css';
 
@@ -62,6 +63,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
         view={view}
         hasAnyRecipes={data.hasAny}
       />
+      {data.hasAny && <RematchAllButton />}
     </>
   );
 }
