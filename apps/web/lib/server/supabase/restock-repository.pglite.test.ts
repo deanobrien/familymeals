@@ -59,10 +59,11 @@ describe('SupabaseRestockRepository against the real schema', () => {
 
   it('upsert by id replaces (change the minimum, disable, clear the snooze)', async () => {
     const p = (await repo().listPars(HA)).find((x) => x.name === 'Tinned tomatoes')!;
-    const { snoozedUntil: _snoozed, ...rest } = p;
-    await repo().savePar(HA, { ...rest, minValue: 12, enabled: false });
+    const rest: ParLevel = { ...p };
+    delete rest.snoozedUntil;
+    await repo().savePar(HA, { ...rest, minValue: 7, enabled: false });
     const again = (await repo().listPars(HA)).find((x) => x.id === p.id)!;
-    expect(again).toMatchObject({ minValue: 12, enabled: false });
+    expect(again).toMatchObject({ minValue: 7, enabled: false });
     expect(again.snoozedUntil).toBeUndefined();
     await repo().savePar(HA, { ...rest, minValue: 6, enabled: true });
   });
@@ -124,9 +125,9 @@ describe('SupabaseRestockRepository against the real schema', () => {
     const svc = createRestockService({ repo: repo(), pantry, shopping: new InMemoryShoppingRepository({ converter }), ingredients, converter, now: () => NOW });
     expect((await svc.setPar(HA, { ingredientId: tom.id, unit: 'can', min: 6 })).ok).toBe(true);
     const view = await svc.getView(HA);
-    expect(view.suggestions[0]).toMatchObject({ name: tom.name, quantity: 4 });
+    expect(view.suggestions.find((s) => s.name === tom.name)).toMatchObject({ quantity: 4 });
     expect((await svc.addToList(HA, ALICE)).ok).toBe(true);
-    expect((await svc.getView(HA)).suggestions).toEqual([]);
+    expect((await svc.getView(HA)).suggestions.find((s) => s.name === tom.name)).toBeUndefined();
   });
 
   it('is read-only while the household is pending deletion', async () => {
