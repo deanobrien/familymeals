@@ -1,5 +1,8 @@
 import type { NutrientKey, Quantity } from '@fr/domain';
 import { ApiError, createApiClient, type ApiClient } from './apiClient';
+import type { CookSummary, MarkCookedInput, MarkCookedResult, RecipeCooking, SubstitutionResult, SwapInput, VariantResult } from './cookingTypes';
+
+export type { CookEntry, CookNote, CookSummary, MarkCookedInput, MarkCookedResult, RecipeCooking, SubstitutionResult, SubstitutionSuggestion, SwapInput, VariantResult } from './cookingTypes';
 
 /**
  * Wire contract of the web app's bearer JSON routes for recipes, the ingredient catalogue and discover (D330, D331).
@@ -53,6 +56,8 @@ export interface RecipeListItem {
   servings: number;
   favourite: boolean;
   rating: number | null;
+  /** Household cook count and last cooked (P1-A); absent = never cooked. */
+  cooked?: CookSummary | undefined;
   cost: { totalPence: number | null; kind: PriceKind; partial?: boolean };
   costPerServingPence: number | null;
 }
@@ -153,8 +158,12 @@ export interface NutritionResult {
   disclaimer: string;
 }
 
+type CookEntryWire = import('./cookingTypes').CookEntry;
+
 export interface RecipeDetailData {
   recipe: RecipeFull;
+  /** History, your rating and the planner flag (P1-A); null when it could not be read. */
+  cooking?: RecipeCooking | null | undefined;
   calc: { cost: CostResult; nutrition: NutritionResult };
   /** households.default_servings: recipes open scaled to this. */
   householdServings: number;
@@ -268,6 +277,13 @@ export interface RecipesApi {
   remove(householdId: string, id: string): Promise<void>;
   toggleFavourite(householdId: string, id: string): Promise<boolean>;
   rematch(householdId: string, id: string): Promise<RematchResult>;
+  // ---- cooking (P1-A) ----
+  markCooked(householdId: string, id: string, input: MarkCookedInput): Promise<MarkCookedResult>;
+  setDontSuggest(householdId: string, id: string, value: boolean): Promise<RecipeCooking>;
+  /** AI suggestions, re-checked on the server against the household exclusions. */
+  suggestSubstitutions(householdId: string, id: string, lineId: string): Promise<SubstitutionResult>;
+  /** Saves a COPY of the recipe with the swaps applied; the original is never changed. */
+  saveVariant(householdId: string, id: string, swaps: SwapInput[]): Promise<VariantResult>;
   checkDuplicates(householdId: string, title: string, names: string[], excludeId?: string): Promise<DuplicateHit[]>;
   searchCatalogue(householdId: string, q: string): Promise<Candidate[]>;
   matchNames(householdId: string, names: string[]): Promise<LinkSuggestion[]>;
@@ -324,6 +340,32 @@ export function createRecipesApi(opts: { baseUrl?: string | undefined; getToken:
     async toggleFavourite(householdId, id) {
       const r = await api.send<{ ok: boolean; favourite?: boolean }>('POST', `/api/recipes/${encodeURIComponent(id)}/favourite`, { householdId });
       return !!r.favourite;
+    },
+    async markCooked(householdId, id, input) {
+      const res = await api.send<{ entry: CookEntryWire; cooking: RecipeCooking } | { error?: { message?: string; fieldErrors?: Record<string, string> } }>('POST', `/api/recipes/${encodeURIComponent(id)}/cooked`, { householdId, ...input }, [422]);
+      if ('entry' in res) return { ok: true, entry: res.entry, cooking: res.cooking };
+      return { ok: false, message: res.error?.message ?? 'Some values were not accepted.', fieldErrors: res.error?.fieldErrors ?? {} };
+    },
+    async setDontSuggest(householdId, id, value) {
+      return (await api.send<{ cooking: RecipeCooking }>('POST', `/api/recipes/${encodeURIComponent(id)}/dont-suggest`, { householdId, value })).cooking;
+    },
+    async suggestSubstitutions(householdId, id, lineId) {
+      try {
+        const r = await api.send<Extract<SubstitutionResult, { ok: true }>>('POST', `/api/recipes/${encodeURIComponent(id)}/substitutions`, { householdId, lineId });
+        return { ...r, ok: true };
+      } catch (e) {
+        if (e instanceof ApiError) return { ok: false, message: e.message };
+        throw e;
+      }
+    },
+    async saveVariant(householdId, id, swaps) {
+      try {
+        const r = await api.send<{ id: string; title: string }>('POST', `/api/recipes/${encodeURIComponent(id)}/variant`, { householdId, swaps });
+        return { ok: true, id: r.id, title: r.title };
+      } catch (e) {
+        if (e instanceof ApiError) return { ok: false, message: e.message };
+        throw e;
+      }
     },
     async rematch(householdId, id) {
       return api.send<RematchResult>('POST', `/api/recipes/${encodeURIComponent(id)}/rematch`, { householdId }, [404]);

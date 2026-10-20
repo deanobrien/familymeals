@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, TextInput, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useApp } from '@/data/AppContext';
+import { cookedLabel } from '@fr/engine/cooking';
 import { formatMinutes, formatPence } from '@/lib/calcFormat';
 import {
   COLLECTIONS,
@@ -41,6 +42,8 @@ function summary(r: RecipeListItem): string {
   const parts = [`Serves ${r.servings}`];
   if (r.prepMinutes != null || r.cookMinutes != null) parts.push(formatMinutes(total));
   if (r.costPerServingPence != null) parts.push(`${r.cost.partial ? 'from ' : ''}${formatPence(r.costPerServingPence)} each`);
+  if (r.rating != null) parts.push(`★ ${Math.round(r.rating * 10) / 10}`);
+  if (r.cooked) parts.push(cookedLabel(r.cooked, Date.now()));
   return parts.join(' · ');
 }
 

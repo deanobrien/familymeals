@@ -1,6 +1,7 @@
 import type { NutrientKey, Quantity } from '@fr/domain';
 import { computeIssues, type DraftIssue } from '@fr/recipe-import';
 import { RECIPES, type HOUSEHOLDS } from '@/data/mockDataSource';
+import type { CookEntry, RecipeCooking } from './cookingTypes';
 import { newId } from './format';
 import type {
   Candidate,
@@ -151,6 +152,21 @@ const fold = (s: string) => s.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace
 export function createMockRecipesApi(opts: { households?: typeof HOUSEHOLDS } = {}): RecipesApi & { reset(): void } {
   void opts;
   let store: Stored[] = RECIPES.map(toFull);
+  // Demo cooking state (P1-A): per recipe, in memory. The real rules (private notes, exclusion re-checks) live on the server.
+  let cooked: CookEntry[] = [];
+  const flagged = new Set<string>();
+  const myRatings = new Map<string, number>();
+  const cookingOf = (id: string): RecipeCooking => {
+    const all = cooked.filter((c) => c.recipeId === id).sort((a, b) => b.cookedAt.localeCompare(a.cookedAt));
+    return { cookedCount: all.length, lastCookedAt: all[0]?.cookedAt ?? null, history: all.slice(0, 20), myRating: myRatings.get(id) ?? null, dontSuggest: flagged.has(id), dontSuggestCount: flagged.has(id) ? 1 : 0 };
+  };
+  const SUBS: Record<string, Array<{ substitute: string; quantityGuidance: string; effect: string }>> = {
+    butter: [
+      { substitute: 'olive oil', quantityGuidance: 'Use about 3/4 of the amount.', effect: 'Slightly less rich.' },
+      { substitute: 'margarine', quantityGuidance: 'Swap 1:1.', effect: 'Very close in texture.' },
+    ],
+    onion: [{ substitute: 'leek', quantityGuidance: 'About the same weight.', effect: 'Milder and sweeter.' }],
+  };
   const own = (householdId: string) => store.filter((r) => r.householdId === householdId);
 
   const toItem = (r: Stored): RecipeListItem => {
@@ -167,7 +183,8 @@ export function createMockRecipesApi(opts: { households?: typeof HOUSEHOLDS } = 
       cookMinutes: r.cookMinutes,
       servings: r.servings,
       favourite: r.favourite,
-      rating: r.rating,
+      rating: myRatings.get(r.id) ?? r.rating,
+      ...(cooked.some((c) => c.recipeId === r.id) ? { cooked: { cookedCount: cookingOf(r.id).cookedCount, lastCookedAt: cookingOf(r.id).lastCookedAt } } : {}),
       cost: { totalPence: cost.totalPence, kind: cost.kind ?? 'generic_estimate', ...(cost.isPartial ? { partial: true } : {}) },
       costPerServingPence: cost.perServingPence,
     };
@@ -183,6 +200,9 @@ export function createMockRecipesApi(opts: { households?: typeof HOUSEHOLDS } = 
   return {
     reset() {
       store = RECIPES.map(toFull);
+      cooked = [];
+      flagged.clear();
+      myRatings.clear();
     },
     async list(householdId, q: RecipeQueryState): Promise<RecipeListResponse> {
       const all = own(householdId);
@@ -220,7 +240,8 @@ export function createMockRecipesApi(opts: { households?: typeof HOUSEHOLDS } = 
       void _h;
       const linkNames = Object.fromEntries(CATALOGUE.map((c) => [c.id, c.name]));
       return {
-        recipe,
+        recipe: myRatings.has(r.id) ? { ...recipe, rating: myRatings.get(r.id) ?? null } : recipe,
+        cooking: cookingOf(r.id),
         calc: { cost: costFor(r), nutrition: nutritionFor(r) },
         householdServings: 4,
         linkNames,
@@ -295,6 +316,56 @@ export function createMockRecipesApi(opts: { households?: typeof HOUSEHOLDS } = 
       if (!r) throw new Error('Recipe not found');
       r.favourite = !r.favourite;
       return r.favourite;
+    },
+    async markCooked(householdId, id, input) {
+      const r = own(householdId).find((x) => x.id === id);
+      if (!r) throw new Error('Recipe not found');
+      if (!Number.isInteger(input.servings) || input.servings < 1 || input.servings > 100) {
+        return { ok: false, message: 'Some values were not accepted.', fieldErrors: { servings: 'At least 1 serving' } };
+      }
+      const note = input.note?.trim();
+      const entry: CookEntry = {
+        id: newId(), recipeId: id, cookedAt: new Date().toISOString(), servings: input.servings, rating: input.rating ?? null,
+        cookedBy: 'You', mine: true, note: note ? { text: note, isPrivate: input.notePrivate !== false } : null,
+      };
+      cooked = [...cooked, entry];
+      if (input.rating) myRatings.set(id, input.rating);
+      return { ok: true, entry, cooking: cookingOf(id) };
+    },
+    async setDontSuggest(_householdId, id, value) {
+      if (value) flagged.add(id);
+      else flagged.delete(id);
+      return cookingOf(id);
+    },
+    async suggestSubstitutions(householdId, id, lineId) {
+      const r = own(householdId).find((x) => x.id === id);
+      const line = r?.ingredients.find((i) => i.id === lineId);
+      if (!r || !line) return { ok: false, message: 'That ingredient is not in this recipe.' };
+      const key = Object.keys(SUBS).find((k) => line.name.toLowerCase().includes(k));
+      const suggestions = (key ? (SUBS[key] ?? []) : []).map((s) => ({ ...s, dietSafe: true as boolean | null }));
+      return { ok: true, ingredient: { lineId, name: line.name }, suggestions, withheld: 0, withheldUnverifiable: 0, exclusionsActive: false };
+    },
+    async saveVariant(householdId, id, swaps) {
+      const r = own(householdId).find((x) => x.id === id);
+      if (!r) return { ok: false, message: 'Recipe not found.' };
+      const rid = newId();
+      const by = new Map(swaps.map((s) => [s.lineId, s]));
+      const copy: Stored = {
+        ...r,
+        id: rid,
+        title: `${r.title} (variant)`,
+        favourite: false,
+        rating: null,
+        ingredients: r.ingredients.map((i) => {
+          const sw = by.get(i.id);
+          const { ingredientId: _drop, ...rest } = i;
+          void _drop;
+          return sw ? { ...rest, id: `${rid}-${i.id}`, name: sw.name, preparation: `instead of ${i.name}` } : { ...i, id: `${rid}-${i.id}` };
+        }),
+        steps: r.steps.map((s) => ({ ...s, id: `${rid}-${s.id}` })),
+      };
+      store = [...store, copy];
+      return { ok: true, id: rid, title: copy.title };
     },
     async rematch(householdId, id): Promise<RematchResult> {
       const r = own(householdId).find((x) => x.id === id);

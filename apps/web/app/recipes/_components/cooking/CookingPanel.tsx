@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@fr/ui';
 import { cookedLabel, ratingLabel } from '@fr/engine/cooking';
 import type { RecipeCookingView } from '../../../../lib/server/cooking/service';
@@ -20,7 +21,9 @@ interface Props {
 
 /** Recipe detail: average rating, last cooked, the member's own rating, history with notes, mark as cooked, don't-suggest. */
 export function CookingPanel({ recipeId, recipeTitle, servings, averageRating, cooking: initial }: Props) {
+  const router = useRouter();
   const [cooking, setCooking] = useState<RecipeCookingView | null>(initial);
+  useEffect(() => setCooking(initial), [initial]);
   const [open, setOpen] = useState(false);
   const [flash, setFlash] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -31,7 +34,10 @@ export function CookingPanel({ recipeId, recipeTitle, servings, averageRating, c
     setBusy(true);
     try {
       const r = await setDontSuggestAction(recipeId, !cooking.dontSuggest);
-      if (r.ok) setCooking(r.cooking);
+      if (r.ok) {
+        setCooking(r.cooking);
+        router.refresh();
+      }
     } finally {
       setBusy(false);
     }
@@ -62,7 +68,7 @@ export function CookingPanel({ recipeId, recipeTitle, servings, averageRating, c
           servings={servings}
           currentRating={cooking?.myRating ?? null}
           onCancel={() => setOpen(false)}
-          onSaved={(c) => { setCooking(c); setOpen(false); setFlash('Saved. Thanks, that helps the planner.'); }}
+          onSaved={(c) => { setCooking(c); setOpen(false); setFlash('Saved. Thanks, that helps the planner.'); router.refresh(); }}
         />
       )}
       {cooking && cooking.dontSuggestCount > 0 && !cooking.dontSuggest && <p className="fr-muted">{cooking.dontSuggestCount} household member{cooking.dontSuggestCount === 1 ? '' : 's'} asked the planner not to suggest this.</p>}
