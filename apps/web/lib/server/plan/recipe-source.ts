@@ -23,6 +23,10 @@ export interface PlanRecipe extends Candidate {
   ingredientIds?: string[];
   /** Household favourite (demo: stands in for per-member favourites). */
   favourite?: boolean;
+  /** Household mean rating 1-5; null/undefined = unrated. */
+  rating?: number | null;
+  /** A member asked the planner not to suggest it again (P1-A). */
+  dontSuggest?: boolean;
 }
 
 /** Where plannable recipes come from. TODO(Supabase): back with the recipes table (household-scoped, RLS). */
@@ -146,6 +150,7 @@ export function toPlanRecipe(r: RecipeView, nutritionOf?: (r: RecipeView) => Nut
     ...(nutritionOf ? { nutritionPerServing: nutritionOf(r) } : {}),
     variety: varietyOf(r),
     favourite: r.favourite,
+    ...(r.rating != null ? { rating: r.rating } : {}),
   };
 }
 
@@ -166,11 +171,26 @@ export class RepositoryPlanRecipeSource implements PlanRecipeSource {
   }
 }
 
+/**
+ * Adds what cooking knows (P1-A): the household mean rating where the store has none of its own, and the "don't suggest again"
+ * flag. The orchestrator skips flagged recipes when it PROPOSES; the picker and manual placement still see every recipe.
+ */
+export function withCookingSignals(source: PlanRecipeSource, signals: (householdId: string) => Promise<{ dontSuggest: Set<string>; ratings: Map<string, number> }>): PlanRecipeSource {
+  const apply = async (h: string, recipes: PlanRecipe[]): Promise<PlanRecipe[]> => {
+    const { dontSuggest, ratings } = await signals(h);
+    return recipes.map((r) => {
+      const rating = ratings.get(r.id);
+      return { ...r, ...(rating !== undefined ? { rating } : {}), ...(dontSuggest.has(r.id) ? { dontSuggest: true } : {}) };
+    });
+  };
+  return { list: async (h) => apply(h, await source.list(h)), get: async (h, ids) => apply(h, await source.get(h, ids)) };
+}
+
 /** Adapts a PlanRecipeSource to the orchestrator's RecipeRepo (applies the hard exclusion filter). */
 export function toRecipeRepo(source: PlanRecipeSource): RecipeRepo {
   const strip = (r: PlanRecipe): Candidate => {
-    const { id, title, ingredientNames, tags, mealTypes, dietCategory, totalMinutes, ingredientIds, canonicalNames, unmatchedLines, allergens } = r;
-    return { id, title, ingredientNames, tags, mealTypes, dietCategory, totalMinutes, ingredientIds, canonicalNames, unmatchedLines, allergens };
+    const { id, title, ingredientNames, tags, mealTypes, dietCategory, totalMinutes, ingredientIds, canonicalNames, unmatchedLines, allergens, rating, dontSuggest } = r;
+    return { id, title, ingredientNames, tags, mealTypes, dietCategory, totalMinutes, ingredientIds, canonicalNames, unmatchedLines, allergens, rating, dontSuggest };
   };
   return {
     tagVocabulary: async (h) => [...new Set((await source.list(h)).flatMap((r) => r.tags))].sort(),

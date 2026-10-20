@@ -273,3 +273,18 @@ describe('pins, skips and recency', () => {
     expect(plan.slots.map((s) => s.mealType)).toEqual(['breakfast', 'dinner', 'breakfast', 'dinner']);
   });
 });
+
+describe('ratings from cooking (P1-A)', () => {
+  const base = { startDate: '2026-10-19', days: 1, servings: 4 } as PlanConstraintsInput;
+  it('prefers the recipe the household rated highly when everything else is equal', () => {
+    const lib = [recipe({ id: 'low', dietCategory: 'meat', rating: 1 }), recipe({ id: 'high', dietCategory: 'meat', rating: 5 }), recipe({ id: 'unrated', dietCategory: 'meat' })];
+    const plan = solvePlan(base, lib);
+    expect(plan.slots.find((s) => s.recipeId)?.recipeId).toBe('high');
+    expect(plan.stats.ratingPoints).toBe(2);
+  });
+  it('is only a nudge: a rated recipe never beats a hard exclusion', () => {
+    const lib = [recipe({ id: 'banned', dietCategory: 'meat', rating: 5, ingredientIds: ['ing-mushroom-button'] }), recipe({ id: 'fine', dietCategory: 'meat', rating: 1 })];
+    const plan = solvePlan({ ...base, excludeIngredientIds: MUSHROOM_IDS }, lib);
+    expect(plan.slots.find((s) => s.recipeId)?.recipeId).toBe('fine');
+  });
+});

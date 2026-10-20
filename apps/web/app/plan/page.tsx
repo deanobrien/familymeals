@@ -1,5 +1,7 @@
 import { getPlanPageData } from '../../lib/server/plan/handlers';
 import { getAppContext } from '../../lib/server/context';
+import { loadCookedWeek } from '../../lib/server/cooking/service';
+import { webCookingCaller } from '../../lib/server/cooking/web-caller';
 import { loadPlanServices } from '../../lib/server/plan/services';
 import { ConsentNotice } from '../consent-notice';
 import { Planner } from './planner';
@@ -10,7 +12,10 @@ export const dynamic = 'force-dynamic';
 export default async function Page({ searchParams }: { searchParams: Promise<{ week?: string }> }) {
   const { week } = await searchParams;
   const svc = await loadPlanServices((await getAppContext()).householdId);
-  const data = await getPlanPageData(svc, week);
+  const page = await getPlanPageData(svc, week);
+  // Cooked meals this week (P1-A cooking log) turn on the Planned / Cooked toggle in the variety panel.
+  const cooked = await loadCookedWeek(await webCookingCaller(), page.doc.weekStart);
+  const data = cooked?.length ? { ...page, cooked } : page;
   return (
     <>
       <h1>Meal planner</h1>

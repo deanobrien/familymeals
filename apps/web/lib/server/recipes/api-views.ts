@@ -19,6 +19,8 @@ export interface RecipeListItem {
   servings: number;
   favourite: boolean;
   rating: number | null;
+  /** How often and when the household last cooked it (P1-A); absent = never cooked. */
+  cooked?: { cookedCount: number; lastCookedAt: string | null };
   cost: Pick<RecipeCost, 'totalPence' | 'kind' | 'partial'>;
   costPerServingPence: number | null;
 }

@@ -1,10 +1,13 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Linking, ScrollView, View } from 'react-native';
+import { Linking, Pressable, ScrollView, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useApp } from '@/data/AppContext';
 import { formatMinutes } from '@/lib/calcFormat';
 import type { RecipeDetailData } from '@/lib/recipesApi';
 import { loadServingsOverride, resolveInitialServings, saveServingsOverride, scaledAmount, servingsOverrideKey, MAX_SERVINGS } from '@/lib/servings';
+import { setPendingSwaps } from '@/lib/cookHandoff';
+import { CookingSection } from './cooking/CookingSection';
+import { SubstitutionSheet } from './cooking/SubstitutionSheet';
 import { CostPanel, NutritionPanel } from './RecipePanels';
 import { Button, EmptyState, ErrorState, ErrorText, Loading, Muted, Text, useStyles } from './ui';
 import { Badge, RecipeImage, Section, Stepper } from './widgets';
@@ -23,6 +26,7 @@ export default function RecipeDetailScreen() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
   const [showOriginal, setShowOriginal] = useState(false);
+  const [subFor, setSubFor] = useState<{ id: string; name: string } | null>(null);
   const overrideKey = useRef<string | null>(null);
 
   const load = useCallback(() => {
@@ -144,6 +148,9 @@ export default function RecipeDetailScreen() {
           />
         </View>
         <View style={{ minWidth: 140, flexGrow: 1 }}>
+          <Button title="Cook mode" onPress={() => router.push({ pathname: '/recipe/cook/[id]', params: { id: recipe.id, servings: String(wanted) } })} testID="cook-mode" />
+        </View>
+        <View style={{ minWidth: 140, flexGrow: 1 }}>
           <Button title="Add to plan" variant="secondary" onPress={addToPlan} testID="add-to-plan" />
         </View>
         <View style={{ minWidth: 140, flexGrow: 1 }}>
@@ -207,9 +214,25 @@ export default function RecipeDetailScreen() {
                 {ing.optional ? ' (optional)' : ''}
               </Text>
               <Muted testID="ingredient-qty">{qty}</Muted>
+              <Pressable accessibilityRole="button" accessibilityLabel={`Out of ${ing.name}?`} testID={`out-of-${ing.id}`} onPress={() => setSubFor({ id: ing.id, name: ing.name })} style={{ minHeight: 48, justifyContent: 'center', paddingLeft: 10 }}>
+                <Muted>Out of it?</Muted>
+              </Pressable>
             </View>
           );
         })}
+      {subFor && householdId ? (
+        <SubstitutionSheet
+          recipes={recipes}
+          householdId={householdId}
+          recipeId={recipe.id}
+          line={subFor}
+          onClose={() => setSubFor(null)}
+          onCookWith={(sw) => {
+            setPendingSwaps([sw]);
+            router.push({ pathname: '/recipe/cook/[id]', params: { id: recipe.id, servings: String(wanted) } });
+          }}
+        />
+      ) : null}
       {data.unlinkedCount > 0 && (
         <Section testID="unlinked-notice">
           <Muted accessibilityRole="alert">
@@ -230,6 +253,10 @@ export default function RecipeDetailScreen() {
           {i + 1}. {s.text}
         </Text>
       ))}
+
+      {householdId ? (
+        <CookingSection recipes={recipes} householdId={householdId} recipeId={recipe.id} servings={wanted} averageRating={recipe.rating} cooking={data.cooking ?? null} onChanged={load} />
+      ) : null}
 
       <CostPanel cost={calc.cost} servings={wanted} factor={factor} />
       <NutritionPanel nutrition={calc.nutrition} servings={wanted} printed={recipe.printedNutrition ?? null} />

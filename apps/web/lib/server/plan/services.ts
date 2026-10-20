@@ -7,7 +7,8 @@ import {
 import { getRecipeRepositoryFor } from '../../recipes/factory';
 import { getRecipeCalculator } from '../calc';
 import { summariserForHousehold } from '../calc/household';
-import { RepositoryPlanRecipeSource, toPlanRecipe, toRecipeRepo, type PlanRecipeSource } from './recipe-source';
+import { RepositoryPlanRecipeSource, toPlanRecipe, toRecipeRepo, withCookingSignals, type PlanRecipeSource } from './recipe-source';
+import { planSignals } from '../cooking/service';
 import { getMealPlanStore, getPlanStore, InMemoryMealPlanRepository, resetPlanStore, type MealPlanRepository } from './repository';
 import { createEngineSolver } from './engine-solver';
 import { createExclusionResolver } from './exclusions';
@@ -115,7 +116,7 @@ export function createPlanServices(opts: {
   };
   // Resolved per call from Settings > AI provider, else env, else the dev mock (D41).
   const ai = opts.ai ?? settingsAiProvider;
-  const recipeRepo = toRecipeRepo(recipes);
+  const recipeRepo = toRecipeRepo(withCookingSignals(recipes, planSignals));
   const orchestrator = new PlanOrchestrator({
     ai,
     solver: createEngineSolver({ loadCandidates: (ids) => recipeRepo.getRecipes(household.id, ids) }),

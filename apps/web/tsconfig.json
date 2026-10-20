@@ -25,7 +25,8 @@
     ".next-live/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
-    ".next-e2e-p1b/types/**/*.ts"
+    ".next-e2e-p1a/types/**/*.ts",
+    ".next-e2e-p1c/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

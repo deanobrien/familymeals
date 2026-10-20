@@ -1,0 +1,30 @@
+{
+  "butter": [
+    { "substitute": "olive oil", "ratioNote": "Use about 3/4 of the amount.", "effect": "Slightly less rich; a little fruitier.", "dietSafe": true },
+    { "substitute": "margarine", "ratioNote": "Swap 1:1.", "effect": "Very close in texture; milder flavour.", "dietSafe": true },
+    { "substitute": "peanut butter", "ratioNote": "Use about 3/4 of the amount.", "effect": "Nutty flavour; denser bakes.", "dietSafe": true }
+  ],
+  "milk": [
+    { "substitute": "coconut milk", "ratioNote": "Swap 1:1, thin with a splash of water if thick.", "effect": "Richer, with a faint coconut taste.", "dietSafe": true },
+    { "substitute": "natural yoghurt", "ratioNote": "Use half yoghurt, half water for the same amount.", "effect": "Tangier and slightly thicker.", "dietSafe": true }
+  ],
+  "egg": [
+    { "substitute": "natural yoghurt", "ratioNote": "About 60 g (4 tbsp) per egg, for baking only.", "effect": "Moist crumb, slightly less rise.", "dietSafe": true },
+    { "substitute": "ground flaxseed", "ratioNote": "1 tbsp mixed with 3 tbsp water per egg; rest 5 minutes.", "effect": "Binds well, denser and nuttier.", "dietSafe": true }
+  ],
+  "cream": [
+    { "substitute": "greek yoghurt", "ratioNote": "Swap 1:1; stir in off the heat so it does not split.", "effect": "Lighter and tangier.", "dietSafe": true },
+    { "substitute": "coconut milk", "ratioNote": "Swap 1:1.", "effect": "Dairy-free; adds a coconut note.", "dietSafe": true }
+  ],
+  "flour": [
+    { "substitute": "self-raising flour", "ratioNote": "Swap 1:1 and leave out the baking powder.", "effect": "Lighter, more risen result.", "dietSafe": true },
+    { "substitute": "wholemeal flour", "ratioNote": "Use 3/4 of the amount and add a splash more liquid.", "effect": "Denser and nuttier.", "dietSafe": true }
+  ],
+  "sugar": [
+    { "substitute": "honey", "ratioNote": "Use 3/4 of the amount and reduce other liquid slightly.", "effect": "Moister and browns faster.", "dietSafe": false },
+    { "substitute": "maple syrup", "ratioNote": "Use 3/4 of the amount and reduce other liquid slightly.", "effect": "Softer sweetness with a maple note.", "dietSafe": true }
+  ],
+  "onion": [
+    { "substitute": "leek", "ratioNote": "Use the white and light green part, about the same weight.", "effect": "Milder and slightly sweeter.", "dietSafe": true }
+  ]
+}

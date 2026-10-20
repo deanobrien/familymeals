@@ -11,6 +11,7 @@ import { getShoppingRepository } from '../shopping/repository';
 import { getMemoryStoreBook } from '../stores/repository';
 import { resetMemoryExportAudit } from '../export/audit';
 import { resetMemorySettings } from '../settings/memory-store';
+import { resetMemoryCooking } from '../cooking/memory-store';
 import { resetMemoryNotifications } from '../notifications/store';
 
 /**
@@ -25,6 +26,7 @@ export function resetInMemoryStores(): string[] {
   getShoppingRepository().reset();
   getMemoryStoreBook().reset();
   resetMemorySettings();
+  resetMemoryCooking();
   resetPlanServices();
   resetPantryServices();
   resetMemoryServices();

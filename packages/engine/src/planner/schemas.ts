@@ -57,6 +57,8 @@ export const RecipeCandidateSchema = z.object({
   favouritedBy: z.array(z.string()).default([]),
   /** Member ids who dislike something in this recipe (SOFT: penalised by the solver, never excluded; not an allergy). */
   dislikedBy: z.array(z.string()).default([]),
+  /** Household mean rating 1-5 from cooking (P1-A); unrated = null/absent and neither helps nor hurts. */
+  rating: z.number().min(1).max(5).nullable().optional(),
   lastCookedOn: IsoDateSchema.optional(),
   /** If set, the recipe is only offered for these meal types. */
   mealTypes: z.array(MealTypeSchema).optional(),
@@ -72,6 +74,8 @@ export interface PlannerWeights {
   favourite: number;
   /** Penalty per member who dislikes something in a planned meal (soft; never a hard exclusion). */
   dislike: number;
+  /** Per rating point above 3 (5 stars = +2 points, 1 star = -2): a soft nudge towards what the household rated highly. */
+  rating: number;
   quickMiss: number;
   includeTag: number;
   repeat: number;
@@ -86,6 +90,7 @@ export const DEFAULT_WEIGHTS: PlannerWeights = {
   uncostedWithBudget: 5,
   favourite: 30,
   dislike: 20,
+  rating: 8,
   // Strong: a busy-day slot that misses its time cap costs more than a diet-mix miss (100) but less than a
   // repeat (150), so quick recipes are preferred on busy days without doubling one up.
   quickMiss: 120,

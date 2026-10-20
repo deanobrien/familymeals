@@ -109,6 +109,8 @@ export interface RecipeView {
   favourite: boolean;
   /** 1-5 household rating, if any. */
   rating: number | null;
+  /** How often and when the household cooked it (P1-A); attached on read, absent = never cooked. */
+  cooked?: { cookedCount: number; lastCookedAt: string | null } | undefined;
   cost: RecipeCost;
   /** Per-serving nutrition; unknown rows are shown as Unknown, never 0. */
   nutritionPerServing: NutrientValue[];
