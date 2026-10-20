@@ -18,7 +18,7 @@ Local Supabase (verified by LV1, D140-D149; needs Docker, works on 20.10.7 with 
 ```
 pnpm exec supabase start          # ports 554xx (API :55421, Studio :55423, Mailpit :55424); applies all migrations + supabase/seed.sql
 pnpm dev:live                     # app on http://localhost:3131 against the local stack (DATA_BACKEND=supabase, mock AI)
-pnpm test:e2e:live                # opt-in live-supabase Playwright project (e2e/live/, own dev server on 3133); 20/20 pass
+pnpm test:e2e:live                # opt-in live-supabase Playwright project (e2e/live/, own dev server on 3133); 29/29 pass (LV1 20 + LT1 9)
 ```
 
 Regenerate `packages/db/src/database.types.ts` after each migration (D141). `supabase/seed.sql` is generated: `pnpm --filter @fr/refdata build:sql-seed` (D145). Auth locally: email confirmation on (read the link in Mailpit), minimum password 10. Another local Supabase project (golfbook) owns 543xx, hence 554xx; never stop its containers. Deploy: `scripts/package-appservice.ps1` -> `dist/appservice.zip` (D150-D154; start `node apps/web/server.js`, health `/api/health`).

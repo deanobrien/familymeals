@@ -49,7 +49,7 @@ Run against the **local Supabase stack** (needs Docker running): follow [SUPABAS
 ```
 pnpm exec supabase start                   # ports 554xx; applies all 23 migrations + supabase/seed.sql
 pnpm dev:live                              # app on http://localhost:3131, DATA_BACKEND=supabase, mock AI, temp data dir (scripts/dev-live.mjs reads the stack's keys; no .env.local needed)
-pnpm test:e2e:live                         # live suite (e2e/live/), own dev server on 3133; 20/20 pass
+pnpm test:e2e:live                         # live suite (e2e/live/), own dev server on 3133; 29/29 pass
 ```
 
 Email confirmation is ON locally and minimum password is 10: sign up, then open the confirmation link in Mailpit at http://127.0.0.1:55424. The stack uses ports 554xx (API 55421, DB 55422, Studio 55423, Mailpit 55424) because another local Supabase project (golfbook) owns 543xx: never stop its containers. Regenerate `packages/db/src/database.types.ts` after each migration.
@@ -133,7 +133,7 @@ If a lane's branch is merged into your checkout, its decisions are in `DECISIONS
 - With Supabase, recipe lists with price filters / cost sort load up to 10,000 recipes and cost them in the app (D58).
 - Many mock-suite e2e specs are `test.fixme` (live-Supabase flows, now covered by `e2e/live/`); 100 skipped is expected in the mock run.
 - The mock e2e suite has 2-3 load-related flaky shopping/journey failures per full run; they pass in isolation (tracked, not yet fixed).
-- LV1 open items: `apps/web/lib/shopping/live.ts` marks the channel live before the server confirms the subscription; receipts, price observations and per-household AI settings have no live tests; recipes created through the form have no ingredient links.
+- LV1 open items: `apps/web/lib/shopping/live.ts` marks the channel live before the server confirms the subscription; (LT1, D230-D233, now live-tested: receipts, prices, AI settings, planner profile, product snapshots, pantry feed; one bug fixed, D231: receipt prices for items without a canonical id); the Settings dietary-exclusions form still uses an in-memory consent sink; recipes created through the form have no ingredient links.
 - Dev-only service-role fallback (`SUPABASE_DATA_CONTEXT=service`, D100) exists for scripts; production startup refuses it.
 - Photo uploads >10 MB are downscaled in the browser; Next buffers request bodies in middleware up to 10 MB by default, raised to 40 MB in `next.config.mjs` (see `claude/memories/middleware-body-limit-10mb.md`).
 - App Service internal hostname (fixed 2026-10-20): never build absolute URLs/redirects from `request.url`/Host; use `publicOrigin()` (`lib/server/site-url.ts`). Email scanners can consume one-time confirmation links (`otp_expired`); the sign-in page explains this and offers "Resend confirmation email". See `claude/memories/app-service-internal-hostname.md`.
