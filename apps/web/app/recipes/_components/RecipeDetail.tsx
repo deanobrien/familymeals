@@ -13,6 +13,7 @@ import {
   useToast,
 } from '@fr/ui';
 import type { RecipeCalculation } from '../../../lib/calc/types';
+import { imageSrc } from '../../../lib/server/images/paths';
 import { parseStoredServings, resolveInitialServings, servingsOverrideKey } from '../../../lib/recipes/initial-servings';
 import { scaleQuantityLabel, servingsFactor } from '../../../lib/recipes/scale';
 import { totalMinutes, type RecipeView } from '../../../lib/recipes/types';
@@ -20,6 +21,7 @@ import { deleteRecipeAction, duplicateRecipeAction, toggleFavouriteAction } from
 import styles from '../recipes.module.css';
 import { CostPanel } from './CostPanel';
 import { NutritionPanel } from './NutritionPanel';
+import { UnlinkedNotice } from './RematchButtons';
 
 interface DetailProps {
   recipe: RecipeView;
@@ -96,7 +98,7 @@ export function RecipeDetail({ recipe, calc, justDuplicated = false, householdId
 
       <div className={styles.detailTop}>
         <div className={styles.hero}>
-          {recipe.imageUrl ? <img src={recipe.imageUrl} alt={recipe.title} /> : <Icon name="image" width={48} height={48} aria-label="No photo" role="img" />}
+          {recipe.imageUrl ? <img src={imageSrc(recipe.imageUrl) ?? ''} alt={recipe.title} /> : <Icon name="image" width={48} height={48} aria-label="No photo" role="img" />}
         </div>
         <div>
           <h1>{recipe.title}</h1>
@@ -164,6 +166,7 @@ export function RecipeDetail({ recipe, calc, justDuplicated = false, householdId
               </li>
             ))}
           </ul>
+          <UnlinkedNotice recipeId={recipe.id} unlinked={recipe.ingredients.filter((i) => !i.ingredientId).length} total={recipe.ingredients.length} />
         </section>
 
         <section aria-labelledby="method-h">

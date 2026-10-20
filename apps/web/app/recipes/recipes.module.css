@@ -51,4 +51,15 @@
 .warn { border: 1px solid var(--fr-warning); background: var(--fr-warning-soft); color: var(--fr-warning); border-radius: var(--fr-radius-md); padding: var(--fr-space-3) var(--fr-space-4); }
 .warn ul { margin: var(--fr-space-2) 0; }
 .formError { color: var(--fr-danger); }
+
+/* ingredient links (D222) */
+.linkControl { display: grid; gap: var(--fr-space-2); justify-items: start; }
+.linkOk { color: var(--fr-success, inherit); }
+.linkWarn { color: var(--fr-warning); }
+.linkMuted { color: var(--fr-text-muted); }
+.linkPanel { border: 1px solid var(--fr-border); border-radius: var(--fr-radius-md); padding: var(--fr-space-3); display: grid; gap: var(--fr-space-3); background: var(--fr-surface); width: 100%; }
+.linkHeading { margin: 0 0 var(--fr-space-2); font-weight: 600; }
+.linkList { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--fr-space-2); }
+.linkSearch { display: grid; gap: var(--fr-space-1); font-size: var(--fr-text-sm); }
+.linkNotice { display: flex; flex-wrap: wrap; align-items: center; gap: var(--fr-space-3); }
 .stickyActions { display: flex; gap: var(--fr-space-3); flex-wrap: wrap; }
