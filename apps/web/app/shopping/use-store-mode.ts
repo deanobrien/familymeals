@@ -99,7 +99,6 @@ export function useStoreMode(opts: {
     setPendingCount(prefs.getPending().length);
     setReady(true);
     void flush();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mount
   }, []);
 
   // Other members' changes: refresh when the tab regains focus or the network returns.

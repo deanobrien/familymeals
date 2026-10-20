@@ -402,10 +402,10 @@ export class FakeBackend {
           this.snapshotCalls += 1;
           return this.offline ? { data: null, error: NETWORK_ERROR } : { data: this.snapshot(), error: null };
         }
+        if (fn === 'household_store_book') return this.offline ? { data: null, error: NETWORK_ERROR } : { data: this.storeBook, error: null }; // not a shopping command: kept out of rpcCalls
         this.rpcCalls.push({ fn, args });
         if (this.offline) return { data: null, error: NETWORK_ERROR };
         if (this.rpcError) return { data: null, error: this.rpcError };
-        if (fn === 'household_store_book') return { data: this.storeBook, error: null };
         let data: Row;
         try {
           data = fn === 'record_purchase' ? this.recordPurchase(args, this.userId) : this.voidPurchase(args, this.userId);
