@@ -18,7 +18,7 @@ Local Supabase (verified by LV1, D140-D149; needs Docker, works on 20.10.7 with 
 ```
 pnpm exec supabase start          # ports 554xx (API :55421, Studio :55423, Mailpit :55424); applies all migrations + supabase/seed.sql
 pnpm dev:live                     # app on http://localhost:3131 against the local stack (DATA_BACKEND=supabase, mock AI)
-pnpm test:e2e:live                # opt-in live-supabase Playwright project (e2e/live/, own dev server on 3133); 29/29 pass (LV1 20 + LT1 9)
+pnpm test:e2e:live                # opt-in live-supabase Playwright project (e2e/live/, own dev server on 3133); 32/32 pass (LV1 20, ST1 2, RT1 1, LT1 9)
 ```
 
 Uploaded photos (recipe covers, import pages, receipt photos) use private Supabase Storage through `ImageStore` when `DATA_BACKEND=supabase` (ST1, D190-D196; `POST /api/jobs/storage-cleanup` with `CRON_SECRET` does cleanup; see docs/DEPLOY-APP-SERVICE.md 4b); local files only in dev / mock mode.

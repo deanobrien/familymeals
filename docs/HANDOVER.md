@@ -49,7 +49,7 @@ Run against the **local Supabase stack** (needs Docker running): follow [SUPABAS
 ```
 pnpm exec supabase start                   # ports 554xx; applies all 23 migrations + supabase/seed.sql
 pnpm dev:live                              # app on http://localhost:3131, DATA_BACKEND=supabase, mock AI, temp data dir (scripts/dev-live.mjs reads the stack's keys; no .env.local needed)
-pnpm test:e2e:live                         # live suite (e2e/live/), own dev server on 3133; 29/29 pass
+pnpm test:e2e:live                         # live suite (e2e/live/), own dev server on 3133; 32/32 pass
 ```
 
 Email confirmation is ON locally and minimum password is 10: sign up, then open the confirmation link in Mailpit at http://127.0.0.1:55424. The stack uses ports 554xx (API 55421, DB 55422, Studio 55423, Mailpit 55424) because another local Supabase project (golfbook) owns 543xx: never stop its containers. Regenerate `packages/db/src/database.types.ts` after each migration.
