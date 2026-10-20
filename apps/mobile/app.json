@@ -5,6 +5,7 @@
     "scheme": "familyrecipes",
     "version": "0.1.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "plugins": [
       "expo-router",
@@ -12,7 +13,15 @@
       ["expo-camera", { "cameraPermission": "Allow Family Recipes to photograph recipes and receipts." }],
       ["expo-image-picker", { "photosPermission": "Allow Family Recipes to pick recipe and receipt photos." }]
     ],
-    "android": { "package": "uk.ac.northumbria.familyrecipes" },
+    "android": {
+      "package": "uk.ac.northumbria.familyrecipes",
+      "versionCode": 1,
+      "allowBackup": false,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#2E7D32"
+      }
+    },
     "experiments": { "typedRoutes": true }
   }
 }
