@@ -3,6 +3,10 @@ import { AiError } from './errors.js';
 import { prepareImage, prepareImages, type ImageLimits, type PreparedImage } from './image.js';
 import { PantryScanSchema, SCAN_MAX_IMAGES, SCAN_SYSTEM, normaliseScan, scanPantryPrompt, type PantryScanContext } from './pantry-scan.js';
 import { planRequestToConstraints } from './plan.js';
+import {
+  SHOPPING_LIST_SYSTEM, SHOPPING_SCAN_MAX_IMAGES, ShoppingListScanSchema, normaliseShoppingListScan, scanShoppingListPrompt,
+  type ShoppingListScanContext,
+} from './shopping-list-scan.js';
 import { matchPrompt, planPrompt, recipePrompt, subsPrompt, SYSTEM, tagsPrompt } from './prompts.js';
 import type { AiProvider, CallContext, ImageInput, MatchCandidate, SubstitutionRequest, TaggableRecipe } from './provider.js';
 import {
@@ -137,6 +141,20 @@ export abstract class BaseAiProvider implements AiProvider {
     });
     // Dates, frame references and names are sanitised in code, never trusted to the model.
     return normaliseScan(scan, prepared.length);
+  }
+
+  async scanShoppingList(images: ImageInput[], context: ShoppingListScanContext = {}, ctx?: CallContext) {
+    await enforceLimit(this.base.limits, ctx?.householdId, 'scanShoppingList');
+    // Handwriting needs more pixels than a printed card: keep a larger long edge (2048) than the default (1568).
+    const limits = { ...this.base.imageLimits, maxImages: SHOPPING_SCAN_MAX_IMAGES, maxLongEdge: Math.max(this.base.imageLimits.maxLongEdge, 2048) };
+    const prepared = await prepareImages(images, limits);
+    const scan = await this.run({
+      operation: 'scanShoppingList', modelKind: 'vision', system: SHOPPING_LIST_SYSTEM, ctx,
+      parts: [...prepared.map((image): PromptPart => ({ type: 'image', image })), { type: 'text', text: scanShoppingListPrompt(prepared.length, context) }],
+      schema: ShoppingListScanSchema, toolName: 'submit_shopping_list', toolDescription: 'Submit the transcribed shopping list lines.',
+    });
+    // Invented amounts, unnamed lines and image references are sanitised in code, never trusted to the model.
+    return normaliseShoppingListScan(scan, prepared.length);
   }
 
   /** Minimal live check of credentials, endpoint and (vision) model. Does not log or return the key. */

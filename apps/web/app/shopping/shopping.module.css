@@ -33,3 +33,15 @@
 .formRow { display: grid; grid-template-columns: 2fr 1fr; gap: var(--fr-space-3); }
 .formActions { display: flex; gap: var(--fr-space-2); justify-content: flex-end; flex-wrap: wrap; }
 .spacer { height: var(--fr-space-5); }
+
+/* SL1: scan entry, list switcher */
+.listBar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--fr-space-3); margin: var(--fr-space-3) 0; }
+.listName { font-weight: 600; font-size: var(--fr-text-lg); min-width: 0; overflow-wrap: anywhere; }
+.scanLink { flex: none; }
+@media (max-width: 640px) {
+  .scanLink { width: 100%; order: -1; }
+}
+.listsSection { display: grid; gap: var(--fr-space-2); }
+.listsHeading { margin: 0; font-size: var(--fr-text-base); }
+.listsHint { color: var(--fr-text-muted); font-size: var(--fr-text-sm); }
+.listsError { color: var(--fr-danger); margin: 0; }

@@ -1,0 +1,17 @@
+{
+  "title": "Saturday shop",
+  "lines": [
+    { "originalText": "2 x milk", "name": "milk", "quantity": { "kind": "exact", "value": 2, "unit": "item", "originalText": "2 x" }, "notes": "semi-skimmed", "crossedOut": false, "illegible": false, "confidence": 0.95, "imageRef": 1 },
+    { "originalText": "1kg spuds", "name": "potatoes", "quantity": { "kind": "exact", "value": 1, "unit": "kg", "originalText": "1kg" }, "crossedOut": false, "illegible": false, "confidence": 0.9, "imageRef": 1 },
+    { "originalText": "eggs", "name": "eggs", "crossedOut": false, "illegible": false, "confidence": 0.96, "imageRef": 1 },
+    { "originalText": "toms (tins) x3", "name": "tinned tomatoes", "quantity": { "kind": "exact", "value": 3, "unit": "can", "originalText": "x3" }, "crossedOut": false, "illegible": false, "confidence": 0.82, "imageRef": 1 },
+    { "originalText": "OJ", "name": "orange juice", "crossedOut": false, "illegible": false, "confidence": 0.8, "imageRef": 1 },
+    { "originalText": "bananas x6", "name": "banana", "quantity": { "kind": "exact", "value": 6, "unit": "item", "originalText": "x6" }, "crossedOut": false, "illegible": false, "confidence": 0.93, "imageRef": 1 },
+    { "originalText": "500g flour", "name": "plain flour", "quantity": { "kind": "exact", "value": 500, "unit": "g", "originalText": "500g" }, "crossedOut": false, "illegible": false, "confidence": 0.9, "imageRef": 1 },
+    { "originalText": "cheddar - if on offer", "name": "cheddar", "notes": "if on offer", "crossedOut": false, "illegible": false, "confidence": 0.88, "imageRef": 1 },
+    { "originalText": "butter", "name": "butter", "crossedOut": true, "illegible": false, "confidence": 0.9, "imageRef": 1 },
+    { "originalText": "washing up liquid", "name": "washing up liquid", "crossedOut": false, "illegible": false, "confidence": 0.85, "imageRef": 1 },
+    { "originalText": "choc b???", "name": "", "crossedOut": false, "illegible": true, "confidence": 0.2, "imageRef": 1 }
+  ],
+  "warnings": []
+}

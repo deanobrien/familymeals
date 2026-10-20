@@ -2,7 +2,7 @@ import { AiError } from './errors.js';
 
 export type AiOperation =
   | 'extractRecipe' | 'parseReceipt' | 'suggestTags' | 'parsePlanPrompt'
-  | 'suggestIngredientMatches' | 'suggestSubstitutions' | 'scanPantry' | 'ping';
+  | 'suggestIngredientMatches' | 'suggestSubstitutions' | 'scanPantry' | 'scanShoppingList' | 'ping';
 
 export interface UsageRecord {
   householdId?: string;
