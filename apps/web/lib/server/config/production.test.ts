@@ -8,7 +8,6 @@ const good = {
   NEXT_PUBLIC_SUPABASE_ANON_KEY: 'anon',
   DATA_BACKEND: 'supabase',
   APP_SECRET: 'a-secret-of-16-chars-or-more',
-  ALLOW_LOCAL_FILE_STORE: 'true',
   NEXT_PUBLIC_SITE_URL: 'https://x.azurewebsites.net',
 };
 
@@ -27,7 +26,9 @@ describe('production config', () => {
     expect(productionConfigProblems({ ...good, APP_SECRET: undefined })[0]).toMatch(/APP_SECRET is required/);
     expect(productionConfigProblems({ ...good, APP_SECRET: 'short' })[0]).toMatch(/16/);
     expect(productionConfigProblems({ ...good, AI_PROVIDER: 'mock' })[0]).toMatch(/mock AI/);
-    expect(productionConfigProblems({ ...good, ALLOW_LOCAL_FILE_STORE: undefined })[0]).toMatch(/ALLOW_LOCAL_FILE_STORE/);
+    // ST1 (D190): uploads live in Supabase Storage, so no local-file opt-in is required (and a leftover one is harmless)
+    expect(productionConfigProblems(good)).toEqual([]);
+    expect(productionConfigProblems({ ...good, ALLOW_LOCAL_FILE_STORE: 'true' })).toEqual([]);
     expect(() => assertProductionConfig({ NODE_ENV: 'production' })).toThrow(/Invalid production configuration/);
   });
 });

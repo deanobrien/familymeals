@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AiError, MockAiProvider, RecipeExtractionSchema, type AiProvider, type RecipeExtraction } from '@fr/ai';
 import { InMemoryRecipeRepository } from '../../recipes/memory-repository';
 import { DiskUploadFiles, UPLOAD_ID_RE } from '../uploads/dev-store';
+import { LocalImageStore } from '../images/local-store';
 import { runExtraction, saveImport } from './pipeline';
 import { RepositoryRecipeSink } from './sink';
 
@@ -40,7 +41,7 @@ const stub = (ex: RecipeExtraction | AiError): AiProvider => ({
 
 const deps = (provider: AiProvider) => {
   const sink = new RepositoryRecipeSink(new InMemoryRecipeRepository());
-  return { provider, sink, uploads };
+  return { provider, sink, images: new LocalImageStore(uploads) };
 };
 
 describe('photo import: pages, cover image and printed data', () => {

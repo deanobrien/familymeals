@@ -20,7 +20,10 @@ export const PUBLIC_PATHS: readonly string[] = [
 /** Public path prefixes (the prefix itself or anything below it). */
 export const PUBLIC_PREFIXES: readonly string[] = ['/auth/', '/invite/'];
 
-/** `/api/jobs/**`: scheduler endpoints, each verifies JOBS_SECRET itself (DX1, D256). */
+/**
+ * `/api/jobs/**`: scheduler endpoints; each verifies its own shared secret inside the route
+ * (`/api/jobs/storage-cleanup`: CRON_SECRET, ST1 D190; `/api/jobs/purge`: JOBS_SECRET, DX1 D256).
+ */
 export const PUBLIC_API_PREFIXES: readonly string[] = ['/api/health', '/api/jobs'];
 
 /**
@@ -30,7 +33,7 @@ export const PUBLIC_API_PREFIXES: readonly string[] = ['/api/health', '/api/jobs
 export const BEARER_API_PATHS: readonly string[] = ['/api/extract', '/api/extract/save'];
 
 /** Bearer-capable route families (dynamic segments), e.g. GET /api/products/<barcode> (X2, D188). */
-export const BEARER_API_PREFIXES: readonly string[] = ['/api/products/'];
+export const BEARER_API_PREFIXES: readonly string[] = ['/api/products/', '/api/images/'];
 
 export function acceptsBearer(pathname: string, authorization: string | null | undefined): boolean {
   const known = BEARER_API_PATHS.includes(pathname) || BEARER_API_PREFIXES.some((p) => pathname.startsWith(p));
