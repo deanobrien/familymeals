@@ -193,7 +193,7 @@ export function ShoppingClient({ initial, lists = [], planId, approvedPlanId, ac
   const hasAnything = live.length > 0 || history.length > 0;
 
   return (
-    <div data-hydrated={mounted} data-testid="shopping-root">
+    <div data-hydrated={mounted} data-live={state.live ? 'true' : 'false'} data-testid="shopping-root">
       <div className={styles.listBar}>
         <Link href="/shopping/scan" className={`fr-btn fr-btn--primary fr-btn--lg ${styles.scanLink}`} data-testid="scan-list-link">
           <span aria-hidden="true">📷</span> Scan a handwritten list

@@ -76,5 +76,5 @@ Supabase repositories run **as the signed-in user** with a user-scoped client, s
 | Auth | mock Alice/household A (dev only) | Supabase Auth via `@supabase/ssr` when `NEXT_PUBLIC_SUPABASE_*` set |
 | Data | in-memory (reset on restart) | `DATA_BACKEND=supabase` |
 | AI | `mock` provider | Settings key or `AI_PROVIDER` + key |
-| Uploads | local files under `.data/` (dev) or `APP_DATA_DIR` | Supabase Storage (not wired yet) |
+| Uploads | local files under `.data/` (dev) or `APP_DATA_DIR` | Supabase Storage via `ImageStore` (ST1, D190): private buckets, `/api/images` signed-URL redirect, cleanup job |
 | Realtime | 4 s polling | Supabase Realtime hint + cursor catch-up |

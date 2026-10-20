@@ -15,7 +15,7 @@ Deploying Family Recipes (`apps/web`) to Azure App Service: Linux, Node 22 LTS, 
 
 **Important**: new Web Apps get a **unique default hostname** (`<name>-<random>.<region>-01.azurewebsites.net`), not `<name>.azurewebsites.net`. Use the hostname shown on the app's Overview page everywhere below (`<host>`). `NEXT_PUBLIC_SITE_URL` and the Supabase Auth URLs must use it.
 
-**This is a test deploy, not production.** Since S2 (D120-D129) shopping, receipts, price observations, planner profile and AI provider settings are all in Supabase when `DATA_BACKEND=supabase`. The one remaining local store is **uploaded recipe photos**: files under `/home/data/uploads` (needs `ALLOW_LOCAL_FILE_STORE=true`). Single instance only; do not scale out until uploads move to Supabase Storage.
+**This is a test deploy, not production.** Shopping, receipts, price observations, planner profile and AI provider settings (S2, D120-D129) and, since ST1 (D190-D196), uploaded recipe and receipt photos (private Supabase Storage buckets) are all in Supabase when `DATA_BACKEND=supabase`; nothing user-visible is a local file any more, and the old `ALLOW_LOCAL_FILE_STORE=true` setting is no longer needed (a leftover one is ignored; delete it). Keep **one instance**: the short-lived in-progress import (photos + draft held for the review screen, 1 hour) is still in process memory, so a scale-out would send a user to an instance that has forgotten their upload (they are asked to upload again, nothing is lost or leaked).
 
 ## 0. Prerequisites
 
@@ -91,7 +91,7 @@ If the build fails with `EPERM` symlink errors you are building in the repo inst
 | `DATA_BACKEND` | `supabase` | fixed (startup refuses anything else in production) | no |
 | `APP_SECRET` | 32+ random chars | step 0 | **yes** |
 | `NEXT_PUBLIC_SITE_URL` | `https://<host>` (no trailing slash) | the app's default hostname; also baked into the build | no |
-| `ALLOW_LOCAL_FILE_STORE` | `true` | needed while uploaded photos are local files (see the warning at the top) | no |
+| `CRON_SECRET` | 32+ random chars | protects the storage-cleanup endpoint (section 4b); without it (or the service role key) the endpoint answers 503 and nothing is cleaned up | **yes** |
 | `APP_DATA_DIR` | `/home/data` | persists across restarts and deploys; never use wwwroot | no |
 | `AI_PROVIDER` | `anthropic` (or `openai`) | choose; never `mock` (startup refuses it) | no |
 | `ANTHROPIC_API_KEY` (or `OPENAI_API_KEY`) | provider key | skip if you will enter it in Settings instead | **yes** |
@@ -113,6 +113,24 @@ Supabase dashboard > Authentication > URL Configuration:
 - **Redirect URLs**: `https://<host>/auth/callback`; if emailed links land on the Site URL instead (the app appends `?next=...`) also add `https://<host>/auth/callback?*`. No wildcard host, no wildcard path.
 - Keep `http://localhost:3100/auth/callback` only on a dev project, not here.
 - Check SECURITY-CHECKLIST section 3: email confirmation on, leaked-password protection, minimum length 10, refresh-token rotation, custom SMTP before inviting real users (the built-in mailer is heavily rate limited). See [SUPABASE.md](SUPABASE.md).
+
+## 4b. Storage buckets and the cleanup schedule (ST1, D190-D196)
+
+**Buckets.** Photos live in two **private** buckets, `recipe-images` and `receipt-images`, created (and forced private, 10 MiB, jpeg/png/webp/heic) by migration `20261019001000_storage.sql`, so `supabase db push` is the whole setup. After the push check Dashboard > Storage: both buckets exist and show **Private**; do not add policies or make them public. Object paths are `<household_id>/<kind>/<id>/<file>` and the storage policies only allow active members of that household. The app talks to Storage as the signed-in user (never the service role) and shows images through `/api/images/...`, which answers with a 302 to a 5-minute signed URL. The CSP already allows images from the Supabase origin.
+
+**Cleanup job.** Storage never cascades from row deletes, so a small job deletes the objects: it expires receipt photos 90 days after the receipt was confirmed, queues abandoned uploads (older than 24 h and not referenced by any recipe or receipt), and deletes everything queued in `storage_cleanup_queue` (deleted recipes release their cover, deleted receipts and purged households queue theirs). The job is the endpoint
+
+```
+POST https://<host>/api/jobs/storage-cleanup      header:  x-cron-secret: <CRON_SECRET>
+```
+
+It needs the app settings `CRON_SECRET` (16+ chars) and `SUPABASE_SERVICE_ROLE_KEY` (it is the only place the service role is used for Storage, and only to delete). It answers 401 for a wrong or missing secret, 503 when not configured, and 200 with JSON counts `{ ok, receiptImagesExpired, staleQueued, deleted, failed }`. A failed delete stays queued and is retried on the next run (up to 8 attempts). It is safe to run any number of times. **Schedule it at least daily**; pick one:
+
+- **Azure Logic App (recommended, no code):** create a Consumption Logic App, trigger *Recurrence* (every 1 day, any time), action *HTTP*: method POST, URI `https://<host>/api/jobs/storage-cleanup`, header `x-cron-secret` = the secret (store it as a secure parameter, not plain text). Use *Run trigger* once to test; the run history shows the JSON.
+- **WebJob (same App Service):** Kudu > WebJobs, or upload a `cleanup.ps1`/`.sh` under `/home/site/wwwroot/App_Data/jobs/triggered/storage-cleanup/` with a `settings.job` of `{"schedule": "0 0 3 * * *"}` that calls `curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" http://localhost:$PORT/api/jobs/storage-cleanup` (the app settings are visible to the WebJob as environment variables). Requires Always On (already on).
+- Quick manual run, any time: `curl -fsS -X POST -H "x-cron-secret: <secret>" https://<host>/api/jobs/storage-cleanup`.
+
+Until it is scheduled nothing breaks; unwanted photos simply linger. Check the cleanup status with the queue: `select count(*) filter (where processed_at is null) as pending, count(*) filter (where last_error is not null and processed_at is null) as failing from storage_cleanup_queue;` (service role / SQL editor only).
 
 ## 5. Deploy the zip
 
@@ -154,9 +172,9 @@ Redeploying replaces wwwroot but **not** `/home/data`. Keep the previous zip (re
 - [ ] `https://<host>/sign-up` renders styled in a browser with DevTools open and no CSP violations in the Console.
 - [ ] Sign up, receive the confirmation email, click it, land signed in.
 - [ ] Create a household, add a recipe by hand, reload: still there (Supabase backend through RLS).
-- [ ] Settings: AI provider shows the real provider (not "Sample data"), or add the key here. Import a recipe photo: extraction works and the cover image shows (this exercises sharp on Linux and `/home/data/uploads`).
+- [ ] Settings: AI provider shows the real provider (not "Sample data"), or add the key here. Import a recipe photo: extraction works and the cover image shows (this exercises sharp on Linux and Supabase Storage: the image URL is `/api/images/...` and redirects to a `.../storage/v1/object/sign/recipe-images/...` signed URL; the receipt flow likewise shows "View the receipt photo"). Run the cleanup endpoint once with `curl` (section 4b) and expect `{"ok":true,...}`.
 - [ ] Planner: ask for a plan, review the chips, propose, approve; generate the shopping list; open it in a second browser and see an item change appear (Realtime).
-- [ ] Restart the app: `/api/health` returns, you are still signed in, the photo is still served, shopping lists are still there (they are in Supabase).
+- [ ] Restart the app: `/api/health` returns, you are still signed in, the cover photo is still served, shopping lists are still there (they are in Supabase).
 - [ ] Log stream shows no stack traces or secrets.
 
 ## 8. Updating, rolling back, troubleshooting

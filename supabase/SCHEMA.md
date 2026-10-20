@@ -18,11 +18,13 @@ adjustments, plus requests from L24 (privacy lifecycle) and L17a (shopping concu
 | `0009_rls.sql` | RLS on every table, grants, all policies, member self-service guard |
 | `0010_storage.sql` | private buckets `recipe-images`, `receipt-images` + household-path policies |
 | `0011_realtime.sql` | `supabase_realtime` publication (guarded no-op elsewhere) |
+| `20261020002100_st1_storage_uploads.sql` | ST1 (D190): reference-aware `enqueue_storage_cleanup` (service role only), `save_receipt` persists `image_paths`, `enqueue_stale_uploads()` (24 h backstop), `purge_old_receipt_images()` (90 days), `claim_storage_cleanup()` (job claim), recipe archive releases the cover. Object paths `<household_id>/<page|cover|receipt>/<id>/<file>` |
 | `0012_privacy_lifecycle.sql` | consent_records, storage_cleanup_queue, deletion_ledger, households.status/purge_after; `request/cancel_household_deletion()`, `member_leave()`, `purge_household()` |
 | `0013_shopping_commands.sql` | shopping_command_log; `shopping_item_outstanding()`, `record_purchase()`, `void_purchase()` |
 | `0014_owner_decisions.sql` | purchase_events nullable actors + `created_by_display_name` snapshot; `is_household_writable()`, `household_is_active()`; grace-period read-only policies + guard triggers |
 | `0015_transfer_ownership.sql` | `transfer_ownership(p_household_id, p_new_owner_member_id)` - atomic owner swap RPC |
 | `001520` / `001540` | S1 repository RPCs (D51); `pantry_settings.purchase_mode` source of truth (D104) |
+| `002300` / `002301` | IL1 (D223, D225): `save_recipe` explicit unlink (null/empty `ingredientId` = not in list); exact-match backfill of recipe ingredient links |
 | `001600_shopping_repository.sql` | S2 (D120-D122): engine item state on `shopping_list_items`, shopping quantities `numeric(18,6)`, `shopping_command_log.list_seq` per-list commit-ordered cursor (`shopping_list_log_heads` counter), `ensure_shopping_list`, `shopping_list_snapshot`, `apply_shopping_command` |
 | `001610_receipts_prices.sql` | S2 (D123, D124, D127): `receipts.review_state`, `receipt_lines.parsed`, `save_receipt` / `get_receipt` / `list_receipts`, `record_price_observations` / `household_price_observations` (idempotent per source), `household_purchase_records` |
 | `001620_household_profile_ai_settings.sql` | S2 (D125, D126): `planner_household_profile` (consent-gated allergy exclusions), `household_ai_settings` (no grants; ciphertext keys) + member-read / owner-write RPCs |
@@ -98,6 +100,7 @@ The four concepts the brief insists stay separate are separate tables: **recipe 
 
 - Every table with `household_id` has an `ON DELETE CASCADE` FK path from `households` that includes `household_id` (asserted by a test). `purge_household()` (service role) enqueues remaining storage objects, deletes the household, and marks the ledger.
 - Grace period: `request_household_deletion()` sets `status = 'pending_deletion'`, `purge_after = now()+14d`, writes `deletion_ledger`; `cancel_household_deletion()` reverts. Cron calls `purge_household(id)` when due. Members keep READ access during grace; the household is read-only (owner decision D, 0014).
+- ST1 (D190): the queue never receives an object a live row still references; archiving a recipe releases its cover; `enqueue_stale_uploads`, `purge_old_receipt_images` and `claim_storage_cleanup` are service-role-only job functions (the cleanup endpoint is the sole caller).
 - Row deletions enqueue Storage objects automatically: `recipe_images` delete, recipe delete/cover replacement, receipt delete, receipt `image_paths` removal (for the "delete receipt images after N days" setting).
 - `member_leave()` marks the membership `left`, nulls the display name, deletes that member's person profile, consents and favourites for that household; shared content stays. Blocks the sole owner (transfer first) and the last member (use household deletion).
 - **Where cascade is deliberately NOT used inside a household** (NO ACTION — still removed by the household purge because the same statement cascades both sides):

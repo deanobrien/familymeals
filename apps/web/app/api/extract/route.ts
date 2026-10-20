@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { resolveRequestAuth } from '../../../lib/server/auth/request-auth';
 import { runExtraction, type ExtractInput } from '../../../lib/server/import/pipeline';
+import { imageStoreFor } from '../../../lib/server/images';
 import { recipeSinkFor } from '../../../lib/server/import/sink';
+import { runWithDataContext } from '../../../lib/server/supabase/request-data-context';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -51,7 +53,11 @@ export async function POST(req: Request) {
   if (who.auth.readOnly) return bad('This household is read-only while it is pending deletion.', 403);
   input.owner = { userId: who.auth.userId, householdId: who.auth.householdId };
 
-  const out = await runExtraction(input, { sink: recipeSinkFor(who.auth) });
+  // Bearer callers have no cookies: the AI settings / price stores must use the context verified above (D213).
+  // The ImageStore comes from the same verified context, so a phone upload lands under the caller's household (D190-D196).
+  const out = await runWithDataContext(who.auth.dataContext, () =>
+    runExtraction(input, { sink: recipeSinkFor(who.auth), images: imageStoreFor(who.auth) }),
+  );
   if (!out.ok) {
     return NextResponse.json({ error: out.error, ...(out.uploadId ? { uploadId: out.uploadId } : {}) }, { status: out.status });
   }
