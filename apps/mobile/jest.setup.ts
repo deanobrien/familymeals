@@ -49,3 +49,58 @@ jest.mock('expo-notifications', () => ({
   AndroidImportance: { DEFAULT: 3, HIGH: 4 },
   SchedulableTriggerInputTypes: { TIME_INTERVAL: 'timeInterval' },
 }));
+// Location (P2-A): native modules, driven through these fakes. Real behaviour is a device check (docs/ROADMAP.md, P2-A).
+jest.mock('expo-location', () => {
+  const state = {
+    fgStatus: 'granted' as string,
+    bgStatus: 'granted' as string,
+    position: { coords: { latitude: 54.9783, longitude: -1.6178, accuracy: 10 } } as { coords: { latitude: number; longitude: number; accuracy: number | null } },
+    watchers: [] as Array<(loc: unknown) => void>,
+    geofences: null as null | Array<{ identifier: string; radius: number }>,
+  };
+  return {
+    __state: state,
+    Accuracy: { Balanced: 3, High: 4 },
+    GeofencingEventType: { Enter: 1, Exit: 2 },
+    getForegroundPermissionsAsync: jest.fn(async () => ({ status: state.fgStatus })),
+    requestForegroundPermissionsAsync: jest.fn(async () => ({ status: state.fgStatus })),
+    requestBackgroundPermissionsAsync: jest.fn(async () => ({ status: state.bgStatus })),
+    getCurrentPositionAsync: jest.fn(async () => state.position),
+    watchPositionAsync: jest.fn(async (_o: unknown, cb: (loc: unknown) => void) => {
+      state.watchers.push(cb);
+      return { remove: jest.fn(() => { state.watchers = state.watchers.filter((w) => w !== cb); }) };
+    }),
+    startGeofencingAsync: jest.fn(async (_t: string, regions: Array<{ identifier: string; radius: number }>) => { state.geofences = regions; }),
+    stopGeofencingAsync: jest.fn(async () => { state.geofences = null; }),
+    hasStartedGeofencingAsync: jest.fn(async () => state.geofences !== null),
+  };
+});
+jest.mock('expo-task-manager', () => {
+  const tasks: Record<string, (body: unknown) => Promise<void>> = {};
+  return {
+    __tasks: tasks,
+    isTaskDefined: jest.fn((n: string) => n in tasks),
+    defineTask: jest.fn((n: string, fn: (body: unknown) => Promise<void>) => { tasks[n] = fn; }),
+  };
+});
+jest.mock('expo-speech-recognition', () => {
+  const handlers: Record<string, Array<(e: unknown) => void>> = {};
+  const state = { available: true, granted: true };
+  return {
+    __state: state,
+    __emit: (name: string, e: unknown) => (handlers[name] ?? []).forEach((h) => h(e)),
+    ExpoSpeechRecognitionModule: {
+      isRecognitionAvailable: jest.fn(() => state.available),
+      requestPermissionsAsync: jest.fn(async () => ({ granted: state.granted })),
+      start: jest.fn(),
+      stop: jest.fn(),
+    },
+    useSpeechRecognitionEvent: (name: string, cb: (e: unknown) => void) => {
+      const React = require('react') as typeof import('react');
+      React.useEffect(() => {
+        (handlers[name] ??= []).push(cb);
+        return () => { handlers[name] = (handlers[name] ?? []).filter((h) => h !== cb); };
+      }, [name, cb]);
+    },
+  };
+});

@@ -64,6 +64,10 @@ export function createStorePrefs(householdId: string, userId: string, storage: S
 
     getLearn: (): boolean => read<boolean>(storage, k('learnroute', householdId, userId), false) === true,
     setLearn: (on: boolean): void => write(storage, k('learnroute', householdId, userId), on ? true : null),
+
+    /** "Detect my store automatically while this page is open" (P2-A, D396). Off by default, per member per device. */
+    getAutoDetect: (): boolean => read<boolean>(storage, k('autodetect', householdId, userId), false) === true,
+    setAutoDetect: (on: boolean): void => write(storage, k('autodetect', householdId, userId), on ? true : null),
   };
 }
 export type StorePrefs = ReturnType<typeof createStorePrefs>;

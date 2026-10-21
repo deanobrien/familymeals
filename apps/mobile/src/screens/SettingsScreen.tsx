@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useApp } from '@/data/AppContext';
 import type { AccountSettings, HouseholdSummary } from '@/data/accountSource';
 import { messageOf } from '@/lib/accountErrors';
+import { eraseGeoData } from '@/lib/geofence';
 import { MAX_EXCLUSIONS, parseExclusionTag, parsePreferences } from '@/lib/accountForms';
 import { DEFAULT_DEVICE_PREFS, loadDevicePrefs, saveDevicePrefs, type DevicePrefs } from '@/lib/devicePrefs';
 import {
@@ -46,6 +47,7 @@ export default function SettingsScreen() {
   }, [ds]);
 
   async function signOut() {
+    await eraseGeoData(); // location prefs, fences and arrival memory never outlive the account on this phone
     await ds.signOut();
     setHouseholdId(null);
     router.replace('/sign-in');
@@ -79,6 +81,7 @@ export default function SettingsScreen() {
           <SectionTitle>Household</SectionTitle>
           <Row title={household.name} subtitle={`Your role: ${household.role}. Members, invitations, leave.`} onPress={() => router.push('/household')} testID="open-household" />
           <Row title="Switch household" onPress={() => router.replace('/households')} testID="switch-household" />
+          <Row title="Location" subtitle="Switch store when you arrive, store locations. Off by default." onPress={() => router.push('/location-settings' as never)} testID="open-location-settings" />
           <Row title="Notifications" subtitle="Food to use soon, household updates, quiet hours, push on this phone." onPress={() => router.push('/notification-settings' as never)} testID="open-notification-settings" />
           <PreferencesSection household={household} onSaved={reload} />
           <DietarySection household={household} />

@@ -82,6 +82,13 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
   // RPC-only table (X2, D187): a shared product cache of the household, not personal data -> household scope only.
   { table: 'household_product_snapshots', file: 'prices.json', key: 'product_snapshots', order: ['barcode'], household: H, member: null, rpc: 'household_product_snapshots' },
 
+  // AS1 / P2-A (D290, D392): the household's stores, their aisles and placements, and the location a member SAVED for a store
+  // (a point + radius). A live position is never stored, so there is nothing of that kind to export.
+  { table: 'stores', file: 'stores.json', key: 'stores', order: ID, household: H, member: self('created_by') },
+  { table: 'store_aisles', file: 'stores.json', key: 'aisles', order: ID, household: H, member: child('store_id', 'stores') },
+  { table: 'store_placements', file: 'stores.json', key: 'placements', order: ID, household: H, member: child('store_id', 'stores') },
+  { table: 'store_locations', file: 'stores.json', key: 'locations', order: ['store_id'], household: H, member: child('store_id', 'stores') },
+
   { table: 'ai_usage', file: 'ai_usage.json', key: 'ai_usage', order: ID, household: H, member: self('user_id') },
 
   // P1-C (D380): a member's own notification choices and their notification centre. RLS only shows each member their own

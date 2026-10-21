@@ -5,6 +5,10 @@ import { AppProvider } from '@/data/AppContext';
 import ShareIntentHandler from '@/screens/ShareIntentHandler';
 import { useTheme } from '@/screens/ui';
 import NotificationTaps from '@/screens/notifications/NotificationTaps';
+import { defineGeofenceTask } from '@/lib/geofence';
+
+// Android runs the geofence task when the app is not in the foreground, so it must be defined at module load (P2-A, D393).
+defineGeofenceTask();
 
 function Navigator() {
   const t = useTheme();
@@ -37,6 +41,7 @@ function Navigator() {
       <Stack.Screen name="import-link" options={{ title: 'Recipe from a link' }} />
       <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
       <Stack.Screen name="notification-settings" options={{ title: 'Notification settings' }} />
+      <Stack.Screen name="location-settings" options={{ title: 'Location' }} />
     </Stack>
   );
 }
