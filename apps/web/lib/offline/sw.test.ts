@@ -15,7 +15,13 @@ function fakeCaches() {
     if (!stores.has(name)) stores.set(name, new Map());
     const m = stores.get(name)!;
     return {
-      match: async (r: Request | string) => m.get(key(r))?.clone(),
+      match: async (r: Request | string, opts?: { ignoreSearch?: boolean }) => {
+        const exact = m.get(key(r));
+        if (exact || !opts?.ignoreSearch) return exact?.clone();
+        const bare = (u: string) => u.split('?')[0];
+        for (const [k, v] of m) if (bare(k) === bare(key(r))) return v.clone();
+        return undefined;
+      },
       put: async (r: Request | string, res: Response) => { m.set(key(r), res.clone()); },
     };
   };
@@ -111,6 +117,16 @@ describe('service worker: offline shopping page', () => {
     calls = 0;
     const offlineSw = boot(down);
     await expect(offlineSw.fetchEvent(plain)).rejects.toThrow(); // nothing cached in a new worker
+  });
+
+  it('offline, an unhashed asset is found even when only its ?v= stamp differs (Next dev); a hashed file is not guessed', async () => {
+    let online = true;
+    const sw = boot(async () => (online ? new Response('chunk', { status: 200 }) : down()));
+    await sw.fetchEvent(`${ORIGIN}/_next/static/chunks/app/shopping/page.js?v=111`);
+    online = false;
+    const res = await sw.fetchEvent(`${ORIGIN}/_next/static/chunks/app/shopping/page.js?v=222`);
+    expect(await res!.text()).toBe('chunk');
+    await expect(sw.fetchEvent(`${ORIGIN}/_next/static/chunks/other.js?v=1`)).rejects.toThrow();
   });
 
   it('warm: only static asset paths and whitelisted pages are fetched and stored', async () => {

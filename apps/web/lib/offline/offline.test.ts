@@ -259,6 +259,25 @@ describe('offline queue replay (IndexedDB, same engine semantics as Android)', (
     expect(b.getState().status).toBe('offline');
   });
 
+  it('a page rendered before the household had any list adopts the list the device saved later', async () => {
+    const w = world();
+    const { c: seed, store } = await w.tab();
+    seed.addItem({ displayName: 'Bread', category: 'Bakery' });
+    await seed.sync();
+    await store.whenIdle();
+    const saved = await store.loadSnapshot();
+    expect(saved).not.toBeNull();
+    // The cached page was rendered when there was no list yet: no list id, an empty state, cursor 0.
+    const emptyPage = { cursor: 0, state: { ...saved!.state, items: {}, itemOrder: [], events: {}, eventOrder: [], outcomes: {} }, meta: { recipeTitles: {} } };
+    const offlineTransport: Transport = { sync: async () => { throw new Error('offline'); }, snapshot: async () => { throw new Error('offline'); } };
+    const c = new ShoppingController(emptyPage as never, { transport: offlineTransport, store, snapshots: store.snapshots, actor: () => 'alice', newId: id });
+    c.start();
+    await settle();
+    c.stop();
+    expect(Object.values(c.getState().view.items).map((i) => i.displayName)).toEqual(['Bread']);
+    expect(c.getState().meta.listId).toBe(saved!.meta.listId);
+  });
+
   it('works with no IndexedDB at all: the list still functions in memory', async () => {
     const w = world();
     const store = new OfflineShoppingStore(null, 'alice');

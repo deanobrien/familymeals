@@ -70,7 +70,9 @@ async function staticAsset(req, url) {
     if (res.ok) cache.put(req, res.clone());
     return res;
   } catch (e) {
-    const hit = await cache.match(req);
+    // Offline. Next's dev server stamps every page render with a new `?v=` on its unhashed chunks; production files are
+    // content-hashed with no query. Ignoring the query for this last-resort lookup makes the cached page work in both.
+    const hit = (await cache.match(req)) || (await cache.match(req, { ignoreSearch: true }));
     if (hit) return hit;
     throw e;
   }

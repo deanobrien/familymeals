@@ -155,6 +155,16 @@ Dead tokens are pruned automatically (Expo `DeviceNotRegistered` on the ticket o
 
 **4. Kill switch.** `PUSH_DISABLED=true` on the App Service stops all push sending (the centre keeps working). Use it for a staging copy that shares the database.
 
+### 3f. PWA, phone-as-scanner and the Android widget (P3-C, D440-D449)
+
+Almost nothing to configure; this is the checklist of what changed and what to look at.
+- **Migration**: `supabase db push` for `20261021003200_p3c_scanner_sessions.sql` (three tables, Realtime publication entry for `scanner_items`, functions). Confirm in Studio > Database > Functions that `scanner_connect` and `scanner_push` are executable by `anon` and the other `scanner_*` functions are not.
+- **Purge job**: the existing `/api/jobs/purge` call (3c) now also deletes scanner sessions an hour after they expire; its JSON answer gains `scannerSessionsPurged`. No new schedule.
+- **Headers / CSP**: unchanged. The service worker (`/sw.js`), the manifest (`/manifest.webmanifest`) and `/icons/*` are static files served from the same origin (`worker-src 'self'`, `manifest-src` falls back to `default-src 'self'`). Keep `/sw.js` un-cached at the CDN / front door (App Service serves it with `Cache-Control: public, max-age=0`); a stale worker is the one thing that would delay the offline fixes reaching people. The camera on the phone page is allowed by `Permissions-Policy: camera=(self)`.
+- **Public routes**: `/scan/phone` and `/api/scanner/phone/*` skip the sign-in redirect on purpose (the phone is not signed in; the QR code is the credential). Both are listed in `lib/server/auth/routes.ts`. The phone routes have a per-IP limit of 300 calls a minute held in memory (one App Service instance; with several instances each has its own, the per-session caps in SQL still apply).
+- **Android App Link**: `https://<host>/scan/phone` is added to the existing `autoVerify` intent filter. Android only opens the app from the phone's camera app if `https://<host>/.well-known/assetlinks.json` lists the app's signing certificate (the same file the `/invite` link needs). Without it the link opens the browser phone page, which works the same.
+- **New EAS build** (0.4.0 / versionCode 4): `react-native-android-widget` is a native module and the intent filter changed, so an OTA update is not enough: `eas build -p android --profile preview`.
+
 ## 4. Supabase Auth URL configuration
 
 Supabase dashboard > Authentication > URL Configuration:

@@ -102,3 +102,10 @@ For quick UI/logic checks without building anything (camera, picker, SecureStore
 Library, detail, create/edit/copy/delete, full import review and Discover call the web app's bearer JSON routes (`src/lib/recipesApi.ts`; `EXPO_PUBLIC_API_BASE_URL` is required when Supabase is configured). With no Supabase env the screens run on `src/lib/mockRecipesApi.ts` (demo data). Tests: `__tests__/recipe*.test.*`, `importReview`, `discover`, `servings`.
 
 Also needs a device: cover images behind the `/api/images` redirect, the AsyncStorage servings override across restarts, long-form keyboard behaviour, TalkBack on the filter chips and steppers, and a real `/api/extract/save` after on-phone edits.
+
+## Home-screen widget and "Scan for a computer" (P3-C, D440-D449)
+
+- **Entry point**: `main` is now `index.js` (expo-router plus the widget headless task registered at module load). A new EAS build is required (0.4.0 / versionCode 4: `react-native-android-widget`, App Link `/scan/phone`); OTA updates cannot carry either.
+- **Widget** (`src/widget/`): `widgetModel` (rows, store order, undo window), `widgetController` (load / tick / undo through `DataSource`), `widgetState` (household id + last tick in `fr.widget.v1`), `widgetBridge` (registers the app data source, redraws, clears on sign-out), `ShoppingWidget.tsx` (the layout) and `widgetTaskHandler.tsx`. Ticks use the same command path and offline queue as the shopping screen. Jest covers everything but the native rendering.
+- **Scan for a computer** (`ScanForComputerScreen`, More tab and the `/scan/phone` App Link): reads the QR code a desktop page shows, then pushes barcodes and photos with the shared `PhoneSender` from `@fr/engine/scanner`; only links for `EXPO_PUBLIC_API_BASE_URL` are accepted; no sign-in needed.
+- **Needs a device**: the widget on a launcher (add, resize, tick, undo, offline, sign-out), the QR scan and the camera, App Link verification (`assetlinks.json`), photo size on a real camera.

@@ -157,7 +157,10 @@ export class ShoppingController {
     try {
       const cached = await snaps.load();
       const cur = this.state.client;
-      if (!cached || cached.cursor <= cur.cursor || (cached.meta.listId ?? null) !== (this.state.meta.listId ?? null)) {
+      // A page rendered before the household had a list knows no list id: the on-device list is then the newer picture.
+      const pageHadNoList = !this.state.meta.listId && !!cached?.meta.listId;
+      const sameList = (cached?.meta.listId ?? null) === (this.state.meta.listId ?? null);
+      if (!cached || (!pageHadNoList && (!sameList || cached.cursor <= cur.cursor))) {
         this.saveSnapshot(); // what the page was rendered with is at least as new: keep it for the next offline reload
         return;
       }

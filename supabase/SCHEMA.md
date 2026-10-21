@@ -179,3 +179,10 @@ sessions once the Supabase local stack is available (logic is lock-based; idempo
 - **recipe_cook_notes** (cooked_id, note, is_private): a private note is readable only by its author; household notes by every member; only the cook can write.
 - **recipe_dont_suggest** (recipe, user): household-readable (the planner needs everyone's), self-written.
 - `recipe_cook_summaries(household)` (invoker): count + last cooked per recipe. A trigger on `household_members.status` (left / revoked) deletes the leaver's rows in these tables.
+
+## P3-C phone scanner sessions (`20261021003200_p3c_scanner_sessions.sql`)
+
+- **scanner_sessions** (id, household, user, purpose `pantry`|`receipt`, `token_hash` sha-256, `device_hash`, `expires_at` <= created + 10 min, `revoked_at`, `connected_at`, counters): select-only RLS for the creating user while still a household member. Every write is a function.
+- **scanner_items** (session, seq, client_id unique per session, kind `barcode`|`photo`, barcode 8/13 digits, count 1-99): same select policy; in the `supabase_realtime` publication (a hint only).
+- **scanner_photos** (item, mime jpeg/png/webp, bytes <= 2 MB): same select policy; kept apart so Realtime never ships bytes. Cascades from the session.
+- Functions (SECURITY DEFINER except `scanner_photo`; all with `search_path = ()`; none is callable by `public`): `scanner_session_create` (member of an active household; revokes the user's earlier session; 20/hour), `scanner_session_revoke` (deletes the items), `scanner_session_release` (clears the device claim), `scanner_photo` (invoker, RLS) for the desktop; `scanner_connect` and `scanner_push` for `anon` (token hash, expiry, revocation, creator still an active member of an active household, single device, 120 pushes/min, 300 items, 10 photos, 1.5 MB); `scanner_validate` internal; `scanner_purge_expired` for the service role (called by the purge job).

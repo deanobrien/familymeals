@@ -34,7 +34,7 @@ Standing rule (D310): every web feature also ships on Android unless a reason is
 | Photo import full review/edit | ✅ | ✅ | none (P0-B: full on-phone review, same corrections as web) |
 | Discover | ✅ | ✅ | none (P0-B; "Add to plan" now opens the in-app planner with the recipe waiting for a slot, P0-D D353) |
 | Meal planner manual + prompt chips | ✅ | ✅ | P0-C (D341); needs device check. Discover / recipe "Add to plan" opens this planner (P0-D, D353) |
-| Shopping list live / offline / aisles | ✅ | ✅ | none |
+| Shopping list live / offline / aisles | ✅ installable PWA, works offline | ✅ | P3-C (D445-D446): the web list is now installable and reopens offline (service worker page cache + IndexedDB queue, the same engine queue semantics as Android: idempotent command ids, replay on reconnect, conflict toasts, offline banner); verified with fake-IndexedDB unit tests, a service-worker sandbox test and Playwright with the browser context offline; not verified on a real phone / installed PWA |
 | Multi-list + handwritten list scan | ✅ | ✅ | P0-C (D346) |
 | Minimum stock + restock suggestions | ✅ | ✅ | PR1 (D280-D287): set minimum, Running low (Add all / choose / snooze), banner on shopping, auto-add setting; jest with a fake server, not run on a device |
 | Recipe from a web link (JSON-LD first, AI fallback) | ✅ | ✅ | P1-B (D370-D374): one server route `/api/import/url`; Android adds a link screen and the "Share to Family Recipes" intent (expo-share-intent, needs a new build + device check) |
@@ -44,6 +44,8 @@ Standing rule (D310): every web feature also ships on Android unless a reason is
 | Pantry stock / expiry / use-what-I-have / photo-video scan | ✅ | ⚠️ | P0-C (D342-D343): all but video frames (web-only, native module) and min stock (PR1 not merged) |
 | Barcode scanning | ✅ continuous | ✅ | P0-C (D344): review + confirm on the phone, haptics, keep-awake; P0-D (D354): short beep per counted read on both (Settings "Scan sound", default on; silent mode respected); device check |
 | Receipts | ✅ | ✅ | P0-C (D345) |
+| Phone as the scanner for a desktop session | ✅ "Use my phone" on Pantry scan and Receipts: QR code, phone page `/scan/phone` | ✅ More > Scan for a computer (QR, App Link or pasted address) | P3-C (D447-D449): short-lived signed session (10 min, one phone, hashed token, revocable, RLS, caps); barcodes and photos land in the desktop review live (Realtime hint + poll), nothing is written until the desktop confirms; verified with an SQL RLS script, the stores against the real SQL, route tests and Playwright with a second browser context as the phone; jest with a fake transport; not run with two real devices |
+| Home-screen widget: shopping list | - Android-only by nature (the web counterpart is the installable PWA opening on /shopping) | ✅ open items in shop order, tap to tick (same command path + offline queue), tap the header to open, refresh on sync and every 30 min, cleared on sign-out | P3-C (D440-D443): react-native-android-widget 0.23.0; needs a new EAS build (0.4.0 / versionCode 4) and a launcher check; the logic is unit-tested, the native rendering is not |
 | Settings: preferences / allergy consent / store aisles | ✅ | ✅ | P0-A (D325): preferences, allergy consent (same wording), AI provider note; store aisles via AS1; web and Android now persist through one shared server module (P0-D, D350-D352: owner-only preferences, consent gate, withdraw consent keeps the list but stops it applying, notice counts it); units/locale are display-only per device; scan sound is a per-device setting on both |
 | Data export + account/household deletion | ✅ | ✅ | P0-A (D322, D326): export via bearer + share sheet, household and account deletion with the web confirmations, cancel, countdown; account deletion 2 taps from Settings (Play blocker cleared, pending device check) |
 | Notifications: bell + centre, settings (per type, quiet hours), test, push | ✅ | ✅ | P1-C (D389): web push via service worker, Android via expo-notifications; needs owner FCM/VAPID setup and a device check |
@@ -91,7 +93,7 @@ All durations are **estimates**, not commitments.
 
 - **A Sharing**: shared family cookbook links; kids' mode.
 - **B Health**: per-person nutrition goals (consent, privacy notice/DPIA, no medical claims).
-- **C Platform**: home-screen widget (Android-only by nature); phone-as-scanner for desktop; offline web PWA.
+- **C Platform**: **built by P3-C (D440-D449), web + Android (the widget is Android-only by nature):** Android home-screen shopping widget (react-native-android-widget; ticks from the home screen go through the app's own command path and offline queue; cleared on sign-out); phone-as-scanner for a desktop session (QR code, short-lived hashed-token session bound to household + user, 10 minutes, one phone, revocable, only two anon-callable SQL functions, Realtime hint + poll, review before anything is saved; web phone page + Android screen); installable offline web shopping list (manifest + icons, service worker page cache, IndexedDB queue and snapshot with the same engine semantics as Android). Owner steps: push migration `20261021003200`, a new EAS build (0.4.0 / versionCode 4: widget module + App Link), App Links verification for `/scan/phone`, device checks (HANDOVER 9f). Not verified: the widget on a launcher, the QR scan and camera on a phone, an installed PWA offline on a phone, Realtime against the hosted project.
 
 ### Phase 4 - Later
 
@@ -111,14 +113,14 @@ Owner ideas first; others are maintainers' notes. Nothing here is committed scop
 - **Store aisles and in-store ordering** (owner idea, lane AS1): done on web and Android (D290-D299). Households define stores and aisles, place ingredients (or whole categories) per store, pick the shop on `/shopping` to see the list in aisle order; optional "learn from my route" (suggest only). Next: offline placement queue on Android, store maps/photos.
 - **Pantry video scan** (owner idea): done (P2); next is measuring accuracy and adding barcode lookup.
 - **TheMealDB recipe discovery** (owner idea, lane X1 in progress): browse/search an open recipe API, import selected recipes as drafts through the same review step; attribute the source; do not store without review; respect the API terms.
-- **Continuous barcode scanning** (owner request, lane BS1): done on web (D270-D273) and Android hand-off (D274); not done: phone-as-scanner for a desktop session (D275), a beep and keep-awake in the app, measuring decode speed and hit rate on real phones.
+- **Continuous barcode scanning** (owner request, lane BS1): done on web (D270-D273) and Android hand-off (D274); phone-as-scanner for a desktop session is done (P3-C, D447-D449) and the beep is done (P0-D, D354); not done: measuring decode speed and hit rate on real phones.
 - **Open Food Facts** (owner idea, lane X2 in progress): barcode/product lookup to fill pack sizes, brand and nutrition for pantry items and price packs; ODbL attribution; cache results per household.
 - Receipts: retailer-specific parsers, loyalty-card price capture, split-bill for shared households.
 - Planner: leftovers-aware plans, budget-first mode, batch-cooking suggestions, seasonal produce.
 - Shopping: store-aisle ordering, multiple lists per week, shared notes.
 - Nutrition: targets per person, allergen/FSA traffic-light labels.
 - Sharing: recipe export/import between households, public share links (needs privacy review).
-- Platform: iOS via Expo, PWA install/offline for the web app, push notifications for list changes.
+- Platform: iOS via Expo (parked); push notifications for list changes (done, P1-C); PWA install and an offline shopping list (done, P3-C); offline for the other web screens is not built.
 - Ops: staging App Service slot, Application Insights, scheduled DB backups, Playwright against the deployed app.
 - LV1 follow-ups: live tests for receipts, price observations and per-household AI settings; confirm-then-mark-live in `lib/shopping/live.ts`; ingredient links for form-created recipes. (B1, D160-D164, fixed the sandbox import save, per-household in-memory recipes, 44px tap targets and the offline-race flake, which was a spec race.)
 - Name and branding (owner decision pending; scope `@fr/*` is deliberately neutral).
