@@ -6,9 +6,23 @@ import {
   type ControllerState, type Notice, type Transport,
 } from './controller';
 import type { LiveFeed } from './live';
+import { idbKv } from '../offline/kv';
+import { OfflineShoppingStore } from '../offline/shopping-store';
 import type { SnapshotDto } from './types';
 
 export const PENDING_KEY = 'fr.shopping.pending.v1';
+
+/**
+ * The device-side queue and list snapshot (P3-C, D446): IndexedDB bound to the signed-in user, with the old localStorage queue
+ * migrated in. Where IndexedDB does not exist (some private windows), the localStorage queue is used as before.
+ */
+function offlineStore(actorId: string): OfflineShoppingStore | null {
+  const kv = typeof window === 'undefined' ? null : idbKv();
+  if (!kv) return null;
+  let legacy: Storage | null = null;
+  try { legacy = window.localStorage; } catch { /* blocked */ }
+  return new OfflineShoppingStore(kv, actorId, legacy);
+}
 
 /** `actorId` = the signed-in member (server household context). Create a controller once per mount, start polling/replay after hydration, expose its state. */
 export function useShopping(
@@ -24,9 +38,11 @@ export function useShopping(
 
   const ref = useRef<ShoppingController | null>(null);
   if (!ref.current) {
+    const offline = offlineStore(actorId);
     ref.current = new ShoppingController(initial, {
       transport,
-      store: localStoragePendingStore(PENDING_KEY),
+      store: offline ?? localStoragePendingStore(PENDING_KEY),
+      ...(offline ? { snapshots: offline.snapshots } : {}),
       actor: () => actorId,
       newId: newUuid,
       onNotice: (n) => noticeRef.current(n),

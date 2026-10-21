@@ -243,6 +243,12 @@ export function ShoppingClient({ initial, lists = [], planId, approvedPlanId, ac
 
   return (
     <div data-hydrated={mounted} data-live={state.live ? 'true' : 'false'} data-testid="shopping-root" data-store={activeStore?.id ?? ''} className={activeStore ? styles.instore : undefined}>
+      {state.status === 'offline' && (
+        <div className={styles.offlineBanner} role="status" data-testid="offline-banner">
+          <strong>You are offline.</strong> The list below is the last one this device saw. You can still tick and edit items: changes
+          are saved on this device{state.pendingCount > 0 ? ` (${state.pendingCount} waiting)` : ''} and sent when you are back online.
+        </div>
+      )}
       <div className={styles.listBar}>
         <Link href="/shopping/scan" className={`fr-btn fr-btn--primary fr-btn--lg ${styles.scanLink}`} data-testid="scan-list-link">
           <span aria-hidden="true">📷</span> Scan a handwritten list

@@ -76,3 +76,5 @@
 .compare { margin: var(--fr-space-3) 0; }
 .compareTable { width: 100%; }
 .compareNote { color: var(--fr-text-muted); font-size: var(--fr-text-sm); margin: var(--fr-space-2) 0 0; }
+
+.offlineBanner { margin-bottom: var(--fr-space-3, 12px); padding: var(--fr-space-3, 12px); border: 1px solid var(--fr-warning); border-radius: var(--fr-radius-md, 8px); background: var(--fr-warning-soft); color: var(--fr-warning); font-size: var(--fr-text-sm, 0.875rem); }

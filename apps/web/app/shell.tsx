@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AppShell, ToastProvider, type NavKey } from '@fr/ui';
 import { NotificationBell } from './notifications/bell';
+import { OfflineBoot } from './offline-boot';
 
 const ROUTE_KEYS: ReadonlyArray<readonly [string, NavKey]> = [
   ['/recipes', 'recipes'],
@@ -57,6 +58,7 @@ export function Shell({ children, mockLabel }: { children: ReactNode; mockLabel?
       <ToastProvider>
         <div className="fr-root fr-auth">
           {banner}
+          <OfflineBoot />
           {children}
         </div>
       </ToastProvider>
@@ -65,6 +67,7 @@ export function Shell({ children, mockLabel }: { children: ReactNode; mockLabel?
   return (
     <ToastProvider>
       {banner}
+      <OfflineBoot />
       <AppShell active={activeKey(pathname)} linkComponent={Link} topBar={<NotificationBell />}>
         {children}
       </AppShell>

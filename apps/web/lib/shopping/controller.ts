@@ -15,10 +15,24 @@ export interface Transport {
   snapshot(): Promise<SnapshotDto>;
 }
 
-/** Durable pending queue (localStorage in the browser). Must never throw. */
+/**
+ * Durable pending queue. Must never throw. localStorage is synchronous; the offline PWA (P3-C, D446) uses IndexedDB, which is
+ * not, so `load` may return a promise and `save` may be asynchronous (writes are fire-and-forget, serialised by the store).
+ */
 export interface PendingStore {
-  load(): Command[];
-  save(pending: Command[]): void;
+  load(): Command[] | Promise<Command[]>;
+  save(pending: Command[]): void | Promise<void>;
+}
+
+/** Last confirmed server state of the list, kept on the device so a reload with no signal can still show it (P3-C, D446). */
+export interface CachedList {
+  cursor: number;
+  state: ShoppingState;
+  meta: ListMeta;
+}
+export interface SnapshotCache {
+  load(): Promise<CachedList | null>;
+  save(list: CachedList): void | Promise<void>;
 }
 
 export type SyncStatus = 'synced' | 'syncing' | 'offline';
@@ -45,6 +59,8 @@ export interface ControllerState {
 export interface ControllerDeps {
   transport: Transport;
   store: PendingStore;
+  /** Optional on-device copy of the last confirmed list (offline PWA). */
+  snapshots?: SnapshotCache;
   /** Signed-in member id (from the server's household context); the server overrides it anyway. */
   actor: () => Uuid;
   newId: () => Uuid;
@@ -108,15 +124,59 @@ export class ShoppingController {
 
   private set(client: ClientState, meta = this.state.meta, status = this.state.status): void {
     this.state = this.derive(client, meta, status);
-    this.deps.store.save(client.pending);
+    try {
+      const r = this.deps.store.save(client.pending);
+      if (r) void r.catch(() => undefined);
+    } catch {
+      /* the queue lives in memory until storage works again */
+    }
     for (const l of this.listeners) l();
   }
 
   /** Re-queue commands persisted by a previous session. Deliberately not in the constructor (hydration). */
-  restore(): void {
+  restore(): void | Promise<void> {
+    const loaded = this.deps.store.load();
+    if (Array.isArray(loaded)) return this.applyRestored(loaded);
+    return loaded.then((c) => this.applyRestored(c), () => undefined);
+  }
+
+  private applyRestored(commands: Command[]): void {
     let client = this.state.client;
-    for (const c of this.deps.store.load()) client = clientEnqueue(client, c);
+    for (const c of commands) client = clientEnqueue(client, c);
     if (client !== this.state.client) this.set(client);
+  }
+
+  /**
+   * The page may have come from the service worker's cache and be older than what this device last confirmed (the list moved on
+   * while the page stayed cached): adopt the newer on-device copy when it is the SAME list and ahead of the cursor we have.
+   * Queued commands are kept and replayed over it by the engine. Never goes backwards.
+   */
+  private async adoptCached(): Promise<void> {
+    const snaps = this.deps.snapshots;
+    if (!snaps) return;
+    try {
+      const cached = await snaps.load();
+      const cur = this.state.client;
+      if (!cached || cached.cursor <= cur.cursor || (cached.meta.listId ?? null) !== (this.state.meta.listId ?? null)) {
+        this.saveSnapshot(); // what the page was rendered with is at least as new: keep it for the next offline reload
+        return;
+      }
+      this.set(clientResync(cur, { cursor: cached.cursor, state: cached.state }, [], defaultEngineContext), cached.meta);
+    } catch {
+      /* a bad cache entry must never block the list */
+    }
+  }
+
+  private saveSnapshot(): void {
+    const snaps = this.deps.snapshots;
+    if (!snaps) return;
+    const c = this.state.client;
+    try {
+      const r = snaps.save({ cursor: c.cursor, state: c.confirmed, meta: this.state.meta });
+      if (r) void r.catch(() => undefined);
+    } catch {
+      /* cache only */
+    }
   }
 
   // ---- commands ----
@@ -200,6 +260,7 @@ export class ShoppingController {
             clientResync(this.state.client, { cursor: snap.cursor, state: snap.state }, [], defaultEngineContext),
             snap.meta, 'synced',
           );
+          this.saveSnapshot();
         }
       } while (this.again);
     } catch {
@@ -219,6 +280,7 @@ export class ShoppingController {
       : clientIngest(c, res.entries, defaultEngineContext);
     const [next, conflicts] = clientTakeConflicts(c);
     this.set(next, res.snapshot?.meta ?? res.meta, 'synced');
+    this.saveSnapshot();
     for (const r of conflicts) {
       // Undo of an event that never became a purchase (our own tick lost the race) is noise.
       if (r.type === 'undo' && r.reason === 'event_not_found') continue;
@@ -235,8 +297,13 @@ export class ShoppingController {
   // ---- lifecycle (browser) ----
   /** Start polling + reconnect handling. Returns a stop function. */
   start(): () => void {
-    this.restore();
-    void this.sync(); // replays anything persisted from a previous session
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) this.set(this.state.client, undefined, 'offline');
+    const restored = this.restore();
+    const begin = () => this.adoptCached().then(() => this.sync());
+    // Replays anything persisted from a previous session. A synchronous store keeps the old, synchronous start.
+    if (restored) void restored.then(begin);
+    else if (this.deps.snapshots) void begin();
+    else void this.sync();
     if (this.deps.live) {
       const stopLive = this.deps.live.start(
         (seq) => {
