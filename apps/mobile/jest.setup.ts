@@ -65,6 +65,9 @@ jest.mock('expo-calendar', () => {
     EntityTypes: { EVENT: 'event', REMINDER: 'reminder' },
     Availability: { BUSY: 'busy', FREE: 'free', TENTATIVE: 'tentative', UNAVAILABLE: 'unavailable', NOT_SUPPORTED: 'notSupported' },
     EventStatus: { NONE: 'none', CONFIRMED: 'confirmed', TENTATIVE: 'tentative', CANCELED: 'canceled' },
+  };
+});
+
 // Location (P2-A): native modules, driven through these fakes. Real behaviour is a device check (docs/ROADMAP.md, P2-A).
 jest.mock('expo-location', () => {
   const state = {

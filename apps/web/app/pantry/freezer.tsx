@@ -99,7 +99,7 @@ export function FreezerPanel({ batches }: { batches: BatchView[] }) {
           <form className={s.cardBody} onSubmit={add} aria-label="Add a stored meal">
             <h3 style={{ margin: 0 }}>Add a freezer or fridge meal</h3>
             <div className={s.formGrid}>
-              <Input label="Meal" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Chilli" maxLength={120} />
+              <Input label="Stored meal name" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Chilli" maxLength={120} />
               <Input label="Portions" type="number" min={1} max={100} value={portions} onChange={(e) => setPortions(e.target.value)} />
               <Select label="Stored in" value={storedIn} onChange={(e) => setStoredIn(e.target.value as 'fridge' | 'freezer')} options={[{ value: 'freezer', label: 'Freezer (3 months)' }, { value: 'fridge', label: 'Fridge (2 days)' }]} />
             </div>

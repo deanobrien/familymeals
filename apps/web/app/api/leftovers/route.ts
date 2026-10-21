@@ -15,7 +15,8 @@ const STATUS: Record<string, number> = { read_only: 403, forbidden: 403, not_fou
 
 function respond(r: LeftoverResult<object>): NextResponse {
   if (r.ok) {
-    const { ok: _ok, ...rest } = r;
+    const rest: Record<string, unknown> = { ...r };
+    delete rest.ok;
     return json(rest);
   }
   return apiError(STATUS[r.error] ?? 500, r.error.toUpperCase(), r.message, r.error === 'unknown');

@@ -3,7 +3,7 @@ import { ScrollView, Switch, View } from 'react-native';
 import { ServerScreen } from '@/data/ServerApiContext';
 import { createCalendarClient, type CalendarClient, type CalendarStatus } from '@/lib/calendarApi';
 import {
-  deviceTimeZone, disableDeviceCalendar, enableDeviceCalendar, loadDeviceCalendarPrefs, permissionState, syncDeviceCalendar, type PermissionState,
+  deviceTimeZone, disableDeviceCalendar, enableDeviceCalendar, loadDeviceCalendarPrefs, permissionState, readEvents as readDeviceEvents, syncDeviceCalendar, type PermissionState,
 } from '@/lib/calendarDevice';
 import type { ServerApi } from '@/lib/serverApi';
 import { Field, Section } from '../widgets';
@@ -63,14 +63,14 @@ export function CalendarSettingsBody({ api, householdId, client: injected }: { a
         await disableDeviceCalendar(api, householdId, { client });
         return 'Phone calendar turned off. The busy evenings it added have been deleted.';
       }
-      const r = await enableDeviceCalendar(api, householdId);
+      const r = await enableDeviceCalendar(api, householdId, { client, read: readDeviceEvents });
       if (r.state !== 'granted') return 'Calendar access was not allowed, so nothing is read. You can allow it in Android settings and try again.';
       return `Phone calendar is on. ${r.busyDays ?? 0} busy evening${r.busyDays === 1 ? '' : 's'} found in the next four weeks.`;
     });
 
   const syncNow = () =>
     run(async () => {
-      const r = await syncDeviceCalendar(api, householdId, { client });
+      const r = await syncDeviceCalendar(api, householdId, { client, read: readDeviceEvents });
       return r.ok ? `Updated: ${r.busyDays} busy evening${r.busyDays === 1 ? '' : 's'} in the next four weeks.` : 'The phone calendar could not be read just now.';
     });
 

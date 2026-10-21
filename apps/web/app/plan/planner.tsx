@@ -13,7 +13,7 @@ import {
 import { MEAL_LABEL, MEAL_TYPES, type MealType, type PlanDoc, type PlanPageData, type RecipeLite, type SlotRef } from '../../lib/plan/types';
 import { approvePlanAction, generateShoppingAction, loadWeekAction, savePlanAction } from './actions';
 import { setBusyAction, markEatenAction } from './calendar-actions';
-import { BusyChips, CalendarPanel, LeftoverPicker, LeftoverSuggestions } from './calendar-leftovers';
+import { CalendarPanel, LeftoverPicker, LeftoverSuggestions } from './calendar-leftovers';
 import { PromptPanel } from './prompt-panel';
 import { WeekNutritionPanel } from './week-nutrition';
 import { WeekVarietyPanel } from './week-variety';

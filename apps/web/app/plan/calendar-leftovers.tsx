@@ -7,7 +7,7 @@ import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Input, Sheet, Stepper } from '@fr/ui';
 import { dateShort, dayShort } from '../../lib/plan/dates';
-import type { BusyDayView, CalendarStatus } from '../../lib/calendar/types';
+import type { CalendarStatus } from '../../lib/calendar/types';
 import type { BatchView, LeftoverSuggestion } from '../../lib/leftovers/types';
 import { calendarStatusAction, refreshIcsAction, removeIcsAction, saveIcsAction } from './calendar-actions';
 

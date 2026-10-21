@@ -116,11 +116,11 @@ export async function syncDeviceCalendar(api: ServerApi, householdId: string, de
 }
 
 /** Switch on: ask for the permission (Android shows its own prompt), remember the choice, sync. */
-export async function enableDeviceCalendar(api: ServerApi, householdId: string): Promise<{ state: PermissionState; busyDays?: number }> {
+export async function enableDeviceCalendar(api: ServerApi, householdId: string, deps: { client?: CalendarClient; read?: (from: Date, to: Date) => Promise<CalendarEvent[]> } = {}): Promise<{ state: PermissionState; busyDays?: number }> {
   const state = (await permissionState()) === 'granted' ? 'granted' : await requestPermission();
   if (state !== 'granted') return { state };
   await saveDeviceCalendarPrefs({ enabled: true });
-  const r = await syncDeviceCalendar(api, householdId);
+  const r = await syncDeviceCalendar(api, householdId, deps);
   return r.ok ? { state, busyDays: r.busyDays } : { state };
 }
 
