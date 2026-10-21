@@ -80,6 +80,7 @@ export default function SettingsScreen() {
           <Row title={household.name} subtitle={`Your role: ${household.role}. Members, invitations, leave.`} onPress={() => router.push('/household')} testID="open-household" />
           <Row title="Switch household" onPress={() => router.replace('/households')} testID="switch-household" />
           <Row title="Notifications" subtitle="Food to use soon, household updates, quiet hours, push on this phone." onPress={() => router.push('/notification-settings' as never)} testID="open-notification-settings" />
+          <Row title="Calendar and busy evenings" subtitle="Optional: let your phone calendar or a calendar link mark busy evenings so the planner picks quick meals." onPress={() => router.push('/calendar-settings' as never)} testID="open-calendar-settings" />
           <PreferencesSection household={household} onSaved={reload} />
           <DietarySection household={household} />
           <DislikesSection household={household} />

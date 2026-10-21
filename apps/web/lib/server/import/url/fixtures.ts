@@ -21,6 +21,19 @@ const PLAIN = `<!doctype html><html><head><title>Gran's Rice Pudding</title></he
 <ul><li>100g pudding rice</li><li>1 litre whole milk</li><li>3 tbsp sugar</li></ul>
 <ol><li>Put everything in a dish.</li><li>Bake at 150C for 2 hours.</li></ol></main></body></html>`;
 
+/** A calendar feed whose next three evenings are busy (18:00-19:30 London), built relative to now so e2e never goes stale. */
+function icsFixture(): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Fixture//EN'];
+  for (let i = 1; i <= 3; i++) {
+    const d = new Date(Date.now() + i * 86_400_000);
+    const day = `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}`;
+    lines.push('BEGIN:VEVENT', `UID:fixture-${i}`, 'SUMMARY:Fixture private appointment', `DTSTART;TZID=Europe/London:${day}T180000`, `DTEND;TZID=Europe/London:${day}T193000`, 'END:VEVENT');
+  }
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n') + '\r\n';
+}
+
 let jpegPromise: Promise<Buffer> | undefined;
 const jpeg = (): Promise<Buffer> => (jpegPromise ??= sharp({ create: { width: 480, height: 320, channels: 3, background: '#cc8844' } }).jpeg().toBuffer());
 
@@ -33,6 +46,7 @@ const transport: Transport = async ({ url }) => {
     case '/refused': return html('Forbidden', 403);
     case '/missing': return html('Not found', 404);
     case '/to-internal': return { status: 302, headers: { location: 'http://169.254.169.254/latest/meta-data/' }, body: Readable.from([]) };
+    case '/calendar.ics': return { status: 200, headers: { 'content-type': 'text/calendar; charset=utf-8' }, body: Readable.from([Buffer.from(icsFixture())]) };
     case '/dahl.jpg': return { status: 200, headers: { 'content-type': 'image/jpeg' }, body: Readable.from([await jpeg()]) };
     default: return html('Not found', 404);
   }

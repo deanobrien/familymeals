@@ -12,6 +12,9 @@ export interface SlotEditorProps {
   title: string;
   allSlots: SlotRef[];
   onServings: (n: number) => void;
+  /** Portions of a stored leftover / freezer meal (P2-C). */
+  onPortions?: (n: number) => void;
+  maxPortions?: number;
   onSwap: () => void;
   onKind: (k: 'eating_out' | 'leftovers') => void;
   onNote: (t: string) => void;
@@ -56,6 +59,7 @@ export default function SlotEditor(p: SlotEditorProps) {
       <Text style={styles.title} accessibilityRole="header">{p.title}</Text>
       <Muted>{`${MEAL_LABEL[p.slot.mealType]}, ${dayShort(p.slot.date)} ${dateShort(p.slot.date)}`}</Muted>
       {p.entry.kind === 'recipe' ? <Stepper label="Servings" value={p.entry.servings} min={1} max={99} onChange={p.onServings} /> : null}
+      {p.entry.kind === 'leftovers' && p.entry.batchId && p.onPortions ? <Stepper label="Portions" value={p.entry.portions ?? 1} min={1} max={p.maxPortions ?? 99} onChange={p.onPortions} /> : null}
       <Button title={p.entry.kind === 'recipe' ? 'Swap recipe' : 'Choose a recipe'} variant="secondary" onPress={p.onSwap} testID="slot-swap" />
       {p.entry.kind !== 'eating_out' ? <Button title="Mark eating out" variant="secondary" onPress={() => p.onKind('eating_out')} testID="slot-eating-out" /> : null}
       {p.entry.kind !== 'leftovers' ? <Button title="Mark leftovers" variant="secondary" onPress={() => p.onKind('leftovers')} testID="slot-leftovers" /> : null}

@@ -69,10 +69,10 @@ export function CookingSection({
             servings={servings}
             currentRating={cooking?.myRating ?? null}
             onCancel={() => setOpen(false)}
-            onSaved={(c) => {
+            onSaved={(c, l) => {
               setCooking(c);
               setOpen(false);
-              setFlash('Saved. Thanks, that helps the planner.');
+              setFlash(l ? `Saved. ${l.portionsMade} spare portion${l.portionsMade === 1 ? '' : 's'} added to your ${l.storedIn} list.` : 'Saved. Thanks, that helps the planner.');
               onChanged?.();
             }}
           />

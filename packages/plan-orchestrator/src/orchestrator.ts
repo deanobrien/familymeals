@@ -4,7 +4,7 @@ import { PlanConstraintsSchema, PlanRequestSchema } from '@fr/domain';
 import type {
   Candidate, CostService, ExclusionResolver, Household, HouseholdRepo, MealPlan, MealRef, ParsedPlanRequest, PlanConstraints, PlanEdits,
   PlannedMeal, PlanProposal, PlanRequest, PlanSlot, PlanSolver, ProposalStore, RecipeGap, RecipeRepo, Result, ShoppingRequirement,
-  UnmetConstraint, Member,
+  UnmetConstraint, Member, BusyResolution,
 } from './types.js';
 
 export interface OrchestratorDeps {
@@ -12,6 +12,8 @@ export interface OrchestratorDeps {
   costs: CostService; proposals: ProposalStore;
   /** Names -> ingredient ids / UK-14 groups (refdata catalogue). Omitted = name-only exclusions. */
   resolveExclusions?: ExclusionResolver;
+  /** Busy evenings for the plan's dates (P2-C, D413): quick-meal and skip dates, resolved by the server. Omitted = none. */
+  busy?: (householdId: string, weekStart: string, dates: string[]) => Promise<BusyResolution>;
   newId?: () => string; now?: () => Date;
 }
 
@@ -116,7 +118,8 @@ export class PlanOrchestrator {
     }
 
     const request = toRequest(parsed, hh);
-    return { ok: true, value: { prompt, weekStart, request, householdExclusions: householdExclusions(hh), unmet: this.resolveFavourites(hh, request.favouritesOf).unmet } };
+    const busy = await this.busyFor(householdId, weekStart, request.days ?? 7);
+    return { ok: true, value: { prompt, weekStart, request, householdExclusions: householdExclusions(hh), unmet: this.resolveFavourites(hh, request.favouritesOf).unmet, ...(busy.days.length ? { busy: busy.days } : {}) } };
   }
 
   /**
@@ -147,6 +150,17 @@ export class PlanOrchestrator {
       for (const rid of recipeIds) favRecipes.set(rid, [...(favRecipes.get(rid) ?? []), id]);
     }
 
+    // Busy evenings (manual toggles, device calendar, ICS): server-owned, applied whatever the request says. They add quick-meal
+    // dates (keeping the request's own minutes / strictness) and skip the dinner on evenings with almost no free time.
+    const planDays = request.days ?? 7;
+    const busy = await this.busyFor(householdId, weekStart, planDays);
+    const dinnerPlanned = request.mealTypes.includes('dinner');
+    const quickDates = [...new Set([...(request.quickMeals?.dates ?? []), ...busy.quickDates])];
+    const quickMeals = busy.quickDates.length || request.quickMeals
+      ? { dates: quickDates, weekdays: request.quickMeals?.weekdays ?? [], maxTotalMinutes: request.quickMeals?.maxTotalMinutes ?? 30, strict: request.quickMeals?.strict ?? false }
+      : undefined;
+    const skip = dinnerPlanned ? busy.skipDates.map((date) => ({ date, mealType: 'dinner' as const, reason: 'other' as const, note: 'Busy evening' })) : [];
+
     const terms = uniq([...requested, ...dbExclusions]);
     const resolved = this.d.resolveExclusions?.({ terms, allergens: uniq(request.excludeAllergens) });
     const servings = request.servings;
@@ -162,6 +176,8 @@ export class PlanOrchestrator {
       // Unmatched ingredient lines are checked against the terms; with exclusions set they are otherwise unverifiable.
       allowUnverifiedIngredients: false,
       favouritesOf: memberIds,
+      ...(quickMeals ? { quickMeals } : {}),
+      skip,
     });
     const days = constraints.days ?? 7;
 
@@ -199,6 +215,7 @@ export class PlanOrchestrator {
 
     const proposal: PlanProposal = {
       id: this.newId(), status: 'proposed', householdId, weekStart, prompt, constraints, request, reimposedExclusions,
+      ...(busy.days.length ? { busyApplied: busy.days } : {}),
       slots: res.slots, explanations: res.explanations, unmet, report: res.report, gaps,
       ...(res.ideas?.length ? { ideas: res.ideas } : {}),
       totalCostPence: res.totalCostPence, uncostedMeals: res.uncostedMeals, createdAt: this.now().toISOString(),
@@ -212,6 +229,16 @@ export class PlanOrchestrator {
     const parsed = await this.parseRequest(householdId, prompt, weekStart);
     if (!parsed.ok) return parsed;
     return this.solveRequest(householdId, { prompt, weekStart, request: parsed.value.request });
+  }
+
+  private async busyFor(householdId: string, weekStart: string, days: number): Promise<BusyResolution> {
+    const none: BusyResolution = { quickDates: [], skipDates: [], days: [] };
+    if (!this.d.busy) return none;
+    try {
+      return await this.d.busy(householdId, weekStart, Array.from({ length: days }, (_, i) => addDays(weekStart, i)));
+    } catch {
+      return none; // advisory input: a failure never blocks a plan
+    }
   }
 
   /** Member display names (as the AI / the chips give them) -> member ids; unknown and ambiguous names are reported, never guessed. */

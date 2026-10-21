@@ -130,6 +130,23 @@ export interface RecipeIdeaNeed {
 }
 export interface RecipeGap { date: IsoDate; mealType: MealType; reason: string; suggestionBrief: { tags: string[]; excludeIngredients: string[] }; }
 
+/** A busy evening that shaped the plan (P2-C, D413). Derived flags only. */
+export interface BusyApplied {
+  date: IsoDate;
+  /** true = the dinner is skipped (almost no free time), false = a quick meal is preferred. */
+  skip: boolean;
+  /** Free minutes in the evening window; null = unknown (a manual toggle). */
+  minutesAvailable: number | null;
+  sources: string[];
+}
+
+/** What the server resolved from the household's busy flags for a set of dates. */
+export interface BusyResolution {
+  quickDates: IsoDate[];
+  skipDates: IsoDate[];
+  days: BusyApplied[];
+}
+
 export interface PlanProposal {
   id: string;
   status: 'proposed';
@@ -142,6 +159,8 @@ export interface PlanProposal {
   request: PlanRequest;
   /** Hard exclusions the AI omitted that the server re-imposed (transparency). */
   reimposedExclusions: string[];
+  /** Busy evenings applied as quick-meal / skip constraints (P2-C). */
+  busyApplied?: BusyApplied[];
   slots: PlanSlot[];
   explanations: string[];
   unmet: UnmetConstraint[];
@@ -190,4 +209,6 @@ export interface ParsedPlanRequest {
   householdExclusions: string[];
   /** Problems with the request that are already known (unknown / ambiguous member names). */
   unmet: UnmetConstraint[];
+  /** Busy evenings this week that the solve will honour (manual toggles + calendars), shown as chips (P2-C). */
+  busy?: BusyApplied[];
 }

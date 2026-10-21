@@ -19,7 +19,9 @@
     "./receipt-match": "./src/receipt-match/index.ts",
     "./shopping": "./src/shopping/index.ts",
     "./pantry": "./src/pantry/index.ts",
-    "./cooking": "./src/cooking/index.ts"
+    "./cooking": "./src/cooking/index.ts",
+    "./calendar": "./src/calendar/index.ts",
+    "./leftovers": "./src/leftovers/index.ts"
   },
   "sideEffects": false,
   "scripts": {

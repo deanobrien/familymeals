@@ -68,7 +68,7 @@ export function CookingPanel({ recipeId, recipeTitle, servings, averageRating, c
           servings={servings}
           currentRating={cooking?.myRating ?? null}
           onCancel={() => setOpen(false)}
-          onSaved={(c) => { setCooking(c); setOpen(false); setFlash('Saved. Thanks, that helps the planner.'); router.refresh(); }}
+          onSaved={(c, l) => { setCooking(c); setOpen(false); setFlash(l ? `Saved. ${l.portions} spare portion${l.portions === 1 ? '' : 's'} added to your ${l.storedIn === 'freezer' ? 'freezer' : 'fridge'} list.` : 'Saved. Thanks, that helps the planner.'); router.refresh(); }}
         />
       )}
       {cooking && cooking.dontSuggestCount > 0 && !cooking.dontSuggest && <p className="fr-muted">{cooking.dontSuggestCount} household member{cooking.dontSuggestCount === 1 ? '' : 's'} asked the planner not to suggest this.</p>}

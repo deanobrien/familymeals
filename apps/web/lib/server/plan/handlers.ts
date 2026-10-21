@@ -3,6 +3,8 @@ import { violatesExclusions, type OrchestratorError, type PlannedMeal, type Slot
 import { isIsoDate, mondayOf, weekDates } from '../../plan/dates';
 import { emptyDoc, parseKey } from '../../plan/ops';
 import { MEAL_TYPES, type ActionResult, type MealType, type PlanDoc, type PlanPageData, type ParseResult, type ProposeResult, type RecipeLite } from '../../plan/types';
+import { contextClient, loadBusyViews, weekEnd } from '../calendar/planner';
+import { eatenSlotKeys, leftoverPlanProblems, loadLeftovers, markPlannedEaten, type LeftoverCaller } from '../leftovers/service';
 import type { PlanRecipe } from './recipe-source';
 import type { PlanServices } from './services';
 
@@ -28,8 +30,17 @@ export async function getPlanPageData(svc: PlanServices, weekParam?: string): Pr
   const weekStart = mondayOf(isIsoDate(weekParam) ? weekParam : svc.now().toISOString().slice(0, 10));
   const exclusions = hh.hardExclusions.map((e) => e.ingredientName);
   const [existing, recipes, all] = await Promise.all([svc.plans.getByWeek(hh.id, weekStart), svc.recipes.list(hh.id), svc.plans.list(hh.id)]);
+  const doc = existing ?? emptyDoc(svc.newId(), hh.id, weekStart, ['dinner'], svc.now());
+  // P2-C: busy evenings (derived flags), stored leftovers + slot suggestions, and which leftover slots are already eaten.
+  const client = await contextClient();
+  const busy = await loadBusyViews(hh.id, client, weekStart, weekEnd(weekStart));
+  const leftovers = await loadLeftovers({ householdId: hh.id, client }, { weekDoc: doc, plans: svc.plans, busyDates: busy.map((b) => b.date), portionsPerSlot: hh.defaultServings ?? 4 });
+  const eatenSlots = existing ? await eatenSlotKeys({ householdId: hh.id, client }, existing) : [];
   return {
-    doc: existing ?? emptyDoc(svc.newId(), hh.id, weekStart, ['dinner'], svc.now()),
+    doc,
+    busy,
+    leftovers,
+    ...(eatenSlots.length ? { eatenSlots } : {}),
     isSaved: !!existing,
     recipes: recipes.map((r) => toLite(r, exclusions)),
     saved: all.map((d) => ({ id: d.id, weekStart: d.weekStart, status: d.status })),
@@ -71,6 +82,14 @@ async function checkDoc(svc: PlanServices, doc: PlanDoc, forApproval: boolean): 
     // Allergies/strict exclusions are hard constraints: never plannable, saved or approved.
     const hits = violatesExclusions(r.ingredientNames, exclusions);
     if (hits.length) problems.push(`"${r.title}" contains excluded ingredient(s): ${hits.join(', ')}.`);
+  }
+  const leftoverEntries = Object.entries(doc.entries).filter(([, e]) => e.kind === 'leftovers' && e.batchId);
+  for (const [key, e] of leftoverEntries) {
+    if (e.kind === 'leftovers' && (!Number.isInteger(e.portions ?? 1) || (e.portions ?? 1) < 1 || (e.portions ?? 1) > 100)) problems.push(`Portions for ${key} must be between 1 and 100.`);
+  }
+  if (leftoverEntries.length && !problems.length) {
+    const snap = await svc.leftoverSnapshot(svc.household.id);
+    problems.push(...leftoverPlanProblems(doc, await svc.plans.list(svc.household.id), snap.batches, snap.consumptions));
   }
   if (forApproval && ![...Object.values(doc.entries)].some((e) => e.kind === 'recipe')) problems.push('Add at least one recipe before approving.');
   return problems;
@@ -174,3 +193,8 @@ export async function loadPlanForWeek(svc: PlanServices, weekStart: string): Pro
   return isIsoDate(weekStart) ? svc.plans.getByWeek(svc.household.id, mondayOf(weekStart)) : null;
 }
 
+
+/** "Mark eaten" on a planned leftover meal: its portions leave the ledger once (P2-C, D417). */
+export async function markLeftoverEaten(svc: PlanServices, caller: LeftoverCaller, planId: string, date: string, mealType: string) {
+  return markPlannedEaten(caller, svc.plans, planId, date, mealType);
+}

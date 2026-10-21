@@ -82,6 +82,13 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
   // RPC-only table (X2, D187): a shared product cache of the household, not personal data -> household scope only.
   { table: 'household_product_snapshots', file: 'prices.json', key: 'product_snapshots', order: ['barcode'], household: H, member: null, rpc: 'household_product_snapshots' },
 
+  // P2-C (D415, D419): derived busy flags (never event titles), the PRESENCE of an ICS feed (the encrypted address itself is
+  // dropped by the secret-column rule and never exported), and the leftover ledger.
+  { table: 'plan_busy_days', file: 'calendar.json', key: 'busy_days', order: ['day', 'source', 'user_id'], household: H, member: self('user_id') },
+  { table: 'member_calendar_feeds', file: 'calendar.json', key: 'calendar_feeds', order: ['household_id', 'user_id'], household: self('user_id'), member: self('user_id') },
+  { table: 'leftover_batches', file: 'leftovers.json', key: 'batches', order: ID, household: H, member: self('created_by') },
+  { table: 'leftover_consumptions', file: 'leftovers.json', key: 'consumptions', order: ID, household: H, member: self('created_by') },
+
   { table: 'ai_usage', file: 'ai_usage.json', key: 'ai_usage', order: ID, household: H, member: self('user_id') },
 
   // P1-C (D380): a member's own notification choices and their notification centre. RLS only shows each member their own
@@ -110,7 +117,7 @@ export const EXCLUDED_TABLES: readonly string[] = [
 export const DROPPED_COLUMNS: ReadonlySet<string> = new Set(['search_tsv', 'search_ingredients', 'search_tags']);
 
 /** Belt and braces: any column whose name looks like a credential is never exported, whatever table it is in. */
-export const SECRET_COLUMN_RE = /(token|secret|cipher|password|passwd|api_?key|private_?key|^keys$|^config$)/i;
+export const SECRET_COLUMN_RE = /(token|secret|cipher|encrypted|password|passwd|api_?key|private_?key|^keys$|^config$)/i;
 
 /** Columns holding a user id: replaced by "you" / "another member" so other members' account ids never leave. */
 export function isUserRefColumn(col: string): boolean {

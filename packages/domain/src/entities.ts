@@ -348,6 +348,8 @@ export const PlannedMeal = z
     mealType: MealType,
     kind: PlannedMealKind,
     recipeId: Uuid.nullable(),
+    /** P2-C: a kind 'leftovers' slot may point at a leftover batch (servings = portions). */
+    leftoverBatchId: Uuid.nullable().optional(),
     servings: z.number().int().min(1).max(100),
     approved: z.boolean(),
     notes: text(1000).nullable(),

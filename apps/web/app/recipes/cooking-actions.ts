@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getRecipeRepository } from '../../lib/recipes/factory';
 import { settingsAiProvider } from '../../lib/server/ai/provider';
 import { webCookingCaller } from '../../lib/server/cooking/web-caller';
+import type { LeftoverBatch } from '@fr/engine/leftovers';
 import * as cooking from '../../lib/server/cooking/service';
 import type { CookingResult, CookEntry, RecipeCookingView } from '../../lib/server/cooking/service';
 import { suggestSubstitutionsFor, type SubstitutionOutcome } from '../../lib/server/cooking/substitutions';
@@ -30,8 +31,8 @@ export async function loadCookingAction(recipeId: string): Promise<CookingResult
 
 export async function markCookedAction(
   recipeId: string,
-  values: { servings: number; rating?: number | null; note?: string | null; notePrivate?: boolean },
-): Promise<CookingResult<{ entry: CookEntry; cooking: RecipeCookingView }>> {
+  values: { servings: number; rating?: number | null; note?: string | null; notePrivate?: boolean; batch?: { multiplier: number; storedIn: 'fridge' | 'freezer' }; today?: string },
+): Promise<CookingResult<{ entry: CookEntry; cooking: RecipeCookingView; leftover?: LeftoverBatch }>> {
   const r = await cooking.markCooked(await caller(), recipeId, values);
   if (r.ok) refresh(recipeId);
   return r;

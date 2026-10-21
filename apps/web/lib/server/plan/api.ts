@@ -33,7 +33,11 @@ function readEntry(v: unknown): PlanEntry | null {
   if (v.kind === 'recipe') {
     return str(v.recipeId) && typeof v.servings === 'number' ? { kind: 'recipe', recipeId: v.recipeId, servings: v.servings, ...note } : null;
   }
-  return v.kind === 'eating_out' || v.kind === 'leftovers' ? { kind: v.kind, ...note } : null;
+  if (v.kind === 'leftovers') {
+    const batch = str(v.batchId) ? { batchId: v.batchId, portions: typeof v.portions === 'number' ? v.portions : 1 } : {};
+    return { kind: 'leftovers', ...batch, ...note };
+  }
+  return v.kind === 'eating_out' ? { kind: v.kind, ...note } : null;
 }
 
 /** Shape-check a client plan (types only; the handlers validate household, week, servings and exclusions). Null = malformed. */

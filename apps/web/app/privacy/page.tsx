@@ -55,6 +55,21 @@ export default function PrivacyPage() {
           any device, or change what you get, in Settings &gt; Notifications; notifications are deleted after 90 days.
         </li>
         <li>
+          <em>Busy evenings and calendars (only if you use them):</em> a &ldquo;busy&rdquo; mark on a day, either one you
+          set yourself or one worked out from a calendar you choose to connect, with roughly how many minutes are free
+          between 5 pm and 8 pm. We never read, store or send event titles, places or the people invited. On Android the
+          calendar stays on your phone: it works out the busy / free answer there and sends only that. On the web you may
+          paste a calendar&rsquo;s private &ldquo;secret address&rdquo;; we keep it encrypted, use it only to read busy
+          times, never show it again and never write it to our logs. You can disconnect either at any time (Settings in
+          the app, or &ldquo;Calendar and busy evenings&rdquo; on the planner), which deletes the address and the busy marks
+          it made. The marks are used only to prefer quick meals or skip dinner on those evenings, and are included in your
+          data export (the export says whether a calendar link exists, never the address).
+        </li>
+        <li>
+          <em>Leftovers and freezer meals:</em> the meals you record as spare portions (name, how many, fridge or freezer,
+          use-by date) and which portions have been eaten, shared with your household and included in your export.
+        </li>
+        <li>
           <em>Basic technical records:</em> for example which pages errored, so we can keep the
           service safe. We do not put the content of your recipes, receipts or health information in
           these records.

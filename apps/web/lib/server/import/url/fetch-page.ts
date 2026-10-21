@@ -10,7 +10,7 @@ import type { Readable } from 'node:stream';
 import { UrlRejectedError, parseImportUrl, resolvePublic, systemLookup, type LookupFn, type ResolvedAddress } from './ssrf';
 
 export type FetchErrorCode =
-  | 'TIMEOUT' | 'TOO_LARGE' | 'NOT_HTML' | 'NOT_IMAGE' | 'HTTP_STATUS' | 'TOO_MANY_REDIRECTS' | 'NETWORK' | 'BAD_REDIRECT' | 'UNSUPPORTED_ENCODING';
+  | 'TIMEOUT' | 'TOO_LARGE' | 'NOT_HTML' | 'NOT_IMAGE' | 'NOT_CALENDAR' | 'HTTP_STATUS' | 'TOO_MANY_REDIRECTS' | 'NETWORK' | 'BAD_REDIRECT' | 'UNSUPPORTED_ENCODING';
 
 export class FetchError extends Error {
   constructor(readonly code: FetchErrorCode, message: string, readonly status?: number) {
@@ -65,7 +65,7 @@ export interface FetchOptions {
   timeoutMs?: number;
   maxRedirects?: number;
   /** What the response must be. */
-  expect?: 'html' | 'image';
+  expect?: 'html' | 'image' | 'calendar';
   now?: () => number;
 }
 
@@ -78,6 +78,8 @@ export interface FetchedBody {
 }
 
 const HTML_TYPE = /^(?:text\/html|application\/xhtml\+xml)\b/i;
+/** ICS feeds are served as text/calendar, but some hosts say text/plain or octet-stream (P2-C, D412). */
+const CALENDAR_TYPE = /^(?:text\/calendar|text\/plain|application\/octet-stream|application\/ics)\b/i;
 const IMAGE_TYPE = /^image\/(?:jpeg|jpg|png|webp|gif)\b/i;
 
 function decoderFor(encoding: string | undefined): (() => Readable & NodeJS.WritableStream) | undefined {
@@ -135,7 +137,7 @@ export async function guardedGet(rawUrl: string, opts: FetchOptions = {}): Promi
     const addresses = await resolvePublic(parsed.host, lookup);
     const headers: Record<string, string> = {
       'user-agent': USER_AGENT,
-      accept: expect === 'html' ? 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.1' : 'image/jpeg,image/png,image/webp,image/gif;q=0.9',
+      accept: expect === 'html' ? 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.1' : expect === 'calendar' ? 'text/calendar,text/plain;q=0.8,*/*;q=0.1' : 'image/jpeg,image/png,image/webp,image/gif;q=0.9',
       'accept-language': 'en-GB,en;q=0.8',
       'accept-encoding': 'gzip, deflate, br',
       connection: 'close',
@@ -168,10 +170,10 @@ export async function guardedGet(rawUrl: string, opts: FetchOptions = {}): Promi
       throw new FetchError('HTTP_STATUS', `status ${res.status}`, res.status);
     }
     const contentType = String(res.headers['content-type'] ?? '');
-    const typeOk = expect === 'html' ? HTML_TYPE.test(contentType) || contentType === '' : IMAGE_TYPE.test(contentType);
+    const typeOk = expect === 'html' ? HTML_TYPE.test(contentType) || contentType === '' : expect === 'calendar' ? CALENDAR_TYPE.test(contentType) || contentType === '' : IMAGE_TYPE.test(contentType);
     if (!typeOk) {
       res.body.destroy();
-      throw new FetchError(expect === 'html' ? 'NOT_HTML' : 'NOT_IMAGE', `unexpected content type ${contentType.slice(0, 60)}`);
+      throw new FetchError(expect === 'html' ? 'NOT_HTML' : expect === 'calendar' ? 'NOT_CALENDAR' : 'NOT_IMAGE', `unexpected content type ${contentType.slice(0, 60)}`);
     }
     const encoding = Array.isArray(res.headers['content-encoding']) ? res.headers['content-encoding'][0] : res.headers['content-encoding'];
     const declared = Number(res.headers['content-length']);

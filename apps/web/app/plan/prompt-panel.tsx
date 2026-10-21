@@ -9,6 +9,8 @@ import { formatPence } from '../../lib/plan/cost';
 import { slotKey } from '../../lib/plan/ops';
 import { DIET_CATEGORIES, proportionsSentence, roundProportions, type Proportions } from '../../lib/plan/proportions';
 import { MEAL_LABEL, MEAL_TYPES, type MealType, type ParseResult, type PlanDoc, type PlanEntry, type ProposeResult, type RecipeLite } from '../../lib/plan/types';
+import type { BusyDayView } from '../../lib/calendar/types';
+import { BusyChips } from './calendar-leftovers';
 import { ConstraintChips } from './constraint-chips';
 import { IdeasPanel, type IdeaExtra } from './ideas-panel';
 import { parsePlanRequestAction, solvePlanRequestAction } from './actions';
@@ -22,6 +24,8 @@ interface Props {
   dislikes?: { memberName: string; terms: string[] }[];
   /** Household member display names (choices for the favourites chip). */
   memberNames: string[];
+  /** Busy evenings this week (before the request is read); after it, the server's list for the plan is shown (P2-C). */
+  busy?: readonly BusyDayView[] | undefined;
   /** Receives an updater so the parent applies the proposal to its latest doc (and marks it unsaved). */
   onAccept: (next: (doc: PlanDoc) => PlanDoc) => void;
 }
@@ -47,7 +51,7 @@ function ideaExtra(r: PlanRequest | null): IdeaExtra {
   return { terms: r?.excludeTerms ?? [], allergens: r?.excludeAllergens ?? [], excludeDiets: r?.excludeDietCategories ?? [] };
 }
 
-export function PromptPanel({ weekStart, recipes, examplePrompt, exclusions, memberNames, dislikes, onAccept }: Props) {
+export function PromptPanel({ weekStart, recipes, examplePrompt, exclusions, memberNames, dislikes, busy, onAccept }: Props) {
   const [prompt, setPrompt] = useState(examplePrompt);
   const [result, setResult] = useState<ProposeResult | null>(null);
   const [parseError, setParseError] = useState<(ParseResult & { ok: false }) | null>(null);
@@ -121,6 +125,8 @@ export function PromptPanel({ weekStart, recipes, examplePrompt, exclusions, mem
         </div>
       </details>
 
+      {!parsed && busy && busy.length > 0 && <BusyChips busy={busy} />}
+
       <div>
         <Button onClick={understand} loading={pending} disabled={!prompt.trim()} variant={request ? 'secondary' : 'primary'}>{request ? 'Read my request again' : 'Understand my request'}</Button>
       </div>
@@ -131,6 +137,7 @@ export function PromptPanel({ weekStart, recipes, examplePrompt, exclusions, mem
 
       {request && parsed && (
         <>
+          <BusyChips busy={parsed.busy ?? []} />
           <ConstraintChips
             request={request}
             onChange={setRequest}
@@ -201,6 +208,12 @@ function Proposal({ p, extra, recipes, accepted, onAccept, onDiscard }: { p: Pla
           </li>
         ))}
       </ul>
+
+      {p.busyApplied && p.busyApplied.length > 0 && (
+        <div className="plan__msg" data-testid="busy-applied">
+          Busy evenings honoured: {p.busyApplied.map((b) => `${dayShort(b.date)} ${dateShort(b.date)} (${b.skip ? 'dinner skipped' : 'quick meal'})`).join(', ')}.
+        </div>
+      )}
 
       {p.reimposedExclusions.length > 0 && (
         <div className="plan__msg" data-testid="reimposed">

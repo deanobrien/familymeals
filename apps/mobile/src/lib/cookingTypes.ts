@@ -38,10 +38,17 @@ export interface MarkCookedInput {
   note?: string | null;
   /** Default true: private to the author. */
   notePrivate?: boolean;
+  /** "Cook x2 / batch" (P2-C, D416): the spare portions become a leftover batch on the server. */
+  batch?: { multiplier: number; storedIn: 'fridge' | 'freezer' };
+  /** The phone's own date (YYYY-MM-DD), so the use-by counts from the cook's clock. */
+  today?: string;
 }
 
+/** The batch recorded by "Cook x2". */
+export interface SpareBatch { portionsMade: number; storedIn: 'fridge' | 'freezer'; useBy: string }
+
 export type MarkCookedResult =
-  | { ok: true; entry: CookEntry; cooking: RecipeCooking }
+  | { ok: true; entry: CookEntry; cooking: RecipeCooking; leftover?: SpareBatch }
   | { ok: false; message: string; fieldErrors: Record<string, string> };
 
 export interface SubstitutionSuggestion {

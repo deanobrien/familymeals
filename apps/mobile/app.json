@@ -3,7 +3,7 @@
     "name": "Family Recipes",
     "slug": "family-recipes",
     "scheme": "familyrecipes",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -37,11 +37,17 @@
         {
           "color": "#2E7D32"
         }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Allow Family Recipes to look at whether you are free in the evening, so the planner can pick quick meals on busy days. Only busy or free is used; event titles are never read or sent."
+        }
       ]
     ],
     "android": {
       "package": "uk.ac.northumbria.familyrecipes",
-      "versionCode": 2,
+      "versionCode": 3,
       "allowBackup": false,
       "intentFilters": [
         {
@@ -68,7 +74,8 @@
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.POST_NOTIFICATIONS",
-        "android.permission.VIBRATE"
+        "android.permission.VIBRATE",
+        "android.permission.READ_CALENDAR"
       ]
     },
     "experiments": {

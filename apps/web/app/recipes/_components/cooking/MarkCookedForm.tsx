@@ -12,7 +12,8 @@ interface Props {
   servings: number;
   /** The member's current rating, pre-selected. */
   currentRating?: number | null;
-  onSaved: (cooking: RecipeCookingView) => void;
+  /** `leftover` is set when "Cook in bulk" recorded extra portions (P2-C). */
+  onSaved: (cooking: RecipeCookingView, leftover?: { portions: number; storedIn: 'fridge' | 'freezer'; useBy: string }) => void;
   onCancel?: () => void;
 }
 
@@ -23,6 +24,8 @@ export function MarkCookedForm({ recipeId, recipeTitle, servings: initial, curre
   const [note, setNote] = useState('');
   const [visibility, setVisibility] = useState<'private' | 'household'>('private');
   const [never, setNever] = useState(false);
+  const [multiplier, setMultiplier] = useState(1);
+  const [storedIn, setStoredIn] = useState<'fridge' | 'freezer'>('fridge');
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
@@ -30,7 +33,10 @@ export function MarkCookedForm({ recipeId, recipeTitle, servings: initial, curre
     start(async () => {
       setError(null);
       try {
-        const r = await markCookedAction(recipeId, { servings, rating, note: note.trim() || null, notePrivate: visibility === 'private' });
+        const r = await markCookedAction(recipeId, {
+          servings, rating, note: note.trim() || null, notePrivate: visibility === 'private',
+          ...(multiplier > 1 ? { batch: { multiplier, storedIn }, today: localToday() } : {}),
+        });
         if (!r.ok) {
           setError(r.error === 'invalid_input' ? Object.values(r.fieldErrors ?? {})[0] ?? 'Some values were not accepted.' : r.error === 'read_only' ? 'This household is read-only while it is pending deletion.' : 'Could not save. Please try again.');
           return;
@@ -40,7 +46,7 @@ export function MarkCookedForm({ recipeId, recipeTitle, servings: initial, curre
           const d = await setDontSuggestAction(recipeId, true);
           if (d.ok) cooking = d.cooking;
         }
-        onSaved(cooking);
+        onSaved(cooking, r.leftover ? { portions: r.leftover.portionsMade, storedIn: r.leftover.storedIn, useBy: r.leftover.useBy } : undefined);
       } catch {
         setError('Could not save. Please try again.');
       }
@@ -75,6 +81,30 @@ export function MarkCookedForm({ recipeId, recipeTitle, servings: initial, curre
         onChange={(e) => setVisibility(e.target.value as 'private' | 'household')}
         options={[{ value: 'private', label: 'Only me' }, { value: 'household', label: 'My household' }]}
       />
+      <fieldset className={styles.stars} data-testid="batch-options">
+        <legend>Cooked extra to keep?</legend>
+        <Select
+          label="Batch cooking"
+          hint="If you cooked more than you ate, the spare portions go on your leftovers list so the planner can use them."
+          value={String(multiplier)}
+          onChange={(e) => setMultiplier(Number(e.target.value))}
+          options={[
+            { value: '1', label: 'No, just tonight' },
+            { value: '2', label: 'Cook x2 (one more of everything)' },
+            { value: '3', label: 'Cook x3' },
+            { value: '4', label: 'Cook x4' },
+          ]}
+        />
+        {multiplier > 1 && (
+          <Select
+            label="Keep the spare portions in"
+            hint={`${servings * (multiplier - 1)} spare portion${servings * (multiplier - 1) === 1 ? '' : 's'}. Use-by is 2 days in the fridge or 3 months in the freezer.`}
+            value={storedIn}
+            onChange={(e) => setStoredIn(e.target.value as 'fridge' | 'freezer')}
+            options={[{ value: 'fridge', label: 'Fridge (2 days)' }, { value: 'freezer', label: 'Freezer (3 months)' }]}
+          />
+        )}
+      </fieldset>
       <Checkbox label="Don't suggest this recipe again" checked={never} onChange={(e) => setNever(e.target.checked)} />
       {error && <p role="alert" className={styles.error}>{error}</p>}
       <div className={styles.formButtons}>
@@ -83,4 +113,10 @@ export function MarkCookedForm({ recipeId, recipeTitle, servings: initial, curre
       </div>
     </form>
   );
+}
+
+/** The browser's own date (YYYY-MM-DD), so a late-evening cook is dated by the cook's clock, not the server's. */
+function localToday(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }

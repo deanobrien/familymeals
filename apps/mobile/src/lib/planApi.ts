@@ -6,6 +6,7 @@ import {
   MEAL_TYPES, type DietCategory, type IdeaCard, type IdeaNeed, type IdeasResult, type MealType, type ParsedRequest, type PlanDoc, type PlanEntry,
   type PlanPage, type PlanRequest, type Proposal, type ProposalSlot, type RecipeLite, type ShoppingHandoff,
 } from './plan/types';
+import { parseBusyApplied, parseBusyDays, parseLeftoversView } from './leftoversApi';
 
 type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -25,7 +26,11 @@ function parseEntry(v: unknown): PlanEntry | null {
     const servings = num(v.servings);
     return typeof v.recipeId === 'string' && servings !== undefined ? { kind: 'recipe', recipeId: v.recipeId, servings, ...note } : null;
   }
-  return v.kind === 'eating_out' || v.kind === 'leftovers' ? { kind: v.kind, ...note } : null;
+  if (v.kind === 'leftovers') {
+    const portions = num(v.portions);
+    return { kind: 'leftovers', ...(typeof v.batchId === 'string' && v.batchId ? { batchId: v.batchId, portions: portions !== undefined && portions >= 1 ? Math.round(portions) : 1 } : {}), ...note };
+  }
+  return v.kind === 'eating_out' ? { kind: 'eating_out', ...note } : null;
 }
 
 export function parseDoc(v: unknown): PlanDoc | null {
@@ -85,6 +90,7 @@ export function parsePage(v: unknown): PlanPage {
       .map((s) => ({ id: s.id as string, weekStart: s.weekStart as string, status: s.status === 'approved' ? ('approved' as const) : ('draft' as const) })),
     householdExclusions: strs(o.householdExclusions), defaultServings: num(o.defaultServings) ?? 4,
     examplePrompt: str(o.examplePrompt), memberNames: strs(o.memberNames), withheldExclusions: Math.max(0, Math.floor(num(o.withheldExclusions) ?? 0)),
+    busy: parseBusyDays(o.busy), leftovers: parseLeftoversView(o.leftovers), eatenSlots: strs(o.eatenSlots),
     ...(Array.isArray(o.memberDislikes)
       ? {
           memberDislikes: objs(o.memberDislikes)
@@ -115,6 +121,7 @@ export function parseParsed(v: unknown): ParsedRequest {
   return {
     prompt: str(o.prompt), weekStart: str(o.weekStart), request: parseRequest(o.request), householdExclusions: strs(o.householdExclusions),
     notes: objs(o.unmet).map((u) => str(u.detail)).filter(Boolean),
+    busy: parseBusyApplied(o.busy),
   };
 }
 
@@ -150,6 +157,7 @@ export function parseProposal(v: unknown): Proposal {
     ideas: objs(o.ideas).map(parseNeed),
     totalCostPence: num(o.totalCostPence) ?? null, uncostedMeals: strs(o.uncostedMeals),
     ...(isObj(o.request) ? { request: parseRequest(o.request) } : {}),
+    busyApplied: parseBusyApplied(o.busyApplied),
   };
 }
 
@@ -209,6 +217,10 @@ export interface PlanClient {
   parse(prompt: string, weekStart: string): Promise<ParsedRequest>;
   solve(prompt: string, weekStart: string, request: PlanRequest): Promise<Proposal>;
   generateShopping(planId: string): Promise<ShoppingHandoff>;
+  /** Manual "busy" toggle for one day (P2-C). */
+  setBusy(date: string, busy: boolean): Promise<void>;
+  /** A planned leftover meal was eaten: its portions leave the ledger once. */
+  markEaten(planId: string, date: string, mealType: string): Promise<{ applied: boolean; portionsLeft: number }>;
   findIdeas(need: IdeaNeed, extra: IdeaExtra): Promise<IdeasResult>;
   /** Draft an idea and save it to the library (after the user has seen its ingredients and method). */
   saveIdea(id: string): Promise<{ id: string; title: string }>;
@@ -240,6 +252,14 @@ export function createPlanClient(api: ServerApi, householdId: string): PlanClien
       const body = await api.post<unknown>('/api/plan/solve', { householdId, prompt, weekStart, request });
       if (!isObj(body) || !isObj(body.proposal)) throw unexpected();
       return parseProposal(body.proposal);
+    },
+    setBusy: async (date, busy) => {
+      await api.post('/api/calendar', { householdId, action: 'busy_set', date, busy });
+    },
+    markEaten: async (planId, date, mealType) => {
+      const body = await api.post<unknown>('/api/leftovers', { householdId, action: 'eaten', planId, date, mealType });
+      const o = isObj(body) ? body : {};
+      return { applied: o.applied === true, portionsLeft: Math.max(0, Math.floor(num(o.portionsLeft) ?? 0)) };
     },
     generateShopping: async (planId) => parseHandoff(await api.post('/api/plan/generate-shopping', { householdId, planId })),
     findIdeas: async (need, extra) => parseIdeas(await api.post('/api/plan/ideas', { householdId, criteria: need.criteria, extra })),

@@ -1,6 +1,6 @@
 {
   "name": "@fr/mobile",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
@@ -27,6 +27,7 @@
     "@supabase/supabase-js": "^2.118.0",
     "expo": "^58.0.14",
     "expo-audio": "~58.0.9",
+    "expo-calendar": "~58.0.6",
     "expo-camera": "~58.0.10",
     "expo-constants": "~58.0.12",
     "expo-file-system": "~58.0.9",
