@@ -17,8 +17,9 @@ export function OfflineBoot() {
   useEffect(() => {
     if (SIGNED_OUT_PATHS.includes(pathname)) {
       void clearOfflineData({ queue: false });
-      return;
+      return undefined;
     }
+    if (pathname.startsWith('/scan/')) return undefined; // the scanning phone is not signed in: no worker, nothing to keep
     let cancelled = false;
     void registerServiceWorker().then(() => {
       if (!cancelled && (pathname === '/shopping' || pathname.startsWith('/shopping/'))) void warmOfflineShell(['/shopping']);

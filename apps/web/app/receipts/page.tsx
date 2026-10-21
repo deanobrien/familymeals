@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Badge, Card, CardBody, EmptyState } from '@fr/ui';
 import { formatPence } from '../../lib/receipts/format';
 import { listReceipts } from '../../lib/server/receipts/service';
+import { shoppingUsesRealtime } from '../../lib/server/shopping/store';
 import { UploadForm } from './upload-form';
 
 export const metadata = { title: 'Receipts' };
@@ -16,7 +17,7 @@ export default async function ReceiptsPage() {
 
       <section aria-labelledby="new-receipt">
         <h2 id="new-receipt">New receipt</h2>
-        <UploadForm />
+        <UploadForm phoneRealtime={shoppingUsesRealtime()} />
       </section>
 
       <section aria-labelledby="past-receipts" style={{ marginTop: 'var(--fr-space-5, 24px)' }}>

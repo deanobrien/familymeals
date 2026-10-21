@@ -36,7 +36,10 @@ export async function POST(req: Request) {
       return { deleted: s.deleted, failed: s.failed };
     },
   });
-  return NextResponse.json({ ...result, durationMs: Date.now() - started }, { status: result.ok ? 200 : 500, headers: NO_STORE });
+  // Phone-scanner sessions (P3-C, D449): useless an hour after they expire; photos pushed by a phone go with them.
+  const scanner = (await admin.rpc('scanner_purge_expired')) as { data: number | null; error: unknown };
+  if (scanner.error) console.error('[purge] scanner_purge_expired failed');
+  return NextResponse.json({ ...result, scannerSessionsPurged: typeof scanner.data === 'number' ? scanner.data : 0, durationMs: Date.now() - started }, { status: result.ok ? 200 : 500, headers: NO_STORE });
 }
 
 export function GET() {

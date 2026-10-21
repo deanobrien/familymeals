@@ -24,6 +24,8 @@ export interface RapidSession {
   restored: boolean;
   /** A read from the camera or typed digits: returns whether it was counted. */
   sight(code: string, now: number): SightingResult;
+  /** Is this code already in the tally (read from the live ref, not the last render)? */
+  has(code: string): boolean;
   plus(code: string): void;
   minus(code: string): void;
   remove(code: string): void;
@@ -92,6 +94,7 @@ export function useRapidSession(seed: readonly RapidItem[] = []): RapidSession {
       else ref.current = r.state;
       return r;
     },
+    has: (code) => ref.current.items.some((i) => i.barcode === code),
     plus: (code) => commit(increment(ref.current, code)),
     minus: (code) => commit(decrement(ref.current, code)),
     remove: (code) => commit(removeItem(ref.current, code)),

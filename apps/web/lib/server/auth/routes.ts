@@ -11,6 +11,8 @@ export const SIGN_IN_PATH = '/sign-in';
 export const PUBLIC_PATHS: readonly string[] = [
   '/privacy',
   '/about/sources',
+  // The phone that scans for a desktop session is not signed in: the QR code's session id + token are its credential (P3-C, D447).
+  '/scan/phone',
   '/sign-in',
   '/sign-up',
   '/forgot-password',
@@ -24,7 +26,7 @@ export const PUBLIC_PREFIXES: readonly string[] = ['/auth/', '/invite/', '/.well
  * `/api/jobs/**`: scheduler endpoints; each verifies its own shared secret inside the route
  * (`/api/jobs/storage-cleanup`: CRON_SECRET, ST1 D190; `/api/jobs/purge`: JOBS_SECRET, DX1 D256).
  */
-export const PUBLIC_API_PREFIXES: readonly string[] = ['/api/health', '/api/jobs'];
+export const PUBLIC_API_PREFIXES: readonly string[] = ['/api/health', '/api/jobs', '/api/scanner/phone'];
 
 /**
  * API routes the Android app calls with `Authorization: Bearer <supabase access token>` instead of cookies (D102).

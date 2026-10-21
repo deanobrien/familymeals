@@ -27,7 +27,7 @@ interface SnapshotRecord { v: 1; userId: string; savedAt: string; list: CachedLi
 
 type LegacyStorage = Pick<Storage, 'getItem' | 'removeItem'>;
 
-export class OfflineShoppingStore implements PendingStore, SnapshotCache {
+export class OfflineShoppingStore implements PendingStore {
   /** Writes are serialised: a later save never overtakes an earlier one. */
   private chain: Promise<unknown> = Promise.resolve();
   /** Command ids this tab has loaded or saved: the only ones it may remove from the shared queue. */

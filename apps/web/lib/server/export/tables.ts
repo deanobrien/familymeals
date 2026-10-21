@@ -120,6 +120,11 @@ export const EXCLUDED_TABLES: readonly string[] = [
   'notification_devices',
   'notification_delivery_attempts',
   'notification_job_state',
+  // P3-C (D449): phone-scanner sessions are ten-minute pairing credentials with what the phone pushed (deleted when the session ends
+  // or an hour after it expires): nothing durable of the user's, and the token hash is a credential.
+  'scanner_sessions',
+  'scanner_items',
+  'scanner_photos',
 ];
 
 /** Derived/search columns that carry no information of their own. */

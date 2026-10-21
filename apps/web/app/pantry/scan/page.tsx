@@ -1,5 +1,6 @@
 import { parseSeedParam } from '@fr/engine/pantry';
 import { describeActiveProvider } from '../../../lib/server/ai/provider';
+import { shoppingUsesRealtime } from '../../../lib/server/shopping/store';
 import { ScanFlow } from './scan-flow';
 import s from './scan.module.css';
 
@@ -23,6 +24,7 @@ export default async function ScanPage({ searchParams }: { searchParams: Promise
         provider={{ label: info.label, isMock: info.isMock, configured: info.configured }}
         seed={parseSeedParam(Array.isArray(codes) ? codes[0] : codes)}
         startRapid={(Array.isArray(mode) ? mode[0] : mode) === 'rapid'}
+        phoneRealtime={shoppingUsesRealtime()}
       />
     </div>
   );

@@ -101,7 +101,7 @@ async function warm(data) {
     try {
       const res = await fetch(req);
       if (res.ok) await statics.put(req, res);
-    } catch (e) {
+    } catch {
       /* offline: nothing to warm */
     }
   }
@@ -112,7 +112,7 @@ async function warm(data) {
       // redirect: 'manual' so a signed-out redirect to /sign-in is an opaque redirect (not ok) and is never stored.
       const res = await fetch(self.location.origin + p, { credentials: 'same-origin', redirect: 'manual', headers: { accept: 'text/html' } });
       if (res.ok && isHtml(res)) await pageCache.put(pageKey(p), res);
-    } catch (e) {
+    } catch {
       /* offline */
     }
   }

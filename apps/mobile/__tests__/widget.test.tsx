@@ -7,6 +7,7 @@ import { WidgetStateStore, WIDGET_STATE_KEY } from '@/widget/widgetState';
 import { loadWidgetModel, tickFromWidget, undoFromWidget, type WidgetDeps } from '@/widget/widgetController';
 import { UNDO_WINDOW_MS, WIDGET_MAX_ROWS, buildWidgetModel, quantityText } from '@/widget/widgetModel';
 import { itemIdOf } from '@/widget/widgetTaskHandler';
+import { CLICK_TICK, CLICK_UNDO, shoppingWidgetTree } from '@/widget/ShoppingWidget';
 import type { ShoppingListItem } from '@/viewModels';
 import { FakeBackend, HH, uid } from './helpers/fakeSupabase';
 
@@ -19,8 +20,6 @@ jest.mock('react-native-android-widget', () => {
   };
   return { FlexWidget: make('FlexWidget'), TextWidget: make('TextWidget') };
 });
-// eslint-disable-next-line import/first
-import { CLICK_TICK, CLICK_UNDO, shoppingWidgetTree } from '@/widget/ShoppingWidget';
 
 function memoryKv(): KeyValueStore & { data: Map<string, string> } {
   const data = new Map<string, string>();

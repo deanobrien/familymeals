@@ -2533,6 +2533,155 @@ export type Database = {
         };
         Relationships: [];
       };
+      scanner_items: {
+        Row: {
+          barcode: string | null;
+          client_id: string;
+          count: number;
+          created_at: string;
+          household_id: string;
+          id: string;
+          kind: string;
+          seq: number;
+          session_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          barcode?: string | null;
+          client_id: string;
+          count?: number;
+          created_at?: string;
+          household_id: string;
+          id?: string;
+          kind: string;
+          seq?: never;
+          session_id: string;
+        };
+        Update: {
+          barcode?: string | null;
+          client_id?: string;
+          count?: number;
+          created_at?: string;
+          household_id?: string;
+          id?: string;
+          kind?: string;
+          seq?: never;
+          session_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'scanner_items_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'scanner_items_session_id_fkey';
+            columns: ['session_id'];
+            isOneToOne: false;
+            referencedRelation: 'scanner_sessions';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      scanner_photos: {
+        Row: {
+          bytes: string;
+          item_id: string;
+          mime: string;
+          session_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          bytes: string;
+          item_id: string;
+          mime: string;
+          session_id: string;
+        };
+        Update: {
+          bytes?: string;
+          item_id?: string;
+          mime?: string;
+          session_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'scanner_photos_item_id_fkey';
+            columns: ['item_id'];
+            isOneToOne: true;
+            referencedRelation: 'scanner_items';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'scanner_photos_session_id_fkey';
+            columns: ['session_id'];
+            isOneToOne: false;
+            referencedRelation: 'scanner_sessions';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      scanner_sessions: {
+        Row: {
+          connected_at: string | null;
+          created_at: string;
+          device_hash: string | null;
+          expires_at: string;
+          failed_attempts: number;
+          household_id: string;
+          id: string;
+          item_count: number;
+          last_push_at: string | null;
+          photo_count: number;
+          purpose: string;
+          revoked_at: string | null;
+          token_hash: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          connected_at?: string | null;
+          created_at?: string;
+          device_hash?: string | null;
+          expires_at: string;
+          failed_attempts?: number;
+          household_id: string;
+          id?: string;
+          item_count?: number;
+          last_push_at?: string | null;
+          photo_count?: number;
+          purpose: string;
+          revoked_at?: string | null;
+          token_hash: string;
+          user_id: string;
+        };
+        Update: {
+          connected_at?: string | null;
+          created_at?: string;
+          device_hash?: string | null;
+          expires_at?: string;
+          failed_attempts?: number;
+          household_id?: string;
+          id?: string;
+          item_count?: number;
+          last_push_at?: string | null;
+          photo_count?: number;
+          purpose?: string;
+          revoked_at?: string | null;
+          token_hash?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'scanner_sessions_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       spend_entries: {
         Row: {
           amount_pence: number;
@@ -2917,6 +3066,16 @@ export type Database = {
       household_purchase_records: { Args: { p_household_id: string }; Returns: Json };
       household_spend_receipts: { Args: { p_from: string; p_household_id: string; p_to: string }; Returns: Json };
       household_store_book: { Args: { p_household_id: string }; Returns: Json };
+      scanner_connect: { Args: { p_device: string; p_session_id: string; p_token: string }; Returns: Json };
+      scanner_photo: { Args: { p_item_id: string }; Returns: Json };
+      scanner_purge_expired: { Args: Record<PropertyKey, never>; Returns: number };
+      scanner_push: {
+        Args: { p_barcode?: string; p_client_id: string; p_count?: number; p_device: string; p_kind: string; p_mime?: string; p_photo_b64?: string; p_session_id: string; p_token: string };
+        Returns: Json;
+      };
+      scanner_session_create: { Args: { p_household_id: string; p_purpose: string; p_token_hash: string; p_ttl_seconds?: number }; Returns: Json };
+      scanner_session_release: { Args: { p_session_id: string }; Returns: Json };
+      scanner_session_revoke: { Args: { p_session_id: string }; Returns: Json };
       is_household_member: { Args: { hid: string }; Returns: boolean };
       is_household_owner: { Args: { hid: string }; Returns: boolean };
       is_household_writable: { Args: { hid: string }; Returns: boolean };

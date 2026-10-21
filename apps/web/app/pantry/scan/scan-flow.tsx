@@ -10,7 +10,8 @@ import { postScan, type ScanApiFailure } from '../../../lib/pantry/scan-client';
 import type { ScanProviderInfo } from '../../../lib/pantry/scan-types';
 import { SETTINGS_ERROR_CODES } from '../../recipes/import/upload-step';
 import { BarcodeStep } from './barcode-step';
-import { CaptureStep, type ScanImage } from './capture-step';
+import { CaptureStep, MAX_SCAN_IMAGES, type ScanImage } from './capture-step';
+import { PhoneScannerPanel } from '../../phone-scanner-panel';
 import { RapidStep } from './rapid-step';
 import { ReviewStep } from './review-step';
 import { useRapidSession } from './use-rapid-session';
@@ -19,7 +20,7 @@ import s from './scan.module.css';
 type Stage = 'capture' | 'rapid' | 'scanning' | 'review' | 'done';
 type ApiError = ScanApiFailure;
 
-export function ScanFlow({ provider, startRapid = false, seed = [] }: { provider: ScanProviderInfo; startRapid?: boolean; seed?: RapidItem[] }) {
+export function ScanFlow({ provider, startRapid = false, seed = [], phoneRealtime = false }: { provider: ScanProviderInfo; startRapid?: boolean; seed?: RapidItem[]; phoneRealtime?: boolean }) {
   const [stage, setStage] = useState<Stage>(startRapid || seed.length > 0 ? 'rapid' : 'capture');
   const [images, setImages] = useState<ScanImage[]>([]);
   const [rows, setRows] = useState<ScanRow[]>([]);
@@ -53,6 +54,22 @@ export function ScanFlow({ provider, startRapid = false, seed = [] }: { provider
       return changed ? next : cur;
     });
   }, [rapid.lookups]);
+
+  /**
+   * "Use my phone" (P3-C, D447): a barcode the phone scanned joins the same tally as the camera on this page (a new code through the
+   * same counting rule, extra units as +1 each), and a photo joins the photos to scan. Nothing is added to the pantry here.
+   */
+  function fromPhoneBarcode(code: string, count: number) {
+    if (rapid.has(code)) for (let i = 0; i < count; i++) rapid.plus(code);
+    else {
+      rapid.sight(code, Date.now());
+      for (let i = 1; i < count; i++) rapid.plus(code);
+    }
+    setStage((cur) => (cur === 'capture' && imagesRef.current.length === 0 ? 'rapid' : cur));
+  }
+  function fromPhonePhoto(file: File) {
+    setImages((cur) => (cur.length >= MAX_SCAN_IMAGES ? cur : [...cur, { id: counter.current++, file, url: URL.createObjectURL(file), source: 'photo' }]));
+  }
 
   /** Scanned codes -> review rows. Rows already in the review keep what the owner did to them; tally changes since the last sync win for the count. */
   function syncRapidRows() {
@@ -132,6 +149,10 @@ export function ScanFlow({ provider, startRapid = false, seed = [] }: { provider
           {settingsError && <Link href="/settings">Open Settings &gt; AI provider</Link>}
           {error.retryable && !settingsError && <span> Your photos are still here: press Scan to try again.</span>}
         </div>
+      )}
+
+      {(stage === 'capture' || stage === 'rapid') && (
+        <PhoneScannerPanel purpose="pantry" realtime={phoneRealtime} what="scan barcodes and photograph what you have bought" onBarcode={fromPhoneBarcode} onPhoto={fromPhonePhoto} />
       )}
 
       {stage === 'rapid' && (
