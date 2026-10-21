@@ -8,6 +8,8 @@ import { formatAmount, formatQuantity } from '../../lib/shopping/format';
 import { PRICE_KIND_LABEL, type ItemCost } from '../../lib/shopping/prices';
 import type { ListMeta } from '../../lib/shopping/types';
 import { Popover } from './popover';
+import Link from 'next/link';
+import type { ListCompareView } from '../../lib/money/types';
 import styles from './shopping.module.css';
 
 export function quantityLabel(v: ItemView): string {
@@ -55,6 +57,8 @@ export interface ItemRowProps {
   meta: ListMeta;
   pending: boolean;
   cost?: ItemCost | undefined;
+  /** P2-B: this item is cheapest at a shop (two or more shops have a recent price); links to its price history. */
+  cheapest?: ListCompareView['badges'][string] | undefined;
   onTick: (v: ItemView) => void;
   onUntick: (v: ItemView) => void;
   onPartial: (v: ItemView) => void;
@@ -67,7 +71,7 @@ export interface ItemRowProps {
 
 const LONG_PRESS_MS = 600;
 
-export function ItemRow({ view, meta, pending, cost, onTick, onUntick, onPartial, onEdit, aisleLabel, onPlace }: ItemRowProps) {
+export function ItemRow({ view, meta, pending, cost, cheapest, onTick, onUntick, onPartial, onEdit, aisleLabel, onPlace }: ItemRowProps) {
   const done = view.status === 'complete' || view.status === 'over_purchased';
   const name = view.item.displayName;
   const part = partialLabel(view);
@@ -107,6 +111,11 @@ export function ItemRow({ view, meta, pending, cost, onTick, onUntick, onPartial
             <span className={styles.cost} title={`Estimate: ${PRICE_KIND_LABEL[cost.kind]}`}>
               ~{formatPence(cost.pence)} est.
             </span>
+          )}
+          {cheapest && (
+            <Link href={`/spending/prices/${cheapest.ingredientId}`} className={styles.cheapBadge} data-testid="cheapest-badge" title={cheapest.text}>
+              {cheapest.text}
+            </Link>
           )}
           {pending && <Badge tone="warning" data-testid="pending-badge">Pending sync</Badge>}
         </div>

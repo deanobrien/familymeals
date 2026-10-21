@@ -8,6 +8,7 @@ import type { DashboardData } from '../lib/dashboard/types';
 import s from '../lib/dashboard/dashboard.module.css';
 import { MakeNow } from './make-now';
 import { RestockBanner } from './restock-banner';
+import { SpendingWidget } from './spending-widget';
 import { ActivityFeed } from './notifications/activity-feed';
 
 type State =
@@ -125,6 +126,10 @@ function Dashboard({ data }: { data: DashboardData }) {
             <p className={s.muted}>Plan some meals to see an estimated cost.</p>
           )}
         </section>
+      </Card>
+
+      <Card>
+        <SpendingWidget />
       </Card>
 
       <Card>

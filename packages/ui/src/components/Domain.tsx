@@ -92,7 +92,7 @@ export function RecipeGrid({ view = 'grid', label = 'Recipes', children }: { vie
 }
 
 /* ---------- AppShell ---------- */
-export type NavKey = 'home' | 'recipes' | 'planner' | 'shopping' | 'pantry' | 'receipts' | 'household' | 'settings';
+export type NavKey = 'home' | 'recipes' | 'planner' | 'shopping' | 'pantry' | 'receipts' | 'spending' | 'household' | 'settings';
 /** `mobile: false` keeps an item out of the bottom nav (sidebar only) so the phone bar stays usable. */
 export interface NavItem { key: NavKey; label: string; href: string; icon: IconName; mobile?: boolean }
 
@@ -103,6 +103,7 @@ export const DEFAULT_NAV: NavItem[] = [
   { key: 'shopping', label: 'Shopping list', href: '/shopping', icon: 'cart' },
   { key: 'pantry', label: 'Pantry', href: '/pantry', icon: 'box' },
   { key: 'receipts', label: 'Receipts', href: '/receipts', icon: 'receipt', mobile: false },
+  { key: 'spending', label: 'Spending', href: '/spending', icon: 'wallet', mobile: false },
   { key: 'household', label: 'Household', href: '/household', icon: 'users' },
   { key: 'settings', label: 'Settings', href: '/settings', icon: 'settings' },
 ];

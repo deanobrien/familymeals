@@ -24,6 +24,9 @@ import type { StoreLocation } from '../../lib/stores/locations';
 import { useStoreMode } from './use-store-mode';
 import { emptyStoreBook, type StoreBook } from '../../lib/shopping/engine';
 import { ListsSheet } from './lists-sheet';
+import { CompareListPanel } from './compare-panel';
+import { getListComparisonAction } from '../spending/actions';
+import type { ListCompareView } from '../../lib/money/types';
 import styles from './shopping.module.css';
 
 const transport: Transport = {
@@ -36,7 +39,9 @@ const AISLE_ORDER: string[] = [...AISLES];
 /** "1" -> "Aisle 1"; named aisles ("Frozen") are shown as they are. */
 const aisleTitle = (label: string): string => (/^\d+[a-z]?$/i.test(label) ? `Aisle ${label}` : label);
 
-export function ShoppingClient({ initial, lists = [], planId, approvedPlanId, actorId, prices, realtimeHouseholdId, storeBook, storeLocations, householdId }: {
+export function ShoppingClient({ initial, lists = [], planId, approvedPlanId, actorId, prices, realtimeHouseholdId, storeBook, storeLocations, householdId, initialCompare = null }: {
+  /** Per-shop price comparison for the list (P2-B), computed on the server; refreshed here when the list changes. */
+  initialCompare?: ListCompareView | null;
   initial: SnapshotDto;
   /** The household's lists (SL1): the active one first, then archived ones. */
   lists?: ShoppingListInfo[];
@@ -145,6 +150,15 @@ export function ShoppingClient({ initial, lists = [], planId, approvedPlanId, ac
   const basket = useMemo(() => estimateBasket(all, prices), [all, prices]);
 
   const live = all.filter((v) => !v.item.removed && !v.noLongerNeeded);
+  // P2-B: the server recomputes the comparison when the set of items (or what is left of them) changes.
+  const [compare, setCompare] = useState<ListCompareView | null>(initialCompare);
+  const compareSig = live.map((v) => `${v.item.id}:${v.outstanding}`).join('|');
+  const firstSig = useRef(compareSig);
+  useEffect(() => {
+    if (compareSig === firstSig.current) return;
+    const t = setTimeout(() => { getListComparisonAction().then((c) => { if (c) setCompare(c); }, () => undefined); }, 700);
+    return () => clearTimeout(t);
+  }, [compareSig]);
   const doneCount = live.filter((v) => v.status === 'complete' || v.status === 'over_purchased').length;
 
   const byId = (id: string | null): ItemView | null => (id ? all.find((v) => v.item.id === id) ?? null : null);
@@ -272,6 +286,8 @@ export function ShoppingClient({ initial, lists = [], planId, approvedPlanId, ac
         </Card>
       )}
 
+      {live.length > 0 && compare && <CompareListPanel view={compare} />}
+
       {!hasAnything && (
         <EmptyState
           icon="cart"
@@ -305,6 +321,7 @@ export function ShoppingClient({ initial, lists = [], planId, approvedPlanId, ac
                 meta={state.meta}
                 pending={state.pendingItemIds.has(v.item.id)}
                 cost={basket.byItem[v.item.id]}
+                cheapest={compare?.badges[v.item.id]}
                 onTick={tick}
                 onUntick={untick}
                 onPartial={(x) => setPartialFor(x.item.id)}

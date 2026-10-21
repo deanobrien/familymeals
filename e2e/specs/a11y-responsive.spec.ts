@@ -10,7 +10,7 @@ export const VIEWPORTS = [
   { name: 'desktop', width: 1280, height: 800 },
 ] as const;
 
-export const ROUTES = ['/', '/sign-in', '/household', '/recipes', '/recipes/import', '/plan', '/shopping', '/receipts', '/pantry'] as const;
+export const ROUTES = ['/', '/sign-in', '/household', '/recipes', '/recipes/import', '/plan', '/shopping', '/receipts', '/spending', '/pantry'] as const;
 
 /** Rules the app currently violates; each is reported as a bug in the lane report, not hidden. Empty = none known. */
 const KNOWN_AXE: Record<string, string[]> = {};

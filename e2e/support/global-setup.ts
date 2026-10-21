@@ -8,7 +8,7 @@ import { chromium, type FullConfig } from '@playwright/test';
 const SEED_RECIPE = '00000000-0000-4000-8000-000000000001';
 const WARM = [
   '/', '/recipes', '/recipes/new', `/recipes/${SEED_RECIPE}`, `/recipes/${SEED_RECIPE}/edit`, '/recipes/import',
-  '/recipes/discover', '/recipes/discover/review', '/plan', '/plan?week=2026-12-07', '/shopping', '/pantry', '/pantry/scan', '/pantry/scan?mode=rapid', '/shopping/scan', '/settings/stores',
+  '/recipes/discover', '/recipes/discover/review', '/plan', '/plan?week=2026-12-07', '/shopping', '/pantry', '/pantry/scan', '/pantry/scan?mode=rapid', '/shopping/scan', '/settings/stores', '/spending',
   '/receipts', '/receipts/00000000-0000-4000-8000-0000000000ff/review', '/household', '/household/new', '/settings', '/privacy',
   '/about/sources', '/sign-in', '/sign-up', '/forgot-password', '/reset-password', '/invite/warmup-token',
 ];
@@ -21,6 +21,8 @@ const WARM_API: Array<{ method: 'GET' | 'POST'; path: string }> = [
   { method: 'POST', path: '/api/pantry/scan' },
   { method: 'POST', path: '/api/import/url' },
   { method: 'GET', path: '/api/pantry/make-now' },
+  { method: 'GET', path: '/api/money/spending' },
+  { method: 'GET', path: '/api/money/compare' },
   { method: 'POST', path: '/api/shopping/scan' },
   { method: 'POST', path: '/api/shopping/voice/parse' },
   { method: 'GET', path: '/api/stores/locations' },

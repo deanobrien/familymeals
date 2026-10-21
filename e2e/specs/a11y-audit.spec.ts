@@ -65,6 +65,7 @@ export const STATES: State[] = [
     },
   },
   { name: 'receipts', path: '/receipts' },
+  { name: 'spending', path: '/spending' },
   {
     name: 'receipt review',
     path: '/receipts',

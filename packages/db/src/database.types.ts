@@ -2533,6 +2533,64 @@ export type Database = {
         };
         Relationships: [];
       };
+      spend_entries: {
+        Row: {
+          amount_pence: number;
+          category: string | null;
+          created_at: string;
+          created_by: string | null;
+          household_id: string;
+          id: string;
+          note: string | null;
+          retailer: string | null;
+          spent_on: string;
+          store_id: string | null;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          amount_pence: number;
+          category?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          household_id: string;
+          id?: string;
+          note?: string | null;
+          retailer?: string | null;
+          spent_on: string;
+          store_id?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          amount_pence?: number;
+          category?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          household_id?: string;
+          id?: string;
+          note?: string | null;
+          retailer?: string | null;
+          spent_on?: string;
+          store_id?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'spend_entries_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'spend_entries_store_id_household_id_fkey';
+            columns: ['store_id', 'household_id'];
+            isOneToOne: false;
+            referencedRelation: 'stores';
+            referencedColumns: ['id', 'household_id'];
+          },
+        ];
+      };
       store_aisles: {
         Row: {
           created_at: string;
@@ -2656,6 +2714,39 @@ export type Database = {
           },
           {
             foreignKeyName: 'store_placements_store_id_household_id_fkey';
+            columns: ['store_id', 'household_id'];
+            isOneToOne: false;
+            referencedRelation: 'stores';
+            referencedColumns: ['id', 'household_id'];
+          },
+        ];
+      };
+      store_retailer_links: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          household_id: string;
+          retailer_key: string;
+          store_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          household_id: string;
+          retailer_key: string;
+          store_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          household_id?: string;
+          retailer_key?: string;
+          store_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'store_retailer_links_store_id_household_id_fkey';
             columns: ['store_id', 'household_id'];
             isOneToOne: false;
             referencedRelation: 'stores';
@@ -2824,6 +2915,7 @@ export type Database = {
       household_price_observations: { Args: { p_household_id: string }; Returns: Json };
       household_product_snapshots: { Args: { p_household_id: string }; Returns: Json };
       household_purchase_records: { Args: { p_household_id: string }; Returns: Json };
+      household_spend_receipts: { Args: { p_from: string; p_household_id: string; p_to: string }; Returns: Json };
       household_store_book: { Args: { p_household_id: string }; Returns: Json };
       is_household_member: { Args: { hid: string }; Returns: boolean };
       is_household_owner: { Args: { hid: string }; Returns: boolean };

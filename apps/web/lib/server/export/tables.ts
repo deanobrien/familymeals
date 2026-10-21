@@ -88,6 +88,9 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
   { table: 'member_calendar_feeds', file: 'calendar.json', key: 'calendar_feeds', order: ['household_id', 'user_id'], household: self('user_id'), member: self('user_id') },
   { table: 'leftover_batches', file: 'leftovers.json', key: 'batches', order: ID, household: H, member: self('created_by') },
   { table: 'leftover_consumptions', file: 'leftovers.json', key: 'consumptions', order: ID, household: H, member: self('created_by') },
+  // P2-B (D400): spending the household recorded by hand and the receipt-retailer -> store links.
+  { table: 'spend_entries', file: 'spending.json', key: 'spend_entries', order: ID, household: H, member: self('created_by') },
+  { table: 'store_retailer_links', file: 'spending.json', key: 'retailer_links', order: ['household_id', 'retailer_key'], household: H, member: self('created_by') },
   // AS1 / P2-A (D290, D392): the household's stores, their aisles and placements, and the location a member SAVED for a store
   // (a point + radius). A live position is never stored, so there is nothing of that kind to export.
   { table: 'stores', file: 'stores.json', key: 'stores', order: ID, household: H, member: self('created_by') },
