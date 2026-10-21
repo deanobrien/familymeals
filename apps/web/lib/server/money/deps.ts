@@ -4,7 +4,6 @@ import 'server-only';
 import type { CanonicalIngredient } from '@fr/domain';
 import type { ListNeed, PlannedWeek } from '@fr/engine/money';
 import { deriveAll } from '@fr/engine/shopping';
-import { weekCost } from '../../plan/cost';
 import type { RecipeLite } from '../../plan/types';
 import { aisleForCategory } from '../../shopping/aisles';
 import { loadPlanServices } from '../plan/services';
@@ -14,6 +13,7 @@ import { getIngredientCatalogue } from '../refdata/catalogue';
 import { getShoppingStore } from '../shopping/store';
 import { getStoreBook } from '../stores/store';
 import { createSupabaseReceiptRepository, useSupabaseBackend } from '../supabase/backend';
+import { plannedWeekFor } from './planned';
 import { createPriceService, type PriceService } from './prices';
 import { createSpendingService, type SpendingService } from './spending';
 import { getMoneyRepository } from './store';
@@ -36,11 +36,7 @@ async function plannedWeeks(householdId: string, from: string, to: string): Prom
   const lite = new Map<string, RecipeLite>(
     [...found.entries()].map(([id, r]) => [id, { costPerServingPence: r.costPerServingPence ?? null, costPartial: r.costPartial ?? false } as RecipeLite]),
   );
-  return docs.map((d) => {
-    const c = weekCost(d, lite);
-    const meals = c.costedMeals + c.uncostedMeals;
-    return { weekStart: d.weekStart, pence: c.costedMeals > 0 ? c.knownPence : null, partial: c.uncostedMeals > 0 || c.partialMeals > 0, uncostedMeals: c.uncostedMeals, meals };
-  });
+  return docs.map((d) => plannedWeekFor(d, lite));
 }
 
 export function getSpendingService(): SpendingService {
