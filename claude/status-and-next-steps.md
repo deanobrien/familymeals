@@ -31,7 +31,11 @@ Known caveats (before pass 3; the recipe-store/receipt-price/pantry-extras items
 
 **IL1 ingredient links for form-created recipes (2026-10-20, D220-D225):** recipes saved in the form are matched to the catalogue on save (new/changed lines only; manual choices and "not in list" preserved), inline "Matched to" picker with candidates and search, "Re-match ingredients" per recipe and for the whole library, migrations `002300` (save_recipe explicit unlink) and `002301` (exact-match backfill). Verified after merging w0a-skeleton a809c4b: typecheck/lint green; web 548 unit tests (new: 13 link/rematch + 2 PGlite migration tests); Playwright 5 new specs (`ingredient-links.spec.ts`). Under load 3 unit tests (site-url, prices/store, plan-requirements) and ~10 e2e specs time out in the full parallel run but pass in isolation (pre-existing flake class).
 
-## Next
+## Handover after Phase 3 (2026-10-21)
+
+All roadmap phases (0 parity, 1 everyday wins, 2 location/money/planning, 3 sharing/health/platform) are merged on `prj018/w0a-skeleton` (head before the handover docs: `ec7192b`, then the Android package rename to `uk.deanobrien.familyrecipes`, D450). Feature work is paused. Last merge counts: engine about 1038, web 1358 (143 files), mobile 662 (61 suites), db about 32; typecheck (13 tasks) and lint clean; `expo config` shows `android.package`, versionCode 4 (mobile 0.4.0). Deployed to App Service: only up to `28a60f7`. Hosted Supabase: migrations up to `20261020002900` applied, 14 pending (needs `db push --include-seed --include-all`). Full owner go-live checklist, known issues and resume instructions: [../docs/HANDOVER.md](../docs/HANDOVER.md) sections 6, 8, 9, 12.
+
+## Next (older list, superseded by HANDOVER.md section 8; kept for history)
 
 1. Supabase adapters behind the in-memory interfaces (recipes, plans, pantry, shopping command log + `record_purchase`, receipts, price observations); generate `database.types.ts`.
 2. Live-Supabase e2e: done locally (LV1, `pnpm test:e2e:live`); next is the hosted project (`supabase db push --include-seed`, dashboard Auth settings, D145/D149).

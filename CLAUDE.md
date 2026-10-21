@@ -38,7 +38,7 @@ pnpm workspace + Turborepo, scope `@fr/*`, packages export TS source (no emit; D
 
 ## Current state
 
-See [docs/HANDOVER.md](docs/HANDOVER.md) section "Current state" (kept up to date) and [claude/status-and-next-steps.md](claude/status-and-next-steps.md) (verified test counts per integration pass). In one line: all feature lanes through S2 are merged and green in mock mode; LV1 verified the Supabase-backed stores against a LOCAL Supabase (all 23 migrations + seed apply on Postgres 17.11, live suite 20/20, three bugs fixed: email-locked invites, empty reference ingredients, pantry_source enum). The hosted project has not been pushed to yet (owner: `supabase link` + `db push --include-seed`); first Azure App Service deploy is staged awaiting a smoke test.
+See [docs/HANDOVER.md](docs/HANDOVER.md) section "Current state" (kept up to date) and [claude/status-and-next-steps.md](claude/status-and-next-steps.md) (verified test counts per integration pass). In one line (2026-10-21): all roadmap phases 0-3 are built and merged on `prj018/w0a-skeleton` (web + Android; widget Android-only, pantry video scan and AI provider settings web-only, D310 proposed); work is paused. Only commit `28a60f7` and earlier is deployed; hosted Supabase has migrations up to `20261020002900` (14 pending: `pnpm exec supabase db push --include-seed --include-all`). Android package id is `uk.deanobrien.familyrecipes` (D450). The ordered owner go-live checklist, known issues and how to resume (next free D460 / migration `20261022...`) are in docs/HANDOVER.md sections 8, 9 and 12.
 
 ## Conventions
 

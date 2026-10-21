@@ -210,6 +210,14 @@ az webapp deploy --resource-group rg-family-recipes --name family-recipes-dean -
 
 This goes through Kudu's zip-deploy pipeline. Since the D2 fix the zip is built so that Oryx has nothing to build (section 6), but route A is the one proven end to end; use route B only with Azure CLI 2.60+.
 
+**Route C: scripted Kudu publish (token based; what the owner now uses).** `scriptsdeploy-appservice.ps1` (tracked, no secrets, parameterised) signs in with your own Azure CLI login, POSTs `distappservice.zip` to `https://<scm-host>/api/publish?type=zip&clean=true&restart=true` with a bearer token from `az account get-access-token`, polls `/api/deployments/latest` until `status=4`, then polls `/api/health`. It refuses to run on the employer subscription (`-ForbiddenSubscription`, default `UNN-TEST-UAT-WEB`) and uses a separate Azure CLI config dir (`-AzureConfigDir`, default `%USERPROFILE%.azure-personal`):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scriptsdeploy-appservice.ps1
+```
+
+Override `-Scm`, `-Site`, `-Zip` for another App Service. The token call avoids the `WSAECONNRESET` problems of old CLIs and the browser drag-and-drop.
+
 Redeploying replaces wwwroot but **not** `/home/data`. Keep the previous zip (rename with date/commit) to roll back.
 
 ## 6. Pitfalls that cost time

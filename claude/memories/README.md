@@ -7,3 +7,4 @@ One durable fact per file: non-obvious rationale, environment quirks and gotchas
 - Windows: windows-symlink-eperm-hoisted-build, locked-libvips-dll-fresh-buildroot, powershell-5-1-syntax, crlf-line-endings
 - Azure deploy: app-service-internal-hostname, azure-unique-default-hostname, oryx-rebuild-on-zip-deploy, azure-personal-subscription-login
 - Other: realtime-live-means-confirmed (Realtime gap), shopping-log-cursor (Supabase shopping), docker-old-for-supabase (local stack), pnpm-script-naming (scripts)
+- Handover (2026-10-21): stale-expo-router-types, supabase-db-push-include-all, expo-browser-login-fails-on-windows, android-package-id-decision
