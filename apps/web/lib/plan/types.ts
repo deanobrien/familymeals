@@ -1,5 +1,7 @@
 // Client-safe plan types (no server imports). Shared by the planner UI and the server actions.
 import type { NutrientMap, RecipeVarietyProfile } from '@fr/engine/nutrition';
+import type { BusyDayView } from '../calendar/types';
+import type { LeftoversView } from '../leftovers/types';
 import type { ParsedPlanRequest, PlanProposal } from '@fr/plan-orchestrator';
 
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
@@ -16,7 +18,8 @@ export type DietCategory = 'meat' | 'fish' | 'vegetarian' | 'vegan';
 export type PlanEntry =
   | { kind: 'recipe'; recipeId: string; servings: number; note?: string }
   | { kind: 'eating_out'; note?: string }
-  | { kind: 'leftovers'; note?: string };
+  /** A leftovers night. With `batchId` it is a stored batch (P2-C, D417): `portions` come out of the ledger when eaten; no shopping. */
+  | { kind: 'leftovers'; note?: string; batchId?: string; portions?: number };
 
 export interface SlotRef {
   date: string;
@@ -73,6 +76,12 @@ export interface PlanPageData {
   cooked?: { date: string; recipeId: string }[];
   /** Household member display names (the choices for the "favourites of" chip). */
   memberNames: string[];
+  /** Busy evenings this week (manual toggles + calendars), derived flags only (P2-C, D410). */
+  busy?: BusyDayView[];
+  /** Stored leftover batches and slot suggestions (P2-C, D416). */
+  leftovers?: LeftoversView;
+  /** Plan slots (key `date|mealType`) whose leftover portions have been marked eaten. */
+  eatenSlots?: string[];
 }
 
 export type ActionResult<T> = { ok: true; value: T } | { ok: false; message: string; violations?: string[] };

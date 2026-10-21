@@ -12,6 +12,8 @@ import { getMemoryStoreBook } from '../stores/repository';
 import { resetMemoryExportAudit } from '../export/audit';
 import { resetMemorySettings } from '../settings/memory-store';
 import { resetMemoryCooking } from '../cooking/memory-store';
+import { resetMemoryCalendar } from '../calendar/store';
+import { resetMemoryLeftovers } from '../leftovers/store';
 import { resetMemoryNotifications } from '../notifications/store';
 import { resetMoneyRepository } from '../money/store';
 
@@ -28,6 +30,8 @@ export function resetInMemoryStores(): string[] {
   getMemoryStoreBook().reset();
   resetMemorySettings();
   resetMemoryCooking();
+  resetMemoryCalendar();
+  resetMemoryLeftovers();
   resetPlanServices();
   resetPantryServices();
   resetMemoryServices();

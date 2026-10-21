@@ -5,7 +5,7 @@ import type { ReceiptRecord } from '../../receipts/types';
 import type { StoreRef } from '../../money/types';
 import { createPriceService } from './prices';
 import { InMemoryMoneyRepository } from './repository';
-import { createSpendingService, receiptRecord } from './spending';
+import { createSpendingService, plannedWeekOf, receiptRecord } from './spending';
 
 const H = 'hh-1';
 const ING = 'a0000000-0000-4000-8000-000000000001';
@@ -112,6 +112,30 @@ describe('spending service', () => {
     expect(r?.date).toBe('2026-06-08');
     const { svc } = spendingFixture([], { now: '2026-06-07T23:30:00Z' });
     expect((await svc.spending(H, { weeks: 1 })).today).toBe('2026-06-08'); // "today" is Monday in London
+  });
+});
+
+describe('planned week estimate (leftovers and freezer slots, P2-C)', () => {
+  const lite = new Map([['r-cheap', { costPerServingPence: 200, costPartial: false }], ['r-unpriced', { costPerServingPence: null, costPartial: false }]]) as unknown as Parameters<typeof plannedWeekOf>[1];
+  const doc = (entries: Record<string, unknown>) => ({ id: 'p', householdId: H, weekStart: '2026-10-19', mealTypes: ['dinner'], status: 'approved', updatedAt: '', entries }) as unknown as Parameters<typeof plannedWeekOf>[0];
+  it('leftover, freezer and eating-out slots add zero, not unknown', () => {
+    const w = plannedWeekOf(doc({
+      '2026-10-19|dinner': { kind: 'recipe', recipeId: 'r-cheap', servings: 4 },
+      '2026-10-20|dinner': { kind: 'leftovers', batchId: 'b1', portions: 2 },
+      '2026-10-21|dinner': { kind: 'leftovers' },
+      '2026-10-22|dinner': { kind: 'eating_out' },
+    }), lite);
+    expect(w).toMatchObject({ pence: 800, partial: false, uncostedMeals: 0, meals: 4 });
+  });
+  it('a week of only leftovers is an estimate of £0, not "unknown"', () => {
+    expect(plannedWeekOf(doc({ '2026-10-19|dinner': { kind: 'leftovers', batchId: 'b1', portions: 2 } }), lite)).toMatchObject({ pence: 0, partial: false, meals: 1 });
+  });
+  it('an unpriced recipe still makes it unknown or "at least"', () => {
+    expect(plannedWeekOf(doc({ a: { kind: 'recipe', recipeId: 'r-unpriced', servings: 2 }, b: { kind: 'leftovers' } }), lite)).toMatchObject({ pence: null, partial: true });
+    expect(plannedWeekOf(doc({ a: { kind: 'recipe', recipeId: 'r-unpriced', servings: 2 }, b: { kind: 'recipe', recipeId: 'r-cheap', servings: 1 } }), lite)).toMatchObject({ pence: 200, partial: true });
+  });
+  it('an empty plan is not a plan', () => {
+    expect(plannedWeekOf(doc({}), lite)).toMatchObject({ pence: null, meals: 0 });
   });
 });
 

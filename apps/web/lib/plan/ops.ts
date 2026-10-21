@@ -59,6 +59,12 @@ export function markSlot(doc: PlanDoc, slot: SlotRef, kind: 'eating_out' | 'left
   return touch(doc, { ...doc.entries, [slotKey(slot)]: { kind, ...(note ? { note } : {}) } });
 }
 
+/** Put a stored leftover / freezer batch in a slot (P2-C, D417): its portions come out of the ledger when it is eaten; it needs no shopping. */
+export function setLeftover(doc: PlanDoc, slot: SlotRef, batchId: string, portions: number): PlanDoc {
+  const note = getEntry(doc, slot)?.note;
+  return touch(doc, { ...doc.entries, [slotKey(slot)]: { kind: 'leftovers', batchId, portions: Math.max(1, Math.round(portions)), ...(note ? { note } : {}) } });
+}
+
 /** Move: target takes the source entry; if target was occupied the two swap. Duplicate leaves the source. */
 export function moveEntry(doc: PlanDoc, from: SlotRef, to: SlotRef, mode: 'move' | 'duplicate'): PlanDoc {
   const fk = slotKey(from);

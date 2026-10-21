@@ -11,7 +11,8 @@ export type DietCategory = 'meat' | 'fish' | 'vegetarian' | 'vegan';
 export type PlanEntry =
   | { kind: 'recipe'; recipeId: string; servings: number; note?: string }
   | { kind: 'eating_out'; note?: string }
-  | { kind: 'leftovers'; note?: string };
+  /** With `batchId` a stored leftover / freezer batch (P2-C, D417): `portions` leave the ledger when it is eaten. */
+  | { kind: 'leftovers'; note?: string; batchId?: string; portions?: number };
 
 export interface SlotRef { date: string; mealType: MealType }
 
@@ -62,7 +63,56 @@ export interface PlanPage {
   cooked?: { date: string; recipeId: string }[];
   /** Allergy exclusions withheld for lack of consent: drives the consent notice (D242). */
   withheldExclusions: number;
+  /** Busy evenings this week (manual toggles + calendars): derived flags only (P2-C, D410). */
+  busy: BusyDay[];
+  /** Stored leftover batches and slot suggestions (P2-C, D416). */
+  leftovers: LeftoversView;
+  /** Slots (key `date|mealType`) whose leftover portions have been marked eaten. */
+  eatenSlots: string[];
 }
+
+/** One busy evening, merged across sources. */
+export interface BusyDay {
+  date: string;
+  sources: string[];
+  /** null = unknown (manual toggle only). */
+  minutesAvailable: number | null;
+  skip: boolean;
+  label: string;
+}
+
+export type StoredIn = 'fridge' | 'freezer';
+export interface BatchView {
+  id: string;
+  title: string;
+  storedIn: StoredIn;
+  portionsMade: number;
+  portionsLeft: number;
+  portionsPlanned: number;
+  portionsFree: number;
+  cookedOn: string;
+  useBy: string;
+  status: 'ok' | 'use_soon' | 'past_use_by';
+  useByLabel: string;
+}
+export interface LeftoverSuggestion {
+  batchId: string;
+  title: string;
+  storedIn: StoredIn;
+  portions: number;
+  date: string;
+  mealType: MealType;
+  label: string;
+  reason: string;
+}
+export interface LeftoversView {
+  batches: BatchView[];
+  suggestions: LeftoverSuggestion[];
+  titles: Record<string, string>;
+}
+
+/** A busy evening the plan honoured (parse step and proposal). */
+export interface BusyApplied { date: string; skip: boolean; minutesAvailable: number | null; sources: string[] }
 
 /** The editable, AI-facing reading of a prompt (the web's PlanRequest). Unknown extra keys survive a round trip. */
 export type DietTarget = { fraction: number } | { count: number } | { min?: number; max?: number };
@@ -89,6 +139,8 @@ export interface ParsedRequest {
   householdExclusions: string[];
   /** Problems already known (unknown or ambiguous member names). */
   notes: string[];
+  /** Busy evenings the solve will honour (P2-C). */
+  busy: BusyApplied[];
 }
 
 export interface ProposalSlot { date: string; mealType: MealType; recipeId: string | null; servings: number; note?: string }
@@ -114,6 +166,8 @@ export interface Proposal {
   totalCostPence: number | null;
   uncostedMeals: string[];
   request?: PlanRequest;
+  /** Busy evenings applied as quick-meal / skip constraints (P2-C). */
+  busyApplied: BusyApplied[];
 }
 
 export interface ShoppingHandoff { count: number; href: string; preview: { name: string; quantity: string }[] }

@@ -4,8 +4,8 @@ import 'server-only';
 import type { CanonicalIngredient } from '@fr/domain';
 import type { ListNeed, PlannedWeek } from '@fr/engine/money';
 import { deriveAll } from '@fr/engine/shopping';
-import { weekCost } from '../../plan/cost';
 import type { RecipeLite } from '../../plan/types';
+import { plannedWeekOf } from './spending';
 import { aisleForCategory } from '../../shopping/aisles';
 import { loadPlanServices } from '../plan/services';
 import { getPriceStore } from '../prices/store';
@@ -36,11 +36,7 @@ async function plannedWeeks(householdId: string, from: string, to: string): Prom
   const lite = new Map<string, RecipeLite>(
     [...found.entries()].map(([id, r]) => [id, { costPerServingPence: r.costPerServingPence ?? null, costPartial: r.costPartial ?? false } as RecipeLite]),
   );
-  return docs.map((d) => {
-    const c = weekCost(d, lite);
-    const meals = c.costedMeals + c.uncostedMeals;
-    return { weekStart: d.weekStart, pence: c.costedMeals > 0 ? c.knownPence : null, partial: c.uncostedMeals > 0 || c.partialMeals > 0, uncostedMeals: c.uncostedMeals, meals };
-  });
+  return docs.map((d) => plannedWeekOf(d, lite));
 }
 
 export function getSpendingService(): SpendingService {

@@ -28,7 +28,7 @@ export function planDocFromRows({ plan, meals }: PlanDocRow): PlanDoc {
     const note = m.notes ? { note: m.notes } : {};
     let entry: PlanEntry;
     if (m.kind === 'recipe' && m.recipeId) entry = { kind: 'recipe', recipeId: m.recipeId, servings: m.servings, ...note };
-    else if (m.kind === 'leftovers') entry = { kind: 'leftovers', ...note };
+    else if (m.kind === 'leftovers') entry = { kind: 'leftovers', ...(m.leftoverBatchId ? { batchId: m.leftoverBatchId, portions: m.servings } : {}), ...note };
     else entry = { kind: 'eating_out', ...note };
     entries[`${m.mealDate}|${m.mealType}`] = entry;
   }

@@ -20,7 +20,9 @@
     "./shopping": "./src/shopping/index.ts",
     "./pantry": "./src/pantry/index.ts",
     "./cooking": "./src/cooking/index.ts",
-    "./money": "./src/money/index.ts"
+    "./money": "./src/money/index.ts",
+    "./calendar": "./src/calendar/index.ts",
+    "./leftovers": "./src/leftovers/index.ts"
   },
   "sideEffects": false,
   "scripts": {

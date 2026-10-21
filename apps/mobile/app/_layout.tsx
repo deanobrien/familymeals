@@ -41,6 +41,7 @@ function Navigator() {
       <Stack.Screen name="import-link" options={{ title: 'Recipe from a link' }} />
       <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
       <Stack.Screen name="notification-settings" options={{ title: 'Notification settings' }} />
+      <Stack.Screen name="calendar-settings" options={{ title: "Calendar" }} />
       <Stack.Screen name="location-settings" options={{ title: 'Location' }} />
     </Stack>
   );

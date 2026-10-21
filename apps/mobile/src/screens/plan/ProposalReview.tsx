@@ -37,6 +37,12 @@ export default function ProposalReview({
         ))}
       </Section>
 
+      {p.busyApplied.length > 0 ? (
+        <Section title="Busy evenings honoured" testID="busy-applied">
+          <Text>{p.busyApplied.map((b) => `${dayShort(b.date)} ${dateShort(b.date)} (${b.skip ? 'dinner skipped' : 'quick meal'})`).join(', ')}</Text>
+        </Section>
+      ) : null}
+
       {p.reimposedExclusions.length > 0 ? (
         <Section title="Excluded for safety" testID="reimposed">
           <Text>{`Also excluded for safety: ${p.reimposedExclusions.join(', ')}. These come from your household profile and were not in your request, so we added them back.`}</Text>

@@ -10,6 +10,8 @@ import { summariserForHousehold } from '../calc/household';
 import { RepositoryPlanRecipeSource, toPlanRecipe, toRecipeRepo, withCookingSignals, type PlanRecipeSource } from './recipe-source';
 import { planSignals } from '../cooking/service';
 import { getMealPlanStore, getPlanStore, InMemoryMealPlanRepository, resetPlanStore, type MealPlanRepository } from './repository';
+import { resolveBusy } from '../calendar/planner';
+import { leftoverSnapshotForPlanner } from '../leftovers/service';
 import { createEngineSolver } from './engine-solver';
 import { createExclusionResolver } from './exclusions';
 import { formatQuantity } from '../../shopping/format';
@@ -57,6 +59,8 @@ export interface PlanServices {
   orchestrator: PlanOrchestrator;
   newId: () => string;
   now: () => Date;
+  /** Stored leftover batches + ledger, for validating leftover slots on save / approve (P2-C, D417). */
+  leftoverSnapshot: (householdId: string) => ReturnType<typeof leftoverSnapshotForPlanner>;
   /** Creates/updates the household's shopping list from the approved plan (wired in getPlanServicesFor). */
   onShoppingRequirements?: (householdId: string, planId: string, reqs: ShoppingRequirement[], actor: string) => Promise<void>;
 }
@@ -125,8 +129,9 @@ export function createPlanServices(opts: {
     costs: opts.buildRequirements ? { ...createCostService(recipes), buildRequirements: opts.buildRequirements } : createCostService(recipes),
     proposals: new InMemoryProposalStore(),
     resolveExclusions: createExclusionResolver(), // names -> ingredient ids / UK-14 groups (D132)
+    busy: resolveBusy, // busy evenings -> quick-meal / skip constraints (P2-C, D413)
   });
-  services = { household, households, recipes, plans: opts.plans ?? (supabase ? getMealPlanStore() : new InMemoryMealPlanRepository()), orchestrator, newId: () => crypto.randomUUID(), now: () => new Date() };
+  services = { household, households, recipes, plans: opts.plans ?? (supabase ? getMealPlanStore() : new InMemoryMealPlanRepository()), orchestrator, newId: () => crypto.randomUUID(), now: () => new Date(), leftoverSnapshot: leftoverSnapshotForPlanner };
   return services;
 }
 

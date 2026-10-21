@@ -51,6 +51,7 @@ export function CookMode({ recipe, initialServings, servingsPinned, householdId,
   const [showAll, setShowAll] = useState(false);
   const [subFor, setSubFor] = useState<{ id: string; name: string } | null>(null);
   const [saved, setSaved] = useState(false);
+  const [spare, setSpare] = useState<string | null>(null);
   const timersRef = useRef(timers);
   timersRef.current = timers;
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -310,7 +311,7 @@ export function CookMode({ recipe, initialServings, servingsPinned, householdId,
             <h2>All done</h2>
             {saved ? (
               <>
-                <p role="status" data-testid="cook-saved">Saved to your cooked history.</p>
+                <p role="status" data-testid="cook-saved">Saved to your cooked history.{spare ? ` ${spare}` : ""}</p>
                 <Link className="fr-btn fr-btn--primary" href={`/recipes/${recipe.id}`}>Back to recipe</Link>
               </>
             ) : (
@@ -319,7 +320,8 @@ export function CookMode({ recipe, initialServings, servingsPinned, householdId,
                 recipeTitle={recipe.title}
                 servings={servings}
                 currentRating={currentRating}
-                onSaved={() => {
+                onSaved={(_c, l) => {
+                  if (l) setSpare(`${l.portions} spare portion${l.portions === 1 ? "" : "s"} added to your ${l.storedIn} list.`);
                   setSaved(true);
                   try { window.localStorage.removeItem(key); } catch { /* ignore */ }
                 }}

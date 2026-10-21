@@ -56,6 +56,12 @@
         {
           "color": "#2E7D32"
         }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Allow Family Recipes to look at whether you are free in the evening, so the planner can pick quick meals on busy days. Only busy or free is used; event titles are never read or sent."
+        }
       ]
     ],
     "android": {
@@ -90,7 +96,8 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_BACKGROUND_LOCATION",
         "android.permission.POST_NOTIFICATIONS",
-        "android.permission.VIBRATE"
+        "android.permission.VIBRATE",
+        "android.permission.READ_CALENDAR"
       ]
     },
     "experiments": {

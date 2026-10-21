@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { describeError, type IdeaExtra, type PlanClient, type PlanFailure } from '@/lib/planApi';
 import { slotKey } from '@/lib/plan/ops';
-import { MEAL_TYPES, type ParsedRequest, type PlanDoc, type PlanEntry, type PlanRequest, type Proposal, type RecipeLite } from '@/lib/plan/types';
+import { MEAL_TYPES, type BusyDay, type ParsedRequest, type PlanDoc, type PlanEntry, type PlanRequest, type Proposal, type RecipeLite } from '@/lib/plan/types';
 import { Button, Muted, Text } from '../ui';
 import ChipsEditor from './ChipsEditor';
 import IdeasList from './IdeasList';
+import { BusyChips } from './LeftoverParts';
 import { Field, Notice, Section } from './parts';
 import ProposalReview from './ProposalReview';
 
@@ -34,11 +35,13 @@ interface Props {
   exclusions: string[];
   dislikes?: { memberName: string; terms: string[] }[];
   memberNames: string[];
+  /** This week's busy evenings, shown before the request is read (P2-C). */
+  busy?: readonly BusyDay[];
   onAccept: (next: (doc: PlanDoc) => PlanDoc) => void;
 }
 
 /** Prompt -> "Understand my request" (the one AI call) -> editable chips -> "Propose plan" (no AI) -> review -> accept. */
-export default function PromptPlanner({ client, weekStart, recipes, examplePrompt, exclusions, memberNames, dislikes, onAccept }: Props) {
+export default function PromptPlanner({ client, weekStart, recipes, examplePrompt, exclusions, memberNames, dislikes, busy: weekBusy, onAccept }: Props) {
   const [prompt, setPrompt] = useState(examplePrompt);
   const [parsed, setParsed] = useState<ParsedRequest | null>(null);
   const [request, setRequest] = useState<PlanRequest | null>(null);
@@ -84,6 +87,7 @@ export default function PromptPlanner({ client, weekStart, recipes, examplePromp
     <Section title="Plan from a prompt" testID="prompt-planner">
       <Field label="Describe the week you want" value={prompt} onChangeText={setPrompt} multiline maxLength={1500} testID="prompt-input" />
       <Muted>Allergies and strict exclusions in your household profile are always applied, whatever you type.</Muted>
+      {!parsed && weekBusy && weekBusy.length > 0 ? <BusyChips busy={weekBusy.map((d) => ({ date: d.date, skip: d.skip, minutesAvailable: d.minutesAvailable, sources: d.sources }))} /> : null}
       {examplePrompt ? <Button title="Use the example prompt" variant="secondary" onPress={() => setPrompt(examplePrompt)} testID="example-prompt" /> : null}
       <Button
         title={busy === 'parse' ? 'Reading your request...' : request ? 'Read my request again' : 'Understand my request'}
@@ -97,6 +101,7 @@ export default function PromptPlanner({ client, weekStart, recipes, examplePromp
 
       {request && parsed ? (
         <View>
+          <BusyChips busy={parsed.busy} />
           <ChipsEditor request={request} onChange={setRequest} locked={parsed.householdExclusions} memberNames={memberNames} notes={parsed.notes} {...(dislikes ? { dislikes } : {})} />
           <Button
             title={busy === 'solve' ? 'Planning...' : proposal ? 'Re-plan with these settings' : 'Propose a plan'}

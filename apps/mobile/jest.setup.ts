@@ -49,6 +49,25 @@ jest.mock('expo-notifications', () => ({
   AndroidImportance: { DEFAULT: 3, HIGH: 4 },
   SchedulableTriggerInputTypes: { TIME_INTERVAL: 'timeInterval' },
 }));
+
+// expo-calendar (P2-C): native module; tests drive it through this fake. Events carry no title on purpose.
+jest.mock('expo-calendar', () => {
+  const state = { permission: 'undetermined' as 'granted' | 'denied' | 'undetermined', events: [] as unknown[], calendars: [{ id: 'cal-1' }] };
+  return {
+    __state: state,
+    getCalendarPermissionsAsync: jest.fn(async () => ({ status: state.permission, granted: state.permission === 'granted', canAskAgain: state.permission !== 'denied' })),
+    requestCalendarPermissionsAsync: jest.fn(async () => {
+      state.permission = state.permission === 'denied' ? 'denied' : 'granted';
+      return { status: state.permission, granted: state.permission === 'granted', canAskAgain: false };
+    }),
+    getCalendarsAsync: jest.fn(async () => state.calendars),
+    getEventsAsync: jest.fn(async () => state.events),
+    EntityTypes: { EVENT: 'event', REMINDER: 'reminder' },
+    Availability: { BUSY: 'busy', FREE: 'free', TENTATIVE: 'tentative', UNAVAILABLE: 'unavailable', NOT_SUPPORTED: 'notSupported' },
+    EventStatus: { NONE: 'none', CONFIRMED: 'confirmed', TENTATIVE: 'tentative', CANCELED: 'canceled' },
+  };
+});
+
 // Location (P2-A): native modules, driven through these fakes. Real behaviour is a device check (docs/ROADMAP.md, P2-A).
 jest.mock('expo-location', () => {
   const state = {

@@ -7,6 +7,10 @@ import { getAppContext } from '../../lib/server/context';
 import { AddItem } from './add-item';
 import { MinimumsPanel, RunningLowPanel } from './restock';
 import { MakeNow } from '../make-now';
+import { FreezerPanel } from './freezer';
+import { contextClient } from '../../lib/server/calendar/planner';
+import { loadLeftovers } from '../../lib/server/leftovers/service';
+import { getMealPlanStore } from '../../lib/server/plan/repository';
 import { LeftoversPanel, PendingPurchases, UseWhatIHave } from './insights';
 import { ExpiringPanel, SettingsPanel, StalePrompts, StockList } from './stock';
 import s from './pantry.module.css';
@@ -20,6 +24,7 @@ export default async function PantryPage() {
   const ctx = await getAppContext();
   if (!ctx.readOnly) await autoRestockAfterPantryChange(hh, ctx.userId); // auto-add mode: catch up after purchase-driven stock changes
   const restock = await getRestockService(hh).getView(hh);
+  const stored = await loadLeftovers({ householdId: hh, client: await contextClient() }, { plans: getMealPlanStore() });
   return (
     <div className={`${s.page} fr-has-fab`}>
       <header className={s.section}>
@@ -53,6 +58,7 @@ export default async function PantryPage() {
       <UseWhatIHave suggestions={view.suggestions} />
       <AddItem />
       <StockList view={view} pars={restock.pars} />
+      <FreezerPanel batches={stored.batches} />
       <LeftoversPanel leftovers={view.leftovers} />
       <MinimumsPanel view={restock} />
       <SettingsPanel settings={view.settings} />

@@ -77,6 +77,7 @@ function CookMode({ data, householdId, userId, initialServings, servingsPinned, 
   const [showAll, setShowAll] = useState(false);
   const [subFor, setSubFor] = useState<{ id: string; name: string } | null>(null);
   const [saved, setSaved] = useState(false);
+  const [spare, setSpare] = useState<string | null>(null);
   const timersRef = useRef(timers);
   timersRef.current = timers;
   const swipe = useRef<{ x: number; y: number } | null>(null);
@@ -314,7 +315,7 @@ function CookMode({ data, householdId, userId, initialServings, servingsPinned, 
             {saved ? (
               <>
                 <Muted accessibilityRole="alert" testID="cook-saved">
-                  Saved to your cooked history.
+                  Saved to your cooked history.{spare ? ` ${spare}` : ''}
                 </Muted>
                 <Button title="Back to recipe" onPress={exit} testID="exit-cook" />
               </>
@@ -325,7 +326,8 @@ function CookMode({ data, householdId, userId, initialServings, servingsPinned, 
                 recipeId={recipe.id}
                 servings={servings}
                 currentRating={data.cooking?.myRating ?? null}
-                onSaved={() => {
+                onSaved={(_c, l) => {
+                  if (l) setSpare(`${l.portionsMade} spare portion${l.portionsMade === 1 ? '' : 's'} added to your ${l.storedIn} list.`);
                   setSaved(true);
                   void AsyncStorage.removeItem(key).catch(() => undefined);
                   for (const tm of timersRef.current) void cancelTimerNotification(timerKey(tm.id));

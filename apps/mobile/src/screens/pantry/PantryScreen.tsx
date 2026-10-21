@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text as RNText, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ServerScreen } from '@/data/ServerApiContext';
@@ -11,6 +11,9 @@ import type { ServerApi } from '@/lib/serverApi';
 import { MakeNowSection } from '../MakeNow';
 import { Button, EmptyState, ErrorState, ErrorText, Loading, MIN_TAP, Muted, Text, Toast, useStyles } from '../ui';
 import ItemForm, { type ItemFormValues } from './ItemForm';
+import { createLeftoversClient, type LeftoversClient } from '@/lib/leftoversApi';
+import type { BatchView } from '@/lib/plan/types';
+import FreezerPanel from './Freezer';
 import { AdjustmentsPanel, LeftoversPanel, SettingsPanel, SuggestionsPanel } from './Panels';
 import { BadgeText, Section } from './shared';
 import MinimumForm, { MinimumsPanel, RunningLowPanel } from './Restock';
@@ -24,6 +27,8 @@ function PantryContent({ api, householdId }: { api: ServerApi; householdId: stri
   const router = useRouter();
   const [view, setView] = useState<PantryViewModel | null>(null);
   const [restock, setRestock] = useState<RestockViewModel | null>(null);
+  const leftoversClient = useMemo<LeftoversClient>(() => createLeftoversClient(api, householdId), [api, householdId]);
+  const [stored, setStored] = useState<BatchView[]>([]);
   const [minFor, setMinFor] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -43,11 +48,16 @@ function PantryContent({ api, householdId }: { api: ServerApi; householdId: stri
       } catch {
         setRestock(null);
       }
+      try {
+        setStored((await leftoversClient.list()).batches); // an add-on too: the pantry still works without it
+      } catch {
+        setStored([]);
+      }
       setLoadError(null);
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : 'Could not load the pantry');
     }
-  }, [api, householdId]);
+  }, [api, householdId, leftoversClient]);
 
   useEffect(() => {
     void load();
@@ -242,6 +252,7 @@ function PantryContent({ api, householdId }: { api: ServerApi; householdId: stri
           </Section>
         ) : null}
 
+        <FreezerPanel client={leftoversClient} batches={stored} onChanged={() => void load()} />
         <LeftoversPanel leftovers={view.leftovers} api={api} householdId={householdId} />
         {restock ? (
           <MinimumsPanel

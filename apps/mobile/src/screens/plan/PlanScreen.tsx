@@ -6,11 +6,13 @@ import { consentNoticeText, createPlanClient, describeError, type PlanClient } f
 import { addDays, dateShort, dayShort, todayIso, weekDates, weekLabel } from '@/lib/plan/dates';
 import {
   formatPence, getEntry, markSlot, mealCost, mealCount, moveEntry, removeEntry, setMealTypes, setNote, setRecipe, setServings, shiftToWeek, slotKey,
-  cookedVariety, swapRecipe, weekCost, weekCostLabel, weekNutrition, weekVariety,
+  cookedVariety, setLeftover, swapRecipe, weekCost, weekCostLabel, weekNutrition, weekVariety,
 } from '@/lib/plan/ops';
-import { MEAL_LABEL, MEAL_TYPES, type PlanDoc, type PlanEntry, type PlanPage, type RecipeLite, type ShoppingHandoff, type SlotRef } from '@/lib/plan/types';
+import { MEAL_LABEL, MEAL_TYPES, type MealType, type PlanDoc, type PlanEntry, type PlanPage, type RecipeLite, type ShoppingHandoff, type SlotRef } from '@/lib/plan/types';
 import type { ServerApi } from '@/lib/serverApi';
 import { Button, EmptyState, ErrorState, Loading, MIN_TAP, Muted, Text, useStyles, useTheme } from '../ui';
+import { syncDeviceCalendar } from '@/lib/calendarDevice';
+import { LeftoverPicker, LeftoverSuggestions } from './LeftoverParts';
 import { Chip, ChipRow, Notice, Section } from './parts';
 import PromptPlanner from './PromptPlanner';
 import RecipePicker from './RecipePicker';
@@ -18,7 +20,7 @@ import SlotEditor from './SlotEditor';
 import WeekSummary from './WeekSummary';
 import WeekVarietyPanel from './WeekVarietyPanel';
 
-type View_ = { name: 'week' } | { name: 'slot'; slot: SlotRef } | { name: 'pick'; slot: SlotRef; mode: 'add' | 'swap' };
+type View_ = { name: 'week' } | { name: 'slot'; slot: SlotRef } | { name: 'pick'; slot: SlotRef; mode: 'add' | 'swap' } | { name: 'stored'; slot: SlotRef };
 interface Msg { tone: 'info' | 'error'; text: string; items?: string[] }
 
 export default function PlanScreen() {
@@ -27,11 +29,25 @@ export default function PlanScreen() {
 
 function PlanLoader({ api, householdId }: { api: ServerApi; householdId: string }) {
   const client = useMemo(() => createPlanClient(api, householdId), [api, householdId]);
-  return <PlanWeek client={client} />;
+  // P2-C: if the member opted in to the phone calendar, refresh the busy / free flags first (derived on the phone; best effort).
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    let live = true;
+    const timeout = new Promise<void>((resolve) => setTimeout(resolve, 4000));
+    void Promise.race([syncDeviceCalendar(api, householdId).then(() => undefined, () => undefined), timeout]).then(() => { if (live) setReady(true); });
+    return () => { live = false; };
+  }, [api, householdId]);
+  return ready ? <PlanWeek client={client} /> : <Loading label="Loading meal plan" />;
 }
 
-const titleOf = (e: PlanEntry, recipes: ReadonlyMap<string, RecipeLite>) =>
-  e.kind === 'recipe' ? recipes.get(e.recipeId)?.title ?? e.recipeId : e.kind === 'eating_out' ? 'Eating out' : 'Leftovers';
+const titleOf = (e: PlanEntry, recipes: ReadonlyMap<string, RecipeLite>, page?: PlanPage) =>
+  e.kind === 'recipe'
+    ? recipes.get(e.recipeId)?.title ?? e.recipeId
+    : e.kind === 'eating_out'
+      ? 'Eating out'
+      : e.batchId
+        ? `${page?.leftovers.batches.find((b) => b.id === e.batchId)?.storedIn === 'freezer' ? 'Freezer meal' : 'Leftovers'}: ${page?.leftovers.titles[e.batchId] ?? 'Stored meal'}`
+        : 'Leftovers';
 
 export function PlanWeek({ client }: { client: PlanClient }) {
   const router = useRouter();
@@ -90,6 +106,22 @@ export function PlanWeek({ client }: { client: PlanClient }) {
   const remember = (d: PlanDoc) =>
     setPage((p) => (p ? { ...p, isSaved: true, saved: [...p.saved.filter((s) => s.id !== d.id), { id: d.id, weekStart: d.weekStart, status: d.status }].sort((a, b) => a.weekStart.localeCompare(b.weekStart)) } : p));
 
+  // Busy flags and leftovers change on the server without touching the unsaved grid: re-read only those parts.
+  const refreshExtras = async () => {
+    const fresh = await client.loadWeek(doc.weekStart);
+    setPage((p) => (p ? { ...p, busy: fresh.busy, leftovers: fresh.leftovers, eatenSlots: fresh.eatenSlots } : p));
+  };
+  const toggleBusy = (date: string) => run(async () => {
+    const manual = page.busy.find((b) => b.date === date)?.sources.includes('manual') ?? false;
+    await client.setBusy(date, !manual);
+    await refreshExtras();
+  });
+  const markEaten = (slot: SlotRef) => run(async () => {
+    const r = await client.markEaten(doc.id, slot.date, slot.mealType);
+    setMsg({ tone: 'info', text: r.applied ? `Marked eaten. ${r.portionsLeft} portion${r.portionsLeft === 1 ? '' : 's'} of that batch left.` : 'That meal was already marked eaten.' });
+    await refreshExtras();
+  });
+
   async function run(fn: () => Promise<void>) {
     setBusy(true);
     try { await fn(); } catch (e) { fail(e); } finally { setBusy(false); }
@@ -145,6 +177,16 @@ export function PlanWeek({ client }: { client: PlanClient }) {
         }}
       />
     );
+  } else if (view.name === 'stored') {
+    const slot = view.slot;
+    sub = (
+      <LeftoverPicker
+        slot={slot}
+        batches={page.leftovers.batches}
+        onBack={toWeek}
+        onPick={(b, portions) => { apply(setLeftover(doc, slot, b.id, portions)); toWeek(); }}
+      />
+    );
   } else if (view.name === 'slot') {
     const entry = getEntry(doc, view.slot);
     if (entry) {
@@ -154,9 +196,11 @@ export function PlanWeek({ client }: { client: PlanClient }) {
           key={slotKey(slot)}
           slot={slot}
           entry={entry}
-          title={titleOf(entry, recipes)}
+          title={titleOf(entry, recipes, page)}
           allSlots={allSlots}
           onServings={(n) => apply(setServings(doc, slot, n))}
+          onPortions={(n) => { if (entry.kind === 'leftovers' && entry.batchId) apply(setLeftover(doc, slot, entry.batchId, n)); }}
+          maxPortions={Math.max(1, page.leftovers.batches.find((b) => b.id === (entry.kind === 'leftovers' ? entry.batchId : undefined))?.portionsLeft ?? 99)}
           onSwap={() => setView({ name: 'pick', slot, mode: 'swap' })}
           onKind={(k) => { apply(markSlot(doc, slot, k)); toWeek(); }}
           onNote={(t) => apply(setNote(doc, slot, t))}
@@ -246,14 +290,24 @@ export function PlanWeek({ client }: { client: PlanClient }) {
       {days.map((date) => (
         <View key={date} testID={`day-${date}`} accessibilityLabel={`${dayShort(date)} ${dateShort(date)}`} style={styles.banner}>
           <Text style={{ fontWeight: '700', marginBottom: 4 }} accessibilityRole="header">{`${dayShort(date)} ${dateShort(date)}`}</Text>
+          <ChipRow>
+            <Chip
+              label="Busy"
+              selected={page.busy.find((b) => b.date === date)?.sources.includes('manual') ?? false}
+              onPress={() => void toggleBusy(date)}
+              accessibilityLabel={`Mark ${dayShort(date)} ${dateShort(date)} as a busy evening`}
+              testID={`busy-${date}`}
+            />
+            {page.busy.find((b) => b.date === date) ? <Chip label={page.busy.find((b) => b.date === date)!.label} testID={`busy-chip-${date}`} /> : null}
+          </ChipRow>
           {meals.map((mealType) => {
             const slot = { date, mealType };
             const e = getEntry(doc, slot);
             const label = MEAL_LABEL[mealType];
             if (!e) {
               return (
+                <View key={mealType}>
                 <Pressable
-                  key={mealType}
                   testID={`slot-${date}-${mealType}`}
                   accessibilityRole="button"
                   accessibilityLabel={`Add meal to ${label} on ${dayShort(date)}`}
@@ -268,31 +322,61 @@ export function PlanWeek({ client }: { client: PlanClient }) {
                 >
                   <Muted>{`${label}: + Add meal`}</Muted>
                 </Pressable>
+                {page.leftovers.batches.some((b) => b.portionsFree > 0) ? (
+                  <Pressable
+                    testID={`stored-${date}-${mealType}`}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Add a leftover or freezer meal to ${label} on ${dayShort(date)}`}
+                    onPress={() => setView({ name: 'stored', slot })}
+                    style={{ minHeight: MIN_TAP, justifyContent: 'center' }}
+                  >
+                    <Muted>{`${label}: + Leftover / freezer meal`}</Muted>
+                  </Pressable>
+                ) : null}
+                </View>
               );
             }
             const c = e.kind === 'recipe' ? mealCost(e, recipes) : { status: 'none' as const };
+            const isEaten = page.eatenSlots.includes(slotKey(slot));
             const meta = [
-              e.kind === 'recipe' ? `${e.servings} servings` : e.kind === 'eating_out' ? 'No shopping' : 'Uses leftovers',
+              e.kind === 'recipe' ? `${e.servings} servings` : e.kind === 'eating_out' ? 'No shopping' : e.batchId ? `${e.portions ?? 1} portion${(e.portions ?? 1) === 1 ? '' : 's'} · no shopping${isEaten ? ' · Eaten' : ''}` : 'Uses leftovers',
               c.status === 'estimate' ? `${c.partial ? 'At least ' : ''}${formatPence(c.pence)} estimate` : c.status === 'uncosted' ? 'Uncosted' : '',
             ].filter(Boolean).join(' · ');
             return (
+              <View key={mealType}>
               <Pressable
-                key={mealType}
                 testID={`slot-${date}-${mealType}`}
                 accessibilityRole="button"
-                accessibilityLabel={`Edit ${label} on ${dayShort(date)}: ${titleOf(e, recipes)}`}
+                accessibilityLabel={`Edit ${label} on ${dayShort(date)}: ${titleOf(e, recipes, page)}`}
                 onPress={() => setView({ name: 'slot', slot })}
                 style={{ minHeight: MIN_TAP, justifyContent: 'center', paddingVertical: 6 }}
               >
                 <Muted>{label}</Muted>
-                <Text style={{ fontWeight: '600' }}>{titleOf(e, recipes)}</Text>
+                <Text style={{ fontWeight: '600' }}>{titleOf(e, recipes, page)}</Text>
                 <Muted>{meta}</Muted>
                 {e.note ? <Muted>{e.note}</Muted> : null}
               </Pressable>
+              {e.kind === 'leftovers' && e.batchId && !isEaten ? (
+                <Button
+                  title="Mark eaten"
+                  variant="secondary"
+                  disabled={busy || dirty || !saved}
+                  onPress={() => void markEaten(slot)}
+                  accessibilityLabel={`Mark ${titleOf(e, recipes, page)} on ${dayShort(date)} as eaten`}
+                  accessibilityHint={dirty || !saved ? 'Save the plan first' : undefined}
+                  testID={`eaten-${date}-${mealType}`}
+                />
+              ) : null}
+              </View>
             );
           })}
         </View>
       ))}
+
+      <LeftoverSuggestions
+        suggestions={page.leftovers.suggestions.filter((x) => x.date >= doc.weekStart && !getEntry(doc, { date: x.date, mealType: x.mealType as MealType }))}
+        onPlace={(x) => apply(setLeftover(doc, { date: x.date, mealType: x.mealType as MealType }, x.batchId, x.portions))}
+      />
 
       <WeekSummary data={nutrition} />
       <WeekVarietyPanel planned={variety} {...(cookedVar !== undefined ? { cooked: cookedVar } : {})} />
@@ -305,6 +389,7 @@ export function PlanWeek({ client }: { client: PlanClient }) {
         exclusions={page.householdExclusions}
         memberNames={page.memberNames}
         {...(page.memberDislikes ? { dislikes: page.memberDislikes } : {})}
+        busy={page.busy}
         onAccept={(next) => { apply(next(doc)); setHandoff(null); }}
       />
 

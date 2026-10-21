@@ -330,7 +330,9 @@ export function createMockRecipesApi(opts: { households?: typeof HOUSEHOLDS } = 
       };
       cooked = [...cooked, entry];
       if (input.rating) myRatings.set(id, input.rating);
-      return { ok: true, entry, cooking: cookingOf(id) };
+      // Demo mode has no leftovers ledger (it lives on the server): report what the server would record, nothing is stored.
+      const spare = input.batch ? input.servings * (input.batch.multiplier - 1) : 0;
+      return { ok: true, entry, cooking: cookingOf(id), ...(spare > 0 && input.batch ? { leftover: { portionsMade: spare, storedIn: input.batch.storedIn, useBy: input.today ?? '' } } : {}) };
     },
     async setDontSuggest(_householdId, id, value) {
       if (value) flagged.add(id);

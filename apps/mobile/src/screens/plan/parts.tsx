@@ -4,9 +4,9 @@ import { Button, MIN_TAP, Muted, Text, useStyles, useTheme } from '../ui';
 
 /** A removable / toggleable pill. 48dp tall so it is a real tap target. */
 export function Chip({
-  label, onPress, onRemove, removeLabel, locked, selected, testID,
+  label, onPress, onRemove, removeLabel, locked, selected, testID, accessibilityLabel,
 }: {
-  label: string; onPress?: () => void; onRemove?: () => void; removeLabel?: string; locked?: boolean; selected?: boolean; testID?: string;
+  label: string; accessibilityLabel?: string; onPress?: () => void; onRemove?: () => void; removeLabel?: string; locked?: boolean; selected?: boolean; testID?: string;
 }) {
   const t = useTheme();
   const border = selected ? t.primary : t.border;
@@ -17,7 +17,7 @@ export function Chip({
     >
       <Pressable
         accessibilityRole={onPress ? 'button' : 'text'}
-        accessibilityLabel={locked ? `${label} (locked)` : label}
+        accessibilityLabel={accessibilityLabel ?? (locked ? `${label} (locked)` : label)}
         {...(onPress ? { accessibilityState: { selected: !!selected } } : {})}
         disabled={!onPress}
         onPress={onPress}

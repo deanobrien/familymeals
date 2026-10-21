@@ -3,6 +3,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { getRecipeRepositoryFor } from '../../recipes/factory';
 import { getDataContext, useSupabaseBackend } from '../supabase/backend';
+import { recordBatchFromCook } from '../leftovers/service';
+import type { LeftoverBatch } from '@fr/engine/leftovers';
 import { MemoryCookingStore } from './memory-store';
 import { SupabaseCookingStore } from './supabase-store';
 import { CookingError, type CookEntry, type CookSummary, type CookingStore, type RecipeCookingView } from './types';
@@ -16,6 +18,8 @@ export const markCookedSchema = z.object({
   rating: z.number().int().min(1).max(5).nullish(),
   note: z.string().trim().max(1000, 'Keep the note under 1000 characters').nullish(),
   notePrivate: z.boolean().optional(),
+  /** "Cook x2 / batch" (P2-C, D416): cooked this many times the servings; the extra portions become a leftover batch. */
+  batch: z.object({ multiplier: z.number().int().min(2).max(6), storedIn: z.enum(['fridge', 'freezer']).default('fridge') }).optional(),
 });
 
 /** Who is asking: the verified user + household and their own client (null in mock auth mode). Never from the request body. */
@@ -52,7 +56,7 @@ export const loadCooking = (caller: CookingCaller, recipeId: string): Promise<Co
   guard(caller, recipeId, false, async (s) => ({ cooking: await s.view(caller.householdId, caller.userId, recipeId) }));
 
 /** "Mark as cooked": a history row, plus the member's rating and a private (default) or household note. */
-export async function markCooked(caller: CookingCaller, recipeId: string, raw: unknown): Promise<CookingResult<{ entry: CookEntry; cooking: RecipeCookingView }>> {
+export async function markCooked(caller: CookingCaller, recipeId: string, raw: unknown): Promise<CookingResult<{ entry: CookEntry; cooking: RecipeCookingView; leftover?: LeftoverBatch }>> {
   const r = markCookedSchema.safeParse(raw);
   if (!r.success) {
     const fieldErrors: Record<string, string> = {};
@@ -63,9 +67,35 @@ export async function markCooked(caller: CookingCaller, recipeId: string, raw: u
     return { ok: false, error: 'invalid_input', fieldErrors };
   }
   return guard(caller, recipeId, true, async (s) => {
-    const entry = await s.markCooked(caller.householdId, caller.userId, recipeId, r.data);
-    return { entry, cooking: await s.view(caller.householdId, caller.userId, recipeId) };
+    const { batch, ...cook } = r.data;
+    const entry = await s.markCooked(caller.householdId, caller.userId, recipeId, cook);
+    // The cook is already saved: a failure to record leftovers must not make it look unsaved (one batch per cooked event, so a retry is safe).
+    let leftover: LeftoverBatch | undefined;
+    if (batch) {
+      try {
+        leftover = (await recordBatchFromCook(caller, { recipeId, title: await recipeTitle(caller, recipeId), servings: cook.servings, multiplier: batch.multiplier, storedIn: batch.storedIn, cookedId: entry.id, today: (raw as { today?: unknown }).today })) ?? undefined;
+      } catch {
+        leftover = undefined;
+      }
+    }
+    return { entry, cooking: await s.view(caller.householdId, caller.userId, recipeId), ...(leftover ? { leftover } : {}) };
   });
+}
+
+async function recipeTitle(caller: CookingCaller, recipeId: string): Promise<string> {
+  try {
+    if (caller.client) {
+      const { data } = await caller.client.from('recipes').select('title').eq('id', recipeId).eq('household_id', caller.householdId).limit(1);
+      const t = (data as { title?: unknown }[] | null)?.[0]?.title;
+      if (typeof t === 'string' && t) return t;
+    } else {
+      const r = await getRecipeRepositoryFor(caller.householdId).get(recipeId);
+      if (r?.title) return r.title;
+    }
+  } catch {
+    /* fall through */
+  }
+  return 'Batch meal';
 }
 
 /** "Don't suggest this again": the planner skips the recipe while any member has it set. */

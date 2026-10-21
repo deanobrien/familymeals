@@ -8,10 +8,12 @@ import { formatPence, mealCost, weekCost, weekCostLabel } from '../../lib/plan/c
 import { weekNutrition } from '../../lib/plan/nutrition';
 import { cookedVariety, weekVariety } from '../../lib/plan/variety';
 import {
-  getEntry, markSlot, mealCount, moveEntry, removeEntry, setMealTypes, setNote, setRecipe, setServings, shiftToWeek, slotKey, swapRecipe,
+  getEntry, markSlot, mealCount, moveEntry, removeEntry, setLeftover, setMealTypes, setNote, setRecipe, setServings, shiftToWeek, slotKey, swapRecipe,
 } from '../../lib/plan/ops';
 import { MEAL_LABEL, MEAL_TYPES, type MealType, type PlanDoc, type PlanPageData, type RecipeLite, type SlotRef } from '../../lib/plan/types';
 import { approvePlanAction, generateShoppingAction, loadWeekAction, savePlanAction } from './actions';
+import { setBusyAction, markEatenAction } from './calendar-actions';
+import { CalendarPanel, LeftoverPicker, LeftoverSuggestions } from './calendar-leftovers';
 import { PromptPanel } from './prompt-panel';
 import { WeekNutritionPanel } from './week-nutrition';
 import { WeekVarietyPanel } from './week-variety';
@@ -28,6 +30,7 @@ export function Planner({ data }: { data: PlanPageData }) {
   const [msg, setMsg] = useState<Msg | null>(null);
   const [search, setSearch] = useState<SearchState>(null);
   const [active, setActive] = useState<SlotRef | null>(null);
+  const [pickFor, setPickFor] = useState<SlotRef | null>(null);
   const [pending, start] = useTransition();
 
   const recipes = useMemo(() => new Map(data.recipes.map((r) => [r.id, r])), [data.recipes]);
@@ -104,6 +107,27 @@ export function Planner({ data }: { data: PlanPageData }) {
   const status = dirty ? <Badge tone="warning">Unsaved changes</Badge> : doc.status === 'approved' ? <Badge tone="success">Approved</Badge> : saved ? <Badge>Saved draft</Badge> : <Badge>Not saved yet</Badge>;
   const activeEntry = active ? getEntry(doc, active) : undefined;
   const titleOf = (id: string) => recipes.get(id)?.title ?? id;
+  // P2-C: busy evenings, stored leftovers / freezer meals, eaten leftover slots.
+  const busyByDate = useMemo(() => new Map((data.busy ?? []).map((b) => [b.date, b])), [data.busy]);
+  const stored = data.leftovers?.batches ?? [];
+  const storedTitle = (batchId?: string): string => (batchId ? data.leftovers?.titles[batchId] : undefined) ?? 'Stored meal';
+  const storedKind = (batchId?: string): string => (stored.find((b) => b.id === batchId)?.storedIn === 'freezer' ? 'Freezer meal' : 'Leftovers');
+  const eaten = new Set(data.eatenSlots ?? []);
+  const toggleBusy = (date: string) =>
+    start(async () => {
+      const manual = busyByDate.get(date)?.sources.includes('manual') ?? false;
+      const res = await setBusyAction(date, !manual);
+      if (!res.ok) return setMsg({ tone: 'error', text: res.message });
+      router.refresh();
+    });
+  const markEaten = (slot: SlotRef) =>
+    start(async () => {
+      const res = await markEatenAction(doc.id, slot.date, slot.mealType);
+      if (!res.ok) return setMsg({ tone: 'error', text: res.message });
+      setMsg({ tone: 'info', text: res.applied ? `Marked eaten. ${res.portionsLeft} portion${res.portionsLeft === 1 ? '' : 's'} of that batch left.` : 'That meal was already marked eaten.' });
+      router.refresh();
+    });
+  const suggestions = (data.leftovers?.suggestions ?? []).filter((x) => x.date >= doc.weekStart && !getEntry(doc, { date: x.date, mealType: x.mealType as MealType }));
   const allSlots = days.flatMap((d) => meals.map((m) => ({ date: d, mealType: m })));
 
   return (
@@ -163,6 +187,20 @@ export function Planner({ data }: { data: PlanPageData }) {
         {days.map((date) => (
           <section key={date} className="plan__day" role="listitem" aria-label={`${dayShort(date)} ${dateShort(date)}`}>
             <h3>{dayShort(date)} {dateShort(date)}</h3>
+            <div className="plan__inline">
+              <Button
+                size="sm"
+                variant={busyByDate.get(date)?.sources.includes('manual') ? 'primary' : 'ghost'}
+                aria-pressed={busyByDate.get(date)?.sources.includes('manual') ?? false}
+                onClick={() => toggleBusy(date)}
+                disabled={pending}
+                data-testid={`busy-${date}`}
+                aria-label={`Mark ${dayShort(date)} ${dateShort(date)} as a busy evening`}
+              >
+                Busy
+              </Button>
+              {busyByDate.get(date) && <Badge tone={busyByDate.get(date)!.skip ? 'warning' : 'neutral'} data-testid={`busy-chip-${date}`}>{busyByDate.get(date)!.label}</Badge>}
+            </div>
             {meals.map((mealType) => {
               const slot = { date, mealType };
               const e = getEntry(doc, slot);
@@ -177,11 +215,13 @@ export function Planner({ data }: { data: PlanPageData }) {
                   <div key={mealType} className="plan__slot" {...common}>
                     <span className="plan__slot-label">{label}</span>
                     <Button variant="ghost" onClick={() => setSearch({ slot, mode: 'add' })} aria-label={`Add meal to ${label} on ${dayShort(date)}`}>+ Add meal</Button>
+                    {stored.some((b) => b.portionsFree > 0) && <Button variant="ghost" size="sm" onClick={() => setPickFor(slot)} aria-label={`Add a leftover or freezer meal to ${label} on ${dayShort(date)}`}>+ Leftover / freezer</Button>}
                   </div>
                 );
               }
               const c = e.kind === 'recipe' ? mealCost(e, recipes) : { status: 'none' as const };
-              const title = e.kind === 'recipe' ? titleOf(e.recipeId) : e.kind === 'eating_out' ? 'Eating out' : 'Leftovers';
+              const title = e.kind === 'recipe' ? titleOf(e.recipeId) : e.kind === 'eating_out' ? 'Eating out' : e.batchId ? `${storedKind(e.batchId)}: ${storedTitle(e.batchId)}` : 'Leftovers';
+              const isEaten = eaten.has(slotKey(slot));
               return (
                 <div
                   key={mealType}
@@ -199,10 +239,15 @@ export function Planner({ data }: { data: PlanPageData }) {
                     {e.kind === 'recipe' && <span>{e.servings} servings</span>}
                     {c.status === 'estimate' && <span>{c.partial ? 'At least ' : ''}{formatPence(c.pence)} estimate</span>}
                     {c.status === 'uncosted' && <span>Uncosted</span>}
+                    {e.kind === 'leftovers' && e.batchId && <span>{e.portions ?? 1} portion{(e.portions ?? 1) === 1 ? '' : 's'}</span>}
                     {e.kind !== 'recipe' && <Badge>{e.kind === 'eating_out' ? 'No shopping' : 'Uses leftovers'}</Badge>}
+                    {isEaten && <Badge tone="success">Eaten</Badge>}
                   </div>
                   {e.note && <span className="plan__slot-note">{e.note}</span>}
                   <Button size="sm" variant="ghost" onClick={() => setActive(slot)} aria-label={`Edit ${label} on ${dayShort(date)}`}>Edit</Button>
+                  {e.kind === 'leftovers' && e.batchId && !isEaten && (
+                    <Button size="sm" variant="secondary" onClick={() => markEaten(slot)} disabled={pending || dirty || !saved} aria-label={`Mark ${title} on ${dayShort(date)} as eaten`} title={dirty || !saved ? 'Save the plan first' : undefined}>Mark eaten</Button>
+                  )}
                 </div>
               );
             })}
@@ -210,6 +255,15 @@ export function Planner({ data }: { data: PlanPageData }) {
         ))}
       </div>
       <p className="plan__muted">Drag a meal to another slot to move it (hold Alt or Ctrl to duplicate). On a phone, use Edit to move, duplicate or swap.</p>
+
+      <LeftoverSuggestions suggestions={suggestions} onPlace={(x) => apply(setLeftover(doc, { date: x.date, mealType: x.mealType as MealType }, x.batchId, x.portions))} />
+      <LeftoverPicker
+        open={!!pickFor}
+        onClose={() => setPickFor(null)}
+        batches={stored}
+        slotLabel={pickFor ? `${MEAL_LABEL[pickFor.mealType]}, ${dayShort(pickFor.date)} ${dateShort(pickFor.date)}` : ''}
+        onPick={(b, portions) => { if (pickFor) apply(setLeftover(doc, pickFor, b.id, portions)); setPickFor(null); }}
+      />
 
       <WeekNutritionPanel data={nutrition} />
       <WeekVarietyPanel planned={variety} {...(cookedVar !== undefined ? { cooked: cookedVar } : {})} />
@@ -221,8 +275,11 @@ export function Planner({ data }: { data: PlanPageData }) {
         exclusions={data.householdExclusions}
         memberNames={data.memberNames}
         dislikes={data.memberDislikes}
+        busy={data.busy}
         onAccept={(next) => apply(next(doc))}
       />
+
+      <CalendarPanel />
 
       {data.saved.length > 0 && (
         <section className="plan__panel" aria-label="Saved plans">
@@ -254,7 +311,7 @@ export function Planner({ data }: { data: PlanPageData }) {
       <Sheet
         open={!!active && !!activeEntry}
         onOpenChange={(o) => !o && setActive(null)}
-        title={active && activeEntry ? `${activeEntry.kind === 'recipe' ? titleOf(activeEntry.recipeId) : activeEntry.kind === 'eating_out' ? 'Eating out' : 'Leftovers'}` : 'Meal'}
+        title={active && activeEntry ? `${activeEntry.kind === 'recipe' ? titleOf(activeEntry.recipeId) : activeEntry.kind === 'eating_out' ? 'Eating out' : activeEntry.batchId ? `${storedKind(activeEntry.batchId)}: ${storedTitle(activeEntry.batchId)}` : 'Leftovers'}` : 'Meal'}
         description={active ? `${MEAL_LABEL[active.mealType]}, ${dayShort(active.date)} ${dateShort(active.date)}` : undefined}
       >
         {active && activeEntry && (
@@ -264,6 +321,8 @@ export function Planner({ data }: { data: PlanPageData }) {
             entry={activeEntry}
             allSlots={allSlots}
             onServings={(n) => apply(setServings(doc, active, n))}
+            onPortions={(n) => activeEntry.kind === 'leftovers' && activeEntry.batchId && apply(setLeftover(doc, active, activeEntry.batchId, n))}
+            maxPortions={Math.max(1, (stored.find((b) => b.id === (activeEntry.kind === 'leftovers' ? activeEntry.batchId : undefined))?.portionsLeft ?? 99))}
             onSwap={() => setSearch({ slot: active, mode: 'swap' })}
             onKind={(k) => { apply(markSlot(doc, active, k)); setActive(null); }}
             onNote={(t) => apply(setNote(doc, active, t))}
@@ -281,6 +340,8 @@ function SlotActions(props: {
   entry: NonNullable<ReturnType<typeof getEntry>>;
   allSlots: SlotRef[];
   onServings: (n: number) => void;
+  onPortions: (n: number) => void;
+  maxPortions: number;
   onSwap: () => void;
   onKind: (k: 'eating_out' | 'leftovers') => void;
   onNote: (t: string) => void;
@@ -302,6 +363,11 @@ function SlotActions(props: {
       {entry.kind === 'recipe' && (
         <div className="plan__sheet-section">
           <Stepper label="Servings" value={entry.servings} min={1} max={99} onChange={props.onServings} />
+        </div>
+      )}
+      {entry.kind === 'leftovers' && entry.batchId && (
+        <div className="plan__sheet-section">
+          <Stepper label="Portions" value={entry.portions ?? 1} min={1} max={props.maxPortions} onChange={props.onPortions} />
         </div>
       )}
       <div className="plan__sheet-section">

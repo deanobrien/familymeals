@@ -342,8 +342,12 @@ export function createRecipesApi(opts: { baseUrl?: string | undefined; getToken:
       return !!r.favourite;
     },
     async markCooked(householdId, id, input) {
-      const res = await api.send<{ entry: CookEntryWire; cooking: RecipeCooking } | { error?: { message?: string; fieldErrors?: Record<string, string> } }>('POST', `/api/recipes/${encodeURIComponent(id)}/cooked`, { householdId, ...input }, [422]);
-      if ('entry' in res) return { ok: true, entry: res.entry, cooking: res.cooking };
+      const res = await api.send<{ entry: CookEntryWire; cooking: RecipeCooking; leftover?: { portionsMade?: unknown; storedIn?: unknown; useBy?: unknown } } | { error?: { message?: string; fieldErrors?: Record<string, string> } }>('POST', `/api/recipes/${encodeURIComponent(id)}/cooked`, { householdId, ...input }, [422]);
+      if ('entry' in res) {
+        const l = res.leftover;
+        const leftover = l && typeof l.portionsMade === 'number' && typeof l.useBy === 'string' ? { portionsMade: l.portionsMade, storedIn: l.storedIn === 'freezer' ? ('freezer' as const) : ('fridge' as const), useBy: l.useBy } : undefined;
+        return { ok: true, entry: res.entry, cooking: res.cooking, ...(leftover ? { leftover } : {}) };
+      }
       return { ok: false, message: res.error?.message ?? 'Some values were not accepted.', fieldErrors: res.error?.fieldErrors ?? {} };
     },
     async setDontSuggest(householdId, id, value) {
