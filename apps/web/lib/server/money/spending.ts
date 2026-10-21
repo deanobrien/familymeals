@@ -39,7 +39,6 @@ export function receiptRecord(r: ReceiptRecord, label: string | null, categoryOf
     .map((l) => ({ category: categoryOf(l.description) ?? UNCATEGORISED, pence: l.netPence ?? 0 }));
   return { id: r.id, source: 'receipt', date, shop: label, totalPence: total, splits };
 }
-
 export function createSpendingService(deps: SpendingDeps) {
   async function load(householdId: string, weeks: number) {
     const today = londonDateOf(deps.now()) ?? deps.now().toISOString().slice(0, 10);
