@@ -4,7 +4,7 @@
  * fingerprints of the app: the EAS upload/Play app-signing keys, `AA:BB:..` 32 bytes each). Unset = 404 and links simply open in the
  * browser (the web accept page works, with an "Open in the Android app" fallback link). Pure, so it is unit-tested (P0-A, D323).
  */
-export const ANDROID_PACKAGE = 'uk.ac.northumbria.familyrecipes';
+export const ANDROID_PACKAGE = 'uk.deanobrien.familyrecipes';
 
 const FINGERPRINT_RE = /^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/;
 

@@ -1297,3 +1297,8 @@ A CLOSED round overlapping the plan's dates gives the planner its liked recipes 
 ## D429 Kids and health goals; parity; what was verified (P3-A)
 
 Kid profiles have no account, so they can never hold health goals (P3-B): `goalsCallerForKid` always marks them `isChild`, the goals service refuses them everything, and kids' screens show no goals or consent prompt (test). Parity: every part ships on web and Android; the differences are that the share sheet is the system sheet on Android and a copy button (plus the browser share sheet where offered) on the web, and full-screen lock is stronger on Android. No native module was added (expo-secure-store was already installed), so the app stays 0.3.0 / versionCode 3; the new App Link path `/s/` needs a new build to take effect. Verified by running: engine kids tests (18), PGlite RLS `014_p3a_sharing_kids.sql`, PGlite contract tests for both stores, memory-mode service and route tests, jest (lib 8, screens 17), Playwright `p3a-sharing-kids.spec.ts` (6, two households and the kids' flow). Not verified: a phone (share sheet, App Link, full-screen, secure storage), Storage policy against real Supabase Storage, signed-out reading in a browser against real Supabase.
+
+
+## D450 Android package id uk.deanobrien.familyrecipes
+
+The Android application id is `uk.deanobrien.familyrecipes` (owner decision 2026-10-21). This is a personal project, so it must not use the university domain (`uk.ac.northumbria`). Nothing was published yet, so no install migration was needed. The id is fixed once the app is published. It appears in `apps/mobile/app.json` (`android.package`), the assetlinks route (`ANDROID_PACKAGE`) and the Firebase app registration in `docs/DEPLOY-APP-SERVICE.md`.

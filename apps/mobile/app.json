@@ -83,7 +83,7 @@
       ]
     ],
     "android": {
-      "package": "uk.ac.northumbria.familyrecipes",
+      "package": "uk.deanobrien.familyrecipes",
       "versionCode": 4,
       "allowBackup": false,
       "intentFilters": [
