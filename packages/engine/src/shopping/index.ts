@@ -5,3 +5,5 @@ export * from './commands';
 export * from './sync';
 export * from './store-order';
 export * from './store-templates';
+export * from './geo';
+export * from './voice';

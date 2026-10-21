@@ -50,6 +50,9 @@ Standing rule (D310): every web feature also ships on Android unless a reason is
 | Cook mode: steps, timers, read-aloud, keep-awake, resume | ✅ | ✅ | P1-A (D361-D362, D368): same engine module on both; web arrows are keyboard-only (D368), Android has swipe + buttons; Android timers also fire a local notification in the background (reuses P1-C setup); jest with mocked device modules, NOT run on a phone |
 | Ratings, notes, cooked history, don't suggest again | ✅ | ✅ | P1-A (D360, D363, D367, D369): private-by-default notes (RLS), history on detail, stars + last cooked on cards, planner prefers rated and skips flagged recipes |
 | Substitutions (AI, allergy-checked) + variants | ✅ | ✅ | P1-A (D364-D365): server re-check, temporary swap in cook mode or saved copy; mock AI only verified |
+| Store locations + switch store on arrival | ✅ page open only | ✅ foreground + optional background geofences | P2-A (D390-D394, D396): saved spot per store (current position or postcode, radius 50-1000 m), detection on the device, never a live position to the server; web has no closed-page detection (D396); needs a new EAS build + a phone |
+| Near-store nudge "You are near Tesco - 6 items" | ⚠️ preference only | ✅ local notification | P2-A (D393, D398): Android-only by nature (geofence -> local notification); type `near_store`, off by default |
+| Voice add to the shopping list | ✅ Web Speech API + typed fallback | ✅ expo-speech-recognition + typed fallback | P2-A (D395): one parse route, review chips, idempotent add; Firefox has no Web Speech API (typed box) |
 | Household activity feed | ✅ Home | ✅ | P1-C (D387): Android shows it in Notifications > Household activity (no Android Home yet) |
 | Home dashboard, privacy/sources pages | ✅ | ⚠️ | privacy + sources open the web pages from Settings (D325); dashboard still to build |
 | Settings -> AI provider | ✅ | - | proposed web-only (D310, awaiting owner confirmation) |
@@ -76,10 +79,10 @@ All durations are **estimates**, not commitments.
 
 ### Phase 2 - Smarter shopping and planning (~3 wks)
 
-- **A Location**: store switching on arrival; optional "near Tesco" prompt (opt-in, geofences on device).
+- **A Location + voice**: **built by P2-A (D390-D399), web + Android:** store locations (current position or postcode via postcodes.io, radius), "Shopping at" switches on arrival (Android: foreground watch + optional background geofences, opt-in in Settings, Location; web: while the page is open), optional local "You are near Tesco - N items" nudge (Android, off by default, type `near_store`), voice add (Web Speech API / expo-speech-recognition, review chips, typed fallback, idempotent). Owner steps: push migrations `20261021002000` and `20261021002010`, a new EAS build (0.3.0, versionCode 3, two native modules), the Google Play background-location declaration, device checks. Not verified: GPS accuracy and geofence delivery on a phone, the recogniser on a device, postcodes.io from the hosted app.
 - **B Money**: price comparison per shop; budget tracking over time.
 - **C Planning**: calendar-aware planning (consent; busy/free only); leftovers and batch cooking.
-- Small: voice add.
+- Voice add: done with P2-A (above).
 
 ### Phase 3 - Household, health and platform (~3 wks)
 

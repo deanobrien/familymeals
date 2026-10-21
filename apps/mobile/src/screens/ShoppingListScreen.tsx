@@ -11,6 +11,10 @@ import { fetchListCompare, type ListCompareView } from '@/lib/moneyApi';
 import { CompareListCard } from './money/CompareListCard';
 import type { ShoppingListItem } from '@/viewModels';
 import { ShoppingListsBar } from './ShoppingListsSheet';
+import VoiceAddSheet from './VoiceAddSheet';
+import { cacheOpenCount } from '@/lib/geofence';
+import { fencesOf, getLocations } from '@/lib/locationApi';
+import { useStoreArrival } from '@/lib/useStoreArrival';
 import { RestockBannerCard } from './pantry/Restock';
 import { Button, EmptyState, ErrorState, ErrorText, Loading, MIN_TAP, Muted, Text, Toast, useStyles } from './ui';
 
@@ -34,6 +38,7 @@ export default function ShoppingListScreen() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [toasts, setToasts] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [voiceOpen, setVoiceOpen] = useState(false);
 
   const drainConflicts = useCallback(() => {
     const c = ds.takeConflicts();
@@ -133,6 +138,21 @@ export default function ShoppingListScreen() {
     await act(() => ds.setPlacement!(householdId, storeId, placementTarget(item), aisleId));
   }
 
+  useStoreArrival({
+    householdId,
+    storeId,
+    onArrive: (id, name) => {
+      chooseStore(id);
+      setToasts((t) => [...t, `Shopping at ${name}.`]);
+    },
+    ...(api.configured && householdId ? { fresh: async () => fencesOf(await getLocations(api, householdId)) } : {}),
+  });
+  // the background "near a store" nudge says how many items are open: keep that number on the device
+  const openCount = state ? state.items.filter((i) => !i.ticked).length : null;
+  useEffect(() => {
+    if (householdId && openCount !== null) void cacheOpenCount(householdId, openCount);
+  }, [householdId, openCount]);
+
   if (!householdId) return <EmptyState title="Pick a household first." />;
   if (!state) return error ? <ErrorState message={error} onRetry={refresh} /> : <Loading label="Loading shopping list" />;
 
@@ -172,6 +192,21 @@ export default function ShoppingListScreen() {
       )}
       {compare && compare.totalItems > 0 && <CompareListCard view={compare} />}
       {api.configured && <RestockBannerCard api={api} householdId={householdId} version={syncVersion} onAdded={refresh} />}
+      {api.configured && (
+        <>
+          <Button title="Add by voice" variant="secondary" onPress={() => setVoiceOpen(true)} testID="voice-add-button" />
+          <VoiceAddSheet
+            api={api}
+            householdId={householdId}
+            open={voiceOpen}
+            onClose={() => setVoiceOpen(false)}
+            onAdded={(m) => {
+              setToasts((t) => [...t, m]);
+              void refresh();
+            }}
+          />
+        </>
+      )}
       {pending.size > 0 && (
         <View style={styles.banner}>
           <Text style={styles.pending} testID="pending-banner">

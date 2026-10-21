@@ -5,6 +5,7 @@ import { getShoppingStore, shoppingUsesRealtime } from '../../lib/server/shoppin
 import { getRestockService } from '../../lib/server/restock/deps';
 import { getStoreBook } from '../../lib/server/stores/store';
 import { getPriceService } from '../../lib/server/money/deps';
+import { getStoreLocations } from '../../lib/server/stores/location-store';
 import { RestockBanner } from '../restock-banner';
 import { ShoppingClient } from './shopping-client';
 
@@ -32,6 +33,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
         lists={lists}
         actorId={ctx.userId}
         storeBook={storeBook}
+        storeLocations={await getStoreLocations().list(ctx.householdId).catch(() => [])}
         householdId={ctx.householdId}
         prices={await loadPriceBook(ctx.householdId)}
         initialCompare={await getPriceService().listComparison(ctx.householdId).catch(() => null)}

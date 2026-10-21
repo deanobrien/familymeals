@@ -23,6 +23,8 @@ import { SupabaseShoppingRepository } from './shopping-repository';
 import { SupabaseStoreBookRepository } from './store-book-repository';
 import { SupabaseMoneyRepository } from './money-repository';
 import type { MoneyRepository } from '../money/repository';
+import { SupabaseStoreLocationRepository } from './store-location-repository';
+import type { StoreLocationRepository } from '../stores/locations';
 import type { StoreBookRepository } from '../stores/repository';
 import { SupabaseHouseholdProfile, SupabasePurchaseEventSource } from './household-sources';
 import type { EngineContext } from '../../shopping/engine';
@@ -187,4 +189,9 @@ export function createSupabaseMoneyRepository(resolve: () => Promise<DataContext
 
 export function createSupabaseStoreBookRepository(resolve: () => Promise<DataContext> = getDataContext): StoreBookRepository {
   return lazy((c) => new SupabaseStoreBookRepository(c.client, c.userId), resolve);
+}
+
+// ---- lane P2-A (D390-D392): saved store locations ----
+export function createSupabaseStoreLocationRepository(resolve: () => Promise<DataContext> = getDataContext): StoreLocationRepository {
+  return lazy((c) => new SupabaseStoreLocationRepository(c.client, c.userId), resolve);
 }

@@ -16,7 +16,11 @@ import { AISLES, type ShoppingListInfo, type SnapshotDto } from '../../lib/shopp
 import { generateShoppingFromPlan, snapshotShopping, syncShopping } from './actions';
 import { ItemFormSheet, PartialSheet, type ItemFormValues } from './forms';
 import { ItemRow } from './item-row';
-import { AislePickerSheet, LearnToggle, RouteSuggestion, StoreSelector } from './store-ui';
+import { AislePickerSheet, DetectStore, LearnToggle, RouteSuggestion, StoreSelector } from './store-ui';
+import { useStoreDetect } from './use-store-detect';
+import { VoiceAddButton } from './voice-add';
+import { createStorePrefs } from '../../lib/shopping/store-prefs';
+import type { StoreLocation } from '../../lib/stores/locations';
 import { useStoreMode } from './use-store-mode';
 import { emptyStoreBook, type StoreBook } from '../../lib/shopping/engine';
 import { ListsSheet } from './lists-sheet';
@@ -35,7 +39,7 @@ const AISLE_ORDER: string[] = [...AISLES];
 /** "1" -> "Aisle 1"; named aisles ("Frozen") are shown as they are. */
 const aisleTitle = (label: string): string => (/^\d+[a-z]?$/i.test(label) ? `Aisle ${label}` : label);
 
-export function ShoppingClient({ initial, lists = [], planId, approvedPlanId, actorId, prices, realtimeHouseholdId, storeBook, householdId, initialCompare = null }: {
+export function ShoppingClient({ initial, lists = [], planId, approvedPlanId, actorId, prices, realtimeHouseholdId, storeBook, storeLocations, householdId, initialCompare = null }: {
   /** Per-shop price comparison for the list (P2-B), computed on the server; refreshed here when the list changes. */
   initialCompare?: ListCompareView | null;
   initial: SnapshotDto;
@@ -52,6 +56,7 @@ export function ShoppingClient({ initial, lists = [], planId, approvedPlanId, ac
   realtimeHouseholdId?: string;
   /** The household's stores, aisles and placements (AS1): enables "Shopping at <store>" ordering. */
   storeBook?: StoreBook;
+  storeLocations?: StoreLocation[];
   householdId?: string;
 }) {
   const { toast } = useToast();
@@ -97,6 +102,8 @@ export function ShoppingClient({ initial, lists = [], planId, approvedPlanId, ac
   const storeNotify = useCallback((message: string, tone?: 'info' | 'error') => toast({ message, ...(tone ? { tone } : {}) }), [toast]);
   const storeMode = useStoreMode({ initialBook: storeBook ?? emptyStoreBook(), householdId: householdId ?? 'household', userId: actorId, notify: storeNotify });
   const [placingId, setPlacingId] = useState<string | null>(null);
+  const detectPrefs = useMemo(() => createStorePrefs(householdId ?? 'household', actorId), [householdId, actorId]);
+  const detect = useStoreDetect({ mode: storeMode, locations: storeLocations ?? [], prefs: detectPrefs, notify: storeNotify });
 
   // PR1: restock items added server-side (banner "Add all") show up straight away instead of on the next poll.
   useEffect(() => {
@@ -244,8 +251,10 @@ export function ShoppingClient({ initial, lists = [], planId, approvedPlanId, ac
         <Button variant="secondary" size="sm" onClick={() => setListsOpen(true)} data-testid="lists-button">Lists</Button>
       </div>
       <StoreSelector mode={storeMode} />
+      <DetectStore detect={detect} />
       <div className={styles.toolbar}>
         <Button onClick={() => { setEditingId(null); setFormOpen(true); }}>Add item</Button>
+        <VoiceAddButton onAdded={() => { void controller.sync(); }} />
         <Checkbox
           label="Show completed items"
           checked={showCompleted}

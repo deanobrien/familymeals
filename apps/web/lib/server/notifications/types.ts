@@ -10,6 +10,7 @@ export const NOTIFICATION_TYPES = [
   'recipe_added',
   'member_joined',
   'restock',
+  'near_store',
   'test',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
@@ -53,6 +54,11 @@ export const TYPE_META: Record<ConfigurableType, { label: string; hint: string; 
   restock: {
     label: 'Below minimum stock',
     hint: 'A morning nudge when items you keep a minimum of run low (not sent when auto-add to the list is on).',
+    defaults: { inApp: false, push: false },
+  },
+  near_store: {
+    label: 'Near a saved store',
+    hint: 'Android app only: a notification on this phone when you arrive at a store you saved a location for, with how many items are on your list. Needs "Switch store when I arrive" in Settings, Location.',
     defaults: { inApp: false, push: false },
   },
 };

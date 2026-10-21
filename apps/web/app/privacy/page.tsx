@@ -55,6 +55,22 @@ export default function PrivacyPage() {
           any device, or change what you get, in Settings &gt; Notifications; notifications are deleted after 90 days.
         </li>
         <li>
+          <em>Location (only if you choose):</em> if you save where a store is (by pressing &ldquo;Use my current
+          location&rdquo; while you are in the shop, or by looking up a postcode) we keep that one point and a radius
+          for the store, shared with your household. Your live position is never sent to us, stored or logged: it is
+          compared with your saved stores in your browser, or on your phone, to pick the store you are in. The
+          browser or phone asks for permission each time it is needed, detection in the browser only runs while the
+          shopping page is open, and the Android app can also notice arrival in the background if you switch that on in
+          Settings &gt; Location. A postcode lookup sends only the postcode to postcodes.io. You can remove a
+          store&rsquo;s location, turn detection off and, in the app, &ldquo;Turn off and erase&rdquo; at any time; saved
+          store locations are included in your data export and deleted with the store, household or account.
+        </li>
+        <li>
+          <em>Voice add:</em> your browser or phone turns your speech into text (Chrome and Edge send the audio to their
+          speech service; Android uses the phone&rsquo;s recogniser). We receive only the text, use it to make list items
+          for you to check, and do not keep it.
+        </li>
+        <li>
           <em>Basic technical records:</em> for example which pages errored, so we can keep the
           service safe. We do not put the content of your recipes, receipts or health information in
           these records.

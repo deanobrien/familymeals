@@ -1,6 +1,7 @@
 import { getAppContext } from '../../../lib/server/context';
 import { getIngredientCatalogue } from '../../../lib/server/refdata/catalogue';
 import { getStoreBook } from '../../../lib/server/stores/store';
+import { getStoreLocations } from '../../../lib/server/stores/location-store';
 import { StoresManager } from './stores-manager';
 
 export const metadata = { title: 'Stores and aisles' };
@@ -14,5 +15,5 @@ export default async function Page() {
   for (const p of book.placements) {
     if (p.targetType === 'ingredient' && !(p.targetKey in names)) names[p.targetKey] = cat.get(p.targetKey)?.name ?? 'Unknown ingredient';
   }
-  return <StoresManager initial={book} ingredientNames={names} readOnly={ctx.readOnly} />;
+  return <StoresManager initial={book} ingredientNames={names} readOnly={ctx.readOnly} initialLocations={await getStoreLocations().list(ctx.householdId)} />;
 }
