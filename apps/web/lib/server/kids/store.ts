@@ -151,6 +151,11 @@ export function resetMemoryKids(): void {
   g.__frKids = undefined;
 }
 
+/** Test hook: the memory store has no clock of its own; tests move a round's closing time directly. */
+export function memoryKidsRoundForTest(householdId: string, roundId: string): RoundRow | undefined {
+  return mem(householdId).rounds.find((r) => r.id === roundId);
+}
+
 export class MemoryKidsStore implements KidsStore {
   async listKids(h: string): Promise<KidRow[]> {
     return mem(h).kids.map((k) => ({ ...k }));
