@@ -8,6 +8,8 @@ import s from '../../lib/dashboard/dashboard.module.css';
 import { AiProviderSection } from './ai-provider-section';
 import { DataSection } from './data-section';
 import { DislikesSection } from './dislikes-section';
+import { GoalsSection } from './goals-section';
+import type { GoalsState } from '../../lib/server/goals/types';
 import type { DataSettingsView } from './data-view';
 import type { AiSettingsView } from './ai-actions';
 import type { HouseholdSettings } from '../../lib/server/settings/types';
@@ -48,7 +50,7 @@ const ERROR_TEXT: Record<string, string> = {
   unknown: 'Something went wrong. Please try again.',
 };
 
-export function SettingsView({ initial, ai, recipeSource, data }: { initial?: SettingsInitial; ai?: AiSettingsView; recipeSource?: RecipeSourceView; data?: DataSettingsView }) {
+export function SettingsView({ initial, ai, recipeSource, data, goals }: { initial?: SettingsInitial; ai?: AiSettingsView; recipeSource?: RecipeSourceView; data?: DataSettingsView; goals?: GoalsState | null }) {
   return (
     <div className={s.page}>
       <h1>Settings</h1>
@@ -85,6 +87,7 @@ export function SettingsView({ initial, ai, recipeSource, data }: { initial?: Se
       <AiUsageSection />
       <ExclusionsSection initial={initial?.settings ?? null} readOnly={data?.readOnly ?? false} />
       <DislikesSection initial={initial?.settings ?? null} readOnly={data?.readOnly ?? false} />
+      <GoalsSection initial={goals ?? null} readOnly={data?.readOnly ?? false} />
       <PantrySection />
       <DataSection {...(data ? { data } : {})} />
     </div>

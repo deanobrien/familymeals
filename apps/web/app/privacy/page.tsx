@@ -47,6 +47,15 @@ export default function PrivacyPage() {
           permission first. We use it only to filter your meal plans and warn you about conflicts.
         </li>
         <li>
+          <em>Nutrition goals (only if you choose):</em> simple weekly goals such as more fibre or less salt, your usual
+          portion, and whether you want meal plans to favour them. This is health-related information, so we ask your
+          explicit permission first, separately from allergies. Only you can see it: not other household members and not
+          the household owner. It is never sent to our AI provider. We do not ask for or store your weight, age, health
+          conditions or calorie targets, and goals are not available for children. Withdrawing your permission in Settings
+          deletes your goals; they are also deleted if you leave the household or delete your account, and are included
+          in your data export. Figures come from your planned recipes and are estimates, not medical or dietary advice.
+        </li>
+        <li>
           <em>Notifications (only if you turn them on):</em> your notification choices and quiet hours, the
           notifications we have shown you and whether you have read them, and, for push, a token for each browser or
           phone you switch on. We use them only to send you the reminders and household updates you chose. Push

@@ -76,6 +76,8 @@ export interface Problem {
   isFavourite: boolean[];
   /** Per candidate: how many distinct members dislike something in it (soft). */
   dislikeCount: number[];
+  /** Per candidate: 0..1 fit with the household's opted-in nutrition goals (soft, P3-B). */
+  goalFit: number[];
   tagHits: number[];
   isRecent: boolean[];
 }
@@ -319,6 +321,7 @@ export function prepareProblem(
   const includeTags = new Set(k.includeTags.map(norm));
   const isFavourite = candidates.map((c) => c.favouritedBy.some((m) => favSet.has(m)));
   const dislikeCount = candidates.map((c) => new Set(c.dislikedBy).size);
+  const goalFit = candidates.map((c) => c.goalFit);
   const tagHits = candidates.map((c) => new Set(c.tags.map(norm).filter((t) => includeTags.has(t))).size);
   const isRecent = candidates.map((c) => {
     if (!c.lastCookedOn || k.avoidRecentDays === 0) return false;
@@ -344,6 +347,7 @@ export function prepareProblem(
     labels,
     isFavourite,
     dislikeCount,
+    goalFit,
     tagHits,
     isRecent,
   };

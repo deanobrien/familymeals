@@ -21,6 +21,7 @@ const WARM_API: Array<{ method: 'GET' | 'POST'; path: string }> = [
   { method: 'POST', path: '/api/pantry/scan' },
   { method: 'POST', path: '/api/import/url' },
   { method: 'GET', path: '/api/pantry/make-now' },
+  { method: 'GET', path: '/api/goals' },
   { method: 'GET', path: '/api/money/spending' },
   { method: 'GET', path: '/api/money/compare' },
   { method: 'POST', path: '/api/shopping/scan' },

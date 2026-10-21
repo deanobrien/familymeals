@@ -5,6 +5,7 @@ import { loadLifecycle } from '../../lib/server/privacy/lifecycle';
 import { getWithheldExclusionCount } from '../../lib/server/plan/withheld';
 import { ConsentNotice } from '../consent-notice';
 import { loadSettingsAction } from './settings-actions';
+import { loadGoalsAction } from './goals-actions';
 import { SettingsView } from './settings-view';
 import type { DataSettingsView } from './data-view';
 
@@ -37,12 +38,12 @@ async function loadDataView(notice: string | null): Promise<DataSettingsView> {
 export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
   const notice = typeof sp.notice === 'string' && /^[a-z_]{1,40}$/.test(sp.notice) ? sp.notice : null;
-  const [ai, data, loaded] = await Promise.all([loadAiSettingsAction(), loadDataView(notice), loadSettingsAction()]);
+  const [ai, data, loaded, goals] = await Promise.all([loadAiSettingsAction(), loadDataView(notice), loadSettingsAction(), loadGoalsAction()]);
   const withheld = await getWithheldExclusionCount();
   return (
     <>
       <ConsentNotice withheld={withheld} />
-      <SettingsView initial={{ settings: loaded.settings.ok ? loaded.settings.settings : null, display: loaded.display }} ai={ai} recipeSource={recipeSourceStatus()} data={data} />
+      <SettingsView initial={{ settings: loaded.settings.ok ? loaded.settings.settings : null, display: loaded.display }} ai={ai} recipeSource={recipeSourceStatus()} data={data} goals={goals.ok ? goals.state : null} />
     </>
   );
 }

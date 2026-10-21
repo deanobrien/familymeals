@@ -47,6 +47,9 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
   { table: 'household_exclusions', file: 'dietary.json', key: 'exclusions', order: ID, household: H, member: self('created_by') },
   { table: 'member_dislikes', file: 'dietary.json', key: 'member_dislikes', order: ID, household: H, member: self('member_user_id') },
   { table: 'consent_records', file: 'consents.json', key: 'consent_records', order: ID, household: self('user_id'), member: self('user_id') },
+  // P3-B (D434): nutrition goals are special category data, own rows only in BOTH scopes (an owner's household export never includes another member's).
+  { table: 'nutrition_goal_profiles', file: 'nutrition-goals.json', key: 'profile', order: ['household_id'], household: self('user_id'), member: self('user_id') },
+  { table: 'nutrition_goals', file: 'nutrition-goals.json', key: 'goals', order: ['goal'], household: self('user_id'), member: self('user_id') },
 
   { table: 'recipes', file: 'recipes.json', key: 'recipes', order: ID, household: H, member: self('created_by') },
   { table: 'recipe_versions', file: 'recipes.json', key: 'versions', order: ID, household: H, member: child('recipe_id', 'recipes') },

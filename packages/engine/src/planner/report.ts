@@ -13,6 +13,7 @@ export type ConstraintKind =
   | 'budget'
   | 'favourites'
   | 'dislikes'
+  | 'goals'
   | 'quick_meals'
   | 'include_tags'
   | 'variety'
@@ -412,6 +413,15 @@ export function buildEvaluation(
         explanation: `${plural(meals, 'planned meal')} ${meals === 1 ? 'has' : 'have'} something a member dislikes. Dislikes are only a preference: they were avoided where the other constraints allowed.`,
       });
     }
+  }
+
+  // ---------- nutrition goals nudge (soft, opt-in; anonymous goal ids only, P3-B) ----------
+  if (p.goalFit.some((x) => x > 0)) {
+    const filled = p.plannable.filter((s) => (a[s] ?? null) !== null).length;
+    report.push({
+      id: 'goals', kind: 'goals', hard: false, status: st.goalMeals * 2 >= filled ? 'met' : 'partially_met', target: `${filled}`, actual: `${st.goalMeals}`,
+      explanation: `${st.goalMeals} of ${filled} planned meals suit the household's nutrition goals well. This is only a gentle preference, so the other constraints came first.`,
+    });
   }
 
   // ---------- quick meals ----------

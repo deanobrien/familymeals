@@ -129,7 +129,7 @@ export const AllergenGroup = z.enum([
   'mustard', 'peanuts', 'sesame', 'soya', 'sulphites', 'tree_nuts',
 ]);
 export type AllergenGroup = z.infer<typeof AllergenGroup>;
-export const ConsentType = z.enum(['allergy_data', 'dietary_restrictions']);
+export const ConsentType = z.enum(['allergy_data', 'dietary_restrictions', 'nutrition_goals']);
 export type ConsentType = z.infer<typeof ConsentType>;
 export const RecipeStatus = z.enum(['draft', 'active', 'archived']);
 export type RecipeStatus = z.infer<typeof RecipeStatus>;

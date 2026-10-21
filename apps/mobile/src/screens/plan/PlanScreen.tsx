@@ -6,7 +6,7 @@ import { consentNoticeText, createPlanClient, describeError, type PlanClient } f
 import { addDays, dateShort, dayShort, todayIso, weekDates, weekLabel } from '@/lib/plan/dates';
 import {
   formatPence, getEntry, markSlot, mealCost, mealCount, moveEntry, removeEntry, setMealTypes, setNote, setRecipe, setServings, shiftToWeek, slotKey,
-  cookedVariety, setLeftover, swapRecipe, weekCost, weekCostLabel, weekNutrition, weekVariety,
+  cookedGoals, cookedVariety, setLeftover, swapRecipe, weekCost, weekCostLabel, weekGoals, weekNutrition, weekVariety, type MyGoalsView,
 } from '@/lib/plan/ops';
 import { MEAL_LABEL, MEAL_TYPES, type MealType, type PlanDoc, type PlanEntry, type PlanPage, type RecipeLite, type ShoppingHandoff, type SlotRef } from '@/lib/plan/types';
 import type { ServerApi } from '@/lib/serverApi';
@@ -19,6 +19,7 @@ import RecipePicker from './RecipePicker';
 import SlotEditor from './SlotEditor';
 import WeekSummary from './WeekSummary';
 import WeekVarietyPanel from './WeekVarietyPanel';
+import WeekGoalsPanel from './WeekGoalsPanel';
 
 type View_ = { name: 'week' } | { name: 'slot'; slot: SlotRef } | { name: 'pick'; slot: SlotRef; mode: 'add' | 'swap' } | { name: 'stored'; slot: SlotRef };
 interface Msg { tone: 'info' | 'error'; text: string; items?: string[] }
@@ -67,6 +68,8 @@ export function PlanWeek({ client }: { client: PlanClient }) {
   const [view, setView] = useState<View_>({ name: 'week' });
   const [busy, setBusy] = useState(false);
   const [pendingWeek, setPendingWeek] = useState<string | null>(null);
+  // P3-B (D433): the signed-in person's OWN goals (consent-gated on the server); null = nothing to show.
+  const [myGoals, setMyGoals] = useState<MyGoalsView | null>(null);
 
   const load = useCallback(async (week?: string) => {
     setLoadError(null);
@@ -86,6 +89,11 @@ export function PlanWeek({ client }: { client: PlanClient }) {
   }, [client]);
 
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    let live = true;
+    void (client.loadMyGoals?.() ?? Promise.resolve(null)).then((g) => { if (live) setMyGoals(g); }, () => undefined);
+    return () => { live = false; };
+  }, [client]);
 
   // Android back inside a sub-view returns to the week instead of leaving the screen.
   useEffect(() => {
@@ -98,6 +106,8 @@ export function PlanWeek({ client }: { client: PlanClient }) {
   const nutrition = useMemo(() => (doc ? weekNutrition(doc, recipes) : null), [doc, recipes]);
   const variety = useMemo(() => (doc ? weekVariety(doc, recipes) : null), [doc, recipes]);
   const cookedVar = useMemo(() => (page?.cooked ? cookedVariety(page.cooked, recipes) : undefined), [page?.cooked, recipes]);
+  const goalsPlanned = useMemo(() => (doc ? weekGoals(myGoals, doc, recipes) : null), [myGoals, doc, recipes]);
+  const goalsCooked = useMemo(() => (page?.cooked ? cookedGoals(myGoals, page.cooked, recipes) : undefined), [myGoals, page?.cooked, recipes]);
 
   if (!page || !doc) return loadError ? <ErrorState message={loadError} onRetry={() => void load()} /> : <Loading label="Loading meal plan" />;
 
@@ -380,6 +390,7 @@ export function PlanWeek({ client }: { client: PlanClient }) {
 
       <WeekSummary data={nutrition} />
       <WeekVarietyPanel planned={variety} {...(cookedVar !== undefined ? { cooked: cookedVar } : {})} />
+      <WeekGoalsPanel planned={goalsPlanned} {...(goalsCooked !== undefined ? { cooked: goalsCooked } : {})} />
 
       <PromptPlanner
         client={client}
