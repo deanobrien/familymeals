@@ -77,6 +77,11 @@
               "scheme": "https",
               "host": "family-recipes-dean-cph4g5cuh9fmhhfy.ukwest-01.azurewebsites.net",
               "pathPrefix": "/invite"
+            },
+            {
+              "scheme": "https",
+              "host": "family-recipes-dean-cph4g5cuh9fmhhfy.ukwest-01.azurewebsites.net",
+              "pathPrefix": "/s/"
             }
           ],
           "category": [

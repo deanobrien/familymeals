@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { ErrorState } from '@fr/ui';
-import { getRecipeRepository } from '../../lib/recipes/factory';
 import { getAppContext } from '../../lib/server/context';
 import { webKidsCaller } from '../../lib/server/kids/callers';
 import { loadKids, roundSeeds } from '../../lib/server/kids/service';
@@ -17,7 +16,6 @@ export default async function Page() {
   if (!r.ok) return <ErrorState title="Could not load kids' mode" description={r.message} />;
   const svc = await loadPlanServices(caller.householdId);
   const seeds = await roundSeeds(caller, svc.plans);
-  const list = await getRecipeRepository().list({ q: '', tags: [], sort: 'name', page: 1, pageSize: 60 });
   return (
     <div className={s.page}>
       <p><Link href="/plan">Back to the planner</Link></p>
@@ -30,7 +28,7 @@ export default async function Page() {
         kids={r.kids.kids}
         rounds={r.kids.rounds}
         planned={seeds.planned}
-        recipes={list.items.map((x) => ({ id: x.id, title: x.title }))}
+        recipes={seeds.recipes.map((x) => ({ id: x.recipeId, title: x.title }))}
         householdId={app.householdId}
         userId={app.userId}
         readOnly={caller.readOnly}

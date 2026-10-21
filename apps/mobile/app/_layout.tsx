@@ -43,6 +43,10 @@ function Navigator() {
       <Stack.Screen name="notification-settings" options={{ title: 'Notification settings' }} />
       <Stack.Screen name="calendar-settings" options={{ title: "Calendar" }} />
       <Stack.Screen name="location-settings" options={{ title: 'Location' }} />
+      <Stack.Screen name="s/[token]" options={{ title: 'Shared recipe' }} />
+      <Stack.Screen name="shared" options={{ title: 'Shared recipes' }} />
+      <Stack.Screen name="kids" options={{ title: "Kids' mode" }} />
+      <Stack.Screen name="kids-play" options={{ headerShown: false, gestureEnabled: false }} />
     </Stack>
   );
 }

@@ -147,7 +147,8 @@ export async function roundSeeds(caller: Pick<KidsCaller, 'householdId'>, plans:
     const r = await repo.get(id).catch(() => null);
     if (r) planned.push({ recipeId: id, title: r.title });
   }
-  return { planned };
+  const list = await repo.list({ q: '', tags: [], sort: 'name', page: 1, pageSize: 60 }).catch(() => null);
+  return { planned, recipes: (list?.items ?? []).map((r) => ({ recipeId: r.id, title: r.title })) };
 }
 
 /**

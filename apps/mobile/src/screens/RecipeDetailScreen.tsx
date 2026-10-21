@@ -10,6 +10,7 @@ import { CookingSection } from './cooking/CookingSection';
 import { SubstitutionSheet } from './cooking/SubstitutionSheet';
 import { CostPanel, NutritionPanel } from './RecipePanels';
 import { Button, EmptyState, ErrorState, ErrorText, Loading, Muted, Text, useStyles } from './ui';
+import RecipeShareSection from './sharing/RecipeShareSection';
 import { Badge, RecipeImage, Section, Stepper } from './widgets';
 
 export default function RecipeDetailScreen() {
@@ -172,6 +173,7 @@ export default function RecipeDetailScreen() {
         </Section>
       )}
       <ErrorText message={actionError} />
+      <RecipeShareSection recipeId={recipe.id} recipeTitle={recipe.title} />
       {notice ? (
         <Muted accessibilityRole="alert" testID="notice">
           {notice}

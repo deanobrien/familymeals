@@ -78,7 +78,7 @@ describe('SupabaseShareStore through the service', () => {
     for (const forbidden of ['favourite', 'rating', HA, ALICE, BOB]) expect(text).not.toContain(forbidden);
 
     // the internal doc builds a recipe input the normal save path accepts, with the sharer credited and nothing private
-    const doc = (await new SupabaseShareStore(pg.client).read(token, { userId: CAROL, householdId: HC }))!;
+    const doc = (await new SupabaseShareStore(pg.client).read(token))!;
     if (doc.minimal) throw new Error('expected the full doc');
     const input = copyInputFor(doc.recipes[0]!, doc.sharedBy);
     expect(recipeInputSchema.safeParse(input).success).toBe(true);

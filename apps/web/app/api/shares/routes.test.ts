@@ -42,7 +42,7 @@ beforeEach(() => {
 
 describe('/api/shares', () => {
   it('create -> list -> preview as another household -> save -> revoke -> generic not available', async () => {
-    const [rid] = await recipeIds(HA, 1);
+    const rid = (await recipeIds(HA, 1))[0]!;
     const created = await shares.POST(post({ action: 'create', scope: 'recipe', recipeIds: [rid], expiresInDays: 30 }, HA));
     expect(created.status).toBe(200);
     const { share } = await created.json();
@@ -75,7 +75,7 @@ describe('/api/shares', () => {
   });
 
   it('a signed-out visitor (no credentials) gets the minimal preview; a bad token is the same as an unknown one', async () => {
-    const [rid] = await recipeIds(HA, 1);
+    const rid = (await recipeIds(HA, 1))[0]!;
     const { share } = await (await shares.POST(post({ action: 'create', scope: 'recipe', recipeIds: [rid], expiresInDays: null }, HA))).json();
     outcome = { ok: false, status: 401, message: 'Please sign in.' };
     const min = await (await preview.POST(post({ token: share.token }, HA))).json();
@@ -93,7 +93,7 @@ describe('/api/shares', () => {
   });
 
   it('images: only a signed-in viewer of a live share; everything else is a plain 404', async () => {
-    const [rid] = await recipeIds(HA, 1);
+    const rid = (await recipeIds(HA, 1))[0]!;
     const { share } = await (await shares.POST(post({ action: 'create', scope: 'recipe', recipeIds: [rid], expiresInDays: 7 }, HA))).json();
     const ctx = (token: string, recipeId: string) => ({ params: Promise.resolve({ token, recipeId }) });
     outcome = as(HB, 'bob');
@@ -104,7 +104,7 @@ describe('/api/shares', () => {
   });
 
   it('refuses writes while the household is read-only, and non-JSON bodies', async () => {
-    const [rid] = await recipeIds(HA, 1);
+    const rid = (await recipeIds(HA, 1))[0]!;
     outcome = as(HA, 'alice', true);
     expect((await shares.POST(post({ action: 'create', scope: 'recipe', recipeIds: [rid] }, HA))).status).toBe(403);
     outcome = as(HA, 'alice');

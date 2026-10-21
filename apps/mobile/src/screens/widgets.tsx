@@ -95,6 +95,8 @@ export function Field({
   editable = true,
   hint,
   onBlur,
+  secureTextEntry,
+  maxLength,
 }: {
   label: string;
   value: string;
@@ -107,6 +109,8 @@ export function Field({
   editable?: boolean;
   hint?: string;
   onBlur?: () => void;
+  secureTextEntry?: boolean;
+  maxLength?: number;
 }) {
   const styles = useStyles();
   const t = useTheme();
@@ -123,6 +127,8 @@ export function Field({
         multiline={multiline}
         editable={editable}
         keyboardType={keyboardType}
+        secureTextEntry={secureTextEntry}
+        maxLength={maxLength}
         testID={testID}
         style={[styles.input, multiline && { minHeight: 80, textAlignVertical: 'top' }, !editable && { opacity: 0.6 }]}
       />

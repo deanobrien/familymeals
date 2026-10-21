@@ -54,6 +54,8 @@ export interface KidsView {
 export interface RoundSeeds {
   /** Recipes planned in the plan week (deduplicated), as vote candidates. */
   planned: Array<{ recipeId: string; title: string }>;
+  /** The household's recipes by name (up to 60), for choosing candidates by hand. */
+  recipes: Array<{ recipeId: string; title: string }>;
 }
 
 export type KidsError = 'invalid_input' | 'forbidden' | 'read_only' | 'not_found' | 'round_closed' | 'rate_limited' | 'unknown';
