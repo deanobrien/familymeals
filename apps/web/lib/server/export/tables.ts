@@ -98,6 +98,18 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
   { table: 'store_placements', file: 'stores.json', key: 'placements', order: ID, household: H, member: child('store_id', 'stores') },
   { table: 'store_locations', file: 'stores.json', key: 'locations', order: ['store_id'], household: H, member: child('store_id', 'stores') },
 
+  // P3-A shared cookbook (D423, D424): the links this household made (the token hash is dropped by the secret-column rule and was
+  // never the link itself), which recipes they cover, and the links this person opened (the rows are their own; the sharer's
+  // recipes they saved are in recipes.json with `source_share_id`).
+  { table: 'recipe_shares', file: 'sharing.json', key: 'shares_created', order: ID, household: H, member: self('created_by') },
+  { table: 'recipe_share_items', file: 'sharing.json', key: 'share_items', order: ['share_id', 'recipe_id'], household: H, member: child('share_id', 'recipe_shares') },
+  { table: 'recipe_share_recipients', file: 'sharing.json', key: 'shares_received', order: ['share_id'], household: self('user_id'), member: self('user_id') },
+  // P3-A kids' mode (D426): named kid profiles (a first name or nickname, an emoji, a colour: nothing else exists), dinner rounds and votes.
+  { table: 'kid_profiles', file: 'kids.json', key: 'kid_profiles', order: ID, household: H, member: self('created_by') },
+  { table: 'dinner_rounds', file: 'kids.json', key: 'dinner_rounds', order: ID, household: H, member: self('created_by') },
+  { table: 'dinner_round_candidates', file: 'kids.json', key: 'candidates', order: ['round_id', 'recipe_id'], household: H, member: child('round_id', 'dinner_rounds') },
+  { table: 'dinner_round_votes', file: 'kids.json', key: 'votes', order: ID, household: H, member: self('voter_user_id') },
+
   { table: 'ai_usage', file: 'ai_usage.json', key: 'ai_usage', order: ID, household: H, member: self('user_id') },
 
   // P1-C (D380): a member's own notification choices and their notification centre. RLS only shows each member their own

@@ -16,6 +16,9 @@ import { resetMemoryCalendar } from '../calendar/store';
 import { resetMemoryLeftovers } from '../leftovers/store';
 import { resetMemoryNotifications } from '../notifications/store';
 import { resetMoneyRepository } from '../money/store';
+import { resetMemoryShares } from '../sharing/store';
+import { resetMemoryKids } from '../kids/store';
+import { resetShareLimits } from '../sharing/rate-limit';
 
 /**
  * Dev/e2e-only reset of every in-memory store (DECISIONS D36). Never available in production: the route
@@ -42,5 +45,8 @@ export function resetInMemoryStores(): string[] {
   resetMemoryExportAudit();
   resetMemoryNotifications();
   resetMoneyRepository();
+  resetMemoryShares();
+  resetShareLimits();
+  resetMemoryKids();
   return ['shopping', 'stores', 'plans', 'pantry', 'receipts', 'prices', 'products', 'recipes', 'exports', 'notifications', 'money'];
 }

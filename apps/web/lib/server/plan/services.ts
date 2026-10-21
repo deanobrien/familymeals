@@ -11,6 +11,7 @@ import { RepositoryPlanRecipeSource, toPlanRecipe, toRecipeRepo, withCookingSign
 import { planSignals } from '../cooking/service';
 import { getMealPlanStore, getPlanStore, InMemoryMealPlanRepository, resetPlanStore, type MealPlanRepository } from './repository';
 import { resolveBusy } from '../calendar/planner';
+import { resolveVotes } from '../kids/planner';
 import { leftoverSnapshotForPlanner } from '../leftovers/service';
 import { createEngineSolver } from './engine-solver';
 import { createExclusionResolver } from './exclusions';
@@ -130,6 +131,7 @@ export function createPlanServices(opts: {
     proposals: new InMemoryProposalStore(),
     resolveExclusions: createExclusionResolver(), // names -> ingredient ids / UK-14 groups (D132)
     busy: resolveBusy, // busy evenings -> quick-meal / skip constraints (P2-C, D413)
+    votes: resolveVotes, // closed kids' dinner votes -> a soft favourite list (P3-A, D428)
   });
   services = { household, households, recipes, plans: opts.plans ?? (supabase ? getMealPlanStore() : new InMemoryMealPlanRepository()), orchestrator, newId: () => crypto.randomUUID(), now: () => new Date(), leftoverSnapshot: leftoverSnapshotForPlanner };
   return services;

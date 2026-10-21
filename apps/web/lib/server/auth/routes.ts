@@ -18,13 +18,13 @@ export const PUBLIC_PATHS: readonly string[] = [
 ];
 
 /** Public path prefixes (the prefix itself or anything below it). */
-export const PUBLIC_PREFIXES: readonly string[] = ['/auth/', '/invite/', '/.well-known/'];
+export const PUBLIC_PREFIXES: readonly string[] = ['/auth/', '/invite/', '/s/', '/.well-known/'];
 
 /**
  * `/api/jobs/**`: scheduler endpoints; each verifies its own shared secret inside the route
  * (`/api/jobs/storage-cleanup`: CRON_SECRET, ST1 D190; `/api/jobs/purge`: JOBS_SECRET, DX1 D256).
  */
-export const PUBLIC_API_PREFIXES: readonly string[] = ['/api/health', '/api/jobs'];
+export const PUBLIC_API_PREFIXES: readonly string[] = ['/api/health', '/api/jobs', '/api/shares/preview'];
 
 /**
  * API routes the Android app calls with `Authorization: Bearer <supabase access token>` instead of cookies (D102).
@@ -52,6 +52,9 @@ export const BEARER_API_PREFIXES: readonly string[] = [
   '/api/notifications',
   // P2-B money (D400): spending, retailer links, per-shop prices and list comparison.
   '/api/money/',
+  // P3-A (D420, D425): shared cookbook links, saving a copy, share-scoped images; kids' mode rounds and profiles.
+  '/api/shares',
+  '/api/kids',
 ];
 
 export function acceptsBearer(pathname: string, authorization: string | null | undefined): boolean {

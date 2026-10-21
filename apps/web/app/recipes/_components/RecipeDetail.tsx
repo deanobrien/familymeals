@@ -25,6 +25,7 @@ import { SubstitutionPanel } from './cooking/SubstitutionPanel';
 import { CostPanel } from './CostPanel';
 import { NutritionPanel } from './NutritionPanel';
 import { UnlinkedNotice } from './RematchButtons';
+import { SharePanel } from './sharing/SharePanel';
 
 interface DetailProps {
   recipe: RecipeView;
@@ -196,6 +197,8 @@ export function RecipeDetail({ recipe, cooking = null, calc, justDuplicated = fa
       </div>
 
       <CookingPanel recipeId={recipe.id} recipeTitle={recipe.title} servings={servings} averageRating={recipe.rating} cooking={cooking} />
+
+      <SharePanel recipeId={recipe.id} recipeTitle={recipe.title} />
 
       <div className={styles.cols} style={{ marginTop: 'var(--fr-space-6)' }}>
         <CostPanel cost={calc.cost} servings={servings} factor={factor} />

@@ -54,6 +54,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
           <Link href="/recipes/new" className={`fr-btn fr-btn--secondary ${styles.linkBtn}`}>
             New recipe
           </Link>
+          <Link href="/recipes/shared" className={`fr-btn fr-btn--secondary ${styles.linkBtn}`} data-testid="shared-links">
+            Shared
+          </Link>
           <Link href="/recipes/discover" className={`fr-btn fr-btn--secondary ${styles.linkBtn}`}>
             Discover
           </Link>

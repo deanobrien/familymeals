@@ -3,6 +3,7 @@ import { getAppContext } from '../../lib/server/context';
 import { loadCookedWeek } from '../../lib/server/cooking/service';
 import { webCookingCaller } from '../../lib/server/cooking/web-caller';
 import { loadPlanServices } from '../../lib/server/plan/services';
+import Link from 'next/link';
 import { ConsentNotice } from '../consent-notice';
 import { Planner } from './planner';
 
@@ -19,6 +20,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ w
   return (
     <>
       <h1>Meal planner</h1>
+      <p><Link href="/kids" data-testid="kids-link">Kids&apos; mode: let the family vote on dinner</Link></p>
       <ConsentNotice withheld={svc.withheldExclusions ?? 0} />
       <Planner key={`${data.doc.weekStart}-${data.doc.id}`} data={data} />
     </>

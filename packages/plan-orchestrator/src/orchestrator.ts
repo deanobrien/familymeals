@@ -14,8 +14,16 @@ export interface OrchestratorDeps {
   resolveExclusions?: ExclusionResolver;
   /** Busy evenings for the plan's dates (P2-C, D413): quick-meal and skip dates, resolved by the server. Omitted = none. */
   busy?: (householdId: string, weekStart: string, dates: string[]) => Promise<BusyResolution>;
+  /**
+   * Recipes the family voted for in a CLOSED kids' round that overlaps these dates (P3-A, D428). A soft preference: the solver treats
+   * them like a favourite of one extra pseudo-member, so allergies, budget and variety still win. Omitted / failing = none.
+   */
+  votes?: (householdId: string, weekStart: string, dates: string[]) => Promise<string[]>;
   newId?: () => string; now?: () => Date;
 }
+
+/** The pseudo-member that carries a closed dinner vote into the planner as a soft preference (D428). */
+export const VOTE_PREFERENCE_ID = 'family-vote';
 
 const norm = (s: string) => s.trim().toLowerCase();
 const uniq = (xs: string[]) => [...new Set(xs.map(norm).filter(Boolean))];
@@ -150,6 +158,14 @@ export class PlanOrchestrator {
       for (const rid of recipeIds) favRecipes.set(rid, [...(favRecipes.get(rid) ?? []), id]);
     }
 
+    // A closed dinner vote (kids' mode) is one more soft favourite list, never a hard rule.
+    const voted = await this.votesFor(householdId, weekStart, request.days ?? 7);
+    if (voted.length > 0) {
+      memberIds.push(VOTE_PREFERENCE_ID);
+      memberLabels[VOTE_PREFERENCE_ID] = 'Family vote';
+      for (const rid of voted) favRecipes.set(rid, [...(favRecipes.get(rid) ?? []), VOTE_PREFERENCE_ID]);
+    }
+
     // Busy evenings (manual toggles, device calendar, ICS): server-owned, applied whatever the request says. They add quick-meal
     // dates (keeping the request's own minutes / strictness) and skip the dinner on evenings with almost no free time.
     const planDays = request.days ?? 7;
@@ -229,6 +245,15 @@ export class PlanOrchestrator {
     const parsed = await this.parseRequest(householdId, prompt, weekStart);
     if (!parsed.ok) return parsed;
     return this.solveRequest(householdId, { prompt, weekStart, request: parsed.value.request });
+  }
+
+  private async votesFor(householdId: string, weekStart: string, days: number): Promise<string[]> {
+    if (!this.d.votes) return [];
+    try {
+      return [...new Set(await this.d.votes(householdId, weekStart, Array.from({ length: days }, (_, i) => addDays(weekStart, i))))];
+    } catch {
+      return []; // advisory input: a failure never blocks a plan
+    }
   }
 
   private async busyFor(householdId: string, weekStart: string, days: number): Promise<BusyResolution> {

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   BASE_LOCK_MS, FREE_ATTEMPTS, MAX_LOCK_MS, OPEN_GATE, allVoted, attemptPin, checkCandidates, checkKidProfile, createPinRecord, hashPin, isRoundOpen,
   isValidPin, lockLabel, lockMsFor, parseGateState, parsePinRecord, roundOverlapsWeek, sha256Hex, softPreference, tallyVotes, winners,
-  type GateState, type PinRecord, type VoteLike,
+  DevicePinGate, type GateState, type KeyValueStore, type PinRecord, type VoteLike,
 } from '../../src/kids';
 
 const SALT = '0123456789abcdef0123456789abcdef';
@@ -145,5 +145,59 @@ describe('rounds and tally', () => {
     expect(roundOverlapsWeek('2026-10-21', 1, '2026-10-19', 7)).toBe(true);
     expect(roundOverlapsWeek('2026-10-25', 7, '2026-10-19', 7)).toBe(true);
     expect(roundOverlapsWeek('2026-10-26', 1, '2026-10-19', 7)).toBe(false);
+  });
+});
+
+describe('DevicePinGate (device-local storage)', () => {
+  const memory = (): KeyValueStore & { data: Map<string, string> } => {
+    const data = new Map<string, string>();
+    return { data, getItem: (k) => data.get(k) ?? null, setItem: (k, v) => void data.set(k, v), removeItem: (k) => void data.delete(k) };
+  };
+  const make = (store = memory(), clock = { t: 5_000_000 }) => ({
+    store, clock, gate: new DevicePinGate(store, { key: 'fr.kids.test', now: () => clock.t, randomSalt: () => SALT }),
+  });
+
+  it('cannot open before a PIN is set, and sets a 4-6 digit PIN once', async () => {
+    const { gate, store } = make();
+    expect(await gate.hasPin()).toBe(false);
+    expect((await gate.verify('1234')).ok).toBe(false);
+    expect(await gate.setPin('12')).toBe(false);
+    expect(await gate.setPin('2468')).toBe(true);
+    expect(await gate.hasPin()).toBe(true);
+    // only a salted hash is on the device
+    expect([...store.data.values()].join(' ')).not.toContain('2468');
+    expect((await gate.verify('2468')).ok).toBe(true);
+  });
+
+  it('changing the PIN needs the current one', async () => {
+    const { gate } = make();
+    await gate.setPin('2468');
+    expect(await gate.setPin('1357')).toBe(false);
+    expect(await gate.setPin('1357', '0000')).toBe(false);
+    expect(await gate.setPin('1357', '2468')).toBe(true);
+    expect((await gate.verify('2468')).ok).toBe(false);
+    expect((await gate.verify('1357')).ok).toBe(true);
+  });
+
+  it('locks after repeated wrong guesses and the lock survives a restart (it is in storage)', async () => {
+    const { gate, store, clock } = make();
+    await gate.setPin('2468');
+    for (let i = 0; i < FREE_ATTEMPTS; i++) await gate.verify('1111');
+    expect(await gate.lockedForMs()).toBe(BASE_LOCK_MS);
+    const reopened = new DevicePinGate(store, { key: 'fr.kids.test', now: () => clock.t, randomSalt: () => SALT });
+    expect(await reopened.verify('2468')).toMatchObject({ ok: false, reason: 'locked' });
+    clock.t += BASE_LOCK_MS + 1;
+    expect((await reopened.verify('2468')).ok).toBe(true);
+    expect(await reopened.lockedForMs()).toBe(0);
+  });
+
+  it('treats unreadable storage as no PIN, and keeps households apart by key', async () => {
+    const broken: KeyValueStore = { getItem: () => { throw new Error('denied'); }, setItem: () => undefined, removeItem: () => undefined };
+    expect(await new DevicePinGate(broken, { key: 'x', randomSalt: () => SALT }).hasPin()).toBe(false);
+    const store = memory();
+    const a = new DevicePinGate(store, { key: 'fr.kids.A', randomSalt: () => SALT });
+    const b = new DevicePinGate(store, { key: 'fr.kids.B', randomSalt: () => SALT });
+    await a.setPin('2468');
+    expect(await b.hasPin()).toBe(false);
   });
 });

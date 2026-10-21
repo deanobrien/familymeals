@@ -18,8 +18,9 @@ const ROUTE_KEYS: ReadonlyArray<readonly [string, NavKey]> = [
 ];
 
 /** Sign-in / sign-up / password / callback / invite pages render without the app navigation. */
-const AUTH_PATHS = ['/sign-in', '/sign-up', '/forgot-password', '/reset-password'];
-const AUTH_PREFIXES = ['/auth/', '/invite/'];
+// '/kids/play' is kids' mode: a full-screen page with no navigation out (the parent PIN is the only way back).
+const AUTH_PATHS = ['/sign-in', '/sign-up', '/forgot-password', '/reset-password', '/kids/play'];
+const AUTH_PREFIXES = ['/auth/', '/invite/', '/s/'];
 
 export function isAuthRoute(pathname: string): boolean {
   return AUTH_PATHS.includes(pathname) || AUTH_PREFIXES.some((p) => pathname.startsWith(p));
