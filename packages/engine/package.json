@@ -22,7 +22,8 @@
     "./cooking": "./src/cooking/index.ts",
     "./calendar": "./src/calendar/index.ts",
     "./leftovers": "./src/leftovers/index.ts",
-    "./money": "./src/money/index.ts"
+    "./money": "./src/money/index.ts",
+    "./kids": "./src/kids/index.ts"
   },
   "sideEffects": false,
   "scripts": {
