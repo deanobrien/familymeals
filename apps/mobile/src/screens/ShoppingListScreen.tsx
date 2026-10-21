@@ -6,6 +6,9 @@ import { formatQuantity } from '@/lib/format';
 import { orderable, placementTarget } from '@/lib/storeBook';
 import { emptyStoreBook, orderForStore, resolveAisle, sortedAisles, type StoreBook } from '@fr/engine/shopping';
 import { useServerApi } from '@/data/ServerApiContext';
+import { useRouter } from 'expo-router';
+import { fetchListCompare, type ListCompareView } from '@/lib/moneyApi';
+import { CompareListCard } from './money/CompareListCard';
 import type { ShoppingListItem } from '@/viewModels';
 import { ShoppingListsBar } from './ShoppingListsSheet';
 import { RestockBannerCard } from './pantry/Restock';
@@ -20,6 +23,9 @@ export default function ShoppingListScreen() {
   const { ds, householdId, online, syncVersion } = useApp();
   const styles = useStyles();
   const api = useServerApi();
+  const router = useRouter();
+  // P2-B: per-shop comparison from the server (online only; the list works fine without it)
+  const [compare, setCompare] = useState<ListCompareView | null>(null);
   const [book, setBook] = useState<StoreBook>(emptyStoreBook());
   const [storeId, setStoreId] = useState<string | null>(null);
   const [placingId, setPlacingId] = useState<string | null>(null);
@@ -61,6 +67,17 @@ export default function ShoppingListScreen() {
   useEffect(() => {
     void refresh();
   }, [refresh, syncVersion]);
+
+  const itemSig = state ? state.items.map((i) => `${i.id}:${i.ticked ? 1 : 0}`).join('|') : '';
+  useEffect(() => {
+    if (!householdId || !api.configured || !online || !state) return undefined;
+    let live = true;
+    const timer = setTimeout(() => {
+      fetchListCompare(api, householdId).then((c) => { if (live) setCompare(c); }, () => undefined);
+    }, 500);
+    return () => { live = false; clearTimeout(timer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [api, householdId, online, itemSig, syncVersion]);
 
   // Resync from the command-log cursor whenever the app returns to the foreground.
   useEffect(() => {
@@ -153,6 +170,7 @@ export default function ShoppingListScreen() {
           onChanged={refresh}
         />
       )}
+      {compare && compare.totalItems > 0 && <CompareListCard view={compare} />}
       {api.configured && <RestockBannerCard api={api} householdId={householdId} version={syncVersion} onAdded={refresh} />}
       {pending.size > 0 && (
         <View style={styles.banner}>
@@ -225,6 +243,17 @@ export default function ShoppingListScreen() {
                 <Muted>
                   {qty} - {item.aisle}
                 </Muted>
+                {compare?.badges[item.id] && !item.ticked ? (
+                  <Text
+                    style={{ color: '#2e7d32', fontWeight: '600', fontSize: 13 }}
+                    accessibilityRole="link"
+                    accessibilityLabel={`${compare.badges[item.id]!.text}. Open price history`}
+                    onPress={() => router.push(`/price/${compare.badges[item.id]!.ingredientId}` as never)}
+                    testID={`cheapest-${item.id}`}
+                  >
+                    {compare.badges[item.id]!.text}
+                  </Text>
+                ) : null}
                 {pending.has(item.id) && (
                   <Text style={styles.pending} testID={`pending-${item.id}`}>
                     Pending
