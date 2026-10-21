@@ -13,14 +13,17 @@ import {
 } from '../../shopping/store-actions';
 import s from '../../../lib/dashboard/dashboard.module.css';
 import m from './stores.module.css';
+import { StoreLocationPanel } from './store-location';
+import type { StoreLocation } from '../../../lib/stores/locations';
 
 type Template = keyof typeof STORE_TEMPLATES;
 const NONE = '';
 
-export function StoresManager({ initial, ingredientNames, readOnly }: { initial: StoreBook; ingredientNames: Record<string, string>; readOnly: boolean }) {
+export function StoresManager({ initial, ingredientNames, readOnly, initialLocations = [] }: { initial: StoreBook; ingredientNames: Record<string, string>; readOnly: boolean; initialLocations?: StoreLocation[] }) {
   const { toast } = useToast();
   const [book, setBook] = useState(initial);
   const [names, setNames] = useState(ingredientNames);
+  const [locations, setLocations] = useState(initialLocations);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,7 +64,7 @@ export function StoresManager({ initial, ingredientNames, readOnly }: { initial:
 
       {book.stores.length === 0 && <p data-testid="no-stores">No stores yet. Add your first one above.</p>}
       {book.stores.map((st) => (
-        <StoreCard key={st.id} store={st} book={book} names={names} disabled={busy || readOnly} act={act} setNames={setNames} />
+        <StoreCard key={st.id} store={st} book={book} names={names} disabled={busy || readOnly} act={act} setNames={setNames} location={locations.find((l) => l.storeId === st.id)} onLocations={(p) => setLocations(p.locations)} />
       ))}
     </div>
   );
@@ -109,7 +112,8 @@ function NewStore({ book, disabled, act }: { book: StoreBook; disabled: boolean;
   );
 }
 
-function StoreCard({ store, book, names, disabled, act, setNames }: {
+function StoreCard({ store, book, names, disabled, act, setNames, location, onLocations }: {
+  location: StoreLocation | undefined; onLocations: (p: { locations: StoreLocation[] }) => void;
   store: Store; book: StoreBook; names: Record<string, string>; disabled: boolean; act: Act; setNames: (n: Record<string, string>) => void;
 }) {
   const aisles = sortedAisles(store.id, book.aisles);
@@ -173,6 +177,8 @@ function StoreCard({ store, book, names, disabled, act, setNames }: {
           <Input label="New aisle" value={newAisle} onChange={(e) => setNewAisle(e.target.value)} placeholder="1, Frozen, Fruit & veg" maxLength={60} />
           <Button type="submit" variant="secondary" disabled={disabled || !newAisle.trim()}>Add aisle</Button>
         </form>
+
+        <StoreLocationPanel store={store} location={location} disabled={disabled} onChange={onLocations} />
 
         <h3>Where things are</h3>
         <PlacementList storeName={store.name} aisles={aisles} placements={placements} names={names} disabled={disabled}

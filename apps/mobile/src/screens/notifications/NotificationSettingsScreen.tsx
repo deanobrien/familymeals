@@ -14,6 +14,7 @@ import {
 } from '@/lib/notificationsApi';
 import { disablePush, enablePush, pushState, type PushState } from '@/lib/push';
 import { ServerApiError, type ServerApi } from '@/lib/serverApi';
+import { setNearStoreWanted } from '@/lib/geofence';
 import { Field, OptionRow, Section } from '../widgets';
 import { Button, ErrorState, Loading, Muted, Text, useStyles } from '../ui';
 
@@ -95,6 +96,7 @@ export function NotificationSettingsBody({ api, householdId, push = realPush }: 
       setFieldErrors({});
       const r = await saveSettings(api, householdId, settings);
       setSettings(r.settings);
+      void setNearStoreWanted(r.settings.types.near_store.inApp);
       setMessage('Notification settings saved.');
     });
   const turnOn = () =>

@@ -24,6 +24,25 @@
       ],
       "expo-audio",
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Family Recipes to use your location to pick the store you are in, and to save where a store is. Your position is only compared on this phone.",
+          "locationAlwaysAndWhenInUsePermission": "Allow Family Recipes to notice when you arrive at a store you saved, even when the app is closed. Your position is only compared on this phone.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": false
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow Family Recipes to listen when you add items to your shopping list by voice.",
+          "speechRecognitionPermission": "Allow Family Recipes to turn your speech into shopping list items.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ],
+      [
         "expo-share-intent",
         {
           "disableIOS": true,
@@ -73,6 +92,9 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.VIBRATE",
         "android.permission.READ_CALENDAR"

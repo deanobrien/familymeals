@@ -60,6 +60,8 @@ ingredients ──< ingredient_aliases, ingredient_densities, ingredient_unit_we
 storage_cleanup_queue, deletion_ledger   (no FKs; service role only)
 ```
 
+**Store locations (P2-A, migration `20261021002000`).** `store_locations` (PK `store_id`; composite FK `(store_id, household_id)` to `stores`, cascade): `lat`, `lng`, `radius_m` 50-1000 (default 150), `source` `device | postcode` (a postcode row names its postcode, a device row has none). The spot a member saved for a shop; no live position is stored anywhere. RLS as the store book (members select; writable-household members write). RLS tests: `packages/db/tests/rls/013_p2a_store_locations.sql`. Migration `20261021002010` adds `near_store` to `notification_type_is_valid` (the Android-only, off-by-default nudge preference).
+
 **Stores and aisles (AS1, migration `20261020002900`).** `stores` (unique name per household, case-insensitive), `store_aisles` (label, `sort_order`), `store_placements` (unique per `(store_id, target_type, target_key)`; `target_type` in `ingredient | item | category`). Composite FKs `(store_id, household_id)` and `(aisle_id, store_id)` keep rows in one household and one store; deleting an aisle or store cascades. RLS: members select, writable-household members write (read-only in the deletion grace period). Functions: `household_store_book(p_household_id)` (jsonb, security invoker) and `copy_store_layout(p_household_id, p_from_store, p_to_store)` (replaces the target's aisles and placements atomically). RLS tests: `packages/db/tests/rls/010_as1_store_aisles.sql`.
 
 The four concepts the brief insists stay separate are separate tables: **recipe requirement**

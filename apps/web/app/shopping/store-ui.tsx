@@ -7,6 +7,7 @@ import { useState, type FormEvent } from 'react';
 import { Button, Card, CardBody, Checkbox, Input, Select, Sheet } from '@fr/ui';
 import type { ItemView, Store, StoreAisle } from '../../lib/shopping/engine';
 import type { PlaceScope, StoreMode } from './use-store-mode';
+import type { StoreDetect } from './use-store-detect';
 import styles from './shopping.module.css';
 
 export const NO_STORE = '';
@@ -29,6 +30,33 @@ export function StoreSelector({ mode }: { mode: StoreMode }) {
         <Link href="/settings/stores" className={styles.storeLink}>Set up your stores</Link>
       )}
       {store && <Link href="/settings/stores" className={styles.storeLink}>Edit aisles</Link>}
+    </div>
+  );
+}
+
+/** "Detect my store" + opt-in auto-detect while this page is open (P2-A, D396). The position never leaves the browser. */
+export function DetectStore({ detect }: { detect: StoreDetect }) {
+  return (
+    <div className={styles.storePicker} data-testid="store-detect">
+      <Button variant="secondary" size="sm" loading={detect.detecting} disabled={detect.fenceCount === 0} onClick={() => void detect.detectNow()} data-testid="detect-store">
+        Detect my store
+      </Button>
+      {detect.fenceCount === 0 ? (
+        <Link href="/settings/stores" className={styles.storeLink}>Add a location to a store first</Link>
+      ) : (
+        <Checkbox
+          label="Detect automatically while this page is open"
+          checked={detect.auto}
+          onChange={(e) => detect.setAuto(e.target.checked)}
+          data-testid="auto-detect"
+        />
+      )}
+      {detect.fenceCount > 0 && (
+        <p className={styles.pickerEmpty}>
+          Your browser asks before sharing your location. It is compared with your saved stores here in the browser and is not sent to us. Detection stops when you leave this page; only the phone app can do it in the background.
+        </p>
+      )}
+      {detect.message && <p role="status" data-testid="detect-message">{detect.message}</p>}
     </div>
   );
 }

@@ -88,6 +88,12 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
   { table: 'member_calendar_feeds', file: 'calendar.json', key: 'calendar_feeds', order: ['household_id', 'user_id'], household: self('user_id'), member: self('user_id') },
   { table: 'leftover_batches', file: 'leftovers.json', key: 'batches', order: ID, household: H, member: self('created_by') },
   { table: 'leftover_consumptions', file: 'leftovers.json', key: 'consumptions', order: ID, household: H, member: self('created_by') },
+  // AS1 / P2-A (D290, D392): the household's stores, their aisles and placements, and the location a member SAVED for a store
+  // (a point + radius). A live position is never stored, so there is nothing of that kind to export.
+  { table: 'stores', file: 'stores.json', key: 'stores', order: ID, household: H, member: self('created_by') },
+  { table: 'store_aisles', file: 'stores.json', key: 'aisles', order: ID, household: H, member: child('store_id', 'stores') },
+  { table: 'store_placements', file: 'stores.json', key: 'placements', order: ID, household: H, member: child('store_id', 'stores') },
+  { table: 'store_locations', file: 'stores.json', key: 'locations', order: ['store_id'], household: H, member: child('store_id', 'stores') },
 
   { table: 'ai_usage', file: 'ai_usage.json', key: 'ai_usage', order: ID, household: H, member: self('user_id') },
 

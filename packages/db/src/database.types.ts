@@ -2569,6 +2569,51 @@ export type Database = {
           },
         ];
       };
+      store_locations: {
+        Row: {
+          created_by: string | null;
+          household_id: string;
+          lat: number;
+          lng: number;
+          postcode: string | null;
+          radius_m: number;
+          source: string;
+          store_id: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_by?: string | null;
+          household_id: string;
+          lat: number;
+          lng: number;
+          postcode?: string | null;
+          radius_m?: number;
+          source: string;
+          store_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_by?: string | null;
+          household_id?: string;
+          lat?: number;
+          lng?: number;
+          postcode?: string | null;
+          radius_m?: number;
+          source?: string;
+          store_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'store_locations_store_id_household_id_fkey';
+            columns: ['store_id', 'household_id'];
+            isOneToOne: true;
+            referencedRelation: 'stores';
+            referencedColumns: ['id', 'household_id'];
+          },
+        ];
+      };
       store_placements: {
         Row: {
           aisle_id: string;

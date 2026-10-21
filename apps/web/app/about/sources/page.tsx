@@ -33,6 +33,15 @@ export default function SourcesPage() {
         </li>
       </ul>
 
+      <h2>Postcode lookup: postcodes.io</h2>
+      <p data-testid="postcodes-attribution">
+        When you save a store&rsquo;s location from a UK postcode we look the postcode up with{' '}
+        <a href="https://postcodes.io/" target="_blank" rel="noopener noreferrer">postcodes.io</a>, a free service built on
+        the ONS Postcode Directory. Only the postcode is sent. Contains OS data &copy; Crown copyright and database right;
+        Royal Mail data &copy; Royal Mail copyright and database right; National Statistics data &copy; Crown copyright and
+        database right. Licensed under the Open Government Licence v3.0.
+      </p>
+
       <h2>Ingredient nutrition: CoFID</h2>
       <p>
         Nutrition for ingredients comes from the UK Composition of Foods Integrated Dataset (CoFID, 2021) published by
