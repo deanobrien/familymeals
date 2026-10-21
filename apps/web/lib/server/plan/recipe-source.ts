@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
-import { recipeVarietyProfile, type NutrientMap, type RecipeVarietyProfile } from '@fr/engine/nutrition';
+import { recipeGoalFit, recipeGoalProfile, recipeVarietyProfile, type GoalId, type NutrientMap, type RecipeGoalProfile, type RecipeVarietyProfile } from '@fr/engine/nutrition';
 import type { Candidate, CandidateFilter, MealType, RecipeRepo } from '@fr/plan-orchestrator';
 import { violatesExclusions } from '@fr/plan-orchestrator';
 import { getIngredientCatalogue } from '../refdata/catalogue';
@@ -18,6 +18,8 @@ export interface PlanRecipe extends Candidate {
   nutritionPerServing?: NutrientMap | null;
   /** P1-B (D376): per-serving fruit/veg portions, plants and protein kinds (estimate); undefined when not computed. */
   variety?: RecipeVarietyProfile;
+  /** P3-B (D435): oily fish portions and red / processed meat grams per serving (recipe data, not personal data). */
+  goals?: RecipeGoalProfile;
   ingredientLines: { name: string; quantityText: string }[];
   /** Canonical ingredient ids of matched lines (unmatched lines are absent). */
   ingredientIds?: string[];
@@ -122,6 +124,21 @@ export function varietyOf(r: RecipeView): RecipeVarietyProfile {
   );
 }
 
+/** Per-serving oily fish and red / processed meat from the recipe's matched, weighed lines (P3-B, D435). */
+export function goalProfileOf(r: RecipeView): RecipeGoalProfile {
+  const cat = getIngredientCatalogue();
+  return recipeGoalProfile(
+    r.ingredients.map((i) => ({
+      ...(i.ingredientId ? { ingredientId: i.ingredientId } : {}),
+      name: i.ingredientId ? (cat.get(i.ingredientId)?.name ?? i.name) : i.name,
+      category: i.ingredientId ? cat.get(i.ingredientId)?.category : undefined,
+      grams: i.ingredientId && i.quantity.kind === 'exact' ? (cat.grams.toGrams(i.ingredientId, i.quantity)?.grams ?? null) : null,
+      optional: i.optional,
+    })),
+    r.servings,
+  );
+}
+
 /** Library RecipeView -> PlanRecipe (cost per serving stays null when unknown, never 0). */
 export function toPlanRecipe(r: RecipeView, nutritionOf?: (r: RecipeView) => NutrientMap | null): PlanRecipe {
   const minutes = totalMinutes(r);
@@ -149,6 +166,7 @@ export function toPlanRecipe(r: RecipeView, nutritionOf?: (r: RecipeView) => Nut
     ...(r.cost.partial ? { costPartial: true } : {}),
     ...(nutritionOf ? { nutritionPerServing: nutritionOf(r) } : {}),
     variety: varietyOf(r),
+    goals: goalProfileOf(r),
     favourite: r.favourite,
     ...(r.rating != null ? { rating: r.rating } : {}),
   };
@@ -186,11 +204,27 @@ export function withCookingSignals(source: PlanRecipeSource, signals: (household
   return { list: async (h) => apply(h, await source.list(h)), get: async (h, ids) => apply(h, await source.get(h, ids)) };
 }
 
+/**
+ * Opt-in nudge towards the household's nutrition goals (P3-B, D436): sets a 0..1 `goalFit` per recipe from the anonymous goal
+ * ids the request resolved. Empty goals = nothing is set, so the solver behaves exactly as before. Soft only: no recipe is dropped.
+ */
+export function withGoalFit(source: PlanRecipeSource, goals: () => readonly GoalId[]): PlanRecipeSource {
+  const apply = (recipes: PlanRecipe[]): PlanRecipe[] => {
+    const g = goals();
+    if (g.length === 0) return recipes;
+    return recipes.map((r) => {
+      const fit = recipeGoalFit(g, { perServing: r.nutritionPerServing ?? null, variety: r.variety ?? null, goals: r.goals ?? null });
+      return fit > 0 ? { ...r, goalFit: fit } : r;
+    });
+  };
+  return { list: async (h) => apply(await source.list(h)), get: async (h, ids) => apply(await source.get(h, ids)) };
+}
+
 /** Adapts a PlanRecipeSource to the orchestrator's RecipeRepo (applies the hard exclusion filter). */
 export function toRecipeRepo(source: PlanRecipeSource): RecipeRepo {
   const strip = (r: PlanRecipe): Candidate => {
-    const { id, title, ingredientNames, tags, mealTypes, dietCategory, totalMinutes, ingredientIds, canonicalNames, unmatchedLines, allergens, rating, dontSuggest } = r;
-    return { id, title, ingredientNames, tags, mealTypes, dietCategory, totalMinutes, ingredientIds, canonicalNames, unmatchedLines, allergens, rating, dontSuggest };
+    const { id, title, ingredientNames, tags, mealTypes, dietCategory, totalMinutes, ingredientIds, canonicalNames, unmatchedLines, allergens, rating, dontSuggest, goalFit } = r;
+    return { id, title, ingredientNames, tags, mealTypes, dietCategory, totalMinutes, ingredientIds, canonicalNames, unmatchedLines, allergens, rating, dontSuggest, ...(goalFit ? { goalFit } : {}) };
   };
   return {
     tagVocabulary: async (h) => [...new Set((await source.list(h)).flatMap((r) => r.tags))].sort(),

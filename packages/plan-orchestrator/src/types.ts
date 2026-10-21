@@ -41,6 +41,8 @@ export interface Candidate {
   favouriteOf?: string[];
   /** Member ids who dislike something in this recipe (soft; set by the orchestrator from Member.dislikes). */
   dislikedBy?: string[];
+  /** 0..1: how well one serving suits the household's opted-in nutrition goals (P3-B, D436). Soft; absent = goals off or unknown. */
+  goalFit?: number;
   /** Canonical ingredient ids of the matched lines (unmatched lines are absent). */
   ingredientIds?: string[];
   /** Names + aliases of the matched canonical ingredients (secondary term safety net). */

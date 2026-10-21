@@ -9,7 +9,7 @@ import type { PlanDoc, RecipeLite } from '../../plan/types';
  */
 export function plannedWeekFor(doc: Pick<PlanDoc, 'weekStart' | 'entries'>, lite: ReadonlyMap<string, RecipeLite>): PlannedWeek {
   const c = weekCost(doc as PlanDoc, lite);
-  const zeroCostSlots = Object.values(doc.entries).filter((e) => e.kind === 'leftovers').length;
+  const zeroCostSlots = Object.values(doc.entries).filter((e) => e.kind !== 'recipe').length;
   const meals = c.costedMeals + c.uncostedMeals + zeroCostSlots;
   const known = c.costedMeals > 0 || (zeroCostSlots > 0 && c.uncostedMeals === 0);
   return { weekStart: doc.weekStart, pence: known ? c.knownPence : null, partial: c.uncostedMeals > 0 || c.partialMeals > 0, uncostedMeals: c.uncostedMeals, meals };

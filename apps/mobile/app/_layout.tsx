@@ -47,6 +47,7 @@ function Navigator() {
       <Stack.Screen name="shared" options={{ title: 'Shared recipes' }} />
       <Stack.Screen name="kids" options={{ title: "Kids' mode" }} />
       <Stack.Screen name="kids-play" options={{ headerShown: false, gestureEnabled: false }} />
+      <Stack.Screen name="health-goals" options={{ title: 'Health goals' }} />
     </Stack>
   );
 }

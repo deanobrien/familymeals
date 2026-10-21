@@ -21,6 +21,7 @@ function toLite(r: PlanRecipe, exclusions: string[]): RecipeLite {
     ...(r.costPartial ? { costPartial: true } : {}),
     nutritionPerServing: r.nutritionPerServing ?? null,
     variety: r.variety ?? null,
+    goals: r.goals ?? null,
     excludedBy: violatesExclusions(r.ingredientNames, exclusions),
   };
 }

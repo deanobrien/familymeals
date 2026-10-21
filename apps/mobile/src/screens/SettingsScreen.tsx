@@ -87,6 +87,7 @@ export default function SettingsScreen() {
           <PreferencesSection household={household} onSaved={reload} />
           <DietarySection household={household} />
           <DislikesSection household={household} />
+          <Row title="Health goals (optional)" subtitle="Simple weekly nutrition goals with UK guidance. Off by default, private to you, and needs your consent." onPress={() => router.push('/health-goals' as never)} testID="open-health-goals" />
         </>
       )}
 

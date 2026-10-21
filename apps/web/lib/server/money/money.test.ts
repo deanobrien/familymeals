@@ -116,6 +116,7 @@ describe('spending service', () => {
   });
 });
 
+
 describe('price service', () => {
   const ingredients: CanonicalIngredient[] = [
     { id: ING, name: 'Basmati rice', category: 'pasta_rice_grains', aliases: [] },

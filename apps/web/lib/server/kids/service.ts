@@ -26,6 +26,14 @@ const err = (error: KidsError): { ok: false; error: KidsError; message: string }
 const mapErr = (e: unknown) => err(e instanceof KidsStoreError ? e.code : 'unknown');
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/**
+ * A kid profile as a goals caller (P3-B seam): kids have no account, so they are ALWAYS `isChild`, and the goals service refuses
+ * them everything (no goals, no consent, no withdrawal). Kids' screens never show a goals or consent prompt.
+ */
+export function goalsCallerForKid(caller: KidsCaller, kidId: string): import('../goals/service').GoalsCaller {
+  return { householdId: caller.householdId, userId: kidId, client: caller.client, readOnly: caller.readOnly, isChild: true };
+}
+
 /** Build the screen view of one round: candidate details, the tally and (when closed) the winners. */
 export function roundView(row: RoundRow, recipes: Map<string, { title: string; imageUrl: string | null }>, now: Date): RoundView {
   const open = isRoundOpen(row, now);

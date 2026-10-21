@@ -54,6 +54,21 @@ describe('the service rules', () => {
   });
 });
 
+describe('kids and health goals (P3-B seam)', () => {
+  it('a kid profile can never hold goals, give consent or withdraw: the goals service refuses it everything', async () => {
+    const { saveGoals, loadGoals, withdrawGoals } = await import('../goals/service');
+    const { goalsCallerForKid } = await import('./service');
+    const kid = await addKid(caller, { displayName: 'Mia', avatar: '🦊', colour: 'blue' });
+    if (!kid.ok) throw new Error('add');
+    const asKid = goalsCallerForKid(caller, kid.kid.id);
+    expect(asKid.isChild).toBe(true);
+    const input = { consent: true, adultConfirmed: true, goals: [], portionShare: 1, nudgePlan: false };
+    expect(await saveGoals(asKid, input)).toEqual({ ok: false, error: 'forbidden' });
+    expect(await loadGoals(asKid)).toEqual({ ok: false, error: 'forbidden' });
+    expect(await withdrawGoals(asKid)).toEqual({ ok: false, error: 'forbidden' });
+  });
+});
+
 describe('votePreference', () => {
   async function seeded() {
     const lib = await (await import('../../recipes/factory')).getRecipeRepositoryFor(DEMO_HOUSEHOLD_ID).list({ q: '', tags: [], sort: 'name', page: 1, pageSize: 6 });
