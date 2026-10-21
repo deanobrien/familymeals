@@ -4,8 +4,6 @@ import {
   addDays, buildMonths, buildShopResolver, buildWeeks, categoryBreakdown, effectiveLinks, londonDateOf, mondayOf, retailerKey, shopBreakdown, spendCsv,
   suggestStore, UNCATEGORISED, weekStartsBetween, type PlannedWeek, type SpendRecord,
 } from '@fr/engine/money';
-import { weekCost } from '../../plan/cost';
-import type { PlanDoc, RecipeLite } from '../../plan/types';
 import type { ReceiptRecord } from '../../receipts/types';
 import { AISLES } from '../../shopping/types';
 import type { ManualSpend, SpendInput, SpendingView, SpendRowView, StoreRef, UnlinkedRetailer } from '../../money/types';
@@ -41,19 +39,6 @@ export function receiptRecord(r: ReceiptRecord, label: string | null, categoryOf
     .map((l) => ({ category: categoryOf(l.description) ?? UNCATEGORISED, pence: l.netPence ?? 0 }));
   return { id: r.id, source: 'receipt', date, shop: label, totalPence: total, splits };
 }
-
-/**
- * The planned (estimated) cost of one approved plan week. Leftover, freezer and eating-out slots need no shopping, so they
- * add ZERO new spend (P2-C, D417), they are not "unknown": a week of only such slots is an estimate of £0. Only recipe
- * meals without a price make the figure unknown ("at least", or null when nothing at all could be priced).
- */
-export function plannedWeekOf(doc: PlanDoc, recipes: ReadonlyMap<string, RecipeLite>): PlannedWeek {
-  const c = weekCost(doc, recipes);
-  const slots = Object.keys(doc.entries).length;
-  const pence = c.costedMeals > 0 ? c.knownPence : c.uncostedMeals === 0 ? 0 : null;
-  return { weekStart: doc.weekStart, pence: slots > 0 ? pence : null, partial: c.uncostedMeals > 0 || c.partialMeals > 0, uncostedMeals: c.uncostedMeals, meals: slots };
-}
-
 export function createSpendingService(deps: SpendingDeps) {
   async function load(householdId: string, weeks: number) {
     const today = londonDateOf(deps.now()) ?? deps.now().toISOString().slice(0, 10);
