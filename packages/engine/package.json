@@ -19,7 +19,8 @@
     "./receipt-match": "./src/receipt-match/index.ts",
     "./shopping": "./src/shopping/index.ts",
     "./pantry": "./src/pantry/index.ts",
-    "./cooking": "./src/cooking/index.ts"
+    "./cooking": "./src/cooking/index.ts",
+    "./money": "./src/money/index.ts"
   },
   "sideEffects": false,
   "scripts": {
