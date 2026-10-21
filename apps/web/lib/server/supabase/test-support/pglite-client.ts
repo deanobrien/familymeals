@@ -21,7 +21,7 @@ class Builder implements PromiseLike<Res> {
   private cols = '*';
   private rows: Row[] = [];
   private values: Row = {};
-  private wheres: Array<{ col: string; op: 'eq' | 'neq' | 'in' | 'gt' | 'is' | 'lte' | 'lt' | 'notnull'; val: unknown }> = [];
+  private wheres: Array<{ col: string; op: 'eq' | 'neq' | 'in' | 'gt' | 'gte' | 'is' | 'lte' | 'lt' | 'notnull'; val: unknown }> = [];
   private max?: number;
   private countOnly = false;
   private wantCount = false;
@@ -79,6 +79,10 @@ class Builder implements PromiseLike<Res> {
     this.wheres.push({ col, op: 'gt', val });
     return this;
   }
+  gte(col: string, val: unknown) {
+    this.wheres.push({ col, op: 'gte', val });
+    return this;
+  }
   lte(col: string, val: unknown) {
     this.wheres.push({ col, op: 'lte', val });
     return this;
@@ -133,7 +137,7 @@ class Builder implements PromiseLike<Res> {
       if (w.op === 'notnull') return `${q(w.col)} is not null`;
       if (w.op === 'is') return `${q(w.col)} is ${w.val === null ? 'null' : w.val ? 'true' : 'false'}`;
       params.push(w.val);
-      const sym = { eq: '=', gt: '>', lte: '<=', lt: '<', neq: '<>' }[w.op as 'eq' | 'gt' | 'lte' | 'lt' | 'neq'];
+      const sym = { eq: '=', gt: '>', gte: '>=', lte: '<=', lt: '<', neq: '<>' }[w.op as 'eq' | 'gt' | 'gte' | 'lte' | 'lt' | 'neq'];
       return `${q(w.col)} ${sym} $${params.length}`;
     });
     return ` where ${parts.join(' and ')}`;

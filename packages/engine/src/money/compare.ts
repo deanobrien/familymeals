@@ -70,6 +70,21 @@ export function suggestStore(retailer: string | undefined | null, stores: readon
   return scored[0]!.s;
 }
 
+/**
+ * Retailer text -> store id: the user's confirmed links, plus the one thing that needs no confirmation: text that is exactly
+ * a store's own name (a price entered "at Tesco" is the store Tesco). Confirmed links win.
+ */
+export function effectiveLinks(stores: readonly StoreLike[], links: Readonly<Record<string, string>>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const s of stores) {
+    const k = retailerKey(s.name);
+    if (k && out[k] === undefined) out[k] = s.id;
+  }
+  const ids = new Set(stores.map((s) => s.id));
+  for (const [k, id] of Object.entries(links)) if (ids.has(id)) out[k] = id;
+  return out;
+}
+
 export type ShopResolver = (retailer: string | undefined | null) => ShopRef | null;
 
 /**
@@ -79,10 +94,11 @@ export type ShopResolver = (retailer: string | undefined | null) => ShopRef | nu
  */
 export function buildShopResolver(stores: readonly StoreLike[], links: Readonly<Record<string, string>>): ShopResolver {
   const byId = new Map(stores.map((s) => [s.id, s]));
+  const all = effectiveLinks(stores, links);
   return (retailer) => {
     const key = retailerKey(retailer);
     if (!key) return null;
-    const store = byId.get(links[key] ?? '');
+    const store = byId.get(all[key] ?? '');
     if (store) return { key: `store:${store.id}`, label: store.name, storeId: store.id, linked: true };
     return { key: `name:${key}`, label: (retailer ?? '').trim().slice(0, 80) || key, linked: false };
   };

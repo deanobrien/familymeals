@@ -4,6 +4,9 @@ import { Badge } from '@fr/ui';
 import { formatPence } from '../../../../lib/receipts/format';
 import { getReview } from '../../../../lib/server/receipts/service';
 import { ReviewForm } from './review-form';
+import { RetailerStoreLink } from './retailer-store-link';
+import { getAppContext } from '../../../../lib/server/context';
+import { getSpendingService } from '../../../../lib/server/money/deps';
 
 export const metadata = { title: 'Review receipt' };
 export const dynamic = 'force-dynamic';
@@ -13,6 +16,8 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
   const found = await getReview(id);
   if (!found) notFound();
   const { review, reconciliation, photoUrl } = found;
+  const ctx = await getAppContext();
+  const retailerStatus = review.retailer ? await getSpendingService().retailerStatus(ctx.householdId, review.retailer).catch(() => null) : null;
 
   return (
     <>
@@ -25,6 +30,10 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
           {review.status === 'reconciled' ? 'Reconciled' : 'Needs review'}
         </Badge>
       </p>
+
+      {review.retailer && retailerStatus && (
+        <RetailerStoreLink retailer={review.retailer} linked={retailerStatus.linked} suggestion={retailerStatus.suggestion} stores={retailerStatus.stores} readOnly={ctx.readOnly} />
+      )}
 
       {photoUrl && (
         <p>

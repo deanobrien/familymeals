@@ -8,8 +8,9 @@ import {
   type Quantity,
 } from '../../receipts/matcher';
 import type { ReceiptListEntry, ReceiptRecord } from '../../receipts/types';
-import type {
-  OutstandingItemsSource,
+import {
+  receiptSpendDate,
+  type OutstandingItemsSource,
   PantryEntry,
   PurchaseSink,
   ReceiptRepository,
@@ -77,6 +78,13 @@ export class InMemoryReceiptRepository implements ReceiptRepository {
 
   async save(receipt: ReceiptRecord): Promise<void> {
     this.byId.set(receipt.id, structuredClone(receipt));
+  }
+
+  async reconciledBetween(householdId: string, from: string, to: string): Promise<ReceiptRecord[]> {
+    return [...this.byId.values()]
+      .filter((r) => r.householdId === householdId && r.status === 'reconciled')
+      .filter((r) => { const d = receiptSpendDate(r); return d !== undefined && d >= from && d <= to; })
+      .map((r) => structuredClone(r));
   }
 }
 

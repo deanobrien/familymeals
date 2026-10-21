@@ -21,6 +21,8 @@ import type { RestockRepository } from '../restock/repository';
 import { SupabaseReceiptRepository } from './receipt-repository';
 import { SupabaseShoppingRepository } from './shopping-repository';
 import { SupabaseStoreBookRepository } from './store-book-repository';
+import { SupabaseMoneyRepository } from './money-repository';
+import type { MoneyRepository } from '../money/repository';
 import type { StoreBookRepository } from '../stores/repository';
 import { SupabaseHouseholdProfile, SupabasePurchaseEventSource } from './household-sources';
 import type { EngineContext } from '../../shopping/engine';
@@ -178,6 +180,11 @@ export function createSupabaseHouseholdProfile(resolve: () => Promise<DataContex
 }
 
 // ---- lane AS1 (D290-D293): stores, aisles and placements ----
+// ---- lane P2-B (D400): manual spend entries and retailer -> store links ----
+export function createSupabaseMoneyRepository(resolve: () => Promise<DataContext> = getDataContext): MoneyRepository {
+  return lazy((c) => new SupabaseMoneyRepository(c.client, c.userId), resolve);
+}
+
 export function createSupabaseStoreBookRepository(resolve: () => Promise<DataContext> = getDataContext): StoreBookRepository {
   return lazy((c) => new SupabaseStoreBookRepository(c.client, c.userId), resolve);
 }

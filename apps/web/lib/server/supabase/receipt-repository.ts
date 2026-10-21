@@ -122,6 +122,12 @@ export class SupabaseReceiptRepository implements ReceiptRepository {
     return receiptFromRpc(householdId, await callRpc<Row>(this.client, 'get_receipt', { p_household_id: householdId, p_receipt_id: id }));
   }
 
+  async reconciledBetween(householdId: string, from: string, to: string): Promise<ReceiptRecord[]> {
+    this.check(householdId);
+    const rows = (await callRpc<Row[]>(this.client, 'household_spend_receipts', { p_household_id: householdId, p_from: from, p_to: to })) ?? [];
+    return rows.map((b) => receiptFromRpc(householdId, b)).filter((r): r is ReceiptRecord => r !== undefined);
+  }
+
   async save(receipt: ReceiptRecord): Promise<void> {
     this.check(receipt.householdId);
     if (!isUuid(receipt.id)) throw new SupabaseRepositoryError('save_receipt', 'receipt ids must be UUIDs');

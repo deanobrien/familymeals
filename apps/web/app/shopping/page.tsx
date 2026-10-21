@@ -4,6 +4,7 @@ import { loadPriceBook } from '../../lib/server/shopping/price-book';
 import { getShoppingStore, shoppingUsesRealtime } from '../../lib/server/shopping/store';
 import { getRestockService } from '../../lib/server/restock/deps';
 import { getStoreBook } from '../../lib/server/stores/store';
+import { getPriceService } from '../../lib/server/money/deps';
 import { RestockBanner } from '../restock-banner';
 import { ShoppingClient } from './shopping-client';
 
@@ -33,6 +34,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
         storeBook={storeBook}
         householdId={ctx.householdId}
         prices={await loadPriceBook(ctx.householdId)}
+        initialCompare={await getPriceService().listComparison(ctx.householdId).catch(() => null)}
         {...(shoppingUsesRealtime() ? { realtimeHouseholdId: ctx.householdId } : {})}
         {...(latestApproved ? { approvedPlanId: latestApproved.id } : {})}
         {...(plan ? { planId: plan } : {})}

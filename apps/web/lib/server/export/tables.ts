@@ -82,6 +82,10 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
   // RPC-only table (X2, D187): a shared product cache of the household, not personal data -> household scope only.
   { table: 'household_product_snapshots', file: 'prices.json', key: 'product_snapshots', order: ['barcode'], household: H, member: null, rpc: 'household_product_snapshots' },
 
+  // P2-B (D400): spending the household recorded by hand and the receipt-retailer -> store links.
+  { table: 'spend_entries', file: 'spending.json', key: 'spend_entries', order: ID, household: H, member: self('created_by') },
+  { table: 'store_retailer_links', file: 'spending.json', key: 'retailer_links', order: ['household_id', 'retailer_key'], household: H, member: self('created_by') },
+
   { table: 'ai_usage', file: 'ai_usage.json', key: 'ai_usage', order: ID, household: H, member: self('user_id') },
 
   // P1-C (D380): a member's own notification choices and their notification centre. RLS only shows each member their own

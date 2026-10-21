@@ -67,3 +67,12 @@
 .listsHeading { margin: 0; font-size: var(--fr-text-base); }
 .listsHint { color: var(--fr-text-muted); font-size: var(--fr-text-sm); }
 .listsError { color: var(--fr-danger); margin: 0; }
+
+/* ---- P2-B: cheapest-at badge and the per-shop comparison panel (D402-D403) ---- */
+.cheapBadge { display: inline-flex; flex-wrap: wrap; gap: var(--fr-space-1); align-items: center; font-size: var(--fr-text-xs); font-weight: 600; color: var(--fr-success); background: var(--fr-success-soft); border-radius: var(--fr-radius-full); padding: 2px var(--fr-space-2); text-decoration: none; min-height: 28px; }
+.cheapBadge:hover { text-decoration: underline; }
+.cheapBadge:focus-visible { outline: 2px solid var(--fr-focus); outline-offset: 2px; }
+.cheapAge { font-weight: 400; color: var(--fr-text-muted); }
+.compare { margin: var(--fr-space-3) 0; }
+.compareTable { width: 100%; }
+.compareNote { color: var(--fr-text-muted); font-size: var(--fr-text-sm); margin: var(--fr-space-2) 0 0; }
