@@ -1,5 +1,5 @@
 // Client-safe plan types (no server imports). Shared by the planner UI and the server actions.
-import type { NutrientMap, RecipeVarietyProfile } from '@fr/engine/nutrition';
+import type { NutrientMap, RecipeGoalProfile, RecipeVarietyProfile } from '@fr/engine/nutrition';
 import type { BusyDayView } from '../calendar/types';
 import type { LeftoversView } from '../leftovers/types';
 import type { ParsedPlanRequest, PlanProposal } from '@fr/plan-orchestrator';
@@ -58,6 +58,8 @@ export interface RecipeLite {
   nutritionPerServing?: NutrientMap | null;
   /** Per-serving fruit/veg portions, plants and protein kinds (estimate, D376); absent = not computed. */
   variety?: RecipeVarietyProfile | null;
+  /** Per-serving oily fish portions and red / processed meat grams (estimate, D435); recipe data, not personal data. */
+  goals?: RecipeGoalProfile | null;
   /** Household hard exclusions this recipe hits (blocks planning it). */
   excludedBy: string[];
 }

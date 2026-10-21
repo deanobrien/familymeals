@@ -9,9 +9,9 @@ import { INVITE_TOKEN_RE } from './inviteLink';
 const KEY = 'fr.pendingNext.v1';
 const TTL_MS = 60 * 60 * 1000;
 
-/** Accepts `/invite/<64 hex>` only; anything else is dropped (no open redirects, no arbitrary routes from a link). */
+/** Accepts `/invite/<64 hex>` and `/s/<64 hex>` (a shared-recipe link, P3-A) only; anything else is dropped (no open redirects, no arbitrary routes from a link). */
 export function safeAppPath(path: string | null | undefined): string | null {
-  const m = /^\/invite\/([0-9a-f]{64})$/.exec(path ?? '');
+  const m = /^\/(?:invite|s)\/([0-9a-f]{64})$/.exec(path ?? '');
   return m && INVITE_TOKEN_RE.test(m[1]!) ? path! : null;
 }
 

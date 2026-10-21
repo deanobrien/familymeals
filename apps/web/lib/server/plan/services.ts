@@ -7,10 +7,14 @@ import {
 import { getRecipeRepositoryFor } from '../../recipes/factory';
 import { getRecipeCalculator } from '../calc';
 import { summariserForHousehold } from '../calc/household';
-import { RepositoryPlanRecipeSource, toPlanRecipe, toRecipeRepo, withCookingSignals, type PlanRecipeSource } from './recipe-source';
+import { RepositoryPlanRecipeSource, toPlanRecipe, toRecipeRepo, withCookingSignals, withGoalFit, type PlanRecipeSource } from './recipe-source';
+import type { GoalId } from '@fr/engine/nutrition';
+import { loadGoalNudge } from '../goals/service';
+import { contextClient } from '../calendar/planner';
 import { planSignals } from '../cooking/service';
 import { getMealPlanStore, getPlanStore, InMemoryMealPlanRepository, resetPlanStore, type MealPlanRepository } from './repository';
 import { resolveBusy } from '../calendar/planner';
+import { resolveVotes } from '../kids/planner';
 import { leftoverSnapshotForPlanner } from '../leftovers/service';
 import { createEngineSolver } from './engine-solver';
 import { createExclusionResolver } from './exclusions';
@@ -53,6 +57,8 @@ export interface PlanServices {
   household: Household;
   /** Allergy/intolerance exclusions withheld because the recorder's consent was withdrawn (Supabase only). */
   withheldExclusions?: number;
+  /** Anonymous goal ids the household opted in to nudging the plan towards (P3-B, D436); refreshed per request, empty = off. */
+  goalNudge?: GoalId[];
   households: HouseholdRepo;
   recipes: PlanRecipeSource;
   plans: MealPlanRepository;
@@ -120,7 +126,8 @@ export function createPlanServices(opts: {
   };
   // Resolved per call from Settings > AI provider, else env, else the dev mock (D41).
   const ai = opts.ai ?? settingsAiProvider;
-  const recipeRepo = toRecipeRepo(withCookingSignals(recipes, planSignals));
+  // P3-B: the opt-in nudge reads the per-request goal ids set by loadPlanServices (empty = off).
+  const recipeRepo = toRecipeRepo(withGoalFit(withCookingSignals(recipes, planSignals), () => services?.goalNudge ?? []));
   const orchestrator = new PlanOrchestrator({
     ai,
     solver: createEngineSolver({ loadCandidates: (ids) => recipeRepo.getRecipes(household.id, ids) }),
@@ -130,6 +137,7 @@ export function createPlanServices(opts: {
     proposals: new InMemoryProposalStore(),
     resolveExclusions: createExclusionResolver(), // names -> ingredient ids / UK-14 groups (D132)
     busy: resolveBusy, // busy evenings -> quick-meal / skip constraints (P2-C, D413)
+    votes: resolveVotes, // closed kids' dinner votes -> a soft favourite list (P3-A, D428)
   });
   services = { household, households, recipes, plans: opts.plans ?? (supabase ? getMealPlanStore() : new InMemoryMealPlanRepository()), orchestrator, newId: () => crypto.randomUUID(), now: () => new Date(), leftoverSnapshot: leftoverSnapshotForPlanner };
   return services;
@@ -172,6 +180,8 @@ export function getPlanServicesFor(householdId: string): PlanServices {
  */
 export async function loadPlanServices(householdId: string): Promise<PlanServices> {
   const svc = getPlanServicesFor(householdId);
+  // P3-B (D436): anonymous goal ids from members who consented AND opted in to the nudge; empty = off (the default).
+  svc.goalNudge = await loadGoalNudge(householdId, await contextClient());
   if (useSupabaseBackend()) {
     const p = await createSupabaseHouseholdProfile().load(householdId);
     const { withheldExclusions = 0, ...household } = p ?? { id: householdId, hardExclusions: [], members: [] };

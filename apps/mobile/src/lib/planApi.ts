@@ -7,6 +7,8 @@ import {
   type PlanPage, type PlanRequest, type Proposal, type ProposalSlot, type RecipeLite, type ShoppingHandoff,
 } from './plan/types';
 import { parseBusyApplied, parseBusyDays, parseLeftoversView } from './leftoversApi';
+import { createGoalsClient } from './goalsApi';
+import type { MyGoalsView } from './plan/ops';
 
 type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -63,6 +65,18 @@ function parseVariety(v: unknown): RecipeLite['variety'] {
   };
 }
 
+/** Goal profile (D435): every field validated; anything malformed means "no data" (null), never invented numbers. */
+function parseGoalProfile(v: unknown): RecipeLite['goals'] {
+  if (!isObj(v)) return null;
+  const fish = num(v.oilyFishPortions);
+  const red = num(v.redProcessedMeatG);
+  if (fish === undefined || red === undefined || fish < 0 || red < 0) return null;
+  return {
+    oilyFishPortions: fish, oilyUnweighed: Math.max(0, Math.floor(num(v.oilyUnweighed) ?? 0)),
+    redProcessedMeatG: red, redUnweighed: Math.max(0, Math.floor(num(v.redUnweighed) ?? 0)),
+  };
+}
+
 function parseRecipe(v: Obj): RecipeLite | null {
   if (typeof v.id !== 'string' || typeof v.title !== 'string') return null;
   const d = diet(v.dietCategory);
@@ -75,6 +89,7 @@ function parseRecipe(v: Obj): RecipeLite | null {
     ...(v.costPartial === true ? { costPartial: true } : {}),
     nutritionPerServing: isObj(v.nutritionPerServing) ? (v.nutritionPerServing as unknown as RecipeLite['nutritionPerServing']) : null,
     variety: parseVariety(v.variety),
+    goals: parseGoalProfile(v.goals),
     excludedBy: strs(v.excludedBy),
   };
 }
@@ -224,6 +239,8 @@ export interface PlanClient {
   findIdeas(need: IdeaNeed, extra: IdeaExtra): Promise<IdeasResult>;
   /** Draft an idea and save it to the library (after the user has seen its ingredients and method). */
   saveIdea(id: string): Promise<{ id: string; title: string }>;
+  /** The signed-in member's OWN goals for the planner panel (P3-B); null when none / no consent / unavailable. Optional so fakes can omit it. */
+  loadMyGoals?(): Promise<MyGoalsView | null>;
 }
 
 const unexpected = () => new ServerApiError('The server returned an unexpected response.', 200, false, 'BAD_RESPONSE');
@@ -237,6 +254,14 @@ export function createPlanClient(api: ServerApi, householdId: string): PlanClien
   };
   return {
     loadWeek: async (week) => parsePage(await api.get('/api/plan', { householdId, week })),
+    loadMyGoals: async () => {
+      try {
+        const g = await createGoalsClient(api, householdId).load();
+        return g.consentActive && g.goals.length > 0 ? { goals: g.goals, portionShare: g.portionShare } : null;
+      } catch {
+        return null; // advisory panel: a failure just hides it
+      }
+    },
     loadSaved: async (week) => {
       const body = await api.get<unknown>('/api/plan/week', { householdId, week });
       return isObj(body) ? parseDoc(body.doc) : null;

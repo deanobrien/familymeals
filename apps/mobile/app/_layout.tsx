@@ -45,6 +45,11 @@ function Navigator() {
       <Stack.Screen name="location-settings" options={{ title: 'Location' }} />
       <Stack.Screen name="scan-for-computer" options={{ title: 'Scan for a computer' }} />
       <Stack.Screen name="scan/phone" options={{ title: 'Scan for a computer' }} />
+      <Stack.Screen name="s/[token]" options={{ title: 'Shared recipe' }} />
+      <Stack.Screen name="shared" options={{ title: 'Shared recipes' }} />
+      <Stack.Screen name="kids" options={{ title: "Kids' mode" }} />
+      <Stack.Screen name="kids-play" options={{ headerShown: false, gestureEnabled: false }} />
+      <Stack.Screen name="health-goals" options={{ title: 'Health goals' }} />
     </Stack>
   );
 }

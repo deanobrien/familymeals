@@ -13,6 +13,8 @@ export const MORE_ENTRIES: ReadonlyArray<{ key: string; title: string; hint: str
   { key: 'spending', title: 'Spending', hint: 'Budget, what you spent, and which shop is cheapest', href: '/spending' },
   { key: 'list-scan', title: 'Scan a handwritten list', hint: 'Photograph a paper list into your shopping list', href: '/shopping-scan' },
   { key: 'scan-computer', title: 'Scan for a computer', hint: 'Use this phone as the scanner for a computer page', href: '/scan-for-computer' },
+  { key: 'shared', title: 'Shared recipes', hint: 'Share recipes with another household by link', href: '/shared' },
+  { key: 'kids', title: "Kids' mode", hint: 'Let the family vote on dinner with big pictures', href: '/kids' },
   { key: 'households', title: 'Households', hint: 'Switch household', href: '/households' },
 ];
 

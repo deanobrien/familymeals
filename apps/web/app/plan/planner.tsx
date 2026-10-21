@@ -17,12 +17,14 @@ import { CalendarPanel, LeftoverPicker, LeftoverSuggestions } from './calendar-l
 import { PromptPanel } from './prompt-panel';
 import { WeekNutritionPanel } from './week-nutrition';
 import { WeekVarietyPanel } from './week-variety';
+import { WeekGoalsPanel } from './week-goals';
+import { cookedGoals, weekGoals, type MyGoalsView } from '../../lib/plan/goals';
 import './plan.css';
 
 interface Msg { tone: 'info' | 'error'; text: string; items?: string[]; href?: string; hrefLabel?: string }
 type SearchState = { slot: SlotRef; mode: 'add' | 'swap' } | null;
 
-export function Planner({ data }: { data: PlanPageData }) {
+export function Planner({ data, myGoals }: { data: PlanPageData; myGoals?: MyGoalsView | null }) {
   const router = useRouter();
   const [doc, setDoc] = useState<PlanDoc>(data.doc);
   const [dirty, setDirty] = useState(false);
@@ -40,6 +42,8 @@ export function Planner({ data }: { data: PlanPageData }) {
   const nutrition = useMemo(() => weekNutrition(doc, recipes), [doc, recipes]);
   const variety = useMemo(() => weekVariety(doc, recipes), [doc, recipes]);
   const cookedVar = useMemo(() => (data.cooked ? cookedVariety(data.cooked, recipes) : undefined), [data.cooked, recipes]);
+  const goalsPlanned = useMemo(() => weekGoals(myGoals, doc, recipes), [myGoals, doc, recipes]);
+  const goalsCooked = useMemo(() => (data.cooked ? cookedGoals(myGoals, data.cooked, recipes) : undefined), [myGoals, data.cooked, recipes]);
 
   const apply = (next: PlanDoc) => {
     setDoc(next);
@@ -267,6 +271,7 @@ export function Planner({ data }: { data: PlanPageData }) {
 
       <WeekNutritionPanel data={nutrition} />
       <WeekVarietyPanel planned={variety} {...(cookedVar !== undefined ? { cooked: cookedVar } : {})} />
+      <WeekGoalsPanel planned={goalsPlanned} {...(goalsCooked !== undefined ? { cooked: goalsCooked } : {})} />
 
       <PromptPanel
         weekStart={doc.weekStart}

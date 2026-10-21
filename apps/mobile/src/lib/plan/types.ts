@@ -1,7 +1,7 @@
 // App-side types for the planner JSON contract (apps/web /api/plan, D341). The app never imports @fr/ai or
 // @fr/plan-orchestrator at runtime, so the shapes are declared here and every server payload is parsed defensively
 // (see src/lib/planApi.ts): unknown or malformed parts are dropped, never trusted.
-import type { NutrientMap, RecipeVarietyProfile } from '@fr/engine/nutrition';
+import type { NutrientMap, RecipeGoalProfile, RecipeVarietyProfile } from '@fr/engine/nutrition';
 
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 export const MEAL_TYPES: readonly MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
@@ -44,6 +44,8 @@ export interface RecipeLite {
   nutritionPerServing?: NutrientMap | null;
   /** Per-serving fruit/veg portions, plants and protein kinds (estimate, D376); absent = server did not send it. */
   variety?: RecipeVarietyProfile | null;
+  /** Oily fish portions and red / processed meat grams per serving (P3-B, D435); recipe data, not personal data. */
+  goals?: RecipeGoalProfile | null;
   /** Household hard exclusions this recipe hits (it cannot be planned). */
   excludedBy: string[];
 }

@@ -23,7 +23,8 @@
     "./calendar": "./src/calendar/index.ts",
     "./leftovers": "./src/leftovers/index.ts",
     "./money": "./src/money/index.ts",
-    "./scanner": "./src/scanner/index.ts"
+    "./scanner": "./src/scanner/index.ts",
+    "./kids": "./src/kids/index.ts"
   },
   "sideEffects": false,
   "scripts": {

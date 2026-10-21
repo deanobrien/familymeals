@@ -14,6 +14,9 @@ export interface PlanStats {
   favourites: number;
   /** Member-dislike hits across planned meals (a meal counts once per member who dislikes something in it). */
   dislikes: number;
+  /** Sum of goal fit (0..1) over planned meals, and how many planned meals fit well (>= 0.5). */
+  goalFit: number;
+  goalMeals: number;
   /** Sum over filled slots of (rating - 3) for rated recipes. */
   ratingPoints: number;
   quickMisses: number;
@@ -33,7 +36,7 @@ export function computeStats(p: Problem, a: Assignment): PlanStats {
   const catCount = { meat: 0, fish: 0, vegetarian: 0, vegan: 0 };
   let filled = 0, empty = 0, cost = 0, costed = 0, uncosted = 0;
   let ratingPoints = 0;
-  let fav = 0, quickMisses = 0, tags = 0, recent = 0, dislikes = 0;
+  let fav = 0, quickMisses = 0, tags = 0, recent = 0, dislikes = 0, goalFit = 0, goalMeals = 0;
   for (const s of p.plannable) {
     const ci = a[s];
     if (ci === null || ci === undefined) {
@@ -51,6 +54,8 @@ export function computeStats(p: Problem, a: Assignment): PlanStats {
     }
     if (p.isFavourite[ci]) fav++;
     dislikes += p.dislikeCount[ci]!;
+    goalFit += p.goalFit[ci]!;
+    if (p.goalFit[ci]! >= 0.5) goalMeals++;
     if (c.rating != null) ratingPoints += c.rating - 3;
     tags += p.tagHits[ci]!;
     if (p.isRecent[ci]) recent++;
@@ -73,7 +78,7 @@ export function computeStats(p: Problem, a: Assignment): PlanStats {
   return {
     filled, empty, dietActual, dietDistance,
     totalCostPence: cost, costedMeals: costed, uncostedMeals: uncosted,
-    favourites: fav, dislikes, ratingPoints, quickMisses, tagHits: tags, repeats, recent,
+    favourites: fav, dislikes, goalFit: Math.round(goalFit * 1000) / 1000, goalMeals, ratingPoints, quickMisses, tagHits: tags, repeats, recent,
   };
 }
 
@@ -94,6 +99,7 @@ export function score(p: Problem, a: Assignment): Score {
   total += (imputed / 100) * w.costTieBreakPerPound;
   total -= st.favourites * w.favourite;
   total += st.dislikes * w.dislike;
+  total -= st.goalFit * w.goalFit;
   total -= st.ratingPoints * w.rating;
   total += st.quickMisses * w.quickMiss;
   total -= st.tagHits * w.includeTag;

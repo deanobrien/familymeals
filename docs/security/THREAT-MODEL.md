@@ -101,7 +101,7 @@ Images are untrusted input: a photo may contain text such as "ignore instruction
 | X6 | Deleted data reappears after a backup restore | I | Deletion ledger replay in every job run + OPS-RUNBOOK restore steps | PGlite 011, live spec (restored household purged again) |
 | X7 | Owner shortens the grace to wipe others' data instantly | T | `request_household_deletion` clamps end-user grace to >= 14 days | PGlite 011 |
 
-### 2.10 Phone as a scanner, offline PWA, home-screen widget (P3-C, D440-D449)
+### 2.12 Phone as a scanner, offline PWA, home-screen widget (P3-C, D440-D449)
 | ID | Threat | Cat | Mitigation | Test |
 |---|---|---|---|---|
 | PS1 | The QR code / link is photographed, shoulder-surfed or shared | I/S | Session lives at most 10 minutes; one phone only (first to connect claims it, the desktop shows "Phone connected" and can release or Stop); the token is in the URL fragment (not sent to any server, not in Referer) and removed from the phone's address bar; pushes only ever reach a REVIEW on the desktop, never the pantry | PGlite `014` (single scanner, revoke, expiry), `scanner.test.ts`, e2e `p3c-platform` (second phone refused, stop ends it) |
@@ -118,6 +118,20 @@ Images are untrusted input: a photo may contain text such as "ignore instruction
 | OF4 | Replaying queued commands is abused | T/R | Same idempotent command ids; the server re-validates household membership and every command (D120-D129); a different user never replays another's queue | `offline.test.ts`, existing sync tests |
 | WG1 | The home-screen widget shows the list to someone holding the phone, or after sign-out | I | Home screen only (not the lock screen); persists only the household id and the last tick; cleared on sign-out, account deletion, leaving the household and when the session is gone; list text only, no photos or prices | jest `widget.test.tsx`; device check |
 | WG2 | A forged widget click | T | Only a string item id is read from the payload, and the tick goes through the normal command path (engine validation, server re-checks membership) | jest `widget.test.tsx` |
+
+### 2.10 Share links and kids' mode (P3-A, D420-D429)
+
+| Threat | Mitigation | Test |
+|---|---|---|
+| Guessing or enumerating tokens | ~244-bit token, sha256 stored, one generic answer for unknown / expired / revoked / malformed, in-process rate limits (lookups, failures, saves, creates) | sharing.server.test.ts, outes.test.ts, RLS  14_p3a_sharing_kids.sql |
+| Cross-household read except via a valid share | no direct table access for other households; SECURITY DEFINER RPCs return a field-by-field whitelist; recipients see only their own opener row | RLS file, sharing.pglite.test.ts |
+| Private data in a share or copy (notes, ratings, favourites, history, ids, original photos) | whitelist view; copy built from that view only | server, PGlite and route tests assert absence |
+| Photo access after revoke / expiry or outside the share | storage policy share_image_visible checks a LIVE share the person opened and the cover path; signed URL from the caller's client, 2 minutes; no service role | RLS file (storage objects) |
+| Link leaking through Referer or search | 
+oindex, eferrer: no-referrer, token only in the path, never logged | page metadata |
+| Stale links after deletion | triggers revoke on household pending_deletion and member exit | RLS file |
+| Child bypassing kids' mode | device-local salted hash PIN, lock-out that doubles and persists, Android Back / gestures blocked; web holds Back best effort. Residual: someone holding the unlocked device can use the parent session anyway | kids.test.ts, jest kid screen tests, Playwright |
+| Personal data about children | profile = name, emoji, colour only; goals / consent refused for kid profiles | kids.server.test.ts, PGlite column list |
 
 ## 3. Priority order (risk x effort)
 1. R3/R2 (RLS completeness and IDOR) — automated matrix tests in `tests/rls/` are release-blocking.

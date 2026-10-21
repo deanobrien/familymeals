@@ -1,6 +1,6 @@
 // Ported from apps/web/lib/plan/ops.ts, cost.ts and nutrition.ts (same rules and the same unit-test cases): pure,
 // immutable edits of a PlanDoc plus the honest cost / nutrition summaries (unknown stays unknown, never 0).
-import { summariseVariety, summariseWeek, type PlannedMealNutrition, type VarietySummary, type WeeklyNutritionSummary } from '@fr/engine/nutrition';
+import { goalHints, summariseGoals, summariseVariety, summariseWeek, type GoalCandidate, type GoalHint, type GoalId, type GoalMeal, type GoalsSummary, type PlannedMealNutrition, type VarietySummary, type WeeklyNutritionSummary } from '@fr/engine/nutrition';
 import { addDays } from './dates';
 import type { MealType, PlanDoc, PlanEntry, RecipeLite, SlotRef } from './types';
 
@@ -187,4 +187,49 @@ export function cookedVariety(cooked: readonly { date: string; recipeId: string 
   if (cooked.length === 0) return null;
   const meals = cooked.map((c, i) => ({ id: `c${i}`, date: c.date, variety: recipes.get(c.recipeId)?.variety ?? null }));
   return { summary: summariseVariety(meals), meals: meals.length };
+}
+
+// ---- my nutrition goals this week (P3-B, D433): the signed-in person's own goals, the same engine summary as the web planner ----
+export interface MyGoalsView {
+  goals: GoalId[];
+  portionShare: number;
+}
+export interface WeekGoals {
+  summary: GoalsSummary;
+  hints: GoalHint[];
+  meals: number;
+}
+
+const goalMeal = (id: string, date: string, mealType: GoalMeal['mealType'], r: RecipeLite | undefined, recipeId: string): GoalMeal => ({
+  id, recipeId, date, mealType, ...(r ? { title: r.title } : {}),
+  perServing: r?.nutritionPerServing ?? null, variety: r?.variety ?? null, goals: r?.goals ?? null,
+});
+
+/** Saved recipes that could be suggested in a swap: no household exclusion hit, with the meal types they suit. */
+export function swapCandidates(recipes: ReadonlyMap<string, RecipeLite>): GoalCandidate[] {
+  return [...recipes.values()]
+    .filter((r) => r.excludedBy.length === 0)
+    .map((r) => ({ recipeId: r.id, title: r.title, mealTypes: r.mealTypes, perServing: r.nutritionPerServing ?? null, variety: r.variety ?? null, goals: r.goals ?? null }));
+}
+
+function buildGoals(my: MyGoalsView, meals: GoalMeal[], recipes: ReadonlyMap<string, RecipeLite>, hints: boolean): WeekGoals | null {
+  if (my.goals.length === 0) return null;
+  const summary = summariseGoals(my.goals, meals, { portionShare: my.portionShare });
+  return { summary, meals: meals.length, hints: hints ? goalHints(summary.progress, meals, swapCandidates(recipes)) : [] };
+}
+
+export function weekGoals(my: MyGoalsView | null | undefined, doc: PlanDoc, recipes: ReadonlyMap<string, RecipeLite>): WeekGoals | null {
+  if (!my) return null;
+  const meals: GoalMeal[] = [];
+  for (const [key, e] of Object.entries(doc.entries)) {
+    if (e.kind !== 'recipe') continue;
+    const slot = parseKey(key);
+    meals.push(goalMeal(key, slot.date, slot.mealType, recipes.get(e.recipeId), e.recipeId));
+  }
+  return buildGoals(my, meals, recipes, true);
+}
+
+export function cookedGoals(my: MyGoalsView | null | undefined, cooked: readonly { date: string; recipeId: string }[], recipes: ReadonlyMap<string, RecipeLite>): WeekGoals | null {
+  if (!my || cooked.length === 0) return null;
+  return buildGoals(my, cooked.map((c, i) => goalMeal(`c${i}`, c.date, 'dinner', recipes.get(c.recipeId), c.recipeId)), recipes, false);
 }

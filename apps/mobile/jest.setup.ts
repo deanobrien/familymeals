@@ -123,3 +123,17 @@ jest.mock('expo-speech-recognition', () => {
     },
   };
 });
+
+// expo-secure-store (Android keystore): an in-memory stand-in with the real key rules (P3-A: the kids' mode PIN gate keeps its
+// record here). Real keystore behaviour is a device check (docs/ROADMAP.md, P3-A).
+jest.mock('expo-secure-store', () => {
+  const data = new Map<string, string>();
+  const ok = (k: string) => {
+    if (!/^[A-Za-z0-9._-]+$/.test(k)) throw new Error('Invalid key provided to SecureStore');
+  };
+  return {
+    getItemAsync: jest.fn(async (k: string) => { ok(k); return data.get(k) ?? null; }),
+    setItemAsync: jest.fn(async (k: string, v: string) => { ok(k); data.set(k, v); }),
+    deleteItemAsync: jest.fn(async (k: string) => { ok(k); data.delete(k); }),
+  };
+});

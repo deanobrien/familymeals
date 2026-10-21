@@ -206,6 +206,8 @@ export interface PgliteSupabase {
   db: PGlite;
   /** Become this member (an `authenticated` JWT sub), or `null` for the superuser/service role. */
   actAs(userId: string | null): Promise<void>;
+  /** Become the `anon` role (a signed-out visitor). */
+  actAsAnon(): Promise<void>;
   /** Superuser SQL (fixtures). */
   admin(sql: string): Promise<void>;
   close(): Promise<void>;
@@ -252,6 +254,11 @@ export async function createPgliteSupabase(): Promise<PgliteSupabase> {
   return {
     client,
     db,
+    actAsAnon: async () => {
+      await db.exec('reset role');
+      await db.query(`select set_config('request.jwt.claims', $1, false)`, [JSON.stringify({ role: 'anon' })]);
+      await db.exec('set role anon');
+    },
     admin: async (sql) => {
       await db.exec('reset role');
       await db.exec(sql);

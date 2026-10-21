@@ -870,6 +870,89 @@ export type Database = {
           },
         ];
       };
+      nutrition_goal_profiles: {
+        Row: {
+          adult_confirmed_at: string;
+          created_at: string;
+          household_id: string;
+          nudge_plan: boolean;
+          portion_share: number;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          adult_confirmed_at: string;
+          created_at?: string;
+          household_id: string;
+          nudge_plan?: boolean;
+          portion_share?: number;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          adult_confirmed_at?: string;
+          created_at?: string;
+          household_id?: string;
+          nudge_plan?: boolean;
+          portion_share?: number;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'nutrition_goal_profiles_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'nutrition_goal_profiles_household_id_user_id_fkey';
+            columns: ['household_id', 'user_id'];
+            isOneToOne: true;
+            referencedRelation: 'household_members';
+            referencedColumns: ['household_id', 'user_id'];
+          },
+        ];
+      };
+      nutrition_goals: {
+        Row: {
+          created_at: string;
+          goal: string;
+          household_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          goal: string;
+          household_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          goal?: string;
+          household_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'nutrition_goals_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'nutrition_goals_household_id_user_id_fkey';
+            columns: ['household_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'nutrition_goal_profiles';
+            referencedColumns: ['household_id', 'user_id'];
+          },
+        ];
+      };
       meal_plans: {
         Row: {
           approved_at: string | null;
@@ -3146,6 +3229,7 @@ export type Database = {
       metric_base_factor: { Args: { u: Database['public']['Enums']['unit'] }; Returns: number };
       my_account_deletion: { Args: Record<PropertyKey, never>; Returns: string };
       notification_type_is_valid: { Args: { p_type: string }; Returns: boolean };
+      planner_goal_nudge: { Args: { p_household_id: string }; Returns: string[] };
       planner_household_profile: { Args: { p_household_id: string }; Returns: Json };
       purge_household: { Args: { p_household_id: string }; Returns: undefined };
       quantity_is_valid: {
@@ -3202,6 +3286,11 @@ export type Database = {
       save_household_ai_settings: {
         Args: { p_config: Json; p_household_id: string; p_keys: Json; p_provider: string };
         Returns: undefined;
+      };
+      has_nutrition_goals_consent: { Args: { p_household_id: string }; Returns: boolean };
+      set_nutrition_goals: {
+        Args: { p_adult_confirmed: boolean; p_goals: string[]; p_household_id: string; p_nudge_plan: boolean; p_portion_share: number };
+        Returns: number;
       };
       set_member_dislikes: {
         Args: { p_household_id: string; p_member_user_id: string; p_terms: string[] };
@@ -3310,7 +3399,7 @@ export type Database = {
         | 'soya'
         | 'sulphites'
         | 'tree_nuts';
-      consent_type: 'allergy_data' | 'dietary_restrictions';
+      consent_type: 'allergy_data' | 'dietary_restrictions' | 'nutrition_goals';
       deletion_subject: 'household' | 'member' | 'account';
       diet_category: 'meat' | 'fish' | 'vegetarian' | 'vegan';
       dimension: 'mass' | 'volume' | 'count';
@@ -3504,7 +3593,7 @@ export const Constants = {
         'sulphites',
         'tree_nuts',
       ],
-      consent_type: ['allergy_data', 'dietary_restrictions'],
+      consent_type: ['allergy_data', 'dietary_restrictions', 'nutrition_goals'],
       deletion_subject: ['household', 'member', 'account'],
       diet_category: ['meat', 'fish', 'vegetarian', 'vegan'],
       dimension: ['mass', 'volume', 'count'],
