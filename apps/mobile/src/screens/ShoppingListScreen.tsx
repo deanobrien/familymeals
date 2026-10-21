@@ -81,7 +81,6 @@ export default function ShoppingListScreen() {
       fetchListCompare(api, householdId).then((c) => { if (live) setCompare(c); }, () => undefined);
     }, 500);
     return () => { live = false; clearTimeout(timer); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api, householdId, online, itemSig, syncVersion]);
 
   // Resync from the command-log cursor whenever the app returns to the foreground.

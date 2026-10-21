@@ -118,7 +118,7 @@ describe('spending service', () => {
 describe('price service', () => {
   const ingredients: CanonicalIngredient[] = [
     { id: ING, name: 'Basmati rice', category: 'pasta_rice_grains', aliases: [] },
-    { id: MILK, name: 'Milk', category: 'dairy_eggs', aliases: [], densityGPerMl: 1.03 },
+    { id: MILK, name: 'Milk', category: 'dairy_eggs', aliases: [], densityGPerMl: { value: 1.03, source: 'test' } },
   ];
   const obs = (o: Partial<PriceObservation> & { pricePence: number; packQuantity: Quantity }): PriceObservation =>
     ({ ingredientId: ING, kind: 'receipt', observedOn: '2026-10-15', source: `r:${Math.random()}`, retailer: 'ALDI', ...o });

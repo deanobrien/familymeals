@@ -78,7 +78,7 @@ test.describe('price comparison per shop', () => {
       context.request.post('/api/money/prices', { data: { action: 'add', ingredientId: rice.id, retailer, pricePence, packValue, packUnit, observedOn } });
     expect((await price('ALDI', 150, 500, 'g', daysAgo(3))).status()).toBe(200); // £3.00 per kg
     // one shop only: nothing to compare yet
-    let hist = await context.request.get(`/api/money/prices?ingredientId=${rice.id}`);
+    const hist = await context.request.get(`/api/money/prices?ingredientId=${rice.id}`);
     expect(((await hist.json()) as { view: { comparison: { badge: string | null } } }).view.comparison.badge).toBeNull();
     expect((await price('LIDL', 230, 1, 'kg', daysAgo(5))).status()).toBe(200); // £2.30 per kg
     expect((await price('Tesco', 90, 250, 'g', daysAgo(200))).status()).toBe(200); // old: shown but never ranked
