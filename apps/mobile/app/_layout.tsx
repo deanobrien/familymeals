@@ -43,6 +43,8 @@ function Navigator() {
       <Stack.Screen name="notification-settings" options={{ title: 'Notification settings' }} />
       <Stack.Screen name="calendar-settings" options={{ title: "Calendar" }} />
       <Stack.Screen name="location-settings" options={{ title: 'Location' }} />
+      <Stack.Screen name="scan-for-computer" options={{ title: 'Scan for a computer' }} />
+      <Stack.Screen name="scan/phone" options={{ title: 'Scan for a computer' }} />
     </Stack>
   );
 }

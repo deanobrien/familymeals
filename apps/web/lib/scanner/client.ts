@@ -1,6 +1,6 @@
 // Browser-side calls for the signed-in desktop user (cookie session), and for the phone page (no session; session id + token).
 import {
-  SCANNER_ERROR_MESSAGE, type ScannerErrorCode, type ScannerItem, type ScannerPurpose, type ScannerSessionView,
+  SCANNER_ERROR_MESSAGE, type PhoneCred, type PushBody, type ScannerErrorCode, type ScannerItem, type ScannerPurpose, type ScannerSessionView,
 } from '@fr/engine/scanner';
 
 export interface Failure { ok: false; code: ScannerErrorCode; message: string; status: number }
@@ -54,10 +54,10 @@ export async function fetchScannerPhoto(id: string, itemId: string): Promise<Blo
 }
 
 // ---- phone (public routes) ----
-export interface PhoneCred { sessionId: string; token: string; device: string }
+export type { PhoneCred };
 
 export const phoneConnect = (c: PhoneCred) =>
   call<{ purpose: ScannerPurpose; expiresAt: string; itemCount: number }>('/api/scanner/phone/connect', { method: 'POST', body: JSON.stringify(c) });
 
-export const phonePush = (c: PhoneCred, push: { clientId: string } & ({ kind: 'barcode'; barcode: string; count?: number } | { kind: 'photo'; photo: string; mime: string })) =>
+export const phonePush = (c: PhoneCred, push: PushBody) =>
   call<{ duplicate: boolean; itemCount: number }>('/api/scanner/phone/push', { method: 'POST', body: JSON.stringify({ ...c, ...push }) });

@@ -1,11 +1,20 @@
 // The phone side of "use my phone as the scanner" (P3-C, D447): connect with the QR code's credentials, then push barcodes and photos
-// through a small retrying queue. Framework-free so it is unit-tested with a fake transport; the page and nothing else holds a camera.
-import { FATAL_PUSH_ERRORS, SCANNER_ERROR_MESSAGE, type ScannerErrorCode, type ScannerPurpose } from '@fr/engine/scanner';
-import type { PhoneCred, Result } from './client';
+// through a small retrying queue. Pure and shared: the web phone page and the Android app both drive it with their own transport
+// (fetch), so the retry / fatal-error / idempotency rules are the same and tested once.
+import { FATAL_PUSH_ERRORS, SCANNER_ERROR_MESSAGE, type ScannerErrorCode, type ScannerPurpose } from './session';
+
+/** What a phone presents: the session id and token from the QR code, and this phone's own id (the first phone to connect claims the session). */
+export interface PhoneCred {
+  sessionId: string;
+  token: string;
+  device: string;
+}
+
+export type SenderResult<T> = ({ ok: true } & T) | { ok: false; code: ScannerErrorCode; message: string };
 
 export interface PhoneTransport {
-  connect(c: PhoneCred): Promise<Result<{ purpose: ScannerPurpose; expiresAt: string; itemCount: number }>>;
-  push(c: PhoneCred, p: PushBody): Promise<Result<{ duplicate: boolean; itemCount: number }>>;
+  connect(c: PhoneCred): Promise<SenderResult<{ purpose: ScannerPurpose; expiresAt: string; itemCount: number }>>;
+  push(c: PhoneCred, p: PushBody): Promise<SenderResult<{ duplicate: boolean; itemCount: number }>>;
 }
 
 export type PushBody = { clientId: string } & ({ kind: 'barcode'; barcode: string; count?: number } | { kind: 'photo'; photo: string; mime: string });

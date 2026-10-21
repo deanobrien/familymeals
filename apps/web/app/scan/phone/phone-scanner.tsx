@@ -2,15 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { emptyRapid, normaliseRetailCode, sight, type RapidState } from '@fr/engine/pantry';
-import { MAX_PHOTO_BYTES, formatCountdown, isSessionId, isToken, secondsLeft } from '@fr/engine/scanner';
+import { MAX_PHOTO_BYTES, PhoneSender, formatCountdown, isSessionId, isToken, secondsLeft, type PhoneCred, type PhoneState } from '@fr/engine/scanner';
 import { Button, Input } from '@fr/ui';
 import { downscaleImage } from '../../../lib/images/downscale';
 import { CAMERA_MESSAGES, classifyCameraError, openRearCamera, type CameraSession } from '../../../lib/products/camera';
 import { createDecoder, type FrameDecoder } from '../../../lib/products/decoder';
 import { createScanFeedback, createScreenWake, type ScanFeedback, type ScreenWake } from '../../../lib/products/scan-feedback';
 import { ROI_HEIGHT, ROI_WIDTH, startFrameLoop, type DrawCanvas } from '../../../lib/products/scan-loop';
-import { phoneConnect, phonePush, type PhoneCred } from '../../../lib/scanner/client';
-import { PhoneSender, type PhoneState } from '../../../lib/scanner/phone-sender';
+import { phoneConnect, phonePush } from '../../../lib/scanner/client';
 import s from '../../pantry/scan/scan.module.css';
 import p from './phone-scanner.module.css';
 

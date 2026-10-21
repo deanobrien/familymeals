@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { PhoneSender, type PhoneTransport, type PushBody } from './phone-sender';
-import type { Failure, PhoneCred } from './client';
+import { PhoneSender, type PhoneCred, type PhoneTransport, type PushBody, type SenderResult } from '../../src/scanner';
+
+type Failure = Extract<SenderResult<object>, { ok: false }>;
 
 const CRED: PhoneCred = { sessionId: '3f2b8c1e-9a4d-4e6b-8c7f-0a1b2c3d4e5f', token: 'abcdefghijklmnopqrstuvwxyz0123456789_-ABCDE', device: 'device-one-0123456789' };
-const fail = (code: Failure['code']): Failure => ({ ok: false, code, message: code, status: 0 });
+const fail = (code: Failure['code']): Failure => ({ ok: false, code, message: code });
 
 function fake(script: Array<'ok' | Failure['code']> = []) {
   const pushed: PushBody[] = [];
