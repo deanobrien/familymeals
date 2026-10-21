@@ -3,7 +3,7 @@
     "name": "Family Recipes",
     "slug": "family-recipes",
     "scheme": "familyrecipes",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -58,6 +58,24 @@
         }
       ],
       [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "ShoppingList",
+              "label": "Shopping list",
+              "description": "Items still to buy, in shop order. Tap an item to tick it.",
+              "minWidth": "250dp",
+              "minHeight": "180dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 3,
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 1800000
+            }
+          ]
+        }
+      ],
+      [
         "expo-calendar",
         {
           "calendarPermission": "Allow Family Recipes to look at whether you are free in the evening, so the planner can pick quick meals on busy days. Only busy or free is used; event titles are never read or sent."
@@ -66,7 +84,7 @@
     ],
     "android": {
       "package": "uk.ac.northumbria.familyrecipes",
-      "versionCode": 3,
+      "versionCode": 4,
       "allowBackup": false,
       "intentFilters": [
         {

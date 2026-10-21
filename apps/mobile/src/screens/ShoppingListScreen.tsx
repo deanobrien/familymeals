@@ -4,6 +4,7 @@ import { useApp } from '@/data/AppContext';
 import type { ShoppingListState } from '@/data/DataSource';
 import { formatQuantity } from '@/lib/format';
 import { orderable, placementTarget } from '@/lib/storeBook';
+import { refreshShoppingWidget } from '@/widget/widgetBridge';
 import { emptyStoreBook, orderForStore, resolveAisle, sortedAisles, type StoreBook } from '@fr/engine/shopping';
 import { useServerApi } from '@/data/ServerApiContext';
 import { useRouter } from 'expo-router';
@@ -54,6 +55,7 @@ export default function ShoppingListScreen() {
       setError(e instanceof Error ? e.message : 'Could not load shopping list');
     }
     drainConflicts();
+    void refreshShoppingWidget(); // keep the home-screen widget in step with what this screen just read (D441)
     if (ds.getStoreBook) {
       try {
         const b = await ds.getStoreBook(householdId);

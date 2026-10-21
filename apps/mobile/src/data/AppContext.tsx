@@ -6,6 +6,7 @@ import { createDataSource } from './createDataSource';
 import { createMockRecipesApi } from '@/lib/mockRecipesApi';
 import { createRecipesApi, type RecipesApi } from '@/lib/recipesApi';
 import { isSupabaseConfigured } from '@/lib/supabase';
+import { registerActiveSource, setWidgetHousehold } from '@/widget/widgetBridge';
 
 interface AppState {
   ds: DataSource;
@@ -63,6 +64,16 @@ export function AppProvider({
     });
     return unsubscribe;
   }, [ds, net]);
+
+  // Home-screen widget (P3-C, D441): while the app runs, the widget shares THIS data source (one queue, no racing writers);
+  // it also learns which household is on screen, and redraws after every household change / reconnect replay.
+  useEffect(() => {
+    registerActiveSource(ds);
+    return () => registerActiveSource(null);
+  }, [ds]);
+  useEffect(() => {
+    if (householdId) void setWidgetHousehold(householdId);
+  }, [householdId, syncVersion]);
 
   const value = useMemo(
     () => ({ ds, recipes, householdId, setHouseholdId, online, syncVersion }),

@@ -5,6 +5,7 @@ import { useApp } from '@/data/AppContext';
 import type { CreatedInvitation, HouseholdRole, MemberSummary, PendingInvitation } from '@/data/accountSource';
 import { messageOf } from '@/lib/accountErrors';
 import { isEmail } from '@/lib/accountForms';
+import { clearShoppingWidget } from '@/widget/widgetBridge';
 import { Button, ErrorText, Loading, Muted, Text, useStyles } from './ui';
 import { Card, Field, NoHousehold, Notice, ReadOnlyBanner, Row, Segmented, SectionTitle, confirm, useActiveHousehold, useAction } from './account/parts';
 
@@ -92,6 +93,7 @@ export default function HouseholdScreen() {
       return true;
     });
     if (ok) {
+      void clearShoppingWidget(); // the widget was showing the household just left
       setHouseholdId(null);
       router.replace('/households');
     }

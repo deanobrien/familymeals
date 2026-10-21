@@ -3,6 +3,7 @@ import { ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useApp } from '@/data/AppContext';
 import { formatDate } from '@/lib/accountForms';
+import { clearShoppingWidget } from '@/widget/widgetBridge';
 import { Button, ErrorText, Loading, Muted, Text, useStyles } from './ui';
 import { Field, Notice, useAction, useActiveHousehold } from './account/parts';
 import { useLifecycle } from './account/useLifecycle';
@@ -31,6 +32,7 @@ export default function DeleteAccountScreen() {
     setPassword('');
     if (res.signedOut) {
       // Nothing left to wait for: the session is ended; the next clean-up run deletes the account.
+      void clearShoppingWidget();
       setHouseholdId(null);
       router.replace('/sign-in?deleted=1');
       return;

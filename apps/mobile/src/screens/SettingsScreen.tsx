@@ -5,6 +5,7 @@ import { useApp } from '@/data/AppContext';
 import type { AccountSettings, HouseholdSummary } from '@/data/accountSource';
 import { messageOf } from '@/lib/accountErrors';
 import { eraseGeoData } from '@/lib/geofence';
+import { clearShoppingWidget } from '@/widget/widgetBridge';
 import { MAX_EXCLUSIONS, parseExclusionTag, parsePreferences } from '@/lib/accountForms';
 import { DEFAULT_DEVICE_PREFS, loadDevicePrefs, saveDevicePrefs, type DevicePrefs } from '@/lib/devicePrefs';
 import {
@@ -48,6 +49,7 @@ export default function SettingsScreen() {
 
   async function signOut() {
     await eraseGeoData(); // location prefs, fences and arrival memory never outlive the account on this phone
+    await clearShoppingWidget(); // the home-screen widget must not keep showing the list after sign-out (D443)
     await ds.signOut();
     setHouseholdId(null);
     router.replace('/sign-in');
