@@ -1217,3 +1217,43 @@ Web: Settings > Health goals (consent text, adult box, goals with NHS references
 ## D439 What was verified and what was not (P3-B)
 
 Verified by running: engine unit tests (portion share, coverage, partial weeks, classification, hints, fit, nudge in the solver), PGlite RLS script and the web contract test against the real migrations (consent gating at the database, own-rows-only incl. the owner, withdrawal and leaving delete, anonymous planner ids, grace-period read-only), web service/route/planner tests (consent gating, no AI leakage, soft nudge), mobile jest, and targeted Playwright (consent, goals, planner panel, withdraw). Not verified: the hosted Supabase project, a phone, real-household usefulness of the thresholds (75% / 125% and the meal-share convention are judgement calls, labelled as such), the classification on real-world ingredient names beyond the catalogue categories, and a legal review of the consent wording and DPIA (owner / DPO). Owner step: push migrations `20261021003100` and `20261021003110`; no new native module, so no new EAS build is needed for this lane.
+
+## D420 Shared family cookbook: a link, not a feature flag (P3-A)
+
+A household shares one recipe or a named collection (favourites, quick, budget, vegetarian: resolved on the server to up to 50 recipes at that moment) with another household by a link `/s/<token>` (Android: `familyrecipes://s/<token>` and the https App Link path prefix `/s/`). Any writable member creates and any writable member can switch it off; optional expiry (7, 30, 90 days or none, max 365). Migration `20261021003000`. Web: a "Share this recipe" panel on the recipe page and `/recipes/shared`; Android: the same on the recipe screen and Shared recipes (More), with the system share sheet.
+
+## D421 What a share exposes, and how a copy is made (P3-A)
+
+Only a whitelisted view built field by field (`share_recipe_doc` in SQL, the same mapping in the memory store): title, description, times, servings, cuisine, tags, ingredient lines, steps, the cover photo and the ORIGINAL source attribution. Never notes, ratings, favourites, cooking history, versions or original page photos, nor any household or user id. "Save a copy" builds the recipient's recipe from exactly that view through the normal save path (ingredient linking included), credits the sharer ("Shared by Alice's household. Originally: ..."), copies the cover into the recipient's own storage (a new object; best effort, a recipe without its photo beats none) and records `recipes.source_share_id`. A household cannot save its own link.
+
+## D422 Tokens, enumeration and rate limits (P3-A)
+
+The token is 64 hex characters (two v4 UUIDs, ~244 bits), shown once; only sha256 is stored (like invitations). Every unknown, malformed, expired or revoked token answers the same (`NULL` from the RPC, `{kind:'invalid'}` from the service, one generic page / message), so nothing can be probed. Lookups are limited in process (60 per minute per user or address, 10 failed lookups per 10 minutes, 30 saves per hour, 30 links per hour); a second App Service instance would only double the allowance, and the token entropy is the real defence. Per-household cap of 200 active links.
+
+## D423 Signed-out visitors and photos (P3-A)
+
+Signed out, a link shows a minimal preview (title, "Shared by X's household", how many recipes) and a sign-in prompt that returns to the link (Android keeps it for an hour, like invitations). The sharer can tick "readable without signing in" (off by default): then the recipes show as text only, with no recipient row and no photos, because Storage stays private. Photos reach a signed-in recipient through a storage policy (`share_image_visible`) that allows only the cover objects of a LIVE share the person opened, and through `/api/shares/<token>/image/<recipeId>` (a 2-minute signed URL minted by the caller's own client). No service-role key is involved (D100). Revoking or expiry closes it at once.
+
+## D424 Deletion, export and the sharer's view (P3-A)
+
+A household entering its deletion grace period revokes every share; a member leaving revokes the shares they made (triggers); deleting a household or account removes the rows. The sharer sees counts only (opened by N, saved M), never who. Data export adds `sharing.json` (links this household made with their recipes, the links this person opened; the token hash is dropped by the secret-column rule) and `kids.json`; a saved copy carries `source_share_id` in `recipes.json`.
+
+## D425 Kids' mode: profiles without a login (P3-A)
+
+`kid_profiles` hold a first name or nickname (1-24 characters, no email / link / long numbers), an emoji from a fixed palette and a colour: nothing else exists as a column (a test lists the columns). At most 8 per household. Kids vote through a parent's signed-in app, never with their own session. Migration `20261021003010`.
+
+## D426 Rounds and votes (P3-A)
+
+A parent opens a round for a day or a week with 3 to 6 different recipes (from the planner week or chosen by hand), optional closing time (within 14 days). Votes are thumbs-up (1) or heart (2), one per voter per recipe, replaceable and removable, written through `cast_dinner_vote` (member as themselves, or on behalf of a kid of the same household). A round is open until closed by hand or its closing time passes; the time is the truth, nothing has to run to close it, and a closed round is final. At most 5 open rounds.
+
+## D427 Kids' screen and the parent PIN (P3-A)
+
+`/kids/play` (web, no app navigation) and `kids-play` (Android, headerless, gestures off, hardware Back swallowed) show big pictures with two big buttons and no text input at all. The only way out is the parent PIN: 4-6 digits, kept ON THE DEVICE ONLY (browser localStorage; Android secure storage) as a salted, iterated SHA-256 with a lock-out (3 free guesses, then 30 seconds doubling to 15 minutes, surviving a restart, not extended while locked). `DevicePinGate` and the pure hash live in `@fr/engine/kids` and are unit-tested. The PIN is a speed bump for a child, not a security boundary against someone holding the unlocked device; a web page cannot lock the browser itself (Back is held best effort), which is why the Android screen goes further.
+
+## D428 Results feed the planner softly (P3-A)
+
+A CLOSED round overlapping the plan's dates gives the planner its liked recipes (best score first) through a new orchestrator dependency `votes`: they become the favourites of one extra pseudo-member "Family vote", so the existing soft favourite weight applies and allergies, exclusions, budget and variety still win (tests: an open round changes nothing, a closed one pulls the recipe in, an excluded ingredient still wins).
+
+## D429 Kids and health goals; parity; what was verified (P3-A)
+
+Kid profiles have no account, so they can never hold health goals (P3-B): `goalsCallerForKid` always marks them `isChild`, the goals service refuses them everything, and kids' screens show no goals or consent prompt (test). Parity: every part ships on web and Android; the differences are that the share sheet is the system sheet on Android and a copy button (plus the browser share sheet where offered) on the web, and full-screen lock is stronger on Android. No native module was added (expo-secure-store was already installed), so the app stays 0.3.0 / versionCode 3; the new App Link path `/s/` needs a new build to take effect. Verified by running: engine kids tests (18), PGlite RLS `014_p3a_sharing_kids.sql`, PGlite contract tests for both stores, memory-mode service and route tests, jest (lib 8, screens 17), Playwright `p3a-sharing-kids.spec.ts` (6, two households and the kids' flow). Not verified: a phone (share sheet, App Link, full-screen, secure storage), Storage policy against real Supabase Storage, signed-out reading in a browser against real Supabase.

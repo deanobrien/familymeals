@@ -47,6 +47,18 @@ export default function PrivacyPage() {
           permission first. We use it only to filter your meal plans and warn you about conflicts.
         </li>
         <li>
+          <em>Shared recipes (only if you choose):</em> a link you make lets another household read the recipes you picked and
+          save their own copy. It shares only the recipe itself (title, ingredients, steps, photo and where it came from), never
+          your notes, ratings or cooking history. You can switch a link off at any time, it can expire, and it stops working if
+          the household is deleted or you leave. You see how many people opened or saved it, never who. Signed-out reading is
+          off unless you tick it, and then shows text only.
+        </li>
+        <li>
+          <em>Kids&apos; mode (only if you choose):</em> a kid profile is a first name or nickname, a picture and a colour. It
+          has no login, no email and no photo. Kids vote on dinner through a parent&apos;s signed-in device; the parent PIN is
+          kept on that device only.
+        </li>
+        <li>
           <em>Nutrition goals (only if you choose):</em> simple weekly goals such as more fibre or less salt, your usual
           portion, and whether you want meal plans to favour them. This is health-related information, so we ask your
           explicit permission first, separately from allergies. Only you can see it: not other household members and not

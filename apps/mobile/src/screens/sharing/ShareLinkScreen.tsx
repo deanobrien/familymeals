@@ -68,7 +68,7 @@ function RecipeCard({ r, api, canSave, saving, saved, onSave, onOpen }: {
  */
 export function ShareLinkBody({ token, client: injected }: { token: string; client?: SharingClient }) {
   const api = useServerApi();
-  const { householdId, ds } = useApp();
+  const { householdId } = useApp();
   const router = useRouter();
   const styles = useStyles();
   const client = useMemo(() => injected ?? createSharingClient(api, householdId), [injected, api, householdId]);

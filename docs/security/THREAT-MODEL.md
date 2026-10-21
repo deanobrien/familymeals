@@ -101,6 +101,20 @@ Images are untrusted input: a photo may contain text such as "ignore instruction
 | X6 | Deleted data reappears after a backup restore | I | Deletion ledger replay in every job run + OPS-RUNBOOK restore steps | PGlite 011, live spec (restored household purged again) |
 | X7 | Owner shortens the grace to wipe others' data instantly | T | `request_household_deletion` clamps end-user grace to >= 14 days | PGlite 011 |
 
+### 2.10 Share links and kids' mode (P3-A, D420-D429)
+
+| Threat | Mitigation | Test |
+|---|---|---|
+| Guessing or enumerating tokens | ~244-bit token, sha256 stored, one generic answer for unknown / expired / revoked / malformed, in-process rate limits (lookups, failures, saves, creates) | sharing.server.test.ts, outes.test.ts, RLS  14_p3a_sharing_kids.sql |
+| Cross-household read except via a valid share | no direct table access for other households; SECURITY DEFINER RPCs return a field-by-field whitelist; recipients see only their own opener row | RLS file, sharing.pglite.test.ts |
+| Private data in a share or copy (notes, ratings, favourites, history, ids, original photos) | whitelist view; copy built from that view only | server, PGlite and route tests assert absence |
+| Photo access after revoke / expiry or outside the share | storage policy share_image_visible checks a LIVE share the person opened and the cover path; signed URL from the caller's client, 2 minutes; no service role | RLS file (storage objects) |
+| Link leaking through Referer or search | 
+oindex, eferrer: no-referrer, token only in the path, never logged | page metadata |
+| Stale links after deletion | triggers revoke on household pending_deletion and member exit | RLS file |
+| Child bypassing kids' mode | device-local salted hash PIN, lock-out that doubles and persists, Android Back / gestures blocked; web holds Back best effort. Residual: someone holding the unlocked device can use the parent session anyway | kids.test.ts, jest kid screen tests, Playwright |
+| Personal data about children | profile = name, emoji, colour only; goals / consent refused for kid profiles | kids.server.test.ts, PGlite column list |
+
 ## 3. Priority order (risk x effort)
 1. R3/R2 (RLS completeness and IDOR) — automated matrix tests in `tests/rls/` are release-blocking.
 2. P1-P5 (AI input/output containment, caps).

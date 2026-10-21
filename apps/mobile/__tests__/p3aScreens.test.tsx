@@ -245,7 +245,7 @@ describe('kids\' mode (parent side)', () => {
 
 describe('kids\' voting screen', () => {
   const play = (over: { data?: KidsData; client?: KidsClient; gate?: DevicePinGate } = {}) => {
-    const client = over.client ?? kidsClient(over.data ?? kidsData());
+    const client = (over.client as ReturnType<typeof kidsClient> | undefined) ?? kidsClient(over.data ?? kidsData());
     const gate = over.gate ?? memoryGate();
     return { client, gate, ui: <KidPlayBody api={API} householdId={HH} roundId="rd1" client={client} gate={gate} /> };
   };
